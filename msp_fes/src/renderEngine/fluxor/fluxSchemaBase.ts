@@ -1,20 +1,15 @@
-const fluxorSchemaInfo: Record<string, any> = {}
+import type { FluxorProps } from "./fluxorProps";
+
+const fluxorSchemaInfo: Record<string, FluxorProps | string> = {}
 
 export function fluxAttribute(
-  name: string,
-  preferredComponent: string,
-  defaultValue: any = null,
-  label: string = ''
+  fluxorProps: FluxorProps
 ) {
   return function (_target: any, propertyKey: any) {
     const key = `${name}.${propertyKey}`
     if (!fluxorSchemaInfo[key]) {
       fluxorSchemaInfo[key] = {
-        propertyKey,
-        name,
-        preferredComponent,
-        defaultValue,
-        label,
+        ...fluxorProps
       };
     }
   }
@@ -39,17 +34,21 @@ function getFluxorSchemaProps(target: any, key: string) {
   return schemaProps;
 }
 
-export function Attributes<T>(type: { new(): T;} ): T {
+export function Attributes<T>(type: { new(): T; }): T {
   return (new type() as any)['~getNames']()
-} 
+}
 
-export function ObjectName<T>(type: { new(): T;} ): T {
+export function ObjectName<T>(type: { new(): T; }): T {
   return (new type() as any)['~getObjectName']()
-} 
+}
 
 export class fluxorSchemaBase {
 
-  static get myStatic() { return this}
+  static get myStatic() { return this }
+
+  '~isFluxorSchema'() {
+    return true;
+  }
 
   '~getNames'() {
     // this is a cheeky misuse of the underlying Javascript
@@ -69,24 +68,18 @@ export class fluxorSchemaBase {
   '~getSchema'() {
     const fluxorSchema = {
       name: fluxorSchemaInfo[`${this.constructor.name}.__objectName`],
-      entity: {
-        source: 'fluxor',
-        attributes: Object.keys(this).map((key) => {
-          const prop = getFluxorSchemaProps(this, key);
-          if (!prop) {
-            return ({
-              name: key,
-              preferredComponent: prop.preferredComponent,
-              description: prop.schemaProps?.description,
-              defaultValue: prop.schemaProps?.defaultValue
-            })
-          } else {
-            return ({
-              name: key
-            })
-          }
-        })
-      }
+      source: 'fluxor',
+      attributes: Object.keys(this).map((key) => {
+        const prop = getFluxorSchemaProps(this, key);
+        if (prop) {
+          return prop
+        } else {
+          return ({
+            name: key
+          })
+        }
+      })
+
     }
     return fluxorSchema;
   }

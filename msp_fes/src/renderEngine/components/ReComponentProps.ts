@@ -6,6 +6,8 @@ export type ReComponentProps = {
   label?: string;
   decorators?: any[];
   componentName?: string;
+  dataSource?: any;
+  
 }
 
 export type ReComponentDataFunctionContext = {

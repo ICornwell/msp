@@ -1,5 +1,5 @@
 import { Button, Typography } from "@mui/material";
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 
 export default function TextInput(props: {
   label: string;
@@ -9,10 +9,10 @@ export default function TextInput(props: {
   helperText?: string;
   disabled?: boolean;
 }) {
-  const { label, value, type, error, helperText, disabled } = props;
+  const { label, value, disabled } = props; // _type, _error, _helperText
 
-  const [inputValue, setInputValue] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [_inputValue, setInputValue] = useState(value);
+  // const _inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setInputValue(value);

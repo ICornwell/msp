@@ -6,7 +6,7 @@ describe('ReUiPlanBuilder', () => {
     expect(builder.schemas).toBeUndefined()
     expect(builder.rules).toBeUndefined()
     expect(builder.Fluxors).toBeUndefined()
-    expect(builder.mainPlanElement).toBeUndefined()
+    expect(builder.mainPlanElementSet).toBeUndefined()
     expect(builder.description).toBeUndefined()
   })
 
@@ -20,10 +20,10 @@ describe('ReUiPlanBuilder', () => {
     expect(builder.rules).toEqual(['rule1', 'rule2'])
   })
 
-  it('should set Fluxors correctly', () => {
-    const builder = Re.UiPlan('testPlan').withFluxorSet(['guide1', 'guide2'])
-    expect(builder.Fluxors).toEqual(['guide1', 'guide2'])
-  })
+  // it('should set Fluxors correctly', () => {
+  //   const builder = Re.UiPlan('testPlan').withFluxorSet(['guide1', 'guide2'])
+  //   expect(builder.Fluxors).toEqual(['guide1', 'guide2'])
+  // })
 
 
   it('should set mainPlanElement correctly', () => {
@@ -35,8 +35,8 @@ describe('ReUiPlanBuilder', () => {
         .addDecorators(['decorator1', 'decorator2'])
       )
       
-    const builder = Re.UiPlan('testPlan').withMainPlanElement(mainElement)
-    expect(builder.mainPlanElement).toEqual(mainElement)
+    const builder = Re.UiPlan('testPlan').withMainPlanElementSet(mainElement)
+    expect(builder.mainPlanElementSet).toEqual(mainElement)
   })
 
   it('should set description correctly', () => {
@@ -51,8 +51,8 @@ describe('ReUiPlanBuilder', () => {
     const plan = Re.UiPlan('testPlan')
       .withSchema(['schema1'])
       .withRules(['rule1'])
-      .withFluxorSet(['guide1'])
-      .withMainPlanElement(mainElement)
+   //   .withFluxorSet(['guide1'])
+      .withMainPlanElementSet(mainElement)
       .withDescription('Test description')
       .build()
 

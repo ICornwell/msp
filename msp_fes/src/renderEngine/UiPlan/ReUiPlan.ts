@@ -1,4 +1,5 @@
 import { ReComponentProps } from "../components/ReComponentProps"
+import { FluxorProps } from "../fluxor/fluxorProps"
 
 export type ReUiPlan = {
   id: string
@@ -7,11 +8,14 @@ export type ReUiPlan = {
   version: string
   schemas?: string[]
   rules?: string[]
-  fluxors?: string[]
-  mainPlanElement?: string[]
+  fluxors?: FluxorProps[]
+  displayTypeMap?: [string, string][]
+  mainPlanElementSet?: ReUiPlanElementSet
 }
 
 export type ReUiPlanExpressionProp = { executionPlan: any, expression: string | Function }
+
+export type ReUiPlanElementSet = {componentName?: string, options: ReUiPlanElement}[]
 
 export type ReUiPlanElement = {
   hidden?: boolean | ReUiPlanExpressionProp;

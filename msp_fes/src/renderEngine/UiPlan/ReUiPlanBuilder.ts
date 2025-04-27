@@ -1,35 +1,43 @@
-import {ReUiPlan, ReUiPlanElement, ReUiPlanExpressionProp} from './ReUiPlan'
+import { ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp } from './ReUiPlan'
+import type { FluxorProps } from '../fluxor/fluxorProps'
+import { defaultDisplayMap } from '../fluxor/defaultDisplayMap'
 
 export type ReUiPlanBuilder = {
   schemas?: string[]
+  displayTypeMap?: [string, string][]
   rules?: string[]
-  Fluxors?: string[]
-  mainPlanElement?: ReUiPlanElementBuilder
+  Fluxors?: FluxorProps[]
+  mainPlanElementSet?: ReUiPlanElementSetBuilder
   description?: string
   withSchema: (schemas: string[]) => ReUiPlanBuilder
+  withDisplayTypeMap: (map: [string, string][]) => ReUiPlanBuilder
   withRules: (rules: string[]) => ReUiPlanBuilder
-  withFluxorSet: (Fluxors: string[]) => ReUiPlanBuilder
-  withMainPlanElement: (mainPlanElement: ReUiPlanElementBuilder) => ReUiPlanBuilder
+  withFluxorSet: (Fluxors: FluxorProps[]) => ReUiPlanBuilder
+  withMainPlanElementSet: (mainPlanElementSet: ReUiPlanElementSetBuilder) => ReUiPlanBuilder
   withDescription: (description: string) => ReUiPlanBuilder
   build: () => ReUiPlan
 }
 
-export function CreateReUiPlan(name: string, version: string = 'default') : ReUiPlanBuilder {
+export function CreateReUiPlan(name: string, version: string = 'default'): ReUiPlanBuilder {
   return {
     withSchema: function (schemas: string[]) {
       this.schemas = schemas;
+      return this;
+    },
+    withDisplayTypeMap: function (map: [string, string][]) {
+      this.displayTypeMap = map;
       return this;
     }
     , withRules: function (rules: string[]) {
       this.rules = rules;
       return this;
     }
-    , withFluxorSet: function (Fluxors: string[]) {
+    , withFluxorSet: function (Fluxors: FluxorProps[]) {
       this.Fluxors = Fluxors;
       return this;
     }
-    , withMainPlanElement: function (mainPlanElement: ReUiPlanElementBuilder) {
-      this.mainPlanElement = mainPlanElement;
+    , withMainPlanElementSet: function (mainPlanElementSet: ReUiPlanElementSetBuilder) {
+      this.mainPlanElementSet = mainPlanElementSet;
       return this;
     }
     , withDescription: function (description: string) {
@@ -43,45 +51,56 @@ export function CreateReUiPlan(name: string, version: string = 'default') : ReUi
         description: this.description,
         version: version,
         schemas: this.schemas,
+        displayTypeMap: this.displayTypeMap ?? defaultDisplayMap,
         rules: this.rules,
         Fluxors: this.Fluxors,
-        mainPlanElement: this.mainPlanElement ? this.mainPlanElement.build() : undefined
+        mainPlanElementSet: this.mainPlanElementSet ? this.mainPlanElementSet.build() : undefined
       } as ReUiPlan
     }
   }
 }
 
+
 export type ReUiPlanElementBuilder = {
-  componentName?: string
-  options?: ReUiPlanComponentBuilder
-  showFixedComponent: (componentName: string, options: ReUiPlanComponentBuilder) => ReUiPlanElementBuilder
-  showFluxorComponent: (options: ReUiPlanComponentBuilder) => ReUiPlanElementBuilder
-  showContainerComponent: (containerName: string, options: ReUiPlanComponentBuilder) => ReUiPlanElementBuilder
-  
+  componentName: string,
+  options: ReUiPlanComponentBuilder,
   build: () => ReUiPlanElement
 }
 
-export function CreateReUiPlanElement(name?: string): ReUiPlanElementBuilder {
+export type ReUiPlanElementSetBuilder = {
+  components?: ReUiPlanElementSet
+  showFixedComponent: (componentName: string, options: ReUiPlanComponentBuilder) => ReUiPlanElementSetBuilder
+  showFluxorComponent: (options: ReUiPlanComponentBuilder, fluxorProps?: FluxorProps) => ReUiPlanElementSetBuilder
+  showContainerComponent: (containerName: string, options: ReUiPlanComponentBuilder) => ReUiPlanElementSetBuilder
+
+  build: () => ReUiPlanElementSet
+}
+
+export function CreateReUiPlanElement(): ReUiPlanElementSetBuilder {
   return {
     showFixedComponent: function (componentName: string, options: ReUiPlanComponentBuilder) {
-      this.componentName = componentName;
-      this.options = options;
+      if (!this.components) {
+        this.components = [];
+      }
+      this.components.push({ componentName, options: options.build() });
       return this;
     }
     , showFluxorComponent: function (options: ReUiPlanComponentBuilder) {
-      this.options = options;
+      if (!this.components) {
+        this.components = [];
+      }
+      this.components.push({ componentName: undefined, options: options.build() });
       return this;
     },
     showContainerComponent: function (componentName: string, options: ReUiPlanComponentBuilder) {
-      this.componentName = componentName;
-      this.options = options;
+      if (!this.components) {
+        this.components = [];
+      }
+      this.components.push({ componentName, options: options.build() });
       return this;
     },
     build: function () {
-      return {
-        id: name,
-        componentName: this.componentName
-      } as ReUiPlanElement
+      return (this.components) as ReUiPlanElementSet
     }
   }
 }
