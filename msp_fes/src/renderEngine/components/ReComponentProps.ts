@@ -33,3 +33,5 @@ export type ReComponentRecordBinder = {
   eventPsuedonym?: string;
   collectionIndexerId?: string;
 }
+
+export type ReComponentBinder = ReComponentAttributeBinder | ReComponentRecordBinder;

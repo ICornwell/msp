@@ -1854,6 +1854,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/object-path@npm:^0":
+  version: 0.11.4
+  resolution: "@types/object-path@npm:0.11.4"
+  checksum: 10c0/fb7f71b170013cf23d323782f12d25e8fa3e2d4048ee3d4d71ca7fe9c553ceeaaa720560bae9925a1c6b893f6d02bbaefad6d68be52c0bd6b136722a5baba77d
+  languageName: node
+  linkType: hard
+
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/parse-json@npm:4.0.2"
@@ -5440,6 +5447,7 @@ __metadata:
     "@types/jest": "npm:^29.5.14"
     "@types/jsonwebtoken": "npm:^9"
     "@types/morgan": "npm:^1"
+    "@types/object-path": "npm:^0"
     "@types/semver": "npm:^7"
     "@types/swagger-jsdoc": "npm:^6"
     "@types/swagger-ui-express": "npm:^4.1.8"
@@ -5459,6 +5467,7 @@ __metadata:
     jest: "npm:^29.7.0"
     jsonwebtoken: "npm:^9.0.2"
     morgan: "npm:^1.10.0"
+    object-path: "npm:^0.11.8"
     preact: "npm:^10.26.4"
     semver: "npm:^7.7.1"
     swagger-autogen: "npm:^2.23.7"
@@ -5713,6 +5722,13 @@ __metadata:
   version: 1.1.1
   resolution: "object-keys@npm:1.1.1"
   checksum: 10c0/b11f7ccdbc6d406d1f186cdadb9d54738e347b2692a14439ca5ac70c225fa6db46db809711b78589866d47b25fc3e8dee0b4c722ac751e11180f9380e3d8601d
+  languageName: node
+  linkType: hard
+
+"object-path@npm:^0.11.8":
+  version: 0.11.8
+  resolution: "object-path@npm:0.11.8"
+  checksum: 10c0/73b1f33bb30a7032d8cce2e3dcffd82b80a83d8304e80b4f83b4f456165625de9907f1ca7f7441d4dfb5e73429ace1e5bf9d9315636ac0aacc76392cc21d1672
   languageName: node
   linkType: hard
 

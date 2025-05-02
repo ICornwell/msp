@@ -1,6 +1,8 @@
 import { JSX } from 'preact'
-import { ReUiPlan, ReUiPlanElementSet } from './UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
+import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement } from './UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
 import { ReProvider, useReContext } from './contexts/ReEngineContext';
+import ReComponentWrapper from './components/ReComponentWrapper';
+import { ReBinder } from './data/binders';
 
 export type ReEngineProps = {
   UiPlan: ReUiPlan,
@@ -16,7 +18,9 @@ type ReEngineElementProps = {
   depth: number
 }
 
-export function ReEngine( _props: ReEngineProps) {
+export function ReEngine(_props: ReEngineProps) {
+  const { rules } = useReContext();
+
   return (
     <ReProvider>
       {recursiveRender({
@@ -30,38 +34,70 @@ export function ReEngine( _props: ReEngineProps) {
 
     </ReProvider>
   )
-}
 
-function recursiveRender(elementProps: ReEngineElementProps): JSX.Element {
-  const { uiPlan, uiPlanElementSet, sourceData, parentElementProps, parentData, depth } = elementProps;
- 
-  const context = useReContext;
-  const elementComponets: JSX.Element[] = []
-  for (const {componentName, options} of uiPlanElementSet) {
-    //const { hidden, disabled, error, helperText, label } = options;
-    // const isHidden = typeof hidden === 'function' ? (hidden as ReUiPlanExpressionProp)() : hidden;
-    // const isDisabled = typeof disabled === 'function' ? disabled() : disabled;
-    // const isError = typeof error === 'function' ? error() : error;
-    // const helperTextValue = typeof helperText === 'function' ? helperText() : helperText;
-    // const labelValue = typeof label === 'function' ? label() : label;
-    if (options.isHidden) {
-      continue; // Skip rendering if hidden
+
+  function recursiveRender(elementProps: ReEngineElementProps): JSX.Element {
+    const { uiPlan, uiPlanElementSet, sourceData, parentElementProps, parentData, depth } = elementProps;
+
+    if (!uiPlanElementSet) {
+      return <></>; // Return empty fragment if no elements to render
     }
 
-    // Render the component based on its type
-    switch (componentName) {
-      case 'NumberInput':
-        return (
-          <div key={componentName} style={{ marginLeft: `${depth * 20}px` }}>
-            <label>{labelValue}</label>
-            <input type="number" disabled={isDisabled} />
-            {isError && <span style={{ color: 'red' }}>{helperTextValue}</span>}
-          </div>
-        );
-      // Add more cases for different component types as needed
-      default:
-        return null; // Handle unknown component types
+    const elementComponents: JSX.Element[] = []
+    for (const { componentName, options } of uiPlanElementSet) {
+
+      if (options.hidden) {
+        continue; // Skip rendering if hidden
+      }
+      let record: any = {}
+      let value: any = undefined
+
+      const binding = (options.binding as any) as ReBinder
+      if (binding) {
+        // Handle binding logic here
+        record = binding.getRecord(sourceData, parentData);
+        if (record) {
+          value = binding.getAttributeValue(record);
+        }
+      }
+      let elementComponent = (<></>)
+      if (!options.componentName) {
+        // Handle the case where componentName is not provided
+        options.componentName = componentName;
+      }
+        if (options.children) {
+          const childElementProps: ReEngineElementProps = {
+            uiPlan,
+            uiPlanElementSet: options.children,
+            sourceData,
+            parentElementProps: elementProps,
+            parentData: {},
+            depth: depth + 1
+          }
+
+          const childElements = options.useSingleChildForArrays
+            ? (<>
+              {(Array.isArray(record) ? record : [record]).map((childRecord) =>
+                recursiveRender({ ...childElementProps, parentData: childRecord }))}
+            </>)
+            : recursiveRender({ ...childElementProps, parentData: record })
+
+            elementComponent = (<ReComponentWrapper options={options} >{childElements}</ReComponentWrapper>)
+        } else {
+            elementComponent = (<ReComponentWrapper options={options} />);
+        }
+      if (options.decorators) {
+        for (const decorator of Array.isArray(options.decorators) ? options.decorators : [options.decorators]) {
+          const decoratorOptions = typeof decorator === 'string' ? {componentName: decorator} : decorator;
+          elementComponent =  (<ReComponentWrapper options={decoratorOptions} >{elementComponent}</ReComponentWrapper>)
+        }
+      }
+      elementComponents.push(elementComponent)
     }
+
+    return (
+      <div className={`re-engine-element depth-${depth}`}>
+        {elementComponents}
+      </div>)
   }
 }
-//   return (

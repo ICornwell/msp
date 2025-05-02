@@ -1,4 +1,4 @@
-import { ReComponentProps } from "../components/ReComponentProps"
+import { ReComponentBinder, ReComponentProps } from "../components/ReComponentProps"
 import { FluxorProps } from "../fluxor/fluxorProps"
 
 export type ReUiPlan = {
@@ -25,5 +25,10 @@ export type ReUiPlanElement = {
   label?: string | ReUiPlanExpressionProp;
   decorators?: any[];
   componentName?: string;
- 
+  children?: ReUiPlanElementSet;
+  binding?: ReComponentBinder;
+  extraBindings?: Record<string, ReComponentBinder>;
+  useSingleChildForArrays?: boolean;
 } 
+
+export type ReBinding = {}

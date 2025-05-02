@@ -1,14 +1,9 @@
 import { ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp } from './ReUiPlan'
 import type { FluxorProps } from '../fluxor/fluxorProps'
 import { defaultDisplayMap } from '../fluxor/defaultDisplayMap'
+import { ReComponentAttributeBinder, ReComponentBinder, ReComponentRecordBinder } from '../components/ReComponentProps'
 
 export type ReUiPlanBuilder = {
-  schemas?: string[]
-  displayTypeMap?: [string, string][]
-  rules?: string[]
-  Fluxors?: FluxorProps[]
-  mainPlanElementSet?: ReUiPlanElementSetBuilder
-  description?: string
   withSchema: (schemas: string[]) => ReUiPlanBuilder
   withDisplayTypeMap: (map: [string, string][]) => ReUiPlanBuilder
   withRules: (rules: string[]) => ReUiPlanBuilder
@@ -18,164 +13,172 @@ export type ReUiPlanBuilder = {
   build: () => ReUiPlan
 }
 
-export function CreateReUiPlan(name: string, version: string = 'default'): ReUiPlanBuilder {
+export function CreateReUiPlan(name: string, version?: string): ReUiPlanBuilder {
+  const reUiPlan = {
+    id: name,
+    name: name,
+    description: '',
+    version: version ?? 'default',
+    schemas: undefined,
+    displayTypeMap: defaultDisplayMap,
+    rules: [],
+    fluxors: [],
+    mainPlanElementSet:  undefined
+  } as ReUiPlan
   return {
     withSchema: function (schemas: string[]) {
-      this.schemas = schemas;
+      reUiPlan.schemas = schemas;
       return this;
     },
     withDisplayTypeMap: function (map: [string, string][]) {
-      this.displayTypeMap = map;
+      reUiPlan.displayTypeMap = map;
       return this;
     }
     , withRules: function (rules: string[]) {
-      this.rules = rules;
+      reUiPlan.rules = rules;
       return this;
     }
     , withFluxorSet: function (Fluxors: FluxorProps[]) {
-      this.Fluxors = Fluxors;
+      reUiPlan.fluxors = Fluxors;
       return this;
     }
     , withMainPlanElementSet: function (mainPlanElementSet: ReUiPlanElementSetBuilder) {
-      this.mainPlanElementSet = mainPlanElementSet;
+      reUiPlan.mainPlanElementSet = mainPlanElementSet.build();
       return this;
     }
     , withDescription: function (description: string) {
-      this.description = description;
+      reUiPlan.description = description;
       return this;
     }
     , build: function () {
-      return {
-        id: name,
-        name: name,
-        description: this.description,
-        version: version,
-        schemas: this.schemas,
-        displayTypeMap: this.displayTypeMap ?? defaultDisplayMap,
-        rules: this.rules,
-        Fluxors: this.Fluxors,
-        mainPlanElementSet: this.mainPlanElementSet ? this.mainPlanElementSet.build() : undefined
-      } as ReUiPlan
+      return reUiPlan
     }
   }
 }
 
 
 export type ReUiPlanElementBuilder = {
-  componentName: string,
-  options: ReUiPlanComponentBuilder,
+  
   build: () => ReUiPlanElement
 }
 
 export type ReUiPlanElementSetBuilder = {
-  components?: ReUiPlanElementSet
-  showFixedComponent: (componentName: string, options: ReUiPlanComponentBuilder) => ReUiPlanElementSetBuilder
-  showFluxorComponent: (options: ReUiPlanComponentBuilder, fluxorProps?: FluxorProps) => ReUiPlanElementSetBuilder
-  showContainerComponent: (containerName: string, options: ReUiPlanComponentBuilder) => ReUiPlanElementSetBuilder
+ 
+  showFixedComponent: (componentName: string, options: ReUiPlanComponentBuilder<ReComponentAttributeBinder>) => ReUiPlanElementSetBuilder
+  showFluxorComponent: (options: ReUiPlanComponentBuilder<ReComponentAttributeBinder>, fluxorProps?: FluxorProps) => ReUiPlanElementSetBuilder
+  showContainerComponent: (containerName: string, options: ReUiPlanComponentBuilder<ReComponentRecordBinder>) => ReUiPlanElementSetBuilder
 
   build: () => ReUiPlanElementSet
 }
 
 export function CreateReUiPlanElement(): ReUiPlanElementSetBuilder {
+  let components: ReUiPlanElementSet = []
   return {
-    showFixedComponent: function (componentName: string, options: ReUiPlanComponentBuilder) {
-      if (!this.components) {
-        this.components = [];
+    showFixedComponent: function (componentName: string, options: ReUiPlanComponentBuilder<ReComponentAttributeBinder>) {
+      if (!components) {
+        components = [];
       }
-      this.components.push({ componentName, options: options.build() });
-      return this;
-    }
-    , showFluxorComponent: function (options: ReUiPlanComponentBuilder) {
-      if (!this.components) {
-        this.components = [];
-      }
-      this.components.push({ componentName: undefined, options: options.build() });
+      components.push({ componentName, options: options.build() });
       return this;
     },
-    showContainerComponent: function (componentName: string, options: ReUiPlanComponentBuilder) {
-      if (!this.components) {
-        this.components = [];
+    showFluxorComponent: function (options: ReUiPlanComponentBuilder<ReComponentAttributeBinder>) {
+      if (!components) {
+        components = [];
       }
-      this.components.push({ componentName, options: options.build() });
+      components.push({ componentName: undefined, options: options.build() });
+      return this;
+    },
+    showContainerComponent: function (componentName: string, options: ReUiPlanComponentBuilder<ReComponentRecordBinder>) {
+      if (!components) {
+        components = [];
+      }
+      components.push({ componentName, options: options.build() });
       return this;
     },
     build: function () {
-      return (this.components) as ReUiPlanElementSet
+      return (components) as ReUiPlanElementSet
     }
   }
 }
 
-export type ReUiPlanComponentBuilder = {
-  name?: string
-  hidden?: boolean | ReUiPlanExpressionProp;
-  disabled?: boolean | ReUiPlanExpressionProp;
-  error?: boolean | ReUiPlanExpressionProp;
-  helperText?: string | ReUiPlanExpressionProp;
-  label?: string | ReUiPlanExpressionProp;
-  decorators?: any[];
-  binding?: string;
-  hideWhen: (hidden: boolean | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder
-  hide: () => ReUiPlanComponentBuilder
-  disableWhen: (disabled: boolean | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder
-  disable: () => ReUiPlanComponentBuilder
-  setError: (error: boolean | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder
-  setHelperText: (helperText: string | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder
-  setLabel: (label: string | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder
-  addDecorators: (decorators: any[]) => ReUiPlanComponentBuilder
-  withBinding: (binding: string) => ReUiPlanComponentBuilder
+export type ReUiPlanComponentBuilder<T> = {
+  hideWhen: (hidden: boolean | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder<T>
+  hide: () => ReUiPlanComponentBuilder<T>
+  disableWhen: (disabled: boolean | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder<T>
+  disable: () => ReUiPlanComponentBuilder<T>
+  setError: (error: boolean | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder<T>
+  setHelperText: (helperText: string | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder<T>
+  setLabel: (label: string | ReUiPlanExpressionProp) => ReUiPlanComponentBuilder<T>
+  setUseSingleChildForArrays: (isSingleChildForArrays: boolean) => ReUiPlanComponentBuilder<T>
+  addDecorators: (decorators: any[]) => ReUiPlanComponentBuilder<T>
+  withValueBinding: (binding: ReComponentBinder) => ReUiPlanComponentBuilder<T>
+  withExtraBinding: (boundPropName: string, binding: ReComponentBinder) => ReUiPlanComponentBuilder<T>
   build: () => ReUiPlanElement
 }
 
 
-export function CreateReUiPlanComponent(name?: string): ReUiPlanComponentBuilder {
+export function CreateReUiPlanComponent<T>(name?: string): ReUiPlanComponentBuilder<T> {
+  const reUiPlanComponent: ReUiPlanElement = {
+    hidden: false,
+    disabled: false,
+    error: false,
+    helperText: undefined,
+    label: undefined,
+    decorators: [],
+    componentName: name,
+    binding: undefined,
+    extraBindings: {},
+  } as ReUiPlanElement
   return {
-    name: name,
     hideWhen: function (hidden: boolean | ReUiPlanExpressionProp) {
-      this.hidden = hidden;
+      reUiPlanComponent.hidden = hidden;
       return this;
     }
     , hide: function () {
-      this.hidden = true;
+      reUiPlanComponent.hidden = true;
       return this;
     }
     , disable: function () {
-      this.disabled = true;
+      reUiPlanComponent.disabled = true;
       return this;
     }
     , disableWhen: function (disabled: boolean | ReUiPlanExpressionProp) {
-      this.disabled = disabled;
+      reUiPlanComponent.disabled = disabled;
       return this;
     }
     , setError: function (error: boolean | ReUiPlanExpressionProp) {
-      this.error = error;
+      reUiPlanComponent.error = error;
       return this;
     }
     , setHelperText: function (helperText: string | ReUiPlanExpressionProp) {
-      this.helperText = helperText;
+      reUiPlanComponent.helperText = helperText;
       return this;
     }
     , setLabel: function (label: string | ReUiPlanExpressionProp) {
-      this.label = label;
+      reUiPlanComponent.label = label;
+      return this;
+    }
+    , setUseSingleChildForArrays: function (useSingleChildForArrays: boolean) {
+      reUiPlanComponent.useSingleChildForArrays = useSingleChildForArrays;
       return this;
     }
     , addDecorators: function (decorators: any[]) {
-      this.decorators = decorators;
+      reUiPlanComponent.decorators = decorators;
       return this;
     }
-    , withBinding: function (binding: string) {
-      this.binding = binding;
+    , withValueBinding: function (binding: ReComponentBinder) {
+      reUiPlanComponent.binding = binding;
+      return this;
+    }
+    , withExtraBinding: function (boundPropName: string, binding: ReComponentBinder) {
+      if (!reUiPlanComponent.extraBindings) {
+        reUiPlanComponent.extraBindings = {};
+      }
+      reUiPlanComponent.extraBindings[boundPropName] = binding;
       return this;
     }
     , build: function () {
-      return {
-        hidden: this.hidden,
-        disabled: this.disabled,
-        error: this.error,
-        helperText: this.helperText,
-        label: this.label,
-        decorators: this.decorators,
-        binding: this.binding
-      } as ReUiPlanElement
+      return reUiPlanComponent
     }
   }
 }
@@ -186,6 +189,9 @@ export function ReUiPlanElementToReComponentProps(element: ReUiPlanElement): ReU
     error: element.error,
     helperText: element.helperText,
     label: element.label,
+    binding: element.binding,
+    extraBindings: element.extraBindings,
+    useSingleChildForArrays: element.useSingleChildForArrays,
     decorators: element.decorators,
     componentName: element.componentName
   } as ReUiPlanElement

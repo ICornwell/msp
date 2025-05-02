@@ -3,21 +3,24 @@ import { Re } from '../index.ts'
 describe('ReUiPlanBuilder', () => { 
   it('should create a ReUiPlanBuilder with default values', () => {
     const builder = Re.UiPlan('testPlan')
-    expect(builder.schemas).toBeUndefined()
-    expect(builder.rules).toBeUndefined()
-    expect(builder.Fluxors).toBeUndefined()
-    expect(builder.mainPlanElementSet).toBeUndefined()
-    expect(builder.description).toBeUndefined()
+    const plan = builder.build()
+    expect(plan.schemas).toBeUndefined()
+    expect(plan.rules).toBeUndefined()
+    expect(plan.fluxors).toBeUndefined()
+    expect(plan.mainPlanElementSet).toBeUndefined()
+    expect(plan.description).toBeUndefined()
   })
 
   it('should set schemas correctly', () => {
     const builder = Re.UiPlan('testPlan').withSchema(['schema1', 'schema2'])
-    expect(builder.schemas).toEqual(['schema1', 'schema2'])
+    const plan = builder.build()
+    expect(plan.schemas).toEqual(['schema1', 'schema2'])
   })
 
   it('should set rules correctly', () => {
     const builder = Re.UiPlan('testPlan').withRules(['rule1', 'rule2'])
-    expect(builder.rules).toEqual(['rule1', 'rule2'])
+    const plan = builder.build()
+    expect(plan.rules).toEqual(['rule1', 'rule2'])
   })
 
   // it('should set Fluxors correctly', () => {
@@ -36,17 +39,21 @@ describe('ReUiPlanBuilder', () => {
       )
       
     const builder = Re.UiPlan('testPlan').withMainPlanElementSet(mainElement)
-    expect(builder.mainPlanElementSet).toEqual(mainElement)
+    const plan = builder.build()
+    expect(plan.mainPlanElementSet).toEqual(mainElement)
   })
 
   it('should set description correctly', () => {
     const builder = Re.UiPlan('testPlan').withDescription('Test description')
-    expect(builder.description).toEqual('Test description')
+    const plan = builder.build()
+    expect(plan.description).toEqual('Test description')
   })
 
   it('should build a ReUiPlan with the correct values', () => {
     const mainElement = Re.Element.showFixedComponent('TestComponent', Re.ComponentOptions
       .setLabel('Test Label')
+      .disable()
+      .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: 'testPath', dataAttributeName: 'testSchema'}))
     )
     const plan = Re.UiPlan('testPlan')
       .withSchema(['schema1'])
@@ -61,6 +68,6 @@ describe('ReUiPlanBuilder', () => {
     expect(plan.schemas).toEqual(['schema1'])
     expect(plan.rules).toEqual(['rule1'])
     expect(plan.fluxors).toEqual(['guide1'])
-    expect(plan.mainPlanElement).toEqual(mainElement)
+    expect(plan.mainPlanElementSet).toEqual(mainElement)
   })
 })

@@ -2,7 +2,8 @@ import { createContext, ComponentChildren } from 'preact';
 import { useContext } from 'preact/hooks';
 
 const ReContext = createContext({
-
+  rules: {} as Record<string, any>,
+  // Add other properties as needed
 });
 
 function useReContext() {
@@ -17,7 +18,9 @@ function ReProvider({ children } : { children: ComponentChildren }) {
 
 
   return (
-    <ReContext.Provider value={{ }}>
+    <ReContext.Provider value={{
+      rules: {}
+     }}>
       {children}
     </ReContext.Provider>
   );

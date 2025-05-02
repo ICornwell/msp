@@ -1,7 +1,7 @@
-import { Button, Typography } from "@mui/material";
+import { Button as MuiButton, Typography } from "@mui/material";
 import { useState, useEffect } from "preact/hooks";
 
-export default function TextInput(props: {
+export default function Button(props: {
   label: string;
   value: string;
   type?: string;
@@ -19,7 +19,7 @@ export default function TextInput(props: {
   }, [value]);
 
   return (
-    <Button
+    <MuiButton
       variant="outlined"
       disabled={disabled}
       onClick={() => {
@@ -28,6 +28,6 @@ export default function TextInput(props: {
       <Typography variant="button">
         {label}
       </Typography>
-    </Button>
+    </MuiButton>
   );
 }

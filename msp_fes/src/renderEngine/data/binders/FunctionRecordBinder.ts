@@ -1,28 +1,25 @@
-import { ReComponentAttributeBinder } from '../../components/ReComponentProps';
+import { ReComponentRecordBinder } from '../../components/ReComponentProps';
 import { resolvePath } from '../pathResolver';
 
-export type FunctionAttributeBinderProps = {
+export type FunctionRecordBinderProps = {
   recordFetchingFunction: (data: any) => any;
   sourceIsCollection?: boolean;
-  dataAttributeName: string;
   schemaName?: string;
   sourceType?: 'Absolute' | 'Relative' | 'None';
 }
 
-export function FunctionAttributeBinder(props: FunctionAttributeBinderProps): ReComponentAttributeBinder {
+export function FunctionRecordBinder(props: FunctionRecordBinderProps): ReComponentRecordBinder {
   return {
     sourcePath: props.recordFetchingFunction,
     sourceIsCollection: false,
     sourceType: props.sourceType || 'Absolute',
     schema: props.schemaName,
-    attributeName: props.dataAttributeName,
     getRecord: (allData: any, localData: any) => {
       const record = resolvePath(props.sourceType === 'Absolute' ? allData : localData, props.recordFetchingFunction);
       return record;
     },
-    getAttributeValue: (record: any) => {
-      const value = resolvePath(record, props.dataAttributeName);
-      return value;
+    getAttributeValue: (_record: any) => {
+      return undefined
     }
-  } as ReComponentAttributeBinder;
+  } as ReComponentRecordBinder;
 };

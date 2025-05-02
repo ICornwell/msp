@@ -1,5 +1,6 @@
 import {CreateReUiPlan, CreateReUiPlanElement, CreateReUiPlanComponent} from './UiPlan/ReUiPlanBuilder';
-import { recordAttribute, functionAttribute } from './data/binders'
+import { ReComponentAttributeBinder, ReComponentRecordBinder } from './components/ReComponentProps';
+import { Bind } from './data/binders'
 
 class ReUiPlan {
    UiPlan(name: string, version: string = 'default') {
@@ -11,13 +12,14 @@ class ReUiPlan {
   }
 
   get ComponentOptions() {
-    return CreateReUiPlanComponent()
+    return CreateReUiPlanComponent<ReComponentAttributeBinder>()
   }
-  get Binders() {
-    return {
-      RecordAttribute: recordAttribute,
-      FunctionAttribute: functionAttribute
-    }
+
+  get ContainerOptions() {
+    return CreateReUiPlanComponent<ReComponentRecordBinder>()
+  }
+  get Bind() {
+    return Bind
   }
 }
 
