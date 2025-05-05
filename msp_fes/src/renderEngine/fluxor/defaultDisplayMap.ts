@@ -1,7 +1,7 @@
 export const defaultDisplayMap = [  
-  ['string', 'text'],
-  ['boolean', 'checkbox'],
-  ['number', 'number'],
-  ['text', 'text'],
-  ['currency', 'number'],
+  ['string', 'Text'],
+  ['boolean', 'CheckBox'],
+  ['number', 'Number'],
+  ['text', 'Text'],
+  ['currency', 'Money'],
 ] as [string, string][];

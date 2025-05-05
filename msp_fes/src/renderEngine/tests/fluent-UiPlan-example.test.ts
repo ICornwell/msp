@@ -1,4 +1,5 @@
 import { Re } from '../index.ts'
+import { TestClass } from './fluxSchema.test.ts'
 
 describe('ReUiPlanBuilder', () => { 
   it('should create a ReUiPlanBuilder with default values', () => {
@@ -12,9 +13,11 @@ describe('ReUiPlanBuilder', () => {
   })
 
   it('should set schemas correctly', () => {
-    const builder = Re.UiPlan('testPlan').withSchema(['schema1', 'schema2'])
+    const builder = Re.UiPlan('testPlan').withSchema(TestClass)
     const plan = builder.build()
-    expect(plan.schemas).toEqual(['schema1', 'schema2'])
+    expect(plan.schemas).toEqual({
+      TestClass: new TestClass()['~getSchema']()
+    })
   })
 
   it('should set rules correctly', () => {
@@ -56,7 +59,7 @@ describe('ReUiPlanBuilder', () => {
       .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: 'testPath', dataAttributeName: 'testSchema'}))
     )
     const plan = Re.UiPlan('testPlan')
-      .withSchema(['schema1'])
+      .withSchema(TestClass)
       .withRules(['rule1'])
    //   .withFluxorSet(['guide1'])
       .withMainPlanElementSet(mainElement)

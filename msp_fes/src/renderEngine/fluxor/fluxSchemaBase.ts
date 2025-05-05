@@ -1,15 +1,27 @@
 import type { FluxorProps } from "./fluxorProps";
 
-const fluxorSchemaInfo: Record<string, FluxorProps | string> = {}
+const fluxorSchemaInfo: Record<string, FluxorProps> = {}
+const fluxorSchemaNames: Record<string, string> = {}
+
+export type FluxorSchemaInfo = { name: string | FluxorProps; source: string; attributes: (string | FluxorProps | { attributeName: string; })[]; }
+
+export type FluxorSchemaInfoSet = Record<string, FluxorSchemaInfo>
 
 export function fluxAttribute(
-  fluxorProps: FluxorProps
+  schema: typeof fluxorSchemaBase, fluxorProps: FluxorProps
 ) {
+  let name='unknown'
+  if (typeof schema === 'string') {
+    name = schema
+  } else if (schema.prototype instanceof fluxorSchemaBase) {
+    name = schema.name
+  }
   return function (_target: any, propertyKey: any) {
-    const key = `${name}.${propertyKey}`
+    const key = `${name}.${propertyKey.name}`
     if (!fluxorSchemaInfo[key]) {
       fluxorSchemaInfo[key] = {
-        ...fluxorProps
+        ...fluxorProps,
+        attributeName: propertyKey.name
       };
     }
   }
@@ -21,7 +33,7 @@ export function fluxObject(
   return function (target: any) {
     const key = `${target.name}.__objectName`
     if (!fluxorSchemaInfo[key]) {
-      fluxorSchemaInfo[key] = name
+      fluxorSchemaNames[key] = name
     }
   }
 }
@@ -38,7 +50,7 @@ export function Attributes<T>(type: { new(): T; }): T {
   return (new type() as any)['~getNames']()
 }
 
-export function ObjectName<T>(type: { new(): T; }): T {
+export function ObjectName<T>(type: { new(): T; }): string {
   return (new type() as any)['~getObjectName']()
 }
 
@@ -62,10 +74,10 @@ export class fluxorSchemaBase {
   }
 
   '~getObjectName'() {
-    return fluxorSchemaInfo[`${this.constructor.name}.__objectName`];
+    return fluxorSchemaNames[`${this.constructor.name}.__objectName`];
   }
 
-  '~getSchema'() {
+  '~getSchema'(): FluxorSchemaInfo {
     const fluxorSchema = {
       name: fluxorSchemaInfo[`${this.constructor.name}.__objectName`],
       source: 'fluxor',
@@ -75,7 +87,7 @@ export class fluxorSchemaBase {
           return prop
         } else {
           return ({
-            name: key
+            attributeName: key
           })
         }
       })

@@ -8,17 +8,21 @@ export type LocalAttributeBinderProps = {
 }
 
 export function LocalAttributeBinder(props: LocalAttributeBinderProps): ReComponentAttributeBinder {
-  return {
+  const binderProps= {
     sourcePath: '.',
     sourceIsCollection: false,
     sourceType: 'Relative',
     schema: props.schemaName ?? '.',
     attributeName: props.dataAttributeName,
+  } as ReComponentAttributeBinder;
+  
+  return {
+    ...binderProps,
     getRecord: (_allData: any, localData: any) => {
       return localData;
     },
     getAttributeValue: (record: any) => {
-      const value = resolvePath(record, props.dataAttributeName);
+      const value = resolvePath(record, binderProps.attributeName);
       return value;
     }
   } as ReComponentAttributeBinder;

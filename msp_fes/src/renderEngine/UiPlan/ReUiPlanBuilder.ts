@@ -2,9 +2,10 @@ import { ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp }
 import type { FluxorProps } from '../fluxor/fluxorProps'
 import { defaultDisplayMap } from '../fluxor/defaultDisplayMap'
 import { ReComponentAttributeBinder, ReComponentBinder, ReComponentRecordBinder } from '../components/ReComponentProps'
+import { fluxorSchemaBase, FluxorSchemaInfo, FluxorSchemaInfoSet } from '../fluxor/fluxSchemaBase'
 
 export type ReUiPlanBuilder = {
-  withSchema: (schemas: string[]) => ReUiPlanBuilder
+  withSchema: (schemas: typeof fluxorSchemaBase | typeof fluxorSchemaBase[] | FluxorSchemaInfo | FluxorSchemaInfo[]) => ReUiPlanBuilder
   withDisplayTypeMap: (map: [string, string][]) => ReUiPlanBuilder
   withRules: (rules: string[]) => ReUiPlanBuilder
   withFluxorSet: (Fluxors: FluxorProps[]) => ReUiPlanBuilder
@@ -19,15 +20,31 @@ export function CreateReUiPlan(name: string, version?: string): ReUiPlanBuilder 
     name: name,
     description: '',
     version: version ?? 'default',
-    schemas: undefined,
+    schemas: {} as FluxorSchemaInfoSet,
     displayTypeMap: defaultDisplayMap,
     rules: [],
     fluxors: [],
     mainPlanElementSet:  undefined
   } as ReUiPlan
   return {
-    withSchema: function (schemas: string[]) {
-      reUiPlan.schemas = schemas;
+    withSchema: function (schemas: typeof fluxorSchemaBase | typeof fluxorSchemaBase[] | FluxorSchemaInfo | FluxorSchemaInfo[]){
+      let allSchemas: any[] = []
+      if (!Array.isArray(schemas))
+        allSchemas = [schemas]
+      else
+        allSchemas = schemas
+
+      for (const schema of allSchemas) {
+        if (schema.prototype instanceof fluxorSchemaBase) {
+          const schemaInstance = new schema();
+          reUiPlan.schemas[schemaInstance['~getObjectName']()] = schemaInstance['~getSchema']()
+        } else if (schema['~isFluxorSchema'] && schema['~isFluxorSchema']()) {
+          reUiPlan.schemas[schema['~getObjectName']()] = schema['~getSchema']()
+        } else if (typeof schema === 'object') {
+          reUiPlan.schemas[schema.name] = schema
+        }
+      }
+      
       return this;
     },
     withDisplayTypeMap: function (map: [string, string][]) {
@@ -113,6 +130,7 @@ export type ReUiPlanComponentBuilder<T> = {
   addDecorators: (decorators: any[]) => ReUiPlanComponentBuilder<T>
   withValueBinding: (binding: ReComponentBinder) => ReUiPlanComponentBuilder<T>
   withExtraBinding: (boundPropName: string, binding: ReComponentBinder) => ReUiPlanComponentBuilder<T>
+  none: () => ReUiPlanComponentBuilder<T>
   build: () => ReUiPlanElement
 }
 
@@ -175,6 +193,17 @@ export function CreateReUiPlanComponent<T>(name?: string): ReUiPlanComponentBuil
         reUiPlanComponent.extraBindings = {};
       }
       reUiPlanComponent.extraBindings[boundPropName] = binding;
+      return this;
+    }
+    , none: function () {
+      reUiPlanComponent.hidden = false;
+      reUiPlanComponent.disabled = false;
+      reUiPlanComponent.error = false;
+      reUiPlanComponent.helperText = undefined;
+      reUiPlanComponent.label = undefined;
+      reUiPlanComponent.decorators = [];
+      reUiPlanComponent.binding = undefined;
+      reUiPlanComponent.extraBindings = {};
       return this;
     }
     , build: function () {

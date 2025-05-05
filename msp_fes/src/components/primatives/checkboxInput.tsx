@@ -19,10 +19,7 @@ export default function TextInput(props: {
   }, [value]);
 
   return (
-    <FormControl error={error} variant="outlined" >
-      <FormHelperText>{helperText}</FormHelperText>
-      <FormControlLabel 
-        control={<Checkbox
+    <Checkbox
       ref={inputRef}
       value={inputValue}
       onClick={
@@ -35,7 +32,7 @@ export default function TextInput(props: {
       
       
       disabled={disabled}
-    />} labelPlacement="start" label={label}/>
-    </FormControl>
+    />
+
   );
 }

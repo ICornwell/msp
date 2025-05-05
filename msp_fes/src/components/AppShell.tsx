@@ -7,6 +7,9 @@ import { Blade } from './Blade';
 import { TabStrip } from './TabStrip';
 import { MainContent } from './MainContent';
 import { useEventContext } from '../contexts/EventContext';
+import EngineComponents from './engineComponents';
+import { ReProvider } from '../renderEngine/contexts/ReEngineContext';
+import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext';
 // import { NavItem, Tab } from '../types.ts';
 
 const MainContainer = styled(Box)(({ _theme }) => ({
@@ -28,7 +31,7 @@ export const AppShell: FunctionalComponent = () => {
   const [isBladeOpen, setIsBladeOpen] = useState<boolean>(false);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [configContent, setConfigContent] = useState<string | null>(null);
-  
+
   const { state } = useEventContext();
   const { navItems, tabs, menuItems, profileMenuItems } = state;
 
@@ -57,48 +60,53 @@ export const AppShell: FunctionalComponent = () => {
   }, [tabs, activeTabId]);
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100vh',
-      overflow: 'hidden'
-    }}>
-      <TopBar 
-        toggleSidebar={toggleSidebar}
-        sidebarCollapsed={isSidebarCollapsed}
-        menuItems={menuItems}
-        profileMenuItems={profileMenuItems}
-        openBlade={openBlade}
-      />
-      
-      <ContentContainer>
-        <Sidebar 
-          navItems={navItems}
-          isCollapsed={isSidebarCollapsed}
-          activeTabId={activeTabId}
-          onTabSelect={handleTabChange}
-          openBlade={openBlade}
-        />
-        
-        <MainContainer>
-          <TabStrip 
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabChange={handleTabChange}
+    <ReProvider>
+      <EngineComponentProvider>
+        <EngineComponents />
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+          overflow: 'hidden'
+        }}>
+          <TopBar
+            toggleSidebar={toggleSidebar}
+            sidebarCollapsed={isSidebarCollapsed}
+            menuItems={menuItems}
+            profileMenuItems={profileMenuItems}
+            openBlade={openBlade}
           />
-          
-          <MainContent 
-            tabs={tabs}
-            activeTabId={activeTabId}
-          />
-        </MainContainer>
-        
-        <Blade 
-          isOpen={isBladeOpen}
-          onClose={closeBlade}
-          contentId={configContent}
-        />
-      </ContentContainer>
-    </Box>
+
+          <ContentContainer>
+            <Sidebar
+              navItems={navItems}
+              isCollapsed={isSidebarCollapsed}
+              activeTabId={activeTabId}
+              onTabSelect={handleTabChange}
+              openBlade={openBlade}
+            />
+
+            <MainContainer>
+              <TabStrip
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onTabChange={handleTabChange}
+              />
+
+              <MainContent
+                tabs={tabs}
+                activeTabId={activeTabId}
+              />
+            </MainContainer>
+
+            <Blade
+              isOpen={isBladeOpen}
+              onClose={closeBlade}
+              contentId={configContent}
+            />
+          </ContentContainer>
+        </Box>
+      </EngineComponentProvider>
+    </ReProvider>
   );
 };

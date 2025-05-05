@@ -1,12 +1,13 @@
 import { ReComponentBinder, ReComponentProps } from "../components/ReComponentProps"
 import { FluxorProps } from "../fluxor/fluxorProps"
+import { FluxorSchemaInfo, FluxorSchemaInfoSet } from "../fluxor/fluxSchemaBase"
 
 export type ReUiPlan = {
   id: string
   name: string
   description: string
   version: string
-  schemas?: string[]
+  schemas: FluxorSchemaInfoSet
   rules?: string[]
   fluxors?: FluxorProps[]
   displayTypeMap?: [string, string][]

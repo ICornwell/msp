@@ -1,7 +1,8 @@
 export enum EngineComponentNames {
   Button = 'Button',
-  TextInput = 'TextInput',
-  NumberInput = 'NumberInput',
-  CheckBoxInput = 'CheckBoxInput',
+  Text = 'Text',
+  Number = 'Number',
+  CheckBox = 'CheckBox',
   Columns = 'Columns',
+  Money = 'Money'
 }

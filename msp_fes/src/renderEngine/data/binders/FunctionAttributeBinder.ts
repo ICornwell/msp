@@ -10,19 +10,22 @@ export type FunctionAttributeBinderProps = {
 }
 
 export function FunctionAttributeBinder(props: FunctionAttributeBinderProps): ReComponentAttributeBinder {
-  return {
+  const binderProps = { 
     sourcePath: props.recordFetchingFunction,
     sourceIsCollection: false,
     sourceType: props.sourceType || 'Absolute',
     schema: props.schemaName,
-    attributeName: props.dataAttributeName,
+    attributeName: props.dataAttributeName
+  } as ReComponentAttributeBinder
+  return {
+    ...binderProps,
     getRecord: (allData: any, localData: any) => {
-      const record = resolvePath(props.sourceType === 'Absolute' ? allData : localData, props.recordFetchingFunction);
+      const record = resolvePath(binderProps.sourceType === 'Absolute' ? allData : localData, binderProps.sourcePath);
       return record;
     },
     getAttributeValue: (record: any) => {
-      const value = resolvePath(record, props.dataAttributeName);
+      const value = resolvePath(record, binderProps.attributeName);
       return value;
     }
-  } as ReComponentAttributeBinder;
+  } as any as ReComponentAttributeBinder;
 };

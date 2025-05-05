@@ -1,3 +1,7 @@
+import { JSX } from "preact/jsx-runtime";
+import { ReUiPlanElement } from "../UiPlan/ReUiPlan";
+import { ComponentChildren } from "preact";
+
 export type ReComponentProps = {
   hidden?: boolean;
   disabled?: boolean;
@@ -9,6 +13,8 @@ export type ReComponentProps = {
   dataSource?: any;
   
 }
+
+export type ReComponentWrapperProps = { options?: ReUiPlanElement, children?: ComponentChildren, value?: any, record?: any }
 
 export type ReComponentDataFunctionContext = {
   allData: any

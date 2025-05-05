@@ -9,13 +9,16 @@ export type RecordBinderProps = {
  }
 
 export function RecordBinder(props: RecordBinderProps): ReComponentRecordBinder {
-  return {
+  const binderProps = {
     sourcePath: props.recordPropertyPath,
     sourceIsCollection: false,
     sourceType: props.sourceType || 'Absolute',
     schema: props.schemaName ?? props.recordPropertyPath,
+  } as ReComponentRecordBinder;
+  return {
+    ...binderProps,
     getRecord: (allData: any, localData: any) => {
-      const record = resolvePath(props.sourceType === 'Absolute' ? allData : localData, props.recordPropertyPath);
+      const record = resolvePath(binderProps.sourceType === 'Absolute' ? allData : localData, binderProps.sourcePath);
       return record;
     },
     getAttributeValue: (_record: any) => {

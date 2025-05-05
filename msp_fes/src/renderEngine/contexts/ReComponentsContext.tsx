@@ -1,14 +1,17 @@
 import { createContext, ComponentChildren, JSX } from 'preact';
 import { useContext, useRef } from 'preact/hooks';
 import { ReUiPlanElement } from '../UiPlan/ReUiPlan';
+import { ReComponentWrapperProps } from '../components/ReComponentProps';
 
-export type ComponentInstantiator = (elementOptions: ReUiPlanElement) => JSX.Element
-
-
+export type ComponentInstantiator = (props: ReComponentWrapperProps) => JSX.Element
+export type CompomentInstantiatorOptions = { useFormControl?: boolean, isContainer?: boolean, isManagedForm?: boolean }
+export type InstantiatorProps = { options?: CompomentInstantiatorOptions, instantiator: ComponentInstantiator }
 const engineComponentContext = createContext({
   addComponent: (_name: string, _componentInstantiator: ComponentInstantiator) => { },
+  addManagedFormComponent: (_name: string, _componentInstantiator: ComponentInstantiator) => { },
+  addContainerComponent: (_name: string, _componentInstantiator: ComponentInstantiator) => { },
   removeComponent: (_name: string) => { },
-  getComponentInstantiator: (_name: string) => (()=>{}) as Function
+  getComponentInstantiator: (_name: string) => ({} as InstantiatorProps)
 });
 
 function useEngineComponentsContext() {
@@ -19,11 +22,20 @@ function useEngineComponentsContext() {
 
 function EngineComponentProvider({ children } : { children: ComponentChildren }) {
   const outerContext = useEngineComponentsContext()
-  const components = useRef<{ [key: string]: Function }>({});
+  const components = useRef<{ [key: string]: InstantiatorProps}>({});
 
-  function addComponent(name: string, componentInstantiator: ComponentInstantiator) {
-    components.current[name] = componentInstantiator;
+  function addComponent(name: string, instantitator: ComponentInstantiator) {
+    components.current[name] = {options: {isContainer: false, isManagedForm: false}, instantiator: instantitator};
   }
+
+  function addManagedFormComponent(name: string, instantitator: ComponentInstantiator) {
+    components.current[name] = {options: {isContainer: false, isManagedForm: true}, instantiator: instantitator};
+  }
+
+  function addContainerComponent(name: string, instantitator: ComponentInstantiator) {
+    components.current[name] = {options: {isContainer: true, isManagedForm: false}, instantiator: instantitator};
+  }
+
   function removeComponent(name: string) {
     delete components.current[name]
   }
@@ -33,8 +45,10 @@ function EngineComponentProvider({ children } : { children: ComponentChildren })
 
   return (
     <engineComponentContext.Provider value={{
-      addComponent: addComponent,
-      removeComponent: removeComponent,
+      addComponent,
+      addContainerComponent,
+      addManagedFormComponent,
+      removeComponent,
       getComponentInstantiator: getComponent,
      }}>
       {children}

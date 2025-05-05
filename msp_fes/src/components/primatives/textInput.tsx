@@ -21,8 +21,6 @@ export default function TextInput(props: {
   return (
     <TextField
       inputRef={inputRef}
-      label={label}
-      variant="outlined"
       value={inputValue}
       onInput={
         (e) => {
@@ -35,8 +33,9 @@ export default function TextInput(props: {
       //  onChange(e.target.value);
       }}
       type={type}
-      error={error}
+      label={label}
       helperText={helperText}
+      error={error}
       disabled={disabled}
     />
   );

@@ -21,9 +21,12 @@ export default function NumberInput(props: {
   return (
     <TextField
       inputRef={inputRef}
-      label={label}
-      variant="outlined"
       value={inputValue}
+      label={label}
+      helperText={helperText}
+      error={error}
+      disabled={disabled}
+      
       onInput={
         (e) => {
           setInputValue((e.target as HTMLInputElement).value);
@@ -35,9 +38,7 @@ export default function NumberInput(props: {
       //  onChange(e.target.value);
       }}
       type="number"
-      error={error}
-      helperText={helperText}
-      disabled={disabled}
+
     />
   );
 }
