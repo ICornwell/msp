@@ -1,4 +1,4 @@
-import { FunctionalComponent } from 'preact';
+import React from 'react';
 import {
   Drawer,
   List,
@@ -22,7 +22,7 @@ interface SidebarProps {
 const drawerWidth = 240;
 const drawerCollapsedWidth = 56;
 
-export const Sidebar: FunctionalComponent<SidebarProps> = ({
+export const Sidebar: React.FC<SidebarProps> = ({
   navItems,
   isCollapsed,
   activeTabId,

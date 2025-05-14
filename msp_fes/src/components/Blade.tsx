@@ -1,4 +1,4 @@
-import { FunctionalComponent } from 'preact';
+import React from 'react';
 import {
   Drawer,
   Box,
@@ -16,7 +16,7 @@ interface BladeProps {
 
 const bladeWidth = 320;
 
-export const Blade: FunctionalComponent<BladeProps> = ({
+export const Blade: React.FC<BladeProps> = ({
   isOpen,
   onClose,
   contentId

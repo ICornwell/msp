@@ -1,6 +1,5 @@
-import { JSX } from "preact/jsx-runtime";
+import { ReactNode } from "react";
 import { ReUiPlanElement } from "../UiPlan/ReUiPlan";
-import { ComponentChildren } from "preact";
 
 export type ReComponentProps = {
   hidden?: boolean;
@@ -11,10 +10,14 @@ export type ReComponentProps = {
   decorators?: any[];
   componentName?: string;
   dataSource?: any;
-  
 }
 
-export type ReComponentWrapperProps = { options?: ReUiPlanElement, children?: ComponentChildren, value?: any, record?: any }
+export type ReComponentWrapperProps = { 
+  options?: ReUiPlanElement, 
+  children?: ReactNode, 
+  value?: any, 
+  record?: any 
+}
 
 export type ReComponentDataFunctionContext = {
   allData: any
@@ -33,11 +36,7 @@ export type ReComponentAttributeBinder = {
 
 export type ReComponentRecordBinder = {
   sourceType: DataSourcePathType;
-  sourceIsCollection: boolean;
-  sourcePath: string | Function;
-  schema: any;
-  eventPsuedonym?: string;
-  collectionIndexerId?: string;
+  recordPropertyPath?: string;
+  recordFetchingFunction?: (context: any) => any;
+  valueAccessFunction?: (context: any) => any;
 }
-
-export type ReComponentBinder = ReComponentAttributeBinder | ReComponentRecordBinder;

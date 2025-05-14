@@ -1,5 +1,5 @@
-import { Button as MuiButton, Typography } from "@mui/material";
-import { useState, useEffect } from "preact/hooks";
+import { Typography, Button as MuiButton } from '@mui/material';
+import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo } from 'react';
 
 export default function Button(props: {
   label: string;
@@ -8,8 +8,9 @@ export default function Button(props: {
   error?: boolean;
   helperText?: string;
   disabled?: boolean;
+  testId?: string;
 }) {
-  const { label, value, disabled } = props; // _type, _error, _helperText
+  const { label, value, testId, disabled } = props; // _type, _error, _helperText
 
   const [_inputValue, setInputValue] = useState(value);
   // const _inputRef = useRef<HTMLInputElement>(null);
@@ -20,6 +21,7 @@ export default function Button(props: {
 
   return (
     <MuiButton
+      data-testid={testId}
       variant="outlined"
       disabled={disabled}
       onClick={() => {

@@ -30,6 +30,7 @@ export type ReUiPlanElement = {
   binding?: ReComponentBinder;
   extraBindings?: Record<string, ReComponentBinder>;
   useSingleChildForArrays?: boolean;
+  testId?: string;
 } 
 
 export type ReBinding = {}

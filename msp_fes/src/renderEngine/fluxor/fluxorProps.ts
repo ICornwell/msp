@@ -9,4 +9,6 @@ export type FluxorProps = {
   disabled?: boolean,
   hidden?: boolean,
   error?: boolean,
+  _parentObjectKeyName?: string,
+  _schemaName?: string,
  }

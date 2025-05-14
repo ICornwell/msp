@@ -1,5 +1,4 @@
-import { createContext, ComponentChildren } from 'preact';
-import { useContext } from 'preact/hooks';
+import React, { createContext, useContext, ReactNode } from 'react';
 
 const ReContext = createContext({
   rules: {} as Record<string, any>,
@@ -11,12 +10,14 @@ function useReContext() {
   if (!context) {
     throw new Error('useReContext must be used within a ReProvider');
   }
-return context;
+  return context;
 }
 
-function ReProvider({ children } : { children: ComponentChildren }) {
+interface ReProviderProps {
+  children: ReactNode;
+}
 
-
+function ReProvider({ children }: ReProviderProps) {
   return (
     <ReContext.Provider value={{
       rules: {}

@@ -1,6 +1,5 @@
 
-import { ComponentChildren } from 'preact';
-import { PropsWithChildren } from 'preact/compat';
+import React from 'react';
 
 import { Stack } from "@mui/material";
 
@@ -28,14 +27,14 @@ export default function Columns(props: {
   function childrenForColumn(index: number) {
     return (fillDirection === 'across') ?
     // across maths takes every nth child
-      paddedChildren.reduce((acc: ComponentChildren[], child: ComponentChildren, i: number) => {
+      paddedChildren.reduce((acc: React.ReactNode[], child: React.ReactNode, i: number) => {
         if (i % (columns-1) === index) {
           acc.push(child);
         }
         return acc;
       }, []) :
       // down maths takes every total number of children divided by the number of columns blocks
-      paddedChildren.reduce((acc: ComponentChildren[], child: ComponentChildren, i: number) => {
+      paddedChildren.reduce((acc: React.ReactNode[], child: React.ReactNode, i: number) => {
         if ((Math.floor(i / (Math.ceil(childCount / columns)))) === index) {
           acc.push(child);
         }

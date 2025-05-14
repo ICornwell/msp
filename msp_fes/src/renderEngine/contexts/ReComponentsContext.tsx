@@ -1,11 +1,11 @@
-import { createContext, ComponentChildren, JSX } from 'preact';
-import { useContext, useRef } from 'preact/hooks';
+import React, { createContext, useContext, useRef, ReactNode } from 'react';
 import { ReUiPlanElement } from '../UiPlan/ReUiPlan';
 import { ReComponentWrapperProps } from '../components/ReComponentProps';
 
-export type ComponentInstantiator = (props: ReComponentWrapperProps) => JSX.Element
+export type ComponentInstantiator = (props: ReComponentWrapperProps) => React.ReactElement
 export type CompomentInstantiatorOptions = { useFormControl?: boolean, isContainer?: boolean, isManagedForm?: boolean }
 export type InstantiatorProps = { options?: CompomentInstantiatorOptions, instantiator: ComponentInstantiator }
+
 const engineComponentContext = createContext({
   addComponent: (_name: string, _componentInstantiator: ComponentInstantiator) => { },
   addManagedFormComponent: (_name: string, _componentInstantiator: ComponentInstantiator) => { },
@@ -16,11 +16,14 @@ const engineComponentContext = createContext({
 
 function useEngineComponentsContext() {
   const context = useContext(engineComponentContext);
-
   return context;
 }
 
-function EngineComponentProvider({ children } : { children: ComponentChildren }) {
+interface EngineComponentProviderProps {
+  children: ReactNode;
+}
+
+function EngineComponentProvider({ children }: EngineComponentProviderProps) {
   const outerContext = useEngineComponentsContext()
   const components = useRef<{ [key: string]: InstantiatorProps}>({});
 
@@ -39,6 +42,7 @@ function EngineComponentProvider({ children } : { children: ComponentChildren })
   function removeComponent(name: string) {
     delete components.current[name]
   }
+  
   function getComponent(name: string) {
     return components.current[name] ?? outerContext?.getComponentInstantiator(name);
   }
@@ -55,4 +59,5 @@ function EngineComponentProvider({ children } : { children: ComponentChildren })
     </engineComponentContext.Provider>
   );
 }
+
 export { useEngineComponentsContext, EngineComponentProvider };

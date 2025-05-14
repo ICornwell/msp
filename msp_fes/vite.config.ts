@@ -1,5 +1,5 @@
 import { defineConfig, formatPostcssSourceMap } from 'vite'
-import preact from '@preact/preset-vite'
+import react from '@vitejs/plugin-react'
 import type { Plugin } from 'vite'
 import type { Adapter } from 'vite-plugin-mix'
 import mixPlugin from 'vite-plugin-mix'
@@ -9,14 +9,13 @@ import ts from 'typescript'
 import { vitePluginTypescriptTransform } from 'vite-plugin-typescript-transform'
 
 interface MixConfig {
-  handler: string
-  adapter?: Adapter | undefined
+  handler?: string;
 }
 
 type MixPlugin = (config: MixConfig) => Plugin
 
 interface Mix {
-  default: MixPlugin
+  default: MixPlugin;
 }
 
 const mix = (mixPlugin as unknown as Mix).default
@@ -38,11 +37,15 @@ export default defineConfig({
         }
       }
     }),
-    preact(),
+    react({
+      babel: {
+        plugins: ["@emotion"]
+      }
+    }),
     mix({
       handler: './src/bffApi/api.ts',
-      }),
-    ],
+    }),
+  ],
 
   server: {
     port: 3000,

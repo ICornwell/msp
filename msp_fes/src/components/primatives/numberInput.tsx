@@ -1,5 +1,5 @@
 import { TextField } from "@mui/material";
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useEffect, useRef } from 'react'
 
 export default function NumberInput(props: {
   label: string;
@@ -8,8 +8,9 @@ export default function NumberInput(props: {
   error?: boolean;
   helperText?: string;
   disabled?: boolean;
+  testId?: string;
 }) {
-  const { label, value, error, helperText, disabled } = props;
+  const { label, value, error, testId, helperText, disabled } = props;
 
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -20,6 +21,7 @@ export default function NumberInput(props: {
 
   return (
     <TextField
+      data-testid={testId}
       inputRef={inputRef}
       value={inputValue}
       label={label}

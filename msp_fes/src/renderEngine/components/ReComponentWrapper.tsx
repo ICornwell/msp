@@ -1,4 +1,4 @@
-import { ComponentChildren } from 'preact';
+import React, { ReactNode } from 'react';
 import { ReUiPlanElement } from '../UiPlan/ReUiPlan'
 import { useEngineComponentsContext } from '../contexts/ReComponentsContext';
 import FormHelperText from '@mui/material/FormHelperText';
@@ -14,8 +14,12 @@ const useStyles = makeStyles()(( theme: Theme ) => ({
   }
 }));
 
-export default function ReComponentWrapper({ props, children }
-  : { props: ReComponentWrapperProps, children?: ComponentChildren }) {
+interface WrapperProps {
+  props: ReComponentWrapperProps;
+  children?: ReactNode;
+}
+
+export default function ReComponentWrapper({ props, children }: WrapperProps) {
   const { classes } = useStyles()
   const { value, record } = props
   const { getComponentInstantiator } = useEngineComponentsContext()

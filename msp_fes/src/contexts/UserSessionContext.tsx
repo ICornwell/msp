@@ -1,9 +1,8 @@
-import { createContext } from 'preact';
-import { v4 } from 'uuid';
-import { useContext, useState } from 'preact/hooks';
+import { useState, useContext, createContext  } from 'react';
 import { AuthenticationResult, PublicClientApplication, AccountInfo } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
-import { log } from 'console';
+import { v4 } from 'uuid';
+
 // MSAL Configuration
 const msalConfig = {
   auth: {

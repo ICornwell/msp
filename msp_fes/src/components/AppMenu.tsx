@@ -1,5 +1,4 @@
-import { FunctionalComponent } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo } from 'react';
 import {
   Menu,
   MenuItem,
@@ -25,7 +24,7 @@ interface MenuProps {
 
 
 
-export const AppMenu: FunctionalComponent<MenuProps> = ({
+export const AppMenu: React.FC<MenuProps> = ({
   nameTag, menuItems, anchorEl, open, onClose, onMenuItemClick
 }) => {
   const [isOpen, setIsOpen] = useState(open);

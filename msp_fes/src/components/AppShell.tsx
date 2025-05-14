@@ -1,5 +1,4 @@
-import { FunctionalComponent } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import React, { useState, useEffect } from 'react';
 import { Box, styled } from '@mui/material';
 import { TopBar } from './TopBar';
 import { Sidebar } from './Sidebar';
@@ -10,9 +9,8 @@ import { useEventContext } from '../contexts/EventContext';
 import EngineComponents from './engineComponents';
 import { ReProvider } from '../renderEngine/contexts/ReEngineContext';
 import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext';
-// import { NavItem, Tab } from '../types.ts';
 
-const MainContainer = styled(Box)(({ _theme }) => ({
+const MainContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   flex: 1,
@@ -20,13 +18,13 @@ const MainContainer = styled(Box)(({ _theme }) => ({
   width: '100%',
 }));
 
-const ContentContainer = styled(Box)(({ _theme }) => ({
+const ContentContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flex: 1,
   overflow: 'hidden',
 }));
 
-export const AppShell: FunctionalComponent = () => {
+export const AppShell: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isBladeOpen, setIsBladeOpen] = useState<boolean>(false);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
@@ -54,6 +52,7 @@ export const AppShell: FunctionalComponent = () => {
   };
 
   useEffect(() => {
+    // Set first tab as active if tabs exist and no active tab
     if (tabs.length > 0 && !activeTabId) {
       setActiveTabId(tabs[0].id);
     }

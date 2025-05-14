@@ -1,4 +1,4 @@
-import { FunctionalComponent } from 'preact';
+import React from 'react';
 import { Box } from '@mui/material';
 import { Tab } from '../types.ts';
 
@@ -13,7 +13,7 @@ interface MainContentProps {
   activeTabId: string | null;
 }
 
-export const MainContent: FunctionalComponent<MainContentProps> = ({
+export const MainContent: React.FC<MainContentProps> = ({
   tabs,
   activeTabId
 }) => {

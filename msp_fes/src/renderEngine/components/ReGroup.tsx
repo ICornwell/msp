@@ -1,8 +1,8 @@
-import { ComponentChildren } from 'preact';
+import React from 'react';
 
-export default function ReGroup({ hidden, children }: { hidden: boolean, children: ComponentChildren }) {
+export default function ReGroup({ hidden, children }: { hidden: boolean, children: React.ReactNode }) {
   return hidden ? null :
-    (<div class="re-group">
+    (<div className="re-group">
       {children}
     </div>)
 }

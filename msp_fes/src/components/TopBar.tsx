@@ -1,5 +1,4 @@
-import { FunctionalComponent } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -70,7 +69,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export const TopBar: FunctionalComponent<TopBarProps> = ({
+export const TopBar: React.FC<TopBarProps> = ({
   toggleSidebar,
   sidebarCollapsed,
   menuItems,

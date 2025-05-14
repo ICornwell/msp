@@ -1,9 +1,9 @@
-import { ComponentChildren } from 'preact';
+import React from 'react';
 
 export interface NavItem {
   id: string;
   label: string;
-  icon: ComponentChildren;
+  icon: React.ReactNode;
   tabId?: string;
   bladeId?: string;
   disabled?: boolean;
@@ -12,15 +12,15 @@ export interface NavItem {
 export interface Tab {
   id: string;
   label: string;
-  icon?: ComponentChildren;
-  content: ComponentChildren;
+  icon?: React.ReactNode;
+  content: React.ReactNode;
   closable?: boolean;
 }
 
 export interface MenuItem {
   id: string;
   label: string;
-  icon?: ComponentChildren;
+  icon?: React.ReactNode;
   bladeId?: string;
   action?: () => void;
   disabled?: boolean;

@@ -1,6 +1,5 @@
-import { TextField } from "@mui/material";
-import InputAdornment from '@mui/material/InputAdornment';
-import { useState, useEffect, useRef } from "preact/hooks";
+import { InputAdornment, TextField } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
 
 export default function MoneyInput(props: {
   label: string;
@@ -10,8 +9,9 @@ export default function MoneyInput(props: {
   error?: boolean;
   helperText?: string;
   disabled?: boolean;
+  testId?: string;
 }) {
-  const { label, value, error, helperText, disabled, decimalPlaces = 2 } = props;
+  const { label, value, error, testId, helperText, disabled, decimalPlaces = 2 } = props;
 
   const dpAdjust = Math.pow(10, decimalPlaces);
   let numValue = parseFloat(value);
@@ -32,6 +32,7 @@ export default function MoneyInput(props: {
 
   return (
     <TextField
+      data-testid={testId}
       inputRef={inputRef}
       color={isNegative ? "error" : "primary"}
       value={isNegative ? `(${inputValue})` : inputValue }
@@ -42,12 +43,12 @@ export default function MoneyInput(props: {
       }}
       
       onInput={
-        (e) => {
+        (e: any) => {
           setInputValue((e.target as HTMLInputElement).value);
           // onChange(e.target.value);
         }
       }
-      onChange={(_e) => {
+      onChange={(_e: any) => {
       //  setInputValue(e.target.);
       //  onChange(e.target.value);
       }}

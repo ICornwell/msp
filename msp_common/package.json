@@ -29,7 +29,8 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "preact": "^10.26.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "semver": "^7.7.1",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
@@ -39,8 +40,7 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.10.1",
-    "@testing-library/preact": "^3.2.4",
+    "@testing-library/react": "^16.3.0",
     "@types/compression": "^1",
     "@types/cookie-parser": "^1",
     "@types/cors": "^2",
@@ -49,9 +49,12 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9",
     "@types/morgan": "^1",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
     "@types/semver": "^7",
     "@types/swagger-jsdoc": "^6",
     "@types/ws": "^8",
+    "@vitejs/plugin-react": "^4.4.1",
     "jest": "^29.7.0",
     "typescript": "^5.8.3"
   }

@@ -1,5 +1,6 @@
 import { Checkbox, FormControl, FormControlLabel, FormHelperText } from "@mui/material";
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useEffect, useRef } from "react";
+
 
 export default function TextInput(props: {
   label: string;
@@ -8,8 +9,9 @@ export default function TextInput(props: {
   error?: boolean;
   helperText?: string;
   disabled?: boolean;
+  testId?: string;
 }) {
-  const { label, value, error, helperText, disabled } = props;
+  const { label, value, error, testId, helperText, disabled } = props;
 
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLButtonElement>(null);
@@ -20,10 +22,11 @@ export default function TextInput(props: {
 
   return (
     <Checkbox
+      data-testid={testId}
       ref={inputRef}
       value={inputValue}
       onClick={
-        (_e) => {
+        (_e: any) => {
           setInputValue(!inputValue);
           // onChange(e.target.value);
         }

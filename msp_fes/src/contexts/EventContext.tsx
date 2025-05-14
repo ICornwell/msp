@@ -1,5 +1,4 @@
-import { createContext } from 'preact';
-import { useContext, useReducer } from 'preact/hooks';
+import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { NavItem, Tab, MenuItem, AppEvent, EventState, EventAction } from '../types.ts';
 
 const initialState: EventState = {
@@ -20,11 +19,11 @@ const eventReducer = (state: EventState, action: EventAction): EventState => {
     case 'REMOVE_NAV_ITEM':
       return {
         ...state,
-        navItems: state.navItems.filter((item:any) => item.id !== action.payload)
+        navItems: state.navItems.filter((item) => item.id !== action.payload)
       };
     case 'ADD_TAB':
       // Check if tab already exists
-      if (state.tabs.some((tab:any) => tab.id === (action.payload as Tab).id)) {
+      if (state.tabs.some((tab) => tab.id === (action.payload as Tab).id)) {
         return state;
       }
       return {
@@ -34,7 +33,7 @@ const eventReducer = (state: EventState, action: EventAction): EventState => {
     case 'REMOVE_TAB':
       return {
         ...state,
-        tabs: state.tabs.filter((tab:any) => tab.id !== action.payload)
+        tabs: state.tabs.filter((tab) => tab.id !== action.payload)
       };
     case 'ADD_MENU_ITEM':
       return {
@@ -44,17 +43,17 @@ const eventReducer = (state: EventState, action: EventAction): EventState => {
     case 'REMOVE_MENU_ITEM':
       return {
         ...state,
-        menuItems: state.menuItems.filter((item: any) => item.id !== action.payload)
+        menuItems: state.menuItems.filter((item) => item.id !== action.payload)
       };
       case 'ADD_PROFILE_MENU_ITEM':
         return {
           ...state,
-          menuItems: [...state.profileMenuItems, action.payload as MenuItem]
+          profileMenuItems: [...state.profileMenuItems, action.payload as MenuItem]
         };
       case 'REMOVE_PROFILE_MENU_ITEM':
         return {
           ...state,
-          menuItems: state.profileMenuItems.filter((item: any) => item.id !== action.payload)
+          profileMenuItems: state.profileMenuItems.filter((item) => item.id !== action.payload)
         };
     default:
       return state;
@@ -64,49 +63,26 @@ const eventReducer = (state: EventState, action: EventAction): EventState => {
 // Create context
 export const EventContext = createContext<{
   state: EventState;
-  dispatch: (action: EventAction) => void;
-  publish: (event: AppEvent) => void;
-  subscribe: (eventType: string, callback: (data: any) => void) => () => void;
+  dispatch: React.Dispatch<EventAction>;
 }>({
   state: initialState,
-  dispatch: () => {},
-  publish: () => {},
-  subscribe: () => () => {}
+  dispatch: () => null
 });
 
-// Event provider component
-export const EventProvider = ({ children }: { children: any }) => {
+// Create provider component
+interface EventProviderProps {
+  children: ReactNode;
+}
+
+export const EventProvider: React.FC<EventProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(eventReducer, initialState);
-  const eventListeners: Record<string, Array<(data: any) => void>> = {};
-
-  // Publish an event to all subscribers
-  const publish = (event: AppEvent) => {
-    if (eventListeners[event.type]) {
-      eventListeners[event.type].forEach(listener => listener(event.data));
-    }
-  };
-
-  // Subscribe to an event type
-  const subscribe = (eventType: string, callback: (data: any) => void) => {
-    if (!eventListeners[eventType]) {
-      eventListeners[eventType] = [];
-    }
-    eventListeners[eventType].push(callback);
-
-    // Return unsubscribe function
-    return () => {
-      eventListeners[eventType] = eventListeners[eventType].filter(
-        listener => listener !== callback
-      );
-    };
-  };
 
   return (
-    <EventContext.Provider value={{ state, dispatch, publish, subscribe }}>
+    <EventContext.Provider value={{ state, dispatch }}>
       {children}
     </EventContext.Provider>
   );
 };
 
-// Custom hook to access the context
+// Create context hook
 export const useEventContext = () => useContext(EventContext);

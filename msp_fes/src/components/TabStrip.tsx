@@ -1,5 +1,4 @@
-import { FunctionalComponent } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo } from 'react';
 import {
   Tabs,
   Tab as MuiTab,
@@ -48,7 +47,7 @@ const StyledTab = styled((props: any) => {
   textTransform: 'none',
 });
 
-export const TabStrip: FunctionalComponent<TabStripProps> = ({
+export const TabStrip: React.FC<TabStripProps> = ({
   tabs,
   activeTabId,
   onTabChange

@@ -3,27 +3,23 @@ import type { FluxorProps } from "./fluxorProps";
 const fluxorSchemaInfo: Record<string, FluxorProps> = {}
 const fluxorSchemaNames: Record<string, string> = {}
 
+const fluxorTmpAttrInfo: FluxorProps[] = []
+
 export type FluxorSchemaInfo = { name: string | FluxorProps; source: string; attributes: (string | FluxorProps | { attributeName: string; })[]; }
 
 export type FluxorSchemaInfoSet = Record<string, FluxorSchemaInfo>
 
 export function fluxAttribute(
-  schema: typeof fluxorSchemaBase, fluxorProps: FluxorProps
+  fluxorProps: FluxorProps
 ) {
-  let name='unknown'
-  if (typeof schema === 'string') {
-    name = schema
-  } else if (schema.prototype instanceof fluxorSchemaBase) {
-    name = schema.name
-  }
+
   return function (_target: any, propertyKey: any) {
-    const key = `${name}.${propertyKey.name}`
-    if (!fluxorSchemaInfo[key]) {
-      fluxorSchemaInfo[key] = {
-        ...fluxorProps,
-        attributeName: propertyKey.name
-      };
-    }
+    // propertyKey is a bit slippery
+    // it can be a string or a symbol
+    fluxorTmpAttrInfo.push({
+      ...fluxorProps,
+      attributeName: propertyKey.name ?? propertyKey
+    });
   }
 }
 
@@ -34,6 +30,19 @@ export function fluxObject(
     const key = `${target.name}.__objectName`
     if (!fluxorSchemaInfo[key]) {
       fluxorSchemaNames[key] = name
+    }
+    try {
+      for (const prop of fluxorTmpAttrInfo) {
+        const propKey = `${target.name}.${prop.attributeName}`
+        fluxorSchemaInfo[propKey] = {
+          ...prop,
+          _parentObjectKeyName: name,
+          _schemaName: target,
+          attributeName: prop.attributeName
+        }
+      }
+    } finally {
+      fluxorTmpAttrInfo.length = 0;
     }
   }
 }
@@ -54,9 +63,11 @@ export function ObjectName<T>(type: { new(): T; }): string {
   return (new type() as any)['~getObjectName']()
 }
 
-export class fluxorSchemaBase {
+export function Schema<T>(type: { new(): T; }): string {
+  return (new type() as any)['~getSchema']()
+}
 
-  static get myStatic() { return this }
+export class fluxorSchemaBase {
 
   '~isFluxorSchema'() {
     return true;
@@ -96,3 +107,5 @@ export class fluxorSchemaBase {
     return fluxorSchema;
   }
 }
+
+

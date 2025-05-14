@@ -1,4 +1,4 @@
-import { JSX } from 'preact'
+import React from 'react'
 import { DeepProxy } from 'proxy-deep'
 import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement } from '../UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
 import { ReProvider, useReContext } from '../contexts/ReEngineContext';
@@ -65,14 +65,14 @@ export function ReEngine(props: ReEngineProps) {
   )
 
 
-  function recursiveRender(elementProps: ReEngineElementProps): JSX.Element {
+  function recursiveRender(elementProps: ReEngineElementProps): React.ReactElement {
     const { uiPlan, uiPlanElementSet, sourceData, parentElementProps, parentData, depth } = elementProps;
 
     if (!uiPlanElementSet) {
       return <></>; // Return empty fragment if no elements to render
     }
 
-    const elementComponents: JSX.Element[] = []
+    const elementComponents: React.ReactElement[] = []
     for (const { componentName, options } of uiPlanElementSet) {
       const componentOptions = { ...options } as ReUiPlanElement;
 
@@ -174,6 +174,7 @@ export function ReEngine(props: ReEngineProps) {
         componentOptions.error = componentOptions.error || attribute.error;
         componentOptions.helperText = componentOptions.helperText || attribute.helperText;
         componentOptions.hidden = componentOptions.hidden || attribute.hidden;
+        componentOptions.testId = componentOptions.testId || attribute.dictionaryName;
         if (!componentOptions.componentName) {
           if (attribute.preferredDisplayType && props.UiPlan.displayTypeMap) {
             const displayType = props.UiPlan.displayTypeMap.find(([key]) => key === attribute.preferredDisplayType);
