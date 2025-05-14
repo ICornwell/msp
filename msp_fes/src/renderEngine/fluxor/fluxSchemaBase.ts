@@ -27,17 +27,18 @@ export function fluxObject(
   name: string
 ) {
   return function (target: any) {
-    const key = `${target.name}.__objectName`
+    const tName = removeTrailingNumbers(target.name)
+    const key = `${tName}.__objectName`
     if (!fluxorSchemaInfo[key]) {
       fluxorSchemaNames[key] = name
     }
     try {
       for (const prop of fluxorTmpAttrInfo) {
-        const propKey = `${target.name}.${prop.attributeName}`
+        const propKey = `${tName}.${prop.attributeName}`
         fluxorSchemaInfo[propKey] = {
           ...prop,
           _parentObjectKeyName: name,
-          _schemaName: target,
+          _schemaName: tName,
           attributeName: prop.attributeName
         }
       }
@@ -48,7 +49,8 @@ export function fluxObject(
 }
 
 function getFluxorSchemaProps(target: any, key: string) {
-  const schemaProps = fluxorSchemaInfo[`${target.constructor.name}.${key}`];
+  const tName = removeTrailingNumbers(target.constructor.name)
+  const schemaProps = fluxorSchemaInfo[`${tName}.${key}`];
   if (!schemaProps) {
     return null;
   }
@@ -85,12 +87,14 @@ export class fluxorSchemaBase {
   }
 
   '~getObjectName'() {
-    return fluxorSchemaNames[`${this.constructor.name}.__objectName`];
+    const cName = removeTrailingNumbers(this.constructor.name)
+    return fluxorSchemaNames[`${cName}.__objectName`];
   }
 
   '~getSchema'(): FluxorSchemaInfo {
+    const cName = removeTrailingNumbers(this.constructor.name)
     const fluxorSchema = {
-      name: fluxorSchemaInfo[`${this.constructor.name}.__objectName`],
+      name: fluxorSchemaNames[`${cName}.__objectName`],
       source: 'fluxor',
       attributes: Object.keys(this).map((key) => {
         const prop = getFluxorSchemaProps(this, key);
@@ -106,6 +110,10 @@ export class fluxorSchemaBase {
     }
     return fluxorSchema;
   }
+}
+
+function removeTrailingNumbers(str: string) {
+  return str.replace(/(\d+)(?=\D*$)/, '');
 }
 
 

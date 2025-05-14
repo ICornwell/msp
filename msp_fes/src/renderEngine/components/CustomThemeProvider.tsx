@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo } from 'react';
+import { useContext, createContext } from 'react';
 import { createTheme as createMuiTheme } from '@mui/material/styles';
 
 // Create a default theme

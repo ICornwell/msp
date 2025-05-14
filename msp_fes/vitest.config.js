@@ -2,6 +2,11 @@ import { defineConfig } from 'vitest/config'
 import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import babel from 'vite-plugin-babel'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+// Get the directory of the current module
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [
@@ -22,7 +27,7 @@ export default defineConfig({
          // '@emotion/babel-plugin',
           // Add decorators support
           ['@babel/plugin-proposal-decorators', { legacy: true }],
-          ['@babel/plugin-proposal-class-properties', { loose: true }]
+          ['@babel/plugin-transform-class-properties', { loose: true }]
         ]
       }
     }),
@@ -42,19 +47,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    setupFiles: ['./src/setupTests.ts'],
+    setupFiles: [resolve(__dirname, 'src/setupTests.ts')],
     css: true,
 
-    // Important for MUI to find React
     alias: {
-      // 'react': '@preact/compat',
-      // 'react-dom/test-utils': '@preact/compat/test-utils',
-      // 'react-dom': '@preact/compat',
-      // 'react/jsx-runtime': '@preact/compat/jsx-runtime',
-       'react': 'preact/compat',
-       'react-dom': 'preact/compat',
-       'react-dom/test-utils': 'preact/test-utils',
-       'react/jsx-runtime': 'preact/jsx-runtime',
       // These are specifically for Emotion compatibility
       '@emotion/styled': '@emotion/styled',
       '@emotion/react': '@emotion/react'
@@ -72,13 +68,13 @@ export default defineConfig({
         '@emotion/cache',
         '@mui/material', 
         '@mui/system',
-        /preact/
+        /react/
       ],
       // This will force ESM imports for certain modules
       optimizer: {
         web: {
           enabled: true,
-          include: ['@emotion', '@mui', 'preact']
+          include: ['@emotion', '@mui', 'react']
         }
       }
     },
@@ -94,17 +90,7 @@ export default defineConfig({
     }
   },
   resolve: {
-    alias: {
-      // Standard React aliases
-      'react': 'preact/compat',
-      'react-dom': 'preact/compat',
-      'react-dom/test-utils': 'preact/test-utils',
-      'react/jsx-runtime': 'preact/jsx-runtime',
-      
-      // Add specific aliases for React hooks and other APIs that Emotion might use
-      'react/jsx-dev-runtime': 'preact/jsx-runtime',
-      'react-is': 'preact/compat'
-    }
+    alias: {}
   },
  
 })

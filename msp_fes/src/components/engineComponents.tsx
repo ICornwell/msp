@@ -1,4 +1,4 @@
-import { JSX } from 'preact/jsx-runtime';
+import React from 'react';
 import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext';
 import CheckBoxInput from './primatives/checkboxInput';
 import NumberInput from './primatives/numberInput';

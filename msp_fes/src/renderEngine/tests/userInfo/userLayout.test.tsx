@@ -1,19 +1,10 @@
 
 import { expect, test, describe } from 'vitest'
 import { render } from '@testing-library/react';
-
-
+import { act } from 'react';
 import { ReEngine } from '../../components/ReEngine';
-
 import { UserInfoLayout } from '../../../renderEngine/tests/userInfo/layout.tsx';
-
-import { CacheProvider } from '@emotion/react';
-import createCache from '@emotion/cache';
-
-const cache = createCache({
-  key: 'css',
-  prepend: true,
-});
+import { TestAppShell } from '../testAppShell.tsx';
 
 const exampleData = {
   testUserInfo: {
@@ -30,14 +21,24 @@ const exampleData = {
 
 describe('Layout has renderered and has content', () => {
   test('content matches string', () => {
-    const { getByTestId } = render(
-   <CacheProvider value={cache}>
-      <ReEngine UiPlan={UserInfoLayout().build()} sourceData={exampleData} />
-   </CacheProvider>
-    )
-
-    const tb1 = getByTestId('test.user.email');
-    expect(tb1.innerText).toMatch(exampleData.testUserInfo.email)
+    let renderResult: any;
+    
+    act(() => {
+      renderResult = render(
+        <TestAppShell>
+          <ReEngine UiPlan={UserInfoLayout().build()} sourceData={exampleData} />
+        </TestAppShell>
+      );
+    });
+    
+    const { getByLabelText } = renderResult;
+    // console.log(container.innerHTML); // Keep for debugging if needed
+    
+    // Get the input element by its label (more resilient than using testId)
+    const emailInput = getByLabelText('User Email');
+    
+    // Check if the input value contains the expected email
+    expect(emailInput).toHaveValue(exampleData.testUserInfo.email);
   });
 
  

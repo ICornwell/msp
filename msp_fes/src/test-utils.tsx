@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect } from 'react';
 import { render as tlRender, RenderResult } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react'; // Import act from React instead of react-dom/test-utils
 import { EngineComponentProvider } from './renderEngine/contexts/ReComponentsContext';
 import { ReProvider } from './renderEngine/contexts/ReEngineContext';
 import { UserSessionProvider } from './contexts/UserSessionContext';

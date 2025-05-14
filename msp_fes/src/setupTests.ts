@@ -1,7 +1,16 @@
 import React from 'react'
-// import createCache from '@emotion/cache'
-import { vi } from 'vitest'
-// import { CacheProvider } from '@emotion/react'
+import { expect, vi, afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
+import * as matchers from '@testing-library/jest-dom/matchers'
+
+// Make sure to extend Vitest's expect correctly for your version
+// For vitest v3+:
+expect.extend(matchers)
+
+// Cleanup after each test case (e.g. clearing jsdom)
+afterEach(() => {
+  cleanup()
+})
 
 // Mock for ResizeObserver (used by MUI components)
 global.ResizeObserver = class ResizeObserver {

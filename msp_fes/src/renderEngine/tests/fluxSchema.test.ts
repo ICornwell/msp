@@ -1,7 +1,7 @@
 import { fluxorSchemaBase, fluxAttribute, fluxObject, ObjectName, Attributes } from '../fluxor/fluxSchemaBase'
 
-@fluxObject('Test')
-export class TestClass extends fluxorSchemaBase {
+@fluxObject('TestA')
+export class TestClassA extends fluxorSchemaBase {
 
   @fluxAttribute({dictionaryName: 'test1', preferredDisplayType:'text', defaultValue:'default value', label:'Test Label'}) 
   test1: string = 'test';
@@ -13,8 +13,8 @@ export class TestClass extends fluxorSchemaBase {
   test3: number = 1;
 }
 
-@fluxObject('TestA')
-export class TestClass2 extends fluxorSchemaBase {
+@fluxObject('TestB')
+export class TestClassB extends fluxorSchemaBase {
 
   @fluxAttribute({dictionaryName: 'testx', preferredDisplayType:'text', defaultValue:'default value', label:'Test Label'}) 
   testX: string = 'test';
@@ -29,14 +29,14 @@ export class TestClass2 extends fluxorSchemaBase {
 
 describe('Schema accessors', () => {
   test('Should have an object name for the class type', () => {
-    const name = ObjectName(TestClass);
-    expect(name).toMatch('Test');
+    const name = ObjectName(TestClassA);
+    expect(name).toMatch('TestA');
   });
 })
 
 describe('Schema attr accessors', () => {
   test('All attributes should be found, none must bleed in from neighbouts', () => {
-    const attrs = Attributes(TestClass);
+    const attrs = Attributes(TestClassA);
     const names = Object.keys(attrs);
     expect(names).toContain('test1');
     expect(names).toContain('test2');

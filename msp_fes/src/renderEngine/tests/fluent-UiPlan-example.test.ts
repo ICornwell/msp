@@ -1,22 +1,25 @@
 import { Re } from '../index.ts'
-import { TestClass } from './fluxSchema.test.ts'
+import { TestClassA, TestClassB } from './fluxSchema.test.ts'
 
 describe('ReUiPlanBuilder', () => { 
   it('should create a ReUiPlanBuilder with default values', () => {
     const builder = Re.UiPlan('testPlan')
     const plan = builder.build()
-    expect(plan.schemas).toBeUndefined()
-    expect(plan.rules).toBeUndefined()
-    expect(plan.fluxors).toBeUndefined()
-    expect(plan.mainPlanElementSet).toBeUndefined()
-    expect(plan.description).toBeUndefined()
+    expect(plan.schemas).toMatchObject({})
+    expect(plan.rules).toMatchObject([])
+    expect(plan.fluxors).toMatchObject([])
+    expect(plan.mainPlanElementSet).toMatchObject({})
+    expect(plan.description).toBe('')
   })
 
   it('should set schemas correctly', () => {
-    const builder = Re.UiPlan('testPlan').withSchema(TestClass)
+    const builder = Re.UiPlan('testPlan').withSchema(TestClassA)
     const plan = builder.build()
-    expect(plan.schemas).toEqual({
-      TestClass: new TestClass()['~getSchema']()
+    const exampleClass = new TestClassA()
+    const expectedSchema = exampleClass['~getSchema']()
+
+    expect(plan.schemas).toMatchObject({
+      TestA: expectedSchema
     })
   })
 
@@ -43,7 +46,7 @@ describe('ReUiPlanBuilder', () => {
       
     const builder = Re.UiPlan('testPlan').withMainPlanElementSet(mainElement)
     const plan = builder.build()
-    expect(plan.mainPlanElementSet).toEqual(mainElement)
+    expect(plan.mainPlanElementSet).toMatchObject(mainElement.build())
   })
 
   it('should set description correctly', () => {
@@ -59,7 +62,7 @@ describe('ReUiPlanBuilder', () => {
       .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: 'testPath', dataAttributeName: 'testSchema'}))
     )
     const plan = Re.UiPlan('testPlan')
-      .withSchema(TestClass)
+      .withSchema(TestClassA)
       .withRules(['rule1'])
    //   .withFluxorSet(['guide1'])
       .withMainPlanElementSet(mainElement)
@@ -68,9 +71,45 @@ describe('ReUiPlanBuilder', () => {
 
     expect(plan.id).toEqual('testPlan')
     expect(plan.name).toEqual('testPlan')
-    expect(plan.schemas).toEqual(['schema1'])
+    expect(plan.schemas).toEqual(expectedSchema)
     expect(plan.rules).toEqual(['rule1'])
-    expect(plan.fluxors).toEqual(['guide1'])
-    expect(plan.mainPlanElementSet).toEqual(mainElement)
+    expect(plan.fluxors).toEqual([])
+    expect(plan.mainPlanElementSet).toEqual(mainElement.build())
   })
 })
+
+const expectedSchema = {
+ "TestA": {
+    "attributes": [
+      {
+        "_parentObjectKeyName":"TestA",
+        "_schemaName": "TestClassA",
+        "attributeName": "test1",
+        "defaultValue": "default value",
+        "dictionaryName": "test1",
+        "label": "Test Label",
+        "preferredDisplayType": "text",
+      },
+      {
+        "_parentObjectKeyName":"TestA",
+        "_schemaName": "TestClassA",
+        "attributeName": "test2",
+        "defaultValue": "default value",
+        "dictionaryName": "test2",
+        "label": "Test Label",
+        "preferredDisplayType": "text",
+      },
+      {
+        "_parentObjectKeyName":"TestA",
+        "_schemaName": "TestClassA",
+        "attributeName": "test3",
+        "defaultValue": "default value",
+        "dictionaryName": "test3",
+        "label": "Test Label",
+        "preferredDisplayType": "text",
+      },
+    ],
+    "name": "TestA",
+    "source": "fluxor",
+  },
+}

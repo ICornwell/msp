@@ -14,6 +14,7 @@ import { ReComponentWrapperProps } from '../../renderEngine/components/ReCompone
 
 import { createTheme } from '@mui/material/styles'
 import { CustomThemeProvider } from '../components/CustomThemeProvider';
+import { JSX } from '@emotion/react/jsx-runtime';
 // import { NavItem, Tab } from '../types.ts';
 export default function EngineComponents() {
   const { addComponent, addManagedFormComponent, addContainerComponent } = useEngineComponentsContext();
@@ -29,17 +30,19 @@ export default function EngineComponents() {
 }
 
 
-export const TestAppShell: React.FC = (children) => {
+export const TestAppShell: React.FC = ({children}: {children : any}) => {
   
   return (
- //   <CustomThemeProvider theme={createTheme()}>
+    <CustomThemeProvider theme={createTheme()}>
       <ReProvider>
         <EngineComponentProvider>
           <EngineComponents />
           <h1>Test App Shell</h1>
-          {children}
+          <>
+            {children}
+          </>
         </EngineComponentProvider>
       </ReProvider>
- //   </CustomThemeProvider>
+    </CustomThemeProvider>
   );
 };
