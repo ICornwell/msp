@@ -29,7 +29,7 @@
     "src/**/*.tsx",
     "**/*.test.ts",
     "**/*.test.tsx",
-    "jest.setup.js"
+  //  "jest.setup.js"
   ],
   "exclude": ["node_modules"]
 }

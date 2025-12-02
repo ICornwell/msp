@@ -1,0 +1,214 @@
+import { ComponentType, ReactNode, useState } from 'react';
+import { useEngineComponentsContext } from '../contexts/ReComponentsContext';
+import FormHelperText from '@mui/material/FormHelperText';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentProps';
+import { makeStyles } from 'tss-react/mui';
+import { Theme } from '@mui/material/styles';
+import { RePubSubMsg } from '../data/ReEnginePubSub';
+import { ReSubscriptionHandler } from './RePubSubHook';
+
+const useStyles = makeStyles()((theme: Theme) => ({
+  label: {
+    color: theme.palette.text.primary,
+  },
+  lineHeight: {
+    lineHeight: theme.spacing(3),
+  },
+}));
+
+interface WrapperProps {
+  wrapperProps: ReComponentSystemProps;
+  rootData?: any;
+  localData?: any;
+  children?: ReactNode;
+}
+
+export default function ReComponentWrapper({ wrapperProps, rootData, localData, children }: WrapperProps) {
+  const { classes } = useStyles()
+  const { value, record, setMetadataMode, setter } = wrapperProps
+  const { getComponentInstantiator } = useEngineComponentsContext()
+
+  const [redrawToggle, setRedrawToggle] = useState(false);
+
+  function triggerRedraw() {
+    setRedrawToggle(!redrawToggle);
+  }
+
+  const shadowsProps =  { ...wrapperProps.options}
+  if (wrapperProps.options?.propertyDescriptor) {
+    for (const [key, val] of Object.entries(wrapperProps.options.propertyDescriptor)) {
+      if (!(key in shadowsProps) || shadowsProps[key] === undefined) {
+        (shadowsProps as any)[key] = val;
+      }
+    }
+  }
+
+
+  function updateModelData (_newValue: any) { 
+    if (setter) {
+      setter(_newValue);
+    }
+   };
+
+  for (const [key, val] of Object.entries(shadowsProps || {})) {
+    if (val && typeof val === 'object'
+      && (val.executionPlan || val.executionPlan == '') && val.expression
+      && typeof val.expression === 'function') {
+
+      let proxySubId: any = undefined;
+
+      // Collect metadata about function properties
+      const functionPropsMetaData: Array<{
+        path: string,
+        propertyKey: string | number | symbol,
+        subscriptionHandler: ReSubscriptionHandler,
+ //       setter: (newValue: any) => void
+      }> = []
+
+      if (setMetadataMode && localData.__isProxy) {
+        setMetadataMode(false);
+        const subscribe = localData.___proxyPubSub.subscriptionHandler.subscribeToPubSub;
+        // Subscribe to proxy fetches to collect metadata
+        proxySubId = subscribe({callback: (msg: RePubSubMsg) => {
+          functionPropsMetaData.push({ path: msg.path, propertyKey: msg.propertyKey,
+             subscriptionHandler: msg.subscriptionHandler });
+        }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'});
+      }
+
+      // when we get the binding value, messages will let us know what properties were accessed
+      const expVal = val.expression({
+        rootData: rootData,
+        localData: localData,
+        localIsCollection: Array.isArray(localData),
+        attributeName: key,
+        collectionIndexerId: wrapperProps?.options?.collectionIndexerId,
+      })
+
+      // Unsubscribe from proxy fetches
+      for (const metaData of functionPropsMetaData) {
+        // TODO: we should use a subscription hook that will clean up on unmount
+        metaData.subscriptionHandler.subscribeToPubSub({
+          callback: (_msg: RePubSubMsg) => {
+            triggerRedraw();
+          },
+          msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataChange'
+        });
+      }
+      if (proxySubId) {
+        const unsubscribe = localData.___proxyPubSub.subscriptionHandler.unsubscribeFromPubSub;
+        unsubscribe(proxySubId);
+      }
+
+      // Set the evaluated value
+      (shadowsProps as any)[key] = expVal;
+    } else {
+      (shadowsProps as any)[key] = val;
+    }
+  }
+
+  const instantiatorProps = getComponentInstantiator(shadowsProps?.componentName ?? 'none') // this will throw an error if the component is not registered
+  if (!children || Array.isArray(children) && children.length === 0) children = undefined
+
+  if (typeof (instantiatorProps?.instantiator) != 'function') {
+    console.log(`Component ${shadowsProps?.componentName} as no valid instantiator`)
+    console.log(instantiatorProps)
+    console.log(wrapperProps)
+    return null
+  }
+
+  function onChangeHandler(newValue: any) {
+    // For controlled components, we would handle the change here
+    // but in this engine, we expect bindings to handle data updates
+    console.log(`onChange event received with value:`, newValue);
+    updateModelData(newValue);
+  }
+
+  const component = instantiatorProps.instantiator(
+    {
+      ...shadowsProps,
+      events: {
+        onChange: onChangeHandler
+      },
+      value: value,
+      record: record,
+      children: children
+    }
+  )
+  if (component === null) {
+    console.log(`instatiator returned a null component`)
+    return null
+  }
+  if (component === undefined) {
+    console.log(`instatiator returned an undefined component`)
+    return null
+  }
+  if (typeof component === 'object') {
+    if (instantiatorProps.options?.isManagedForm) {
+      return (
+        <>
+          <FormHelperText>{shadowsProps?.helperText as string}</FormHelperText>
+          <FormControlLabel className={classes.label}
+            control={component} labelPlacement="start" label={shadowsProps?.label as string} />
+        </>
+      )
+    } else {
+      return (
+        <>
+          {component}
+        </>
+      )
+    }
+  }
+
+  console.log(`instatiator returned a non renderable component`)
+  console.log(component)
+  return null
+}
+
+/**
+ * Base component wrapper that includes both the component and its metadata
+ */
+export interface ComponentWrapper<P> {
+  // The actual React component
+  component: ComponentType<P>;
+  // Display name for debugging
+  displayName: string;
+  // Whether this component accepts children
+  acceptsChildren: boolean;
+  // Whether this component is a managed form component
+  isManagedForm: boolean;
+  // The type of props this component accepts
+  __propType?: P; // Never used at runtime, only for type inference
+}
+
+/**
+ * Create a wrapper for a component that doesn't accept children
+ */
+export function createLeafComponent<P extends object>(
+  component: ComponentType<P & ReComponentCommonProps & ReComponentSystemProps>,
+  displayName?: string,
+  isManagedForm?: boolean
+): ComponentWrapper<P> {
+  return {
+    component,
+    displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
+    acceptsChildren: false,
+    isManagedForm: isManagedForm || false,
+  };
+}
+
+/**
+ * Create a wrapper for a component that accepts children
+ */
+export function createContainerComponent<P extends { children?: ReactNode }>(
+  component: ComponentType<P>,
+  displayName?: string
+): ComponentWrapper<P> {
+  return {
+    component,
+    displayName: displayName || component.displayName || component.name || 'UnnamedContainer',
+    acceptsChildren: true,
+    isManagedForm: false,
+  };
+}

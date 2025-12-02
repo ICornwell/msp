@@ -19,35 +19,11 @@ export default defineConfig({
       }
     },
     // React plugin with Emotion support
-    react({
-      jsxRuntime: 'react',
-      jsxImportSource: '@emotion/react',
-      babel: {
-        plugins: [
-         // '@emotion/babel-plugin',
-          // Add decorators support
-          ['@babel/plugin-proposal-decorators', { legacy: true }],
-          ['@babel/plugin-transform-class-properties', { loose: true }]
-        ]
-      }
-    }),
-    // Add the babel plugin for additional processing
-    babel({
-      babelConfig: {
-        babelrc: false,
-        configFile: false,
-        plugins: [
-    //      '@emotion/babel-plugin',
-          ['@babel/plugin-proposal-decorators', { legacy: true }],
-          ['@babel/plugin-proposal-class-properties', { loose: true }]
-        ]
-      }
-    })
   ],
   test: {
     globals: true,
     environment: 'happy-dom',
-    setupFiles: [resolve(__dirname, 'src/setupTests.ts')],
+    setupFiles: [resolve(__dirname, 'src/ui/setupTests.ts')],
     css: true,
 
     alias: {
@@ -91,6 +67,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {}
-  },
+  }
  
 })
