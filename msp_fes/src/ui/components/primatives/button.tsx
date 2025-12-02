@@ -7,9 +7,9 @@ import { createLeafComponent } from '../../renderEngine/components/ReComponentWr
 export type ButtonProps = {
   buttonVariant?: 'squre' | 'rounded' | 'circle';
   buttonSize?: 'small' | 'medium' | 'large';
-} & ReComponentCommonProps & ReComponentSystemProps;
+} ;
 
-export default function ReButton(props: ButtonProps) {
+export default function ReButton(props: ButtonProps & ReComponentCommonProps & ReComponentSystemProps) {
   const { label, value, testId, disabled } = props; // _type, _error, _helperText
 
   const [_inputValue, setInputValue] = useState(value);
