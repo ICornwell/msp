@@ -9,9 +9,9 @@ export type TextInputProps = {
   type?: string;
   textVariant?: string
   
-}  & ReComponentCommonProps & ReComponentSystemProps;
+}  ;
 
-export default function TextInput(props: TextInputProps) {
+export default function TextInput(props: TextInputProps & ReComponentCommonProps & ReComponentSystemProps) {
   const { label, value, type, error, testId, helperText, disabled, events  } = props;
   const onChange = events?.onChange || (() => {});
   

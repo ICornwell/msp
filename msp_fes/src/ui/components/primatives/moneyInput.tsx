@@ -5,9 +5,9 @@ import { ReComponentCommonProps, ReComponentSystemProps } from '../../renderEngi
 
 export type MoneyInputProps = {
   decimalPlaces?: number;
-}  & ReComponentCommonProps & ReComponentSystemProps;
+};
 
-export default function MoneyInput(props: MoneyInputProps) {
+export default function MoneyInput(props: MoneyInputProps & ReComponentCommonProps & ReComponentSystemProps) {
   const { label, value, error, testId, helperText, disabled, decimalPlaces = 2 } = props;
 
   const dpAdjust = Math.pow(10, decimalPlaces);
@@ -32,13 +32,13 @@ export default function MoneyInput(props: MoneyInputProps) {
       data-testid={testId}
       inputRef={inputRef}
       color={isNegative ? "error" : "primary"}
-      value={isNegative ? `(${inputValue})` : inputValue }
+      value={isNegative ? `(${inputValue})` : inputValue}
       slotProps={{
         input: {
           startAdornment: <InputAdornment position="start">$</InputAdornment>,
         },
       }}
-      
+
       onInput={
         (e: any) => {
           setInputValue((e.target as HTMLInputElement).value);
@@ -46,8 +46,9 @@ export default function MoneyInput(props: MoneyInputProps) {
         }
       }
       onChange={(_e: any) => {
-      //  setInputValue(e.target.);
-      //  onChange(e.target.value);
+        if (props.events?.onChange) {
+          props.events.onChange(inputValue);
+        }
       }}
       type="number"
       label={label}

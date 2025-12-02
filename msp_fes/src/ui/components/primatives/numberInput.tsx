@@ -5,12 +5,12 @@ import { ReComponentCommonProps, ReComponentSystemProps } from "../../renderEngi
 
 export type NumberInputProps = {
 
-} & ReComponentCommonProps & ReComponentSystemProps;
+};
 
-export default function NumberInput(props: NumberInputProps) {
+export default function NumberInput(props: NumberInputProps & ReComponentCommonProps & ReComponentSystemProps) {
   const { label, value, error, testId, helperText, disabled, events } = props;
 
-  const onChange = events?.onChange || (() => {});
+  const onChange = events?.onChange || (() => { });
 
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,7 +28,7 @@ export default function NumberInput(props: NumberInputProps) {
       helperText={helperText}
       error={error}
       disabled={disabled}
-      onBlur={() =>onChange(inputValue)}
+      onBlur={() => onChange(inputValue)}
       onInput={
         (e) => {
           setInputValue((e.target as HTMLInputElement).value);
@@ -36,8 +36,8 @@ export default function NumberInput(props: NumberInputProps) {
         }
       }
       onChange={(_e) => {
-      //  setInputValue(e.target.);
-      //  onChange(e.target.value);
+        //  setInputValue(e.target.);
+        //  onChange(e.target.value);
       }}
       type="number"
 
