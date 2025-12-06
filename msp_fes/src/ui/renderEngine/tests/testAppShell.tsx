@@ -3,11 +3,11 @@ import React from 'react';
 import { ReProvider } from '../../renderEngine/contexts/ReEngineContext.tsx';
 import { EngineComponentProvider, useEngineComponentsContext } from '../../renderEngine/contexts/ReComponentsContext.tsx';
 
-import {CheckboxComponent} from '../../components/primatives/checkboxInput.tsx';
-import {NumberComponent} from '../../components/primatives/numberInput.tsx';
-import {MoneyComponent} from '../../components/primatives/moneyInput.tsx';
-import {TextComponent} from '../../components/primatives/textInput.tsx';
-import {ButtonComponent} from '../../components/primatives/button.tsx';
+import {CheckboxComponent} from '../../components/primatives/editing/checkboxInput.tsx';
+import {NumberComponent} from '../../components/primatives/editing/numberInput.tsx';
+import {MoneyComponent} from '../../components/primatives/editing/moneyInput.tsx';
+import {TextComponent} from '../../components/primatives/editing/textInput.tsx';
+import {ButtonComponent} from '../../components/primatives/editing/button.tsx';
 import {ColumnsComponent} from '../../components/containers/columns.tsx';
 
 import {ReGroupComponent} from '../components/ReGroup.tsx';

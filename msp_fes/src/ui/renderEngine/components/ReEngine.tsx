@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement } from '../UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
+import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementCommmonProps, ReUiPlanElementShareableProps } from '../UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
 import { ReProvider } from '../contexts/ReEngineContext';
 import ReComponentWrapper from './ReComponentWrapper';
 
@@ -17,7 +17,17 @@ export type ReEngineProps = {
   renderSettings?: any,
 }
 
-type ReEngineElementProps = {
+export function mergeProps<S extends { [s: string]: any; }, T extends { [s: string]: any; }>(source: S, target: T, force: boolean=false): T {
+  const newProps: T = { ...target };
+  Object.entries(source).forEach(([key, value]) => {
+          if (force ||value !== undefined && (newProps as any)[key] === undefined) {
+            (newProps as any)[key] = value;
+          }
+        })
+  return newProps;
+}
+
+type ReEngineElementSetProps = {
   uiPlan: ReUiPlan,
   uiPlanElementSet: ReUiPlanElementSet,
   setMetadataMode: (mode: boolean) => void,
@@ -29,8 +39,8 @@ type ReEngineElementProps = {
     fluxorMetaData: any,
     temporaryData: any,
   },
-  parentElementProps?: ReEngineElementProps,
-
+  parentElement?: ReUiPlanElement,
+  parentSharedProps?: ReUiPlanElementShareableProps,
   depth: number
 }
 
@@ -63,17 +73,17 @@ export function ReEngine(props: ReEngineProps) {
           fluxorMetaData: {},
           temporaryData: {}
         },
-        parentElementProps: undefined,
-
+        parentElement: undefined,
+        parentSharedProps: { labelPosition: 'start', displayMode: 'readonly' },
         depth: 0
-      } as ReEngineElementProps)}
+      } as ReEngineElementSetProps)}
 
     </ReProvider>
   )
 
 
-  function recursiveRender(elementProps: ReEngineElementProps): React.ReactElement | React.ReactElement[] {
-    const { uiPlan, uiPlanElementSet, setMetadataMode, context, depth } = elementProps;
+  function recursiveRender(elementProps: ReEngineElementSetProps): React.ReactElement | React.ReactElement[] {
+    const { uiPlan, uiPlanElementSet, setMetadataMode, parentElement: parentElement, context, depth } = elementProps;
     const { rootData, localData } = context;
 
     if (!uiPlanElementSet) {
@@ -81,11 +91,34 @@ export function ReEngine(props: ReEngineProps) {
     }
 
     const elementComponents: React.ReactElement[] = []
-    for (const { componentName, options, containing } of uiPlanElementSet) {
-      const componentOptions = { ...options } as ReUiPlanElement;
+  //  for (const { componentName, options, containing } of uiPlanElementSet) {
+    uiPlanElementSet.forEach(({ componentName, options, containing }, elementIndex) => {
+      
+
+      let sharedProps: ReUiPlanElementShareableProps = {}
+
+      // find shared props for this element, if any
+      if (parentElement && parentElement.sharedProps) {
+          sharedProps = parentElement.sharedProps
+          .sort((a, b) => (a.fromComponentIndex ?? 0) - (b.fromComponentIndex ?? 0))
+          .reduce<ReUiPlanElementShareableProps>((acc, sp) => {
+            if (sp.fromComponentIndex === undefined || sp.fromComponentIndex <= elementIndex) {
+              // merge defined shared props
+              acc =mergeProps(sp, acc, true);
+            }
+            return acc;
+          }, {} as ReUiPlanElementShareableProps);
+      }
+      // merge parent's own given shared props if any not overridden by its own onward sharedProps
+      if (elementProps.parentSharedProps) {
+        sharedProps =mergeProps(elementProps.parentSharedProps, sharedProps);
+      }
+
+      // use shared props as a base, overridden by element options
+      const componentOptions = mergeProps(sharedProps, options || {}) ;
 
       if (componentOptions.hidden) {
-        continue; // Skip rendering if hidden
+        return; // Skip rendering if hidden
       }
       let record: any = localData
       let value: any = localData
@@ -96,8 +129,6 @@ export function ReEngine(props: ReEngineProps) {
       if (binding) {
         // Handle binding logic here
         if (typeof binding === 'function') {
-
-
           let proxySubId: any = undefined;
 
           // Collect metadata about function properties
@@ -180,7 +211,7 @@ export function ReEngine(props: ReEngineProps) {
         componentOptions.componentName = componentName;
       }
       if (containing) {
-        const childElementProps: ReEngineElementProps = {
+        const childElementProps: ReEngineElementSetProps = {
           uiPlan,
           uiPlanElementSet: containing,
           setMetadataMode,
@@ -193,19 +224,21 @@ export function ReEngine(props: ReEngineProps) {
             fluxorMetaData: context.fluxorMetaData,
             temporaryData: context.temporaryData
           },
-          parentElementProps: elementProps,
+          parentElement: options,
+          parentSharedProps: sharedProps,
           depth: depth + 1
         }
         record = childElementProps.context.localData
         const childElements = componentOptions.useSingleChildForArrays
           ? (<>
-            {(Array.isArray(record) ? record : [record]).map((childRecord) =>
+            {(Array.isArray(record) ? record : [record]).map((childRecord, idx) =>
               recursiveRender({ ...childElementProps, context: { ...childElementProps.context, localData: childRecord } }))}
           </>)
-          : recursiveRender({ ...childElementProps, context: { ...childElementProps.context, localData: record } })
+          : recursiveRender({ ...childElementProps, context: { ...childElementProps.context, localData: record } });
 
         elementComponent = (
           <ReComponentWrapper
+            key={elementIndex}
             wrapperProps={{ options: { ...componentOptions }, setMetadataMode, value, record, setter }}
             rootData={rootData}
             localData={localData}
@@ -234,7 +267,7 @@ export function ReEngine(props: ReEngineProps) {
         }
       }
       elementComponents.push(elementComponent)
-    }
+    })
 
     return elementComponents
     /*  <div className={`re-engine-element depth-${depth}`}>

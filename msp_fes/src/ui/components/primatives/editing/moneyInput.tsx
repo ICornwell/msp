@@ -1,15 +1,15 @@
 import { InputAdornment, TextField } from '@mui/material';
 import { useState, useEffect, useRef } from 'react';
-import { createLeafComponent } from '../../renderEngine/components/ReComponentWrapper';
-import { ReComponentCommonProps, ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper';
+import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps';
 
 export type MoneyInputProps = {
   decimalPlaces?: number;
+  currencySymbol?: string;
 };
 
 export default function MoneyInput(props: MoneyInputProps & ReComponentCommonProps & ReComponentSystemProps) {
-  const { label, value, error, testId, helperText, disabled, decimalPlaces = 2 } = props;
-
+  const { label, value, error, testId, helperText, disabled, decimalPlaces = 2, currencySymbol = '$' } = props;
   const dpAdjust = Math.pow(10, decimalPlaces);
   let numValue = parseFloat(value);
   const isValidNumber = !isNaN(numValue) && isFinite(numValue);
@@ -35,7 +35,7 @@ export default function MoneyInput(props: MoneyInputProps & ReComponentCommonPro
       value={isNegative ? `(${inputValue})` : inputValue}
       slotProps={{
         input: {
-          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+          startAdornment: <InputAdornment position="start">{currencySymbol}</InputAdornment>,
         },
       }}
 

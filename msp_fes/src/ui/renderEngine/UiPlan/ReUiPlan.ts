@@ -55,13 +55,13 @@ export type ReUiPlan = {
   name: string
   description: string
   version: string
-  
   rules?: string[]
   fluxors?: FluxorProps<any>[]
   displayTypeMap?: [string, string][]
   mainPlanElementSet?: ReUiPlanElementSet
   buildSettings?: any,
   dataDescriptor?: FluxorData<any>
+  sharedProps?: ReUiPlanElementShareableProps[];
 }
 
 export type ReUiPlanExpressionProp<C> = { executionPlan: any, expression: string | ((context: C) => any) }
@@ -70,24 +70,35 @@ export type ReUiPlanElementSetMember = {componentName?: string, options: ReUiPla
 
 export type ReUiPlanElementSet = ReUiPlanElementSetMember[]
 
+export type ReUiPlanDisplayMode = 'editing' | 'editable' | 'readonly';
+
+export type ReUiPlanElementShareableProps = {
+  labelPosition?: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<any>;
+  displayMode?: ReUiPlanDisplayMode | ReUiPlanExpressionProp<any>;
+  componentProps?: any;
+  fromComponentIndex?: number;
+  decorators?: any[];
+} 
+
 export type ReUiPlanElementCommmonProps = {
   hidden?: boolean | ReUiPlanExpressionProp<any>;
   disabled?: boolean | ReUiPlanExpressionProp<any>;
   error?: boolean | ReUiPlanExpressionProp<any>;
   helperText?: string | ReUiPlanExpressionProp<any>;
   label?: string | ReUiPlanExpressionProp<any>;
-  decorators?: any[];
   binding?: ReComponentBinder<any, any>;
   extraBindings?: Record<string, ReComponentBinder<any, any>>;
   useSingleChildForArrays?: boolean;
   testId?: string;
   children?: ReUiPlanElementSet;
-} 
+} & ReUiPlanElementShareableProps
 
 export type ReUiPlanElement = {
+  isUsed?: boolean
   componentName?: string;
   componentProps?: any;
   buildSettings: any;
+  sharedProps?: ReUiPlanElementShareableProps[];
   dataDescriptor?: FluxorData<any>;
   collectionIndexerId?: string;
   attributeName?: string;

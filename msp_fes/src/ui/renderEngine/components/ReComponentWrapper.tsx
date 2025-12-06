@@ -7,6 +7,7 @@ import { makeStyles } from 'tss-react/mui';
 import { Theme } from '@mui/material/styles';
 import { RePubSubMsg } from '../data/ReEnginePubSub';
 import { ReSubscriptionHandler } from './RePubSubHook';
+import { ReUiPlanDisplayMode } from '../UiPlan/ReUiPlan';
 
 const useStyles = makeStyles()((theme: Theme) => ({
   label: {
@@ -107,7 +108,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
     }
   }
 
-  const instantiatorProps = getComponentInstantiator(shadowsProps?.componentName ?? 'none') // this will throw an error if the component is not registered
+  const instantiatorProps = getComponentInstantiator(shadowsProps?.componentName ?? 'none', shadowsProps?.displayMode) // this will throw an error if the component is not registered
   if (!children || Array.isArray(children) && children.length === 0) children = undefined
 
   if (typeof (instantiatorProps?.instantiator) != 'function') {
@@ -166,6 +167,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
   return null
 }
 
+export type DisplayMode = ReUiPlanDisplayMode | 'all';
 /**
  * Base component wrapper that includes both the component and its metadata
  */
@@ -180,6 +182,8 @@ export interface ComponentWrapper<P> {
   isManagedForm: boolean;
   // The type of props this component accepts
   __propType?: P; // Never used at runtime, only for type inference
+
+  displayMode?: DisplayMode | DisplayMode[];
 }
 
 /**
@@ -195,6 +199,33 @@ export function createLeafComponent<P extends object>(
     displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
     acceptsChildren: false,
     isManagedForm: isManagedForm || false,
+    displayMode: 'editing',
+  };
+}
+
+export function createLeafReadOnlyComponent<P extends object>(
+  component: ComponentType<P & ReComponentCommonProps & ReComponentSystemProps>,
+  displayName?: string
+): ComponentWrapper<P> {
+  return {
+    component,
+    displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
+    acceptsChildren: false,
+    isManagedForm: false,
+    displayMode: 'readonly',
+  };
+}
+
+export function createLeafEditableComponent<P extends object>(
+  component: ComponentType<P & ReComponentCommonProps & ReComponentSystemProps>,
+  displayName?: string
+): ComponentWrapper<P> {
+  return {
+    component,
+    displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
+    acceptsChildren: false,
+    isManagedForm: false,
+    displayMode: 'editable',
   };
 }
 
@@ -210,5 +241,6 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
     displayName: displayName || component.displayName || component.name || 'UnnamedContainer',
     acceptsChildren: true,
     isManagedForm: false,
+    displayMode: 'all'
   };
 }

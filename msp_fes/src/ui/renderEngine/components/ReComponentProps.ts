@@ -7,16 +7,19 @@ export type ReComponentCommonProps = {
   error?: boolean;
   helperText?: string;
   label?: string;
+  labelPosition?: 'top' | 'start' | 'end' | 'bottom';
   decorators?: any[];
   componentName?: string;
   dataSource?: any;
   testId?: string;
-  
+  displayMode?: 'editing' | 'editable' | 'readonly';
 }
 
 
 export type ReComponentSystemProps = { 
   options?: ReUiPlanElement, 
+  elementIndex?: number,
+  
   setMetadataMode?: (mode: boolean) => void,
   children?: ReactNode, 
    value?: any, 

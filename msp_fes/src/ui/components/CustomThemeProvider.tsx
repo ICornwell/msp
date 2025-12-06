@@ -1,4 +1,20 @@
-import { useContext, createContext } from 'react';
+import { createTheme as createMuiTheme, ThemeProvider } from '@mui/material/styles';
+
+// Create a default theme
+const defaultTheme = createMuiTheme();
+
+// Custom ThemeProvider
+export const CustomThemeProvider = ({ theme, children }: { theme: any, children: any }) => {
+  return (
+    <ThemeProvider theme={theme || defaultTheme}>
+      {children}
+    </ThemeProvider>
+  );
+};
+
+
+
+/* import { useContext, createContext } from 'react';
 import { createTheme as createMuiTheme } from '@mui/material/styles';
 
 // Create a default theme
@@ -17,4 +33,4 @@ export const CustomThemeProvider = ({ theme, children }: { theme: any, children:
 };
 
 // Custom useTheme hook
-export const useCustomTheme = () => useContext(ThemeContext);
+export const useCustomTheme = () => useContext(ThemeContext); */

@@ -1,10 +1,10 @@
 import { TextField } from "@mui/material";
 import { useState, useEffect, useRef } from 'react'
-import { createLeafComponent } from "../../renderEngine/components/ReComponentWrapper";
-import { ReComponentCommonProps, ReComponentSystemProps } from "../../renderEngine/components/ReComponentProps";
+import { createLeafComponent } from "../../../renderEngine/components/ReComponentWrapper";
+import { ReComponentCommonProps, ReComponentSystemProps } from "../../../renderEngine/components/ReComponentProps";
 
 export type NumberInputProps = {
-
+  decimalPlaces?: number;
 };
 
 export default function NumberInput(props: NumberInputProps & ReComponentCommonProps & ReComponentSystemProps) {

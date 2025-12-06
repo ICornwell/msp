@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { TextField } from "@mui/material";
 import { v4 as uuidv4 } from 'uuid';
-import { ReComponentCommonProps, ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
-import { createLeafComponent } from '../../renderEngine/components/ReComponentWrapper';
+import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps';
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper';
 
 export type TextInputProps = {
   type?: string;

@@ -1,4 +1,4 @@
-import {TextComponent} from '../../components/primatives/textInput.tsx'
+import TextInput, {TextComponent, TextInputProps} from '../../components/primatives/editing/textInput.tsx'
 import { ReGroupComponent } from '../components/ReGroup.tsx'
 import { Re } from '../index.ts'
 //import { ReUiPlanElementSetBuilder } from '../UiPlan/ReUiPlanBuilder.ts'
@@ -14,7 +14,11 @@ describe('ReUiPlanBuilder', () => {
     .withElementSet.forDataDescribedBy(userInfoFluxorData)
     
       .fromInlineElementSet
-        .showingStandalone.fromInlineElementUsingComponent(TextComponent)
+        .withSharedProps()
+          .withDisplayMode('editable')
+          .withLabelPosition('start')
+        .endSharedProps
+        .showingItem.fromInlineElementUsingComponent(TextComponent)
           .withLabel('Standalone Component')
           .withComponentProps({ })
           .withValueBinding((context)=>context.localData.phoneNumber)
@@ -23,10 +27,14 @@ describe('ReUiPlanBuilder', () => {
               .withLabel('container')
             .endElement
             .containingForDataDescribedBy(userPreferencesFluxorData)
-              .showingStandalone.fromInlineElementUsingDataMap()
+              .showingItem.fromInlineElementUsingDataMap()
                 .withLabel('Child Component 1')
                 .endElement
-              .showingStandalone.fromInlineElementUsingComponent(TextComponent)
+              .withSharedProps()
+                .withDisplayMode('readonly')
+                .withComponentProps({ style: { color: 'blue' } })
+              .endSharedProps
+              .showingItem.fromInlineElementUsingComponent(TextComponent)
                 .withLabel('Standalone Component')
                 .withComponentProps({type: 'email'  })
                 .withValueBinding((context)=>context.localData.colorPalette)
@@ -53,12 +61,12 @@ describe('ReUiPlanBuilder', () => {
  //   .withSchema([TestClassA, TestClassB])
     .withRules(['rule1', 'rule2'])
     .withElementSet.forDataDescribedBy(userInfoFluxorData).fromInlineElementSet
-      .showingStandalone.fromElementBuilder(text1Builder)
+      .showingItem.fromElementBuilder(text1Builder)
       .showingContainer.fromInlineContainerElementUsingComponent(ReGroupComponent)
         .withValueBinding((context)=>context.localData)
         .withLabel('container')
         .endElement.containing
-          .showingStandalone.fromElementBuilder(text2Builder)
+          .showingItem.fromElementBuilder(text2Builder)
       .endSet
       .endSet
 

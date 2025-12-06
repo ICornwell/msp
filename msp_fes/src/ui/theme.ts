@@ -9,7 +9,7 @@ const theme = createTheme({
       main: '#2b88d8',
     },
     background: {
-      default: '#f5f5f5',
+      default: '#202020',
     },
   },
   components: {
@@ -24,7 +24,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: '48px',
-          backgroundColor: '#fff',
+        //  backgroundColor: '#fff',
           borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
         },
       },

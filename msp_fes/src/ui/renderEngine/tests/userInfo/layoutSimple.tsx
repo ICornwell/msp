@@ -1,28 +1,28 @@
 import {Re} from '../../index'
 
 import { userInfoFluxorData } from './UserInfo'
-import { TextComponent } from '../../../components/primatives/textInput'
-import { MoneyComponent } from '../../../components/primatives/moneyInput'
-import { CheckboxComponent } from '../../../components/primatives/checkboxInput'
+import { TextComponent } from '../../../components/primatives/editing/textInput'
+import { MoneyComponent } from '../../../components/primatives/editing/moneyInput'
+import { CheckboxComponent } from '../../../components/primatives/editing/checkboxInput'
 
 export function UserInfoLayout() {
   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
     
     .withElementSet.forDataDescribedBy(userInfoFluxorData)
      .fromInlineElementSet
-      .showingStandalone.fromInlineElementUsingComponent(TextComponent)
+      .showingItem.fromInlineElementUsingComponent(TextComponent)
           .withValueBinding((context) => context.localData.userName)
         .endElement
-        .showingStandalone.fromInlineElementUsingComponent(TextComponent)
+        .showingItem.fromInlineElementUsingComponent(TextComponent)
           .withValueBinding((context) => context.localData.email)
         .endElement
-        .showingStandalone.fromInlineElementUsingComponent(MoneyComponent)
+        .showingItem.fromInlineElementUsingComponent(MoneyComponent)
           .withValueBinding((context) => context.localData.creditLimit)
         .endElement
-        .showingStandalone.fromInlineElementUsingComponent(CheckboxComponent)
+        .showingItem.fromInlineElementUsingComponent(CheckboxComponent)
           .withValueBinding((context) => context.localData.marketingConsent)
         .endElement
-        .showingStandalone.fromInlineElementUsingComponent(TextComponent)
+        .showingItem.fromInlineElementUsingComponent(TextComponent)
           .withValueBinding((context) => context.localData.userName)
         .endElement
     .endSet

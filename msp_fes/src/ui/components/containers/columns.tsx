@@ -33,14 +33,14 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
     // across maths takes every nth child
       paddedChildren.reduce((acc: React.ReactNode[], child: React.ReactNode, i: number) => {
         if (i % (columns-1) === index) {
-          acc.push(child);
+          acc.push(React.cloneElement(child as React.ReactElement, { key: i }));
         }
         return acc;
       }, []) :
       // down maths takes every total number of children divided by the number of columns blocks
       paddedChildren.reduce((acc: React.ReactNode[], child: React.ReactNode, i: number) => {
         if ((Math.floor(i / (Math.ceil(childCount / columns)))) === index) {
-          acc.push(child);
+          acc.push(React.cloneElement(child as React.ReactElement, { key: i }));
         }
         return acc;
       }, []);

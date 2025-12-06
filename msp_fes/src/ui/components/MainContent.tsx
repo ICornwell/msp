@@ -24,7 +24,9 @@ export const MainContent: React.FC<MainContentProps> = ({
       flex: 1,
       p: 3,
       overflow: 'auto',
-      backgroundColor: (theme) => theme.palette.background.default
+      backgroundColor: (theme) => {
+        console.log(theme);
+        return theme.palette.background.default;}
     }}>
       {activeTab ? (
         <Box className="tab-content">
