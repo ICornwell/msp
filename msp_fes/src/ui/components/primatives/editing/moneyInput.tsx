@@ -23,32 +23,33 @@ export default function MoneyInput(props: MoneyInputProps & ReComponentCommonPro
   const [inputValue, setInputValue] = useState(displayValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
+
+  function formattedValue() {
+    return (decimalPlaces !== undefined && !isNaN(Number(value)))
+    ? (Math.round((Number(value)) * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces)).toFixed(decimalPlaces)
+    : value;
+  }
 
   return (
     <TextField
       data-testid={testId}
       inputRef={inputRef}
+      variant='filled'
       color={isNegative ? "error" : "primary"}
       value={isNegative ? `(${inputValue})` : inputValue}
       slotProps={{
         input: {
-          startAdornment: <InputAdornment position="start">{currencySymbol}</InputAdornment>,
+          startAdornment: <InputAdornment style={{marginTop: '2px'}} position="start">{currencySymbol}</InputAdornment>,
         },
       }}
-
-      onInput={
-        (e: any) => {
-          setInputValue((e.target as HTMLInputElement).value);
-          // onChange(e.target.value);
-        }
-      }
-      onChange={(_e: any) => {
+      onChange={(event: any) => {
         if (props.events?.onChange) {
           props.events.onChange(inputValue);
+          setInputValue(event.target.value);
         }
+      }}
+      onBlur={()=>{
+        setInputValue(formattedValue());
       }}
       type="number"
       label={label}

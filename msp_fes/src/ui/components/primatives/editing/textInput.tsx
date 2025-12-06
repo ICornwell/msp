@@ -37,7 +37,9 @@ export default function TextInput(props: TextInputProps & ReComponentCommonProps
   return (
     <TextField
       id={componentId}
+      variant='filled'
       data-testid={testId}
+      slotProps={{ input: { readOnly: false, disableUnderline: false } }}
       inputRef={inputRef}
       value={inputValue}
       onChange={handleInput}

@@ -22,9 +22,21 @@ export function UserInfoLayout() {
    
             .showingItem.fromInlineElementUsingComponent(TextComponent)
                 .withValueBinding((context) => context.localData.userName)
+                .withHelperText('Please enter your full name')
               .endElement
               .showingItem.fromInlineElementUsingComponent(TextComponent)
                 .withValueBinding((context) => context.localData.email)
+              .endElement
+               .showingItem.fromInlineElementUsingComponent(MoneyComponent)
+                .withLabel({executionPlan:'', expression: (context) => context.localData.userName + "'s Credit Limit" })
+                .withValueBinding((context) => context.localData.creditLimit)
+              .endElement
+              .showingItem.fromInlineElementUsingComponent(CheckboxComponent)
+                .withValueBinding((context) => context.localData.marketingConsent)
+              .endElement
+              .showingItem.fromInlineElementUsingComponent(TextComponent)
+                .withLabel("User Name")
+                .withValueBinding((context) => context.localData.userName)
               .endElement
               .withSharedProps()
                 .withDisplayMode('readonly')

@@ -21,8 +21,7 @@ export default function CheckboxInput(props: CheckboxInputProps & ReComponentCom
   }, [value]);
 
   const custom = (
-    <Checkbox
-      inputRef={inputRef}
+    <Checkbox 
       data-testid={testId || 'checkbox-input'}
       checked={inputValue === true}
       indeterminate={inputValue === undefined}
@@ -47,11 +46,11 @@ export default function CheckboxInput(props: CheckboxInputProps & ReComponentCom
   return (
 
     <TextField
-      helperText="Please enter your name"
-      id="demo-helper-text-aligned"
-      variant="outlined"
+      helperText={props.helperText}
+      id="checkbox"
+      variant="filled"
 
-      label="Name and stuff"
+      label={props.label}
       slotProps={{ inputLabel: { shrink: true } }}
       slots={{ input: () => custom }}
     />
@@ -60,4 +59,4 @@ export default function CheckboxInput(props: CheckboxInputProps & ReComponentCom
   );
 }
 
-export const CheckboxComponent = createLeafComponent<CheckboxInputProps>(CheckboxInput, 'Checkbox', true);
+export const CheckboxComponent = createLeafComponent<CheckboxInputProps>(CheckboxInput, 'Checkbox', false);

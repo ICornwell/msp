@@ -1,6 +1,8 @@
 import { createTheme } from '@mui/material/styles';
+import { root } from 'happy-dom/lib/PropertySymbol.js';
 
 const theme = createTheme({
+  spacing: 6,
   palette: {
     primary: {
       main: '#0078d4',
@@ -9,7 +11,17 @@ const theme = createTheme({
       main: '#2b88d8',
     },
     background: {
-      default: '#202020',
+      default: '#e0e0e0',
+    },
+  },
+  typography: {
+    fontFamily: 'Bahnschrift Light Condensed, Arial, sans-serif',
+    fontSize: 12,
+    body1: {
+      color: '#333333',
+    },
+    body2: {
+      color: '#555555',
     },
   },
   components: {
@@ -24,11 +36,132 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: '48px',
-        //  backgroundColor: '#fff',
+          //  backgroundColor: '#fff',
           borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
         },
       },
     },
+    MuiButton: {
+      defaultProps: {
+        size: 'small',
+      },
+    },
+    MuiFilledInput: {
+      styleOverrides: {
+        input: {
+          paddingTop: '4px',
+          paddingBottom: '2px',
+          ":read-only": {
+            backgroundColor: '#e0e0e0'
+          },
+        },
+        underline: {
+          marginTop: '6px',
+        },
+      },
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiFormControl: {
+      
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          marginTop: '-5px',
+        },
+      },
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiIconButton: {
+      defaultProps: {
+        size: 'small',
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        readOnly: {
+
+        }
+      },
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        filled: {
+          marginTop: '-14px',
+        
+        }
+      },
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiListItem: {
+      defaultProps: {
+        dense: true,
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        input: {
+          marginTop: '5px',
+          paddingTop: '0px',
+          paddingBottom: '4px',
+        },
+      },
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiFab: {
+      defaultProps: {
+        size: 'small',
+      },
+    },
+    MuiTable: {
+      defaultProps: {
+        size: 'small',
+      },
+    },
+    MuiTextField: {
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiToolbar: {
+      defaultProps: {
+        variant: 'dense',
+      },
+    },
+    MuiInputAdornment: {
+      styleOverrides: {
+        root: {
+        },
+      }
+    },
+    MuiCheckbox: {
+      defaultProps: {
+        size: 'small',
+      },
+    },
+    MuiButtonBase:{
+      styleOverrides:{
+        root:{
+          "&.MuiCheckbox-root":{
+           justifyContent: 'start',
+          }
+        }
+      }
+    }
   },
 });
 

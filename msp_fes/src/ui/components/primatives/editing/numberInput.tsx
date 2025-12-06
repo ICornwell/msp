@@ -10,16 +10,16 @@ export type NumberInputProps = {
 export default function NumberInput(props: NumberInputProps & ReComponentCommonProps & ReComponentSystemProps) {
   const { label, value, error, testId, helperText, disabled, events } = props;
 
-  const onChange = events?.onChange || (() => { });
+  let numValue = parseFloat(value);
+  const isValidNumber = !isNaN(numValue) && isFinite(numValue);
+  if (!isValidNumber) {
+    numValue = 0;
+  }
 
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(numValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
-
-  return (
+    return (
     <TextField
       data-testid={testId}
       inputRef={inputRef}
@@ -28,16 +28,11 @@ export default function NumberInput(props: NumberInputProps & ReComponentCommonP
       helperText={helperText}
       error={error}
       disabled={disabled}
-      onBlur={() => onChange(inputValue)}
-      onInput={
-        (e) => {
-          setInputValue((e.target as HTMLInputElement).value);
-          // onChange(e.target.value);
+      onChange={(event: any) => {
+        if (events?.onChange) {
+          events.onChange(inputValue);
+          setInputValue(event.target.value);
         }
-      }
-      onChange={(_e) => {
-        //  setInputValue(e.target.);
-        //  onChange(e.target.value);
       }}
       type="number"
 
