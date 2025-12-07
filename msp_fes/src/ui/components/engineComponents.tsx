@@ -9,6 +9,7 @@ import { TextComponent } from './primatives/editing/textInput';
 import { TextReadOnlyComponent, TextEditableComponent } from './primatives/readonly/textInput';
 import { ButtonComponent } from './primatives/editing/button';
 import { ColumnsComponent } from './containers/columns';
+import { LabelFrameComponent } from './containers/labelframe';
 
 import { ReGroupComponent } from '../renderEngine/components/ReGroup';
 import { ReFluxListComponent } from '../renderEngine/components/ReFluxList';
@@ -30,6 +31,7 @@ export default function EngineComponents() {
   addComponent(CheckboxReadOnlyComponent);
   addComponent(CheckboxEditableComponent);
   addComponent(ColumnsComponent);
+  addComponent(LabelFrameComponent);
 
   addComponent(ReGroupComponent);
   addComponent(ReFluxListComponent);

@@ -26,6 +26,7 @@ export default function CheckboxInput(props: CheckboxInputProps & ReComponentCom
       checked={inputValue === true}
       indeterminate={inputValue === undefined}
       disabled={disabled}
+      disableRipple={true}
       onChange={(_event) => {
         let newValue: boolean | undefined;
         if (inputValue === true) {

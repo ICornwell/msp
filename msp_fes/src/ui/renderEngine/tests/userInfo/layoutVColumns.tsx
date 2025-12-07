@@ -5,6 +5,7 @@ import { TextComponent } from '../../../components/primatives/editing/textInput'
 import { MoneyComponent } from '../../../components/primatives/editing/moneyInput'
 import { CheckboxComponent } from '../../../components/primatives/editing/checkboxInput'
 import { ColumnsComponent } from '../../../components/containers/columns'
+import { LabelFrameComponent } from '../../../components/containers/labelframe'
 
 
 
@@ -15,7 +16,10 @@ export function UserInfoLayout() {
       .fromInlineElementSet
         .showingContainer.fromInlineContainerElementUsingComponent(ColumnsComponent)
           .withComponentProps({columns: 2, fillDirection: 'down'})
-          .endElement.containing
+          .withDecorators().showingContainer.fromInlineContainerElementUsingComponent(LabelFrameComponent)
+              .withLabel('User Information')
+            
+          .endElement.endDecoratorSet.endElement.containing
             .withSharedProps()
               .withDisplayMode('editing')
             .endSharedProps

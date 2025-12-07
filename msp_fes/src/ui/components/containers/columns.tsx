@@ -1,7 +1,7 @@
 
 import React, { PropsWithChildren } from 'react';
 
-import { Stack } from "@mui/material";
+import { Container, Stack } from "@mui/material";
 import { createContainerComponent } from '../../renderEngine/components/ReComponentWrapper';
 import { ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
 
@@ -52,13 +52,15 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
   
 
   const content = (
+    <Container maxWidth={false} disableGutters={true}>
     <Stack direction="row" spacing={2} >
       {Array(columns).fill(0).map((_, index) => (
-        <Stack key={index} sx={{ flex: `0 0 ${100 / columns}%`, padding: 1 }}>
+        <Stack key={index} sx={{ flex: `1 1 ${100 / columns}%`, padding: 1 }}>
           {childrenForColumn(index)}
         </Stack>
       ))}
     </Stack>
+    </Container>
 
   );
 
