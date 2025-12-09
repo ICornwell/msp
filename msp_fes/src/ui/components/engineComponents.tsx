@@ -14,6 +14,8 @@ import { LabelFrameComponent } from './containers/labelframe';
 import { ReGroupComponent } from '../renderEngine/components/ReGroup';
 import { ReFluxListComponent } from '../renderEngine/components/ReFluxList';
 
+import { TableComponent } from './tables/table';
+
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
 
@@ -35,6 +37,8 @@ export default function EngineComponents() {
 
   addComponent(ReGroupComponent);
   addComponent(ReFluxListComponent);
+
+  addComponent(TableComponent);
 
   return null
 }

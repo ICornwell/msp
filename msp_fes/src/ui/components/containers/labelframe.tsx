@@ -21,13 +21,13 @@ const HeaderDiv = styled('div')(({ theme }) => ({
     alignItems: 'center',
     borderBottom: `1px solid ${theme.palette.divider}`,
     padding: theme.spacing(1),
-    backgroundColor: theme.palette.background.default,
+     backgroundColor: theme.palette.primary.light,
 }));
 
 const HeaderBorderBeforeDiv = styled('div')(({ theme }) => ({
     flexGrow: 1,
     height: '1px',
-    backgroundColor: theme.palette.divider,
+    backgroundColor: theme.palette.text.secondary,
 }));
 
 const HeaderTitleDiv = styled('div')(({ theme }) => ({
@@ -40,12 +40,14 @@ const TitleSpan = styled('span')(({ theme }) => ({
     marginLeft: theme.spacing(1),
     fontWeight: theme.typography.fontWeightMedium,
     fontSize: theme.typography.subtitle1.fontSize,
+    color: theme.palette.text.primary,
+   
 }));
 
 const HeaderBorderAfterDiv = styled('div')(({ theme }) => ({
     flexGrow: 1,
     height: '1px',
-    backgroundColor: theme.palette.divider,
+    backgroundColor: theme.palette.text.secondary,
 }));
 
 const ChildrenContainerDiv = styled('div')(({ theme }) => ({

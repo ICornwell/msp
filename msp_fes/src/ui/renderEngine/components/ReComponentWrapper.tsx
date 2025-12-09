@@ -171,7 +171,7 @@ export type DisplayMode = ReUiPlanDisplayMode | 'all';
 /**
  * Base component wrapper that includes both the component and its metadata
  */
-export interface ComponentWrapper<P> {
+export interface ComponentWrapper<P, E = any> {
   // The actual React component
   component: ComponentType<P>;
   // Display name for debugging
@@ -184,6 +184,7 @@ export interface ComponentWrapper<P> {
   __propType?: P; // Never used at runtime, only for type inference
 
   displayMode?: DisplayMode | DisplayMode[];
+  extensions?: E;
 }
 
 /**
@@ -242,5 +243,20 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
     acceptsChildren: true,
     isManagedForm: false,
     displayMode: 'all'
+  };
+}
+
+export function createExtendedComponent<P extends Object, E>(
+  component: ComponentType<P>,
+  displayName?: string,
+  extensions?: E
+): ComponentWrapper<P, E> {
+  return {
+    component,
+    displayName: displayName || component.displayName || component.name || 'UnnamedContainer',
+    acceptsChildren: true,
+    isManagedForm: false,
+    displayMode: 'all',
+    extensions: extensions
   };
 }

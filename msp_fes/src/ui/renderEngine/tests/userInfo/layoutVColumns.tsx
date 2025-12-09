@@ -6,6 +6,7 @@ import { MoneyComponent } from '../../../components/primatives/editing/moneyInpu
 import { CheckboxComponent } from '../../../components/primatives/editing/checkboxInput'
 import { ColumnsComponent } from '../../../components/containers/columns'
 import { LabelFrameComponent } from '../../../components/containers/labelframe'
+import { TableComponent } from '../../../components/tables/table'
 
 
 
@@ -14,6 +15,9 @@ export function UserInfoLayout() {
      
      .withElementSet.forDataDescribedBy(userInfoFluxorData)
       .fromInlineElementSet
+      .showingItem.fromInlineElementUsingComponent(TableComponent)
+         .tableWithColumns([]).withLabel('User Info Table')
+        .endElement
         .showingContainer.fromInlineContainerElementUsingComponent(ColumnsComponent)
           .withComponentProps({columns: 2, fillDirection: 'down'})
           .withDecorators().showingContainer.fromInlineContainerElementUsingComponent(LabelFrameComponent)

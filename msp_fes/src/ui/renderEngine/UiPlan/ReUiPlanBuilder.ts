@@ -4,7 +4,7 @@ import { defaultDisplayMap } from '../fluxor/defaultDisplayMap'
 import { ReComponentBinder } from '../components/ReComponentProps'
 import { ComponentWrapper } from '../components/ReComponentWrapper'
 import { FluxorData } from '../fluxor/fluxorData'
-import { build } from 'vite'
+
 
 // ============================================================================
 // Helper Types
@@ -12,6 +12,29 @@ import { build } from 'vite'
 
 export type PropsOf<T extends ComponentWrapper<any>> =
   T extends ComponentWrapper<infer P> ? P : never;
+
+// ExtentionOf extracts the extension type E from ComponentWrapper
+// The RT parameter is the base builder type - extension methods will return RT & ExtentionOf<T, RT>
+export type ExtentionOf<T extends ComponentWrapper<any, any>, RT = unknown> =
+  // 1. Extract E from ComponentWrapper<P, E>
+  T extends ComponentWrapper<any, infer E> 
+    // 2. Is E an object (has properties)?
+    ? E extends object 
+      // 3. Map over each key K in E
+      ? { [K in keyof E]: 
+          // 4. Is E[K] a function?
+          E[K] extends ((...args: infer A) => any) 
+            // 5. YES: Rewrite return type to RT & ExtentionOf<T, RT>
+            ? (...args: A) => RT & ExtentionOf<T, RT> 
+            // 6. NO: Keep property as-is
+            : E[K] 
+        }
+      : E    // Not an object, return as-is
+    : never; // Didn't match ComponentWrapper
+
+// Full builder type with extension - used to properly type return values
+export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<any, any>, P, RT> = 
+  ReUiPlanComponentBuilder<C, T, P, RT> & ExtentionOf<T, ReUiPlanComponentBuilder<C, T, P, RT>>;
 
 export type DataOf<D extends FluxorData<any>> =
   D extends FluxorData<infer T> ? T : never;
@@ -30,6 +53,11 @@ export type ReBuilder = {
 export interface ReBuilderBase<T> {
   build: <BS>(buildSettings: BS) => any;
   end: () => T;
+}
+
+export interface ExtenderBase<T> {
+
+  _none: () => T;
 }
 
 // ============================================================================
@@ -64,8 +92,8 @@ export interface ReUiPlanElementSetBuilder<C extends CNTX, RT> extends ReBuilder
   showingItem: {
     fromElementBuilder: (builder: ReUiPlanComponentBuilder<any, any, any, any>) => ReUiPlanElementSetBuilder<C, RT>,
     fromElementObject: (element: ReUiPlanElement) => ReUiPlanElementSetBuilder<C, RT>,
-    fromInlineElementUsingComponent: <T extends ComponentWrapper<any>>(component: T) =>
-      ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>>
+    fromInlineElementUsingComponent: <T extends ComponentWrapper<any, any>>(component: T) =>
+      ComponentBuilderWithExt<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>>
     fromInlineElementUsingDataMap: () =>
       ReUiPlanComponentBuilder<C, any, any, ReUiPlanElementSetBuilder<C, RT>>
   }
@@ -73,8 +101,8 @@ export interface ReUiPlanElementSetBuilder<C extends CNTX, RT> extends ReBuilder
   showingContainer: {
     fromContainerElementBuilder: (builder: ReUiPlanComponentBuilder<any, any, any, any>) => ReUiPlanElementSetBuilder<C, RT>,
     fromContainerElementObject: (element: ReUiPlanElement) => ReUiPlanElementSetBuilder<C, RT>,
-    fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any>>(component: T) =>
-      ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>>
+    fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any, any>>(component: T) =>
+      ComponentBuilderWithExt<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>>
     fromInlineContainerElementUsingDataMap: () =>
       ReUiPlanComponentBuilder<C, any, any, ReUiPlanElementContainerBuilder<C, RT>>
   }
@@ -91,8 +119,8 @@ export interface ReUiPlanDecoratorSetBuilder<C extends CNTX, RT> extends ReBuild
   showingContainer: {
     fromContainerElementBuilder: (builder: ReUiPlanComponentBuilder<any, any, any, any>) => ReUiPlanDecoratorSetBuilder<C, RT>,
     fromContainerElementObject: (element: ReUiPlanElement) => ReUiPlanDecoratorSetBuilder<C, RT>,
-    fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any>>(component: T) =>
-      ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>>
+    fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any, any>>(component: T) =>
+      ComponentBuilderWithExt<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>>
     fromInlineContainerElementUsingDataMap: () =>
       ReUiPlanComponentBuilder<C, any, any, ReUiPlanDecoratorSetBuilder<C, RT>>
   }
@@ -121,27 +149,27 @@ export interface ReUiPlanElementContainerBuilder<C extends CNTX, RT> extends ReB
 // Uses recursive type wrapping for proper stack unwinding
 // ============================================================================
 
-export interface ReUiPlanComponentBuilder<C extends CNTX, T, P, RT> extends ReBuilderBase<RT> {
-  forDataDescribedBy: <LDDT2 extends FluxorData<any>>(_dataDescriptor: LDDT2) => ReUiPlanComponentBuilder<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, P, RT>
-  withHideWhenRule: (hidden: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  hide: () => ReUiPlanComponentBuilder<C, T, P, RT>
-  withDisableWhenRule: (disabled: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  disable: () => ReUiPlanComponentBuilder<C, T, P, RT>
-  withErrorCondition: (error: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withHelperText: (helperText: string | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withLabel: (label: string | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withLabelPosition: (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withDisplayMode: (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withoutCollectionExpansion: (isSingleChildForArrays: boolean) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withDecorators: () => ReUiPlanDecoratorSetBuilder<C, ReUiPlanComponentBuilder<C, T, P, RT>>
-  withValueBinding: (binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  withExtraBinding: (boundPropName: string, binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  basedOnElementBuilder: (builder: ReUiPlanComponentBuilder<any, any, any, any>) => ReUiPlanComponentBuilder<C, T, P, RT>
-  basedOnElement: (element: ReUiPlanElement) => ReUiPlanComponentBuilder<C, T, P, RT>
-  none: () => ReUiPlanComponentBuilder<C, T, P, RT>
-  withComponentProps: (props: P) => ReUiPlanComponentBuilder<C, T, P, RT>
+export interface ReUiPlanComponentBuilder<C extends CNTX, T extends ComponentWrapper<any, any>, P, RT> extends ReBuilderBase<RT> {
+  forDataDescribedBy: <LDDT2 extends FluxorData<any>>(_dataDescriptor: LDDT2) => ComponentBuilderWithExt<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, P, RT>
+  withHideWhenRule: (hidden: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  hide: () => ComponentBuilderWithExt<C, T, P, RT>
+  withDisableWhenRule: (disabled: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  disable: () => ComponentBuilderWithExt<C, T, P, RT>
+  withErrorCondition: (error: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  withHelperText: (helperText: string | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  withLabel: (label: string | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  withLabelPosition: (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  withDisplayMode: (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, P, RT>
+  withoutCollectionExpansion: (isSingleChildForArrays: boolean) => ComponentBuilderWithExt<C, T, P, RT>
+  withDecorators: () => ReUiPlanDecoratorSetBuilder<C, ComponentBuilderWithExt<C, T, P, RT>>
+  withValueBinding: (binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>) => ComponentBuilderWithExt<C, T, P, RT>
+  withExtraBinding: (boundPropName: string, binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>) => ComponentBuilderWithExt<C, T, P, RT>
+  basedOnElementBuilder: (builder: ReUiPlanComponentBuilder<any, any, any, any>) => ComponentBuilderWithExt<C, T, P, RT>
+  basedOnElement: (element: ReUiPlanElement) => ComponentBuilderWithExt<C, T, P, RT>
+  none: () => ComponentBuilderWithExt<C, T, P, RT>
+  withComponentProps: (props: P) => ComponentBuilderWithExt<C, T, P, RT>
   // For setting temporary variables in context
-  withTempVar: <K extends string, V>(key: K, value: V) => ReUiPlanComponentBuilder<C, T, P, RT>
+  withTempVar: <K extends string, V>(key: K, value: V) => ComponentBuilderWithExt<C, T, P, RT>
   build: <BS>(buildSettings: BS) => ReUiPlanElement
   endElement: RT
   end: () => RT
@@ -265,7 +293,7 @@ export function CreateReUiPlanElementSet<C extends CNTX, RT>(
         components.push({ componentName: element.componentName, options: element });
         return builder;
       },
-      fromInlineElementUsingComponent: <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>> =>
+      fromInlineElementUsingComponent: <T extends ComponentWrapper<any, any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>> & ExtentionOf<T> =>
         CreateReUiPlanComponent<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>>({} as ReUiPlanElementSetBuilder<C, RT>, component.displayName, componentBuilders, undefined, dataDescriptor),
       fromInlineElementUsingDataMap: (): ReUiPlanComponentBuilder<C, any, any, ReUiPlanElementSetBuilder<C, RT>> =>
         CreateReUiPlanComponent<C, any, any, ReUiPlanElementSetBuilder<C, RT>>({} as ReUiPlanElementSetBuilder<C, RT>, '', componentBuilders, undefined, dataDescriptor),
@@ -279,7 +307,7 @@ export function CreateReUiPlanElementSet<C extends CNTX, RT>(
         components.push({ componentName: element.componentName, options: element });
         return builder;
       },
-      fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>> =>
+      fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>> & ExtentionOf<T> =>
         CreateReUiPlanComponent<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>>({} as ReUiPlanElementContainerBuilder<C, RT>, component.displayName, componentBuilders),
       fromInlineContainerElementUsingDataMap: (): ReUiPlanComponentBuilder<C, any, any, ReUiPlanElementContainerBuilder<C, RT>> =>
         CreateReUiPlanComponent<C, any, any, ReUiPlanElementContainerBuilder<C, RT>>({} as ReUiPlanElementContainerBuilder<C, RT>, '', componentBuilders)
@@ -306,13 +334,13 @@ export function CreateReUiPlanElementSet<C extends CNTX, RT>(
   builder.withSharedProps = () => CreateReUiSharedProps<C, any, any, ReUiPlanElementSetBuilder<C, RT>>(builder, componentBuilders.length, sharedProps, undefined, dataDescriptor);
 
   // Patch up inline methods with proper return references
-  builder.showingItem.fromInlineElementUsingComponent = <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>> =>
+  builder.showingItem.fromInlineElementUsingComponent = <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>>  & ExtentionOf<T> =>
     CreateReUiPlanComponent<C, T, PropsOf<T>, ReUiPlanElementSetBuilder<C, RT>>(builder, component.displayName, componentBuilders, undefined, dataDescriptor);
 
   builder.showingItem.fromInlineElementUsingDataMap = (): ReUiPlanComponentBuilder<C, any, any, ReUiPlanElementSetBuilder<C, RT>> =>
     CreateReUiPlanComponent<C, any, any, ReUiPlanElementSetBuilder<C, RT>>(builder, '', componentBuilders, undefined, dataDescriptor);
 
-  builder.showingContainer.fromInlineContainerElementUsingComponent = <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>> => {
+  builder.showingContainer.fromInlineContainerElementUsingComponent = <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>>  & ExtentionOf<T> => {
     const containedElementSetBuilders: ReUiPlanElementSetBuilder<any, any>[] = [];
     const containerBuilder = CreateReUiPlanElementContainer<C, RT>(builder, containedElementSetBuilders, dataDescriptor);
     return CreateReUiPlanComponent<C, T, PropsOf<T>, ReUiPlanElementContainerBuilder<C, RT>>(containerBuilder, component.displayName, componentBuilders, containedElementSetBuilders, dataDescriptor);
@@ -350,7 +378,7 @@ export function CreateReUiPlanDecoratorSet<C extends CNTX, RT>(
         components.push({ componentName: element.componentName, options: element });
         return builder;
       },
-      fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>> =>
+      fromInlineContainerElementUsingComponent: <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>>  & ExtentionOf<T>=>
         CreateReUiPlanComponent<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>>({} as ReUiPlanDecoratorSetBuilder<C, RT>, component.displayName, componentBuilders),
       fromInlineContainerElementUsingDataMap: (): ReUiPlanComponentBuilder<C, any, any, ReUiPlanDecoratorSetBuilder<C, RT>> =>
         CreateReUiPlanComponent<C, any, any, ReUiPlanDecoratorSetBuilder<C, RT>>({} as ReUiPlanDecoratorSetBuilder<C, RT>, '', componentBuilders)
@@ -371,7 +399,7 @@ export function CreateReUiPlanDecoratorSet<C extends CNTX, RT>(
     }
   }
 
-  builder.showingContainer.fromInlineContainerElementUsingComponent = <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>> => {
+  builder.showingContainer.fromInlineContainerElementUsingComponent = <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>>  & ExtentionOf<T>=> {
     const containedElementSetBuilders: ReUiPlanElementSetBuilder<any, any>[] = [];
 
     return CreateReUiPlanComponent<C, T, PropsOf<T>, ReUiPlanDecoratorSetBuilder<C, RT>>(builder, component.displayName, componentBuilders, containedElementSetBuilders, dataDescriptor);
@@ -408,13 +436,13 @@ export function CreateReUiPlanElementContainer<C extends CNTX, RT>(
   } as ReUiPlanElementContainerBuilder<C, RT>;
 }
 
-export function CreateReUiPlanComponent<C extends CNTX, T, P, RT>(
+export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapper<any, any>, P, RT>(
   returnTo: RT,
   name?: string,
   set?: ReUiPlanComponentBuilder<any, any, any, any>[],
   childBuilders?: ReUiPlanElementSetBuilder<any, any>[],
   dataDescriptor?: FluxorData<any>
-): ReUiPlanComponentBuilder<C, T, P, RT> {
+): ComponentBuilderWithExt<C, T, P, RT> {
   const reUiPlanComponent: ReUiPlanElement = {
     hidden: false,
     disabled: false,
@@ -435,50 +463,53 @@ export function CreateReUiPlanComponent<C extends CNTX, T, P, RT>(
   const decoratorSetBuilders: ReUiPlanDecoratorSetBuilder<any, any>[] = [];
   const basedOn: (ReUiPlanComponentBuilder<any, any, any, any> | ReUiPlanElement)[] = [];
 
-  const builder: ReUiPlanComponentBuilder<C, T, P, RT> = {
+   const extention: ExtentionOf<T> = {} as ExtentionOf<T>;
+
+  const builder: ComponentBuilderWithExt<C, T, P, RT> = {
+    ...extention,
     forDataDescribedBy: function <LDDT2 extends FluxorData<any>>(innerDataDescriptor: LDDT2) {
       const newBuilder = CreateReUiPlanComponent<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, P, RT>(returnTo, name, set, childBuilders, innerDataDescriptor);
       innerTypedComponentBuilders = newBuilder
       return newBuilder
     },
 
-    withHideWhenRule: function (hidden: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withHideWhenRule: function (hidden: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.hidden = hidden;
       return builder;
     },
-    hide: function (): ReUiPlanComponentBuilder<C, T, P, RT> {
+    hide: function (): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.hidden = true;
       return builder;
     },
-    disable: function (): ReUiPlanComponentBuilder<C, T, P, RT> {
+    disable: function (): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.disabled = true;
       return builder;
     },
-    withDisableWhenRule: function (disabled: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withDisableWhenRule: function (disabled: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.disabled = disabled;
       return builder;
     },
-    withErrorCondition: function (error: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withErrorCondition: function (error: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.error = error;
       return builder;
     },
-    withHelperText: function (helperText: string | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withHelperText: function (helperText: string | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.helperText = helperText;
       return builder;
     },
-    withLabel: function (label: string | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withLabel: function (label: string | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.label = label;
       return builder;
     },
-    withLabelPosition: function (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withLabelPosition: function (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.labelPosition = labelPosition;
       return builder;
     },
-    withDisplayMode: function (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withDisplayMode: function (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.displayMode = displayMode;
       return builder;
     },
-    withoutCollectionExpansion: function (useSingleChildForArrays: boolean): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withoutCollectionExpansion: function (useSingleChildForArrays: boolean): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.useSingleChildForArrays = useSingleChildForArrays;
       return builder;
     },
@@ -488,26 +519,26 @@ export function CreateReUiPlanComponent<C extends CNTX, T, P, RT>(
       // return decoratorsetBuilder;
     },
 
-    withValueBinding: function (binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withValueBinding: function (binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.binding = binding;
       return builder;
     },
-    withExtraBinding: function (boundPropName: string, binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withExtraBinding: function (boundPropName: string, binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>): ComponentBuilderWithExt<C, T, P, RT> {
       if (!reUiPlanComponent.extraBindings) {
         reUiPlanComponent.extraBindings = {};
       }
       reUiPlanComponent.extraBindings[boundPropName] = binding;
       return builder;
     },
-    basedOnElementBuilder: function (basebuilder: ReUiPlanComponentBuilder<any, any, any, any>): ReUiPlanComponentBuilder<C, T, P, RT> {
+    basedOnElementBuilder: function (basebuilder: ReUiPlanComponentBuilder<any, any, any, any>): ComponentBuilderWithExt<C, T, P, RT> {
       basedOn.push(basebuilder);
       return builder;
     },
-    basedOnElement: function (element: ReUiPlanElement): ReUiPlanComponentBuilder<C, T, P, RT> {
+    basedOnElement: function (element: ReUiPlanElement): ComponentBuilderWithExt<C, T, P, RT> {
       basedOn.push(element);
       return builder;
     },
-    none: function (): ReUiPlanComponentBuilder<C, T, P, RT> {
+    none: function (): ComponentBuilderWithExt<C, T, P, RT> {
       reUiPlanComponent.hidden = false;
       reUiPlanComponent.disabled = false;
       reUiPlanComponent.error = false;
@@ -518,11 +549,11 @@ export function CreateReUiPlanComponent<C extends CNTX, T, P, RT>(
       reUiPlanComponent.extraBindings = {};
       return builder;
     },
-    withComponentProps: function (props: P): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withComponentProps: function (props: P): ComponentBuilderWithExt<C, T, P, RT>{
       reUiPlanComponent.componentProps = props;
       return builder;
     },
-    withTempVar: function <K extends string, V>(_key: K, _value: V): ReUiPlanComponentBuilder<C, T, P, RT> {
+    withTempVar: function <K extends string, V>(_key: K, _value: V): ComponentBuilderWithExt<C, T, P, RT> {
       // This would set a temp var in context at runtime
       // For now, just return builder - actual implementation would store in context
       return builder;
@@ -598,6 +629,7 @@ export function CreateReUiSharedProps<C extends CNTX, T, P, RT>(
   let innerTypedComponentBuilders: ReUiPlanSharedPropsBuilder<any, any, any, any> | undefined = undefined;
   const basedOn: (ReUiPlanSharedPropsBuilder<any, any, any, any> | ReUiPlanElement)[] = [];
   const decoratorSetBuilders: ReUiPlanDecoratorSetBuilder<any, any>[] = [];
+
   const builder: ReUiPlanSharedPropsBuilder<C, T, P, RT> = {
     forDataDescribedBy: function <LDDT2 extends FluxorData<any>>(innerDataDescriptor: LDDT2) {
       const newBuilder = CreateReUiSharedProps<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, P, RT>(returnTo, fromComponentIndex, set, childBuilders, innerDataDescriptor);
