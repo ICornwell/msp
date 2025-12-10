@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
-import { ReUiPlanElement } from "../UiPlan/ReUiPlan";
+import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement } from "../UiPlan/ReUiPlan";
+import { DataOf } from "../UiPlan/ReUiPlanBuilder";
+import { FluxorData } from "../fluxor/fluxorData";
 
 export type ReComponentCommonProps = {
   hidden?: boolean;
@@ -54,3 +56,6 @@ export type ReComponentRecordBinder = {
 }
 
 export type ReComponentBinder<RDDT, LDDT> = string | ((context: ReComponentDataFunctionContext<RDDT, LDDT>) => any) ;
+
+export type ReComponentReBinder<C extends CNTX<any, any, FluxorData<any>, FluxorData<any>, any>, LDDT2 extends FluxorData<any>>
+   = string | ((context: ReComponentDataFunctionContext<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>) => DataOf<LDDT2> | undefined) ;

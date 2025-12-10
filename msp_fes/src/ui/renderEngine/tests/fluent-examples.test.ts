@@ -30,13 +30,15 @@ describe('ReUiPlanBuilder', () => {
               
               .showingItem.fromInlineElementUsingDataMap()
                 .withLabel('Child Component 1')
+                .withValueBinding((context)=>context.localData.userName)
               .endElement
+              .forDataDescribedBy(userPreferencesFluxorData, (context)=>context.localData.preferences)
               .withSharedProps()
                 .withDisplayMode('readonly')
                 .withComponentProps({ style: { color: 'blue' } })
               .endSharedProps
               .showingItem.fromInlineElementUsingComponent(TextComponent)
-                .forDataDescribedBy(userPreferencesFluxorData)
+               
                 .withLabel('Standalone Component')
                 .withComponentProps({type: 'email'  })
                 .withValueBinding((context)=>context.localData.colorPalette)
