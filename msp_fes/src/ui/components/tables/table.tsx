@@ -11,6 +11,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { ReExtensionBuilder } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
 
 
 export type TableProps = {
@@ -151,8 +152,29 @@ export default function Table(props: TableProps & PropsWithChildren & ReComponen
   );
 }
 
-export interface TableExtension<RT = any> {
-  tableWithColumns: (columns: any[]) => RT &TableExtension;
+export interface TableExtension<RT = any> extends ReExtensionBuilder {
+  tableWithColumns: (columns: any[]) => TableExtension<RT>;
 };
 
-export const TableComponent = createExtendedComponent<TableProps & ReComponentCommonProps & PropsWithChildren, TableExtension>(Table, 'Table');
+export function extendWithTable<RT>(returnTo: RT): TableExtension<RT> {
+  const builderColumns: any[] = []
+  const extension: TableExtension<RT> = {
+    tableWithColumns: (columns: any[]) => {
+      // Here we would store the columns in the builder's state for later use
+      // For simplicity, we just return the builder itself
+      builderColumns.push(...columns);
+      return returnTo as TableExtension<RT>;
+    },
+    _buildExtension: (_buildConfig: any, extendedElement: any) => {
+      // Here we would apply the stored columns to the extendedElement
+      extendedElement.componentProps = {
+        ...extendedElement.componentProps,
+        columns: builderColumns,
+      };
+    }
+  };
+  return extension
+}
+
+export const TableComponent = createExtendedComponent<TableProps & ReComponentCommonProps & PropsWithChildren, TableExtension>
+  (Table, 'Table', extendWithTable);

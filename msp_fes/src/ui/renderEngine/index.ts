@@ -18,11 +18,11 @@ class ReUiPlan {
   }
 
   StandaloneElement<T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<CNTX, T, PropsOf<T>, any> {
-    return CreateReUiPlanComponent<CNTX, T, PropsOf<T>, any>(undefined, component.displayName, [])
+    return CreateReUiPlanComponent<CNTX, T, PropsOf<T>, any>(undefined, component, [])
   }
 
   ContainerElement<T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<CNTX, T, PropsOf<T>, any> {
-    return CreateReUiPlanComponent<CNTX, T, PropsOf<T>, any>(undefined, component.displayName, [])
+    return CreateReUiPlanComponent<CNTX, T, PropsOf<T>, any>(undefined, component, [])
   }
  /*  get Bind() {
     return Bind

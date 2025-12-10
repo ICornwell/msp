@@ -1,6 +1,7 @@
 import React from 'react';
-import { createContainerComponent } from './ReComponentWrapper';
+import { createExtendedComponent } from './ReComponentWrapper';
 import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentProps';
+import { ElementSetContainerExtension, extendWithElementSetContainer } from './ContainerElements';
 
 export type ReGroupProps = {
   hidden?: boolean;
@@ -14,4 +15,8 @@ export default function ReGroup({ hidden, children }: ReGroupProps& ReComponentC
     </div>)
 }
 
-export const ReGroupComponent = createContainerComponent<ReGroupProps>(ReGroup, 'ReGroup');
+export const ReGroupComponent = createExtendedComponent<ReGroupProps, ElementSetContainerExtension<any>>(
+  ReGroup, 
+  'ReGroup',
+  (builder) => extendWithElementSetContainer(builder)
+);

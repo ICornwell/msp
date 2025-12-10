@@ -1,9 +1,10 @@
 
 import React, { PropsWithChildren } from 'react';
 
-import { createContainerComponent } from '../../renderEngine/components/ReComponentWrapper';
+import { createContainerComponent, createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper';
 import { ReComponentCommonProps } from '../../renderEngine/components/ReComponentProps';
 import { styled, SvgIcon } from '@mui/material';
+import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements';
 
 export type LabelFrameProps = {
   icon?: React.ElementType;
@@ -76,4 +77,10 @@ export default function LabelFrame(props: LabelFrameProps & PropsWithChildren & 
     );
 }
 
-export const LabelFrameComponent = createContainerComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren>(LabelFrame, 'LabelFrame');
+// export const LabelFrameComponent = createContainerComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren>(LabelFrame, 'LabelFrame');
+
+export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, ElementSetContainerExtension<any>>(
+  LabelFrame, 
+  'LabelFrame',
+  (builder) => extendWithElementSetContainer(builder)
+);

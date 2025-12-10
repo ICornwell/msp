@@ -8,6 +8,7 @@ import { Theme } from '@mui/material/styles';
 import { RePubSubMsg } from '../data/ReEnginePubSub';
 import { ReSubscriptionHandler } from './RePubSubHook';
 import { ReUiPlanDisplayMode } from '../UiPlan/ReUiPlan';
+import { ReNullExtension } from '../UiPlan/ReUiPlanBuilder';
 
 const useStyles = makeStyles()((theme: Theme) => ({
   label: {
@@ -171,7 +172,7 @@ export type DisplayMode = ReUiPlanDisplayMode | 'all';
 /**
  * Base component wrapper that includes both the component and its metadata
  */
-export interface ComponentWrapper<P, E = any> {
+export interface ComponentWrapper<P, E = ReNullExtension> {
   // The actual React component
   component: ComponentType<P>;
   // Display name for debugging
@@ -185,6 +186,8 @@ export interface ComponentWrapper<P, E = any> {
 
   displayMode?: DisplayMode | DisplayMode[];
   extensions?: E;
+  // Factory function to create runtime extension instance
+  extensionFactory?: <RT>(builder: RT) => E;
 }
 
 /**
@@ -249,7 +252,7 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
 export function createExtendedComponent<P extends Object, E>(
   component: ComponentType<P>,
   displayName?: string,
-  extensions?: E
+  extensionFactory?: <RT>(builder: RT) => E
 ): ComponentWrapper<P, E> {
   return {
     component,
@@ -257,6 +260,6 @@ export function createExtendedComponent<P extends Object, E>(
     acceptsChildren: true,
     isManagedForm: false,
     displayMode: 'all',
-    extensions: extensions
+    extensionFactory: extensionFactory as any
   };
 }

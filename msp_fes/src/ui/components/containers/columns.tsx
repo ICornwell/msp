@@ -2,8 +2,9 @@
 import React, { PropsWithChildren } from 'react';
 
 import { Container, Stack } from "@mui/material";
-import { createContainerComponent } from '../../renderEngine/components/ReComponentWrapper';
+import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper';
 import { ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
+import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements';
 
 export type ColumnProps = {
   fillDirection: 'across' | 'down';
@@ -67,4 +68,8 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
   return content;
 }
 
-export const ColumnsComponent = createContainerComponent<ColumnProps>(Columns, 'Columns');
+export const ColumnsComponent = createExtendedComponent<ColumnProps, ElementSetContainerExtension<any>>(
+  Columns, 
+  'Columns',
+  (builder) => extendWithElementSetContainer(builder)
+);

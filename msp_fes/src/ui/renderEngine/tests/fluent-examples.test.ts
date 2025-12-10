@@ -23,23 +23,26 @@ describe('ReUiPlanBuilder', () => {
           .withComponentProps({ })
           .withValueBinding((context)=>context.localData.phoneNumber)
           .endElement
-        .showingContainer.fromInlineContainerElementUsingComponent(ReGroupComponent)
+        .showingItem.fromInlineElementUsingComponent(ReGroupComponent)
               .withLabel('container')
-            .endElement
-            .containingForDataDescribedBy(userPreferencesFluxorData)
+           
+            .containingElementSet()
+              
               .showingItem.fromInlineElementUsingDataMap()
                 .withLabel('Child Component 1')
-                .endElement
+              .endElement
               .withSharedProps()
                 .withDisplayMode('readonly')
                 .withComponentProps({ style: { color: 'blue' } })
               .endSharedProps
               .showingItem.fromInlineElementUsingComponent(TextComponent)
+                .forDataDescribedBy(userPreferencesFluxorData)
                 .withLabel('Standalone Component')
                 .withComponentProps({type: 'email'  })
                 .withValueBinding((context)=>context.localData.colorPalette)
-                .endElement
+              .endElement
           .endSet
+        .endElement
       .endSet
       
 
@@ -62,12 +65,12 @@ describe('ReUiPlanBuilder', () => {
     .withRules(['rule1', 'rule2'])
     .withElementSet.forDataDescribedBy(userInfoFluxorData).fromInlineElementSet
       .showingItem.fromElementBuilder(text1Builder)
-      .showingContainer.fromInlineContainerElementUsingComponent(ReGroupComponent)
+     /*  .showingContainer.fromInlineContainerElementUsingComponent(ReGroupComponent)
         .withValueBinding((context)=>context.localData)
         .withLabel('container')
         .endElement.containing
           .showingItem.fromElementBuilder(text2Builder)
-      .endSet
+      .endSet */
       .endSet
 
     const plan = builder.BuildUiPlan()
