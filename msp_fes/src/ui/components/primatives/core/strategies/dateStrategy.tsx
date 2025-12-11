@@ -41,40 +41,40 @@ const DateAdornment = memo(function DateAdornment(props: {
         />
         <Popper open={open} anchorEl={anchorEl} placement="bottom-start" style={{ zIndex: 1300 }}>
           <SolidContainer >
-          <Stack spacing={2} direction='row' >
-            <DateCalendar
+            <Stack spacing={2} direction='row' >
+              <DateCalendar
 
-              value={value}
-              onChange={(date) => {
-                setOpen(false);
-                setAnchorEl(null);
-                onValueChange?.((date?.toISOString()) || null);
-              }}
-              //renderInput={({ inputRef, inputProps, InputProps }) => null}
-              timezone={timeZone}
-            />
-            {(includeTime) ?
-              <MultiSectionDigitalClock
                 value={value}
                 onChange={(date) => {
                   setOpen(false);
                   setAnchorEl(null);
-                  // onValueChange(date as Date | null);
+                  onValueChange?.((date?.toISOString()) || null);
                 }}
+                //renderInput={({ inputRef, inputProps, InputProps }) => null}
                 timezone={timeZone}
-                ampm={true}
               />
-              : null}
-          </Stack>
-          <div style={{ display: "flex" }}>
-            <Button
-              style={{ marginLeft: "auto" }}
-              onClick={() => {
-                setOpen(false);
-                setAnchorEl(null);
-              }}
-            >Close</Button>
-          </div>
+              {(includeTime) ?
+                <MultiSectionDigitalClock
+                  value={value}
+                  onChange={(date) => {
+                    setOpen(false);
+                    setAnchorEl(null);
+                    // onValueChange(date as Date | null);
+                  }}
+                  timezone={timeZone}
+                  ampm={true}
+                />
+                : null}
+            </Stack>
+            <div style={{ display: "flex" }}>
+              <Button
+                style={{ marginLeft: "auto" }}
+                onClick={() => {
+                  setOpen(false);
+                  setAnchorEl(null);
+                }}
+              >Close</Button>
+            </div>
           </SolidContainer>
         </Popper>
 
@@ -113,9 +113,9 @@ export function createDateStrategy(options: DateStrategyOptions = {}): InputStra
     parser: {
       parse: (input: string) => {
         if (!input) return { success: true, value: null, rawInput: input };
-        const parsed = parse(input, dateFormat, new Date());
-        if (isValid(parsed)) {
-          return { success: true, value: parsed.toISOString(), rawInput: input };
+        const parsed = stringToIsoStringDate(input);
+        if (parsed) {
+          return { success: true, value: parsed, rawInput: input };
         }
         return { success: false, value: null, rawInput: input, error: 'Invalid date' };
       },
@@ -133,4 +133,56 @@ export function createDateStrategy(options: DateStrategyOptions = {}): InputStra
 
 
   };
+}
+
+const years = [
+    'yy', 'yyyy'
+  ]
+  const months = [
+    'MM', 'M', 'MMM', 'MMMM', 'MMMMM'
+  ]
+  const days = [
+    'dd', 'd'
+  ]
+
+  const time = [
+    'HH:mm', 'HH:mm:ss', 'hh:mm a', 'hh:mm:ss a',
+    'H:mm', 'H:mm:ss', 'h:mm a', 'h:mm:ss a'
+  ]
+
+  const separators = ['/', '-', '.', ' '];
+
+  const dateTimeSeparators = [' ', "'T'", ' @ ', '@'];
+
+  const formats: string[] = []
+  for (const year of years) {
+    for (const month of months) {
+      for (const day of days) {
+        for (const sep of separators) {
+          for (const dtSep of dateTimeSeparators) {
+            // needs US M/D/Y versions too
+            formats.push(`${day}${sep}${month}${sep}${year}`);
+            formats.push(`${year}${sep}${month}${sep}${day}`);
+
+            for (const t of time) {
+              formats.push(`${day}${sep}${month}${sep}${year}${dtSep}${t}`);
+              formats.push(`${year}${sep}${month}${sep}${day}${dtSep}${t}`);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+function stringToIsoStringDate(dateString: string): string | null {
+  // so many foramts to try! but date-fns can handle it
+  // only happens one date at a time, so performance is ok
+  for (const formatStr of formats) {
+    const parsed = parse(dateString, formatStr, new Date());
+    if (isValid(parsed)) {
+      return parsed.toISOString();
+    }
+  }
+  return null;
 }
