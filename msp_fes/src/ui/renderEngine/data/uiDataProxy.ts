@@ -3,12 +3,23 @@ import { v4 as uuidv4 } from 'uuid';
 import { RePubSub, RePubSubMsg, ReSubscription } from "./ReEnginePubSub";
 import { ReSubscriptionHandler } from "../components/RePubSubHook";
 
+export type Notes = {
+  hasNotes: boolean;
+  getNotes?: () => string[];
+  setNotes?: (notes: string[]) => void;
+  getExpression?: () => string[];
+  setExpression?: (expressions: string[]) => void;
+}
+
 export function getSourceDataProxy(data: any, pubsub: RePubSub) {
   const proxySubscriberId = uuidv4();
   const proxySubscribers: string[] = []
 
   //wrap the metadata mode in an object so we can modify it in closures
   let metadataMode = { value: false };
+
+  const recordNotes = new Map<string, string[]>();
+  const recordExpressions = new Map<string, string[]>();
 
   // function to set metadata mode
   function setMetadataMode(mode: boolean) {
@@ -62,6 +73,12 @@ export function getSourceDataProxy(data: any, pubsub: RePubSub) {
           setMetadataMode
         };
       }
+      if (stringKey === '___Notes') {
+        return {
+          notes: recordNotes,
+          expressions: recordExpressions
+        };
+      }
       const val = Reflect.get(target, key, receiver);
       let isObject = false;
       let objVal: any = undefined
@@ -73,19 +90,37 @@ export function getSourceDataProxy(data: any, pubsub: RePubSub) {
         objVal = val;
       }
 
-      const subNandler = getKeyedPropertySubscriberHandler(key, this.path);
+      const subHandler = getKeyedPropertySubscriberHandler(key, this.path);
 
-      publishEvent('dataFetch', subNandler,
-        (newValue) => set(target, subNandler, key, newValue, receiver, this.path),
-        this.path, key, objVal, undefined);
+      const fullKeyPath = [...this.path, key.toString()].join('.');
+      const notes = {
+        hasNotes: recordNotes.has(fullKeyPath),
+        getNotes: () => {
+          return recordNotes.get(fullKeyPath) || [];
+        },
+        setNotes: (newNotes: string[]) => {
+          recordNotes.set(fullKeyPath, newNotes);
+        },
+        getExpression: () => {
+          return recordExpressions.get(fullKeyPath) || [];
+        },
+        setExpression: (newNotes: string[]) => {
+          recordExpressions.set(fullKeyPath, newNotes);
+        }
+      }
+
+      publishEvent('dataFetch', subHandler,
+        (newValue) => set(target, subHandler, key, newValue, receiver, this.path),
+        this.path, key, objVal, undefined, notes);
 
       return metadataMode.value ? {
         __isProxyMetadata: true,
         path: this.path,
         key: key,
         value: objVal,
-        setter: (newValue: any): any => set(target, subNandler, key, newValue, receiver, this.path),
-        subscriptionHandler: subNandler
+        setter: (newValue: any): any => set(target, subHandler, key, newValue, receiver, this.path),
+        subscriptionHandler: subHandler,
+        notes: notes
       } : objVal;
 
     },
@@ -98,7 +133,7 @@ export function getSourceDataProxy(data: any, pubsub: RePubSub) {
   function publishEvent(messageType: string,
     subscriptionHandler: ReSubscriptionHandler,
     setter: (newValue: any) => void,
-    path: string[], p: PropertyKey, value: any, oldValue: any) {
+    path: string[], p: PropertyKey, value: any, oldValue: any, notes?: Notes) {
     pubsub.publish({
       messageType: messageType,
       recordSubscriberId: proxySubscriberId,
@@ -107,7 +142,8 @@ export function getSourceDataProxy(data: any, pubsub: RePubSub) {
       newValue: value,
       oldValue: oldValue,
       subscriptionHandler,
-      setter: setter
+      setter: setter,
+      notes: notes
     } as RePubSubMsg);
   }
 

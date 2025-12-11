@@ -8,21 +8,21 @@ import { CheckboxComponent } from '../../../components/primatives/editing/checkb
 export function UserInfoLayout() {
   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
     
-    .withElementSet.forDataDescribedBy(userInfoFluxorData)
+    .withElementSet.usingFluxor(userInfoFluxorData)
      .fromInlineElementSet
-      .showingItem.fromInlineElementUsingComponent(TextComponent)
+      .showingItem.fromComponentElement(TextComponent)
           .withValueBinding((context) => context.localData.userName)
         .endElement
-        .showingItem.fromInlineElementUsingComponent(TextComponent)
+        .showingItem.fromComponentElement(TextComponent)
           .withValueBinding((context) => context.localData.email)
         .endElement
-        .showingItem.fromInlineElementUsingComponent(MoneyComponent)
+        .showingItem.fromComponentElement(MoneyComponent)
           .withValueBinding((context) => context.localData.creditLimit)
         .endElement
-        .showingItem.fromInlineElementUsingComponent(CheckboxComponent)
+        .showingItem.fromComponentElement(CheckboxComponent)
           .withValueBinding((context) => context.localData.marketingConsent)
         .endElement
-        .showingItem.fromInlineElementUsingComponent(TextComponent)
+        .showingItem.fromComponentElement(TextComponent)
           .withValueBinding((context) => context.localData.userName)
         .endElement
     .endSet

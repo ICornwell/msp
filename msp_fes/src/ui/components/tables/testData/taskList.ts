@@ -1,0 +1,162 @@
+import { FluxorData } from '../../../renderEngine/fluxor/fluxorData';
+import { AggregationType } from '../table';
+
+// ============================================
+// Task/Work List - Simple list with priorities
+// ============================================
+
+export interface Task {
+  taskId: string;
+  caseId: string;
+  taskName: string;
+  assignee: string;
+  createdDate: Date;
+  dueDate: Date;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'pending' | 'in-progress' | 'blocked' | 'completed';
+  estimatedHours: number;
+  actualHours: number;
+  value: number;  // monetary value of the work
+}
+
+// Type alias for FluxorData wrapper
+export type TaskFluxorData = FluxorData<Task>;
+
+// Aggregation metadata - defines what aggregations make sense per field
+// This would eventually be part of FluxorProps, but for now we define separately
+export const taskAggregationMeta: Record<keyof Task, AggregationType> = {
+  taskId: AggregationType.None,
+  caseId: AggregationType.None,
+  taskName: AggregationType.None,
+  assignee: AggregationType.Count,  // count distinct
+  createdDate: AggregationType.None,
+  dueDate: AggregationType.None,
+  priority: AggregationType.None,
+  status: AggregationType.None,
+  estimatedHours: AggregationType.Sum,
+  actualHours: AggregationType.Sum,
+  value: AggregationType.Sum,
+};
+
+// Display labels - would come from FluxorProps.label
+export const taskLabels: Record<keyof Task, string> = {
+  taskId: 'Task ID',
+  caseId: 'Case ID',
+  taskName: 'Task',
+  assignee: 'Assigned To',
+  createdDate: 'Created',
+  dueDate: 'Due Date',
+  priority: 'Priority',
+  status: 'Status',
+  estimatedHours: 'Est. Hours',
+  actualHours: 'Actual Hours',
+  value: 'Value',
+};
+
+// Test data
+export const taskTestData: Task[] = [
+  {
+    taskId: 'TSK-001',
+    caseId: 'CASE-2024-001',
+    taskName: 'Review submission documents',
+    assignee: 'Alice Smith',
+    createdDate: new Date('2024-12-01'),
+    dueDate: new Date('2024-12-10'),
+    priority: 'high',
+    status: 'in-progress',
+    estimatedHours: 4,
+    actualHours: 2.5,
+    value: 15000,
+  },
+  {
+    taskId: 'TSK-002',
+    caseId: 'CASE-2024-001',
+    taskName: 'Calculate premium',
+    assignee: 'Bob Jones',
+    createdDate: new Date('2024-12-02'),
+    dueDate: new Date('2024-12-12'),
+    priority: 'high',
+    status: 'pending',
+    estimatedHours: 8,
+    actualHours: 0,
+    value: 15000,
+  },
+  {
+    taskId: 'TSK-003',
+    caseId: 'CASE-2024-002',
+    taskName: 'Underwriter review',
+    assignee: 'Carol White',
+    createdDate: new Date('2024-12-03'),
+    dueDate: new Date('2024-12-15'),
+    priority: 'critical',
+    status: 'blocked',
+    estimatedHours: 6,
+    actualHours: 1,
+    value: 250000,
+  },
+  {
+    taskId: 'TSK-004',
+    caseId: 'CASE-2024-002',
+    taskName: 'Client follow-up',
+    assignee: 'Alice Smith',
+    createdDate: new Date('2024-12-04'),
+    dueDate: new Date('2024-12-08'),
+    priority: 'medium',
+    status: 'completed',
+    estimatedHours: 2,
+    actualHours: 1.5,
+    value: 250000,
+  },
+  {
+    taskId: 'TSK-005',
+    caseId: 'CASE-2024-003',
+    taskName: 'Generate quote document',
+    assignee: 'David Brown',
+    createdDate: new Date('2024-12-05'),
+    dueDate: new Date('2024-12-11'),
+    priority: 'low',
+    status: 'pending',
+    estimatedHours: 3,
+    actualHours: 0,
+    value: 75000,
+  },
+  {
+    taskId: 'TSK-006',
+    caseId: 'CASE-2024-003',
+    taskName: 'Risk assessment',
+    assignee: 'Carol White',
+    createdDate: new Date('2024-12-05'),
+    dueDate: new Date('2024-12-13'),
+    priority: 'high',
+    status: 'in-progress',
+    estimatedHours: 10,
+    actualHours: 4,
+    value: 75000,
+  },
+  {
+    taskId: 'TSK-007',
+    caseId: 'CASE-2024-004',
+    taskName: 'Policy issuance',
+    assignee: 'Bob Jones',
+    createdDate: new Date('2024-12-06'),
+    dueDate: new Date('2024-12-09'),
+    priority: 'critical',
+    status: 'in-progress',
+    estimatedHours: 2,
+    actualHours: 1,
+    value: 500000,
+  },
+  {
+    taskId: 'TSK-008',
+    caseId: 'CASE-2024-004',
+    taskName: 'Compliance check',
+    assignee: 'Eve Davis',
+    createdDate: new Date('2024-12-06'),
+    dueDate: new Date('2024-12-10'),
+    priority: 'high',
+    status: 'pending',
+    estimatedHours: 4,
+    actualHours: 0,
+    value: 500000,
+  },
+];

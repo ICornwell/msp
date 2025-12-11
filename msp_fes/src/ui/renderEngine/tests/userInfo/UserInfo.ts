@@ -48,7 +48,7 @@ export const userInfoFluxorData: FluxorData<UserInfo> = {
   email: { dictionaryName: 'UserInfo', attributeName: 'email', label: 'Email Address' },
   marketingConsent: { dictionaryName: 'UserInfo', attributeName: 'marketingConsent', label: 'Marketing Consent' },
   phoneNumber: { dictionaryName: 'UserInfo', attributeName: 'phoneNumber', label: 'Phone Number' },
-  joinedDate: { dictionaryName: 'UserInfo', attributeName: 'joinedDate', label: 'Joined Date' },
+  joinedDate: { dictionaryName: 'UserInfo', attributeName: 'joinedDate', label: 'Joined Date', preferredDisplayType: 'date' },
   creditLimit: { dictionaryName: 'UserInfo', attributeName: 'creditLimit', label: 'Credit Limit' },
   schemePoints: { dictionaryName: 'UserInfo', attributeName: 'schemePoints', label: 'Scheme Points' },
   friends: { isArray: true, isComplex:true, dictionaryName: 'UserInfo', attributeName: 'friends', label: 'Friends' },

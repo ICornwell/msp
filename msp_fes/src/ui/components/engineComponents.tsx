@@ -15,6 +15,11 @@ import { ReGroupComponent } from '../renderEngine/components/ReGroup';
 import { ReFluxListComponent } from '../renderEngine/components/ReFluxList';
 
 import { TableComponent } from './tables/table';
+import { PresetBooleanComponent } from './primatives/presets/PresetBoolean';
+import { PresetNumberComponent } from './primatives/presets/PresetNumber';
+import { PresetMoneyComponent } from './primatives/presets/PresetMoney';
+import { PresetTextComponent } from './primatives/presets/PresetText';
+import { PresetDateComponent } from './primatives/presets/PresetDate';
 
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
@@ -40,6 +45,11 @@ export default function EngineComponents() {
 
   addComponent(TableComponent);
 
+  addComponent(PresetBooleanComponent);
+   addComponent(PresetNumberComponent);
+  addComponent(PresetMoneyComponent);
+  addComponent(PresetTextComponent);
+  addComponent(PresetDateComponent);
   return null
 }
 

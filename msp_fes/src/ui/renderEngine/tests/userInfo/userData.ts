@@ -7,7 +7,7 @@ export const userData: UserInfo = {
   email: 'bob.roberts@testorg.com',
   marketingConsent: true,
   phoneNumber: '000-000-0000',
-  joinedDate: 'joinedDate',
+  joinedDate: '2023-01-15T10:00:00Z',
   creditLimit: 1000,
   schemePoints: 100,
   }

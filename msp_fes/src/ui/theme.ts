@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material/styles';
-import { root } from 'happy-dom/lib/PropertySymbol.js';
+
 
 const theme = createTheme({
   spacing: 6,
@@ -12,9 +12,18 @@ const theme = createTheme({
     },
     background: {
       default: '#e0e0e0',
+      paper: '#d0d0d0',
     },
+    text: {
+      primary: '#333333',
+      secondary: '#555555',
+    },
+    divider: '#505050',
   },
   typography: {
+    allVariants: {
+      color: '#333333',
+    },
     fontFamily: 'Bahnschrift Light Condensed, Arial, sans-serif',
     fontSize: 12,
     body1: {
@@ -149,6 +158,11 @@ const theme = createTheme({
       }
     },
     MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          height: '20px',
+        }
+      },
       defaultProps: {
         size: 'small',
       },

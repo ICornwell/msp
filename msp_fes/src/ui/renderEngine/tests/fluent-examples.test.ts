@@ -11,33 +11,33 @@ describe('ReUiPlanBuilder', () => {
     .withDescription('An example plan')
 //    .withSchema([TestClassA, TestClassB])
     .withRules(['rule1', 'rule2'])
-    .withElementSet.forDataDescribedBy(userInfoFluxorData)
+    .withElementSet.usingFluxor(userInfoFluxorData)
     
       .fromInlineElementSet
         .withSharedProps()
           .withDisplayMode('editable')
           .withLabelPosition('start')
         .endSharedProps
-        .showingItem.fromInlineElementUsingComponent(TextComponent)
+        .showingItem.fromComponentElement(TextComponent)
           .withLabel('Standalone Component')
           .withComponentProps({ })
           .withValueBinding((context)=>context.localData.phoneNumber)
           .endElement
-        .showingItem.fromInlineElementUsingComponent(ReGroupComponent)
+        .showingItem.fromComponentElement(ReGroupComponent)
               .withLabel('container')
            
             .containingElementSet()
               
-              .showingItem.fromInlineElementUsingDataMap()
+              .showingItem.fromFluxorElement()
                 .withLabel('Child Component 1')
                 .withValueBinding((context)=>context.localData.userName)
               .endElement
-              .forDataDescribedBy(userPreferencesFluxorData, (context)=>context.localData.preferences)
+              .usingFluxor(userPreferencesFluxorData, (context)=>context.localData.preferences)
               .withSharedProps()
                 .withDisplayMode('readonly')
                 .withComponentProps({ style: { color: 'blue' } })
               .endSharedProps
-              .showingItem.fromInlineElementUsingComponent(TextComponent)
+              .showingItem.fromComponentElement(TextComponent)
                
                 .withLabel('Standalone Component')
                 .withComponentProps({type: 'email'  })
@@ -65,7 +65,7 @@ describe('ReUiPlanBuilder', () => {
     .withDescription('An example plan')
  //   .withSchema([TestClassA, TestClassB])
     .withRules(['rule1', 'rule2'])
-    .withElementSet.forDataDescribedBy(userInfoFluxorData).fromInlineElementSet
+    .withElementSet.usingFluxor(userInfoFluxorData).fromInlineElementSet
       .showingItem.fromElementBuilder(text1Builder)
      /*  .showingContainer.fromInlineContainerElementUsingComponent(ReGroupComponent)
         .withValueBinding((context)=>context.localData)

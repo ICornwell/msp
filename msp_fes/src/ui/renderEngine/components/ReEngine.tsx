@@ -5,7 +5,7 @@ import { ReProvider } from '../contexts/ReEngineContext';
 import ReComponentWrapper from './ReComponentWrapper';
 
 import { FluxorProps } from '../fluxor/fluxorProps';
-import { getSourceDataProxy } from '../data/uiDataProxy';
+import { getSourceDataProxy, Notes } from '../data/uiDataProxy';
 import PubSub, { RePubSubMsg } from '../data/ReEnginePubSub'
 import { resolvePath } from '../data/pathResolver';
 
@@ -124,6 +124,14 @@ export function ReEngine(props: ReEngineProps) {
       let value: any = localData
       let attributeName: string | number | symbol = ''
       let setter: (newValue: any) => void = () => { return; };
+      let getter: (() => any) | undefined = undefined;
+      let notes: Notes | undefined = undefined;
+
+      const componentCallbackHandler = {
+            dataChangeCallback: (_msg: RePubSubMsg) => {
+              return;
+            }
+          }
 
       const binding = componentOptions.binding
       if (binding) {
@@ -136,7 +144,8 @@ export function ReEngine(props: ReEngineProps) {
             path: string,
             propertyKey: string | number | symbol,
             setter: (newValue: any) => void,
-            subscriptionHandler: ReSubscriptionHandler
+            subscriptionHandler: ReSubscriptionHandler,
+            notes?: Notes
           }> = []
 
           if (setMetadataMode && localData.___isProxy) {
@@ -148,13 +157,14 @@ export function ReEngine(props: ReEngineProps) {
                 path: msg.path,
                 propertyKey: msg.propertyKey,
                 setter: msg.setter,
-                subscriptionHandler: msg.subscriptionHandler
+                subscriptionHandler: msg.subscriptionHandler,
+                notes: msg.notes
               });
             }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'});
           }
 
           // when we get the binding value, messages will let us know what properties were accessed
-          const expVal = binding({
+          getter = () => binding({
             rootData: rootData,
             localData: localData,
             localIsCollection: Array.isArray(localData),
@@ -162,6 +172,8 @@ export function ReEngine(props: ReEngineProps) {
             collectionIndexerId: componentOptions.collectionIndexerId,
           })
 
+          const expVal = getter();
+          
           // Unsubscribe from proxy fetches
           for (const metaData of functionPropsMetaData) {
             // redraw if anything changes
@@ -169,7 +181,7 @@ export function ReEngine(props: ReEngineProps) {
             const subscriptionHandler = createSubscriptionHandler(metaData.subscriptionHandler);
             subscriptionHandler.subscribeToPubSub({
               callback: (_msg: RePubSubMsg) => {
-                triggerRedraw();
+                componentCallbackHandler.dataChangeCallback(_msg);
               },
               msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataChange'
             });
@@ -180,12 +192,14 @@ export function ReEngine(props: ReEngineProps) {
             setter = (newValue: any) => {
               metaData.setter(newValue);
             };
+            notes = metaData.notes;
             attributeName = metaData.propertyKey.toString()
             componentOptions.attributeName = attributeName
             if (componentOptions.dataDescriptor && componentOptions.dataDescriptor?.[attributeName])
               componentOptions.propertyDescriptor = componentOptions.dataDescriptor[attributeName]
+            else if (parentElement?.dataDescriptor && parentElement.dataDescriptor?.[attributeName])
+              componentOptions.propertyDescriptor = parentElement.dataDescriptor[attributeName]
           }
-
 
           if (proxySubId) {
             const unsubscribe = localData.___proxyPubSub.subscriptionHandler.unsubscribeFromPubSub;
@@ -224,7 +238,7 @@ export function ReEngine(props: ReEngineProps) {
             fluxorMetaData: context.fluxorMetaData,
             temporaryData: context.temporaryData
           },
-          parentElement: options,
+          parentElement: componentOptions, // use any calculated options including shared props
           parentSharedProps: sharedProps,
           depth: depth + 1
         }
@@ -239,7 +253,7 @@ export function ReEngine(props: ReEngineProps) {
         elementComponent = (
           <ReComponentWrapper
             key={elementIndex}
-            wrapperProps={{ options: { ...componentOptions }, setMetadataMode, value, record, setter }}
+            wrapperProps={{ options: { ...componentOptions }, componentCallbackHandler, notes, setMetadataMode, value, record, getter, setter }}
             rootData={rootData}
             localData={localData}
           >
@@ -251,7 +265,7 @@ export function ReEngine(props: ReEngineProps) {
           <ReComponentWrapper
             rootData={rootData}
             localData={localData}
-            wrapperProps={{ options: { ...componentOptions }, setMetadataMode, value, record, setter }} />
+            wrapperProps={{ options: { ...componentOptions }, componentCallbackHandler, notes, setMetadataMode, value, record, getter, setter }} />
         );
       }
       if (componentOptions.decorators) {
@@ -261,7 +275,7 @@ export function ReEngine(props: ReEngineProps) {
             <ReComponentWrapper
               rootData={rootData}
               localData={localData}
-              wrapperProps={{ options: { ...decoratorOptions }, setMetadataMode, value, record, setter }} >
+              wrapperProps={{ options: { ...decoratorOptions }, componentCallbackHandler,setMetadataMode, value, record, getter, setter }} >
               {elementComponent}
             </ReComponentWrapper>)
         }

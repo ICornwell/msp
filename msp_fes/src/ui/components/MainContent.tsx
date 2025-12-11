@@ -7,6 +7,8 @@ import { UserInfoLayout } from '../renderEngine/tests/userInfo/layoutVColumns.ts
 
 import { userData } from '../renderEngine/tests/userInfo/userData.ts';
 
+import {TableDemoLayouts} from './tables/TableDemoLayouts.ts'
+
 
 interface MainContentProps {
   tabs: Tab[];
@@ -40,6 +42,11 @@ export const MainContent: React.FC<MainContentProps> = ({
           height: '100%'
         }}>
           <ReEngine UiPlan={UserInfoLayout()} sourceData={userData} />
+         {/*  <ReEngine UiPlan={TableDemoLayouts.VehicleFleet.layout()} sourceData={TableDemoLayouts.VehicleFleet.testData} /> */}
+         {/*  <ReEngine UiPlan={TableDemoLayouts.TaskList.layout()} sourceData={TableDemoLayouts.TaskList.testData} />
+          <ReEngine UiPlan={TableDemoLayouts.LayerPricing.layout()} sourceData={TableDemoLayouts.LayerPricing.testData} /> */}
+          
+
         </Box>
       )}
     </Box>

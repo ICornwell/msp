@@ -28,16 +28,24 @@ interface WrapperProps {
 
 export default function ReComponentWrapper({ wrapperProps, rootData, localData, children }: WrapperProps) {
   const { classes } = useStyles()
-  const { value, record, setMetadataMode, setter } = wrapperProps
+  const { value, record, setMetadataMode, setter, getter, notes, componentCallbackHandler } = wrapperProps
   const { getComponentInstantiator } = useEngineComponentsContext()
 
+  const [ dataValue, setDataValue ] = useState(value);
   const [redrawToggle, setRedrawToggle] = useState(false);
 
   function triggerRedraw() {
+    setDataValue(getter ? getter() : value);
     setRedrawToggle(!redrawToggle);
   }
 
-  const shadowsProps =  { ...wrapperProps.options}
+  if (componentCallbackHandler && componentCallbackHandler.dataChangeCallback) {
+    componentCallbackHandler.dataChangeCallback = (_msg: RePubSubMsg) => {
+      triggerRedraw();
+    }
+  }
+
+  const shadowsProps = { ...wrapperProps.options }
   if (wrapperProps.options?.propertyDescriptor) {
     for (const [key, val] of Object.entries(wrapperProps.options.propertyDescriptor)) {
       if (!(key in shadowsProps) || shadowsProps[key] === undefined) {
@@ -47,11 +55,11 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
   }
 
 
-  function updateModelData (_newValue: any) { 
+  function updateModelData(_newValue: any) {
     if (setter) {
       setter(_newValue);
     }
-   };
+  };
 
   for (const [key, val] of Object.entries(shadowsProps || {})) {
     if (val && typeof val === 'object'
@@ -65,17 +73,21 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
         path: string,
         propertyKey: string | number | symbol,
         subscriptionHandler: ReSubscriptionHandler,
- //       setter: (newValue: any) => void
+        //       setter: (newValue: any) => void
       }> = []
 
-      if (setMetadataMode && localData.__isProxy) {
+      if (setMetadataMode && localData.___isProxy) {
         setMetadataMode(false);
         const subscribe = localData.___proxyPubSub.subscriptionHandler.subscribeToPubSub;
         // Subscribe to proxy fetches to collect metadata
-        proxySubId = subscribe({callback: (msg: RePubSubMsg) => {
-          functionPropsMetaData.push({ path: msg.path, propertyKey: msg.propertyKey,
-             subscriptionHandler: msg.subscriptionHandler });
-        }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'});
+        proxySubId = subscribe({
+          callback: (msg: RePubSubMsg) => {
+            functionPropsMetaData.push({
+              path: msg.path, propertyKey: msg.propertyKey,
+              subscriptionHandler: msg.subscriptionHandler
+            });
+          }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'
+        });
       }
 
       // when we get the binding value, messages will let us know what properties were accessed
@@ -132,7 +144,8 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
       events: {
         onChange: onChangeHandler
       },
-      value: value,
+      notes: notes,
+      value: dataValue,
       record: record,
       children: children
     }

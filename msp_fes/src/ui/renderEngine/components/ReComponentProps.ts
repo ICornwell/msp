@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement } from "../UiPlan/ReUiPlan";
 import { DataOf } from "../UiPlan/ReUiPlanBuilder";
 import { FluxorData } from "../fluxor/fluxorData";
+import type { Notes } from "../data/uiDataProxy";
 
 export type ReComponentCommonProps = {
   hidden?: boolean;
@@ -21,12 +22,16 @@ export type ReComponentCommonProps = {
 export type ReComponentSystemProps = { 
   options?: ReUiPlanElement, 
   elementIndex?: number,
-  
+  notes?: Notes,
+  componentCallbackHandler?: {
+    dataChangeCallback: (msg: any) => void;
+  },
   setMetadataMode?: (mode: boolean) => void,
   children?: ReactNode, 
    value?: any, 
   record?: any,
   setter?: (newValue: any) => void,
+  getter?: () => any,
   events?: {
     onChange?: (value: any) => void;
   }
