@@ -25,7 +25,7 @@ export type PropsOf<T extends ComponentWrapper<any>> =
 // C = context type, RT = the actual builder type that the extension is attached to
 // Extension methods returning ElementSetBuilder get C and RT properly substituted
 // Other extension methods get return type rewritten to RT & ExtentionOf<C, T, RT>
-export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, RT = unknown> =
+export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BLD = unknown> =
   // 1. Extract E from ComponentWrapper<P, E>
   T extends ComponentWrapper<any, infer E> 
     // 2. Is E an object (has properties)?
@@ -37,11 +37,11 @@ export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, RT
             // 5. Does it return an ElementSetBuilder? Substitute C and build proper RT
             ? R extends ReUiPlanElementSetBuilder<any, any>
               // Return ElementSetBuilder with correct C and RT that unwinds back to the component builder + extension
-              ? (...args: A) => ReUiPlanElementSetBuilder<C, RT & ExtensionOf<C, T, RT>>
+              ? (...args: A) => ReUiPlanElementSetBuilder<C, BLD & ExtensionOf<C, T, BLD>>
               : R extends ReBuilderBase<any>
                 ? E[K]
                 // 6. Otherwise: Rewrite return type to RT & ExtensionOf<C, T, RT>
-                : (...args: A) => RT & ExtensionOf<C, T, RT> 
+                : (...args: A) => BLD & ExtensionOf<C, T, BLD> 
             // 7. Not a function: Keep property as-is
             : E[K] 
         }
