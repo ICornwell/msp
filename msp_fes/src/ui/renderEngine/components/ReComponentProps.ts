@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
-import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement } from "../UiPlan/ReUiPlan";
+import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanElementSetMember } from "../UiPlan/ReUiPlan";
 import { DataOf } from "../UiPlan/ReUiPlanBuilder";
 import { FluxorData } from "../fluxor/fluxorData";
 import type { Notes } from "../data/uiDataProxy";
+import { ComponentWrapper } from "./ReComponentWrapper";
 
 export type ReComponentCommonProps = {
   hidden?: boolean;
@@ -26,6 +27,7 @@ export type ReComponentSystemProps = {
   componentCallbackHandler?: {
     dataChangeCallback: (msg: any) => void;
   },
+  reEngineElementFactory?: (element: ReUiPlanElementSet | ReUiPlanElementSetMember | ReUiPlanElement, data: any) => React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | React.ReactElement<unknown, string | React.JSXElementConstructor<any>>[],
   setMetadataMode?: (mode: boolean) => void,
   children?: ReactNode, 
    value?: any, 

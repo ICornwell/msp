@@ -14,7 +14,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { createElement, ReactNode } from 'react';
 import { 
   InputStrategy, 
-  centerAlign,
+  leftAlign,
   StrategyContext,
   ParseResult,
   strategyRegistry
@@ -53,11 +53,12 @@ export function createBooleanStrategy(options: BooleanStrategyOptions = {}): Inp
   } = options;
 
   return {
-    alignment: centerAlign,
+    alignment: leftAlign,
     
     adornment: {
-      getEndAdornment: (ctx: StrategyContext): ReactNode => {
+      getStartAdornment: (ctx: StrategyContext): ReactNode => {
         const boolValue = toBooleanValue(ctx.value);
+         const { onValueChange } = ctx.metadata as any
         
         if (ctx.mode === 'readonly') {
           // Lightweight icon representation
@@ -96,7 +97,7 @@ export function createBooleanStrategy(options: BooleanStrategyOptions = {}): Inp
           checked: boolValue === true,
           indeterminate: allowIndeterminate && boolValue === undefined,
           size: 'small',
-          onChange: () => { /* Handled externally */ }
+          onChange: () => onValueChange(!boolValue)
         });
       }
     },

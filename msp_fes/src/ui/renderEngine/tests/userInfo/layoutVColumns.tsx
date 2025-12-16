@@ -7,8 +7,9 @@ import { PresetNumberComponent } from '../../../components/primatives/presets/Pr
 import { PresetBooleanComponent } from '../../../components/primatives/presets/PresetBoolean'
 import { ColumnsComponent } from '../../../components/containers/columns'
 import { LabelFrameComponent } from '../../../components/containers/labelframe'
-import { TableComponent } from '../../../components/tables/table'
+import { TableComponent, CellRendererProps } from '../../../components/tables/table'
 import { PresetDateComponent } from '../../../components/primatives/presets/PresetDate'
+import { vehicleFluxorData } from '../../../components/tables/testData'
 
 
 
@@ -18,14 +19,50 @@ export function UserInfoLayout() {
      .withElementSet
       
      
-      .usingFluxor(userInfoFluxorData)
+       .usingFluxor(vehicleFluxorData)
       .fromInlineElementSet
+        
        .showingItem.fromComponentElement(TableComponent)
           .withLabel('User Info Table')
-   
+          .withHelperText('A table showing vehicle information and calculated premiums')
+
+          .withColumns()
+          .endColumns
+    
+      .withColumns()
+        .column(s => s.registration).pinned('left')
+        .column(s => s.type)
+        
+        // Column group: Vehicle Info
+        .columnGroup('vehicleInfo', 'Vehicle Details')
+          .column(s => s.make).withHeader('Make')
+          .column(s => s.model).withHeader('Model')
+          .column(s => s.year).withHeader('Year')
+          .column(s => s.value).withHeader('Value').withRenderer
+            .fromComponentElement(PresetMoneyComponent)
+            .withValueBinding((context) => context.localData.value).endElement
+        .endGroup
+        
+        // Column group: Premium Calculation
+        .columnGroup('premium', 'Premium')
+          .column(s => s.basePremium).withHeader('Base').withRenderer
+          .fromComponentElement(PresetMoneyComponent)
+            .withValueBinding((context) => context.localData.basePremium)
+          .endElement
+          .column(s => s.totalModifier).withHeader('Modifier')
+          .column(s => s.adjustedPremium).withHeader('Adjusted').withRenderer
+            .fromComponentElement(PresetMoneyComponent)
+              .withValueBinding((context) => context.localData.adjustedPremium)
+            .endElement
+        .endGroup
+        
+      .endColumns
+      
             
-        .endElement
-        .showingItem.fromComponentElement(ColumnsComponent)
+        .endElement 
+    /*    .fromInlineElementSet
+        .usingFluxor(userInfoFluxorData)
+         .showingItem.fromComponentElement(ColumnsComponent)
           .withComponentProps({columns: 2, fillDirection: 'down'})
           .withDecorators().showing.fromComponentElement(LabelFrameComponent)
             .withLabel('User Information')
@@ -78,7 +115,7 @@ export function UserInfoLayout() {
               .withValueBinding((context) => context.localData.userName)
             .endElement
         .endSet
-        .endElement
+        .endElement */
      .endSet 
      
      .BuildUiPlan()

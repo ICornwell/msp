@@ -94,6 +94,7 @@ export type ReUiPlanElementCommmonProps = {
 } & ReUiPlanElementShareableProps
 
 export type ReUiPlanElement = {
+  isReUIPlanElement: true;
   isUsed?: boolean
   componentName?: string;
   componentProps?: any;

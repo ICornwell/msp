@@ -1,6 +1,6 @@
 // import React from 'react';
 import { render, screen } from '../../../test-utils';
-import TextInput from '../editing/textInput';
+import TextInput from '../../../../../../ui-try-outs/editing/textInput';
 import { vi } from 'vitest';
 
 // Create a simplified mock version of the TextInput for testing

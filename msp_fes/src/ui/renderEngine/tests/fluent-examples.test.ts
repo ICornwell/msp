@@ -1,4 +1,4 @@
-import TextInput, {TextComponent, TextInputProps} from '../../components/primatives/editing/textInput.tsx'
+import TextInput, {TextComponent, TextInputProps} from '../../../../../ui-try-outs/editing/textInput.tsx'
 import { ReGroupComponent } from '../components/ReGroup.tsx'
 import { Re } from '../index.ts'
 //import { ReUiPlanElementSetBuilder } from '../UiPlan/ReUiPlanBuilder.ts'

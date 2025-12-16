@@ -6,6 +6,7 @@ import { ReEngine } from '../renderEngine/components/ReEngine.tsx';
 import { UserInfoLayout } from '../renderEngine/tests/userInfo/layoutVColumns.tsx';
 
 import { userData } from '../renderEngine/tests/userInfo/userData.ts';
+import { sampleVehicles } from '../components/tables/testData.ts';
 
 import {TableDemoLayouts} from './tables/TableDemoLayouts.ts'
 
@@ -41,8 +42,8 @@ export const MainContent: React.FC<MainContentProps> = ({
           justifyContent: 'center',
           height: '100%'
         }}>
-          <ReEngine UiPlan={UserInfoLayout()} sourceData={userData} />
-         {/*  <ReEngine UiPlan={TableDemoLayouts.VehicleFleet.layout()} sourceData={TableDemoLayouts.VehicleFleet.testData} /> */}
+          <ReEngine UiPlan={UserInfoLayout()} sourceData={ sampleVehicles } />
+          {/* <ReEngine UiPlan={TableDemoLayouts.VehicleFleet.layout()} sourceData={TableDemoLayouts.VehicleFleet.testData} /> */}
          {/*  <ReEngine UiPlan={TableDemoLayouts.TaskList.layout()} sourceData={TableDemoLayouts.TaskList.testData} />
           <ReEngine UiPlan={TableDemoLayouts.LayerPricing.layout()} sourceData={TableDemoLayouts.LayerPricing.testData} /> */}
           

@@ -7,8 +7,10 @@ import { makeStyles } from 'tss-react/mui';
 import { Theme } from '@mui/material/styles';
 import { RePubSubMsg } from '../data/ReEnginePubSub';
 import { ReSubscriptionHandler } from './RePubSubHook';
-import { ReUiPlanDisplayMode } from '../UiPlan/ReUiPlan';
+import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan';
 import { ReNullExtension } from '../UiPlan/ReUiPlanBuilder';
+import { FluxorData } from '../fluxor/fluxorData';
+import { F } from 'vitest/dist/chunks/config.d.UqE-KR0o.js';
 
 const useStyles = makeStyles()((theme: Theme) => ({
   label: {
@@ -144,6 +146,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
       events: {
         onChange: onChangeHandler
       },
+      reEngineElementFactory: wrapperProps?.reEngineElementFactory,
       notes: notes,
       value: dataValue,
       record: record,
@@ -186,6 +189,7 @@ export type DisplayMode = ReUiPlanDisplayMode | 'all';
  * Base component wrapper that includes both the component and its metadata
  */
 export interface ComponentWrapper<P, E = ReNullExtension> {
+  isComponentWrapper: true;
   // The actual React component
   component: ComponentType<P>;
   // Display name for debugging
@@ -200,7 +204,8 @@ export interface ComponentWrapper<P, E = ReNullExtension> {
   displayMode?: DisplayMode | DisplayMode[];
   extensions?: E;
   // Factory function to create runtime extension instance
-  extensionFactory?: <RT>(builder: RT) => E;
+  // dataDescriptor is generic to allow type inference from the actual value
+  extensionFactory?: <C extends CNTX, RT, TData extends FluxorData<any>>(builder: RT, dataDescriptor: TData, contextPlaceHolder: C) => E;
 }
 
 /**
@@ -212,11 +217,12 @@ export function createLeafComponent<P extends object>(
   isManagedForm?: boolean
 ): ComponentWrapper<P> {
   return {
+    isComponentWrapper: true,
     component,
     displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
     acceptsChildren: false,
     isManagedForm: isManagedForm || false,
-    displayMode: 'editing',
+    displayMode: 'all',
   };
 }
 
@@ -225,6 +231,7 @@ export function createLeafReadOnlyComponent<P extends object>(
   displayName?: string
 ): ComponentWrapper<P> {
   return {
+    isComponentWrapper: true,
     component,
     displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
     acceptsChildren: false,
@@ -238,6 +245,7 @@ export function createLeafEditableComponent<P extends object>(
   displayName?: string
 ): ComponentWrapper<P> {
   return {
+    isComponentWrapper: true,
     component,
     displayName: displayName || component.displayName || component.name || 'UnnamedComponent',
     acceptsChildren: false,
@@ -254,6 +262,7 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
   displayName?: string
 ): ComponentWrapper<P> {
   return {
+    isComponentWrapper: true,
     component,
     displayName: displayName || component.displayName || component.name || 'UnnamedContainer',
     acceptsChildren: true,
@@ -265,14 +274,15 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
 export function createExtendedComponent<P extends Object, E>(
   component: ComponentType<P>,
   displayName?: string,
-  extensionFactory?: <RT>(builder: RT) => E
+  extensionFactory?: <C extends CNTX, RT, TData extends FluxorData<any>>(builder: RT, dataDescriptor: TData, _contextPlaceHolder: C) => E
 ): ComponentWrapper<P, E> {
   return {
+    isComponentWrapper: true,
     component,
     displayName: displayName || component.displayName || component.name || 'UnnamedContainer',
     acceptsChildren: true,
     isManagedForm: false,
     displayMode: 'all',
-    extensionFactory: extensionFactory as any
+    extensionFactory: extensionFactory as<C extends CNTX, RT, TData extends FluxorData<any>>(builder: RT, dataDescriptor: TData, contextPlaceHolder: C) => E
   };
 }

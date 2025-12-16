@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import { w } from 'happy-dom/lib/PropertySymbol.js';
 
 
 const theme = createTheme({
@@ -11,8 +12,8 @@ const theme = createTheme({
       main: '#2b88d8',
     },
     background: {
-      default: '#e0e0e0',
-      paper: '#d0d0d0',
+      default: '#e7e7e7',
+      paper: '#e0e0e0',
     },
     text: {
       primary: '#333333',
@@ -24,7 +25,7 @@ const theme = createTheme({
     allVariants: {
       color: '#333333',
     },
-    fontFamily: 'Bahnschrift Light Condensed, Arial, sans-serif',
+    fontFamily: 'Bahnschrift, sans-serif',
     fontSize: 12,
     body1: {
       color: '#333333',
@@ -60,6 +61,7 @@ const theme = createTheme({
         input: {
           paddingTop: '4px',
           paddingBottom: '2px',
+          fontWeight: 400,
           ":read-only": {
             backgroundColor: '#e0e0e0'
           },
@@ -107,7 +109,7 @@ const theme = createTheme({
       styleOverrides: {
         filled: {
           marginTop: '-14px',
-        
+          fontWeight: 300,
         }
       },
       defaultProps: {

@@ -1,9 +1,9 @@
 import {Re} from '../../index'
 
 import { userInfoFluxorData } from './UserInfo'
-import { TextComponent } from '../../../components/primatives/editing/textInput'
-import { MoneyComponent } from '../../../components/primatives/editing/moneyInput'
-import { CheckboxComponent } from '../../../components/primatives/editing/checkboxInput'
+import { TextComponent } from '../../../../../../ui-try-outs/editing/textInput'
+import { MoneyComponent } from '../../../../../../ui-try-outs/editing/moneyInput'
+import { CheckboxComponent } from '../../../../../../ui-try-outs/editing/checkboxInput'
 
 export function UserInfoLayout() {
   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')

@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementCommmonProps, ReUiPlanElementShareableProps } from '../UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
+import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementCommmonProps, ReUiPlanElementShareableProps, ReUiPlanElementSetMember } from '../UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
 import { ReProvider } from '../contexts/ReEngineContext';
-import ReComponentWrapper from './ReComponentWrapper';
+import ReComponentWrapper, { ComponentWrapper } from './ReComponentWrapper';
 
 import { FluxorProps } from '../fluxor/fluxorProps';
 import { getSourceDataProxy, Notes } from '../data/uiDataProxy';
@@ -17,13 +17,13 @@ export type ReEngineProps = {
   renderSettings?: any,
 }
 
-export function mergeProps<S extends { [s: string]: any; }, T extends { [s: string]: any; }>(source: S, target: T, force: boolean=false): T {
+export function mergeProps<S extends { [s: string]: any; }, T extends { [s: string]: any; }>(source: S, target: T, force: boolean = false): T {
   const newProps: T = { ...target };
   Object.entries(source).forEach(([key, value]) => {
-          if (force ||value !== undefined && (newProps as any)[key] === undefined) {
-            (newProps as any)[key] = value;
-          }
-        })
+    if (force || value !== undefined && (newProps as any)[key] === undefined) {
+      (newProps as any)[key] = value;
+    }
+  })
   return newProps;
 }
 
@@ -91,31 +91,31 @@ export function ReEngine(props: ReEngineProps) {
     }
 
     const elementComponents: React.ReactElement[] = []
-  //  for (const { componentName, options, containing } of uiPlanElementSet) {
+    //  for (const { componentName, options, containing } of uiPlanElementSet) {
     uiPlanElementSet.forEach(({ componentName, options, containing }, elementIndex) => {
-      
+
 
       let sharedProps: ReUiPlanElementShareableProps = {}
 
       // find shared props for this element, if any
       if (parentElement && parentElement.sharedProps) {
-          sharedProps = parentElement.sharedProps
+        sharedProps = parentElement.sharedProps
           .sort((a, b) => (a.fromComponentIndex ?? 0) - (b.fromComponentIndex ?? 0))
           .reduce<ReUiPlanElementShareableProps>((acc, sp) => {
             if (sp.fromComponentIndex === undefined || sp.fromComponentIndex <= elementIndex) {
               // merge defined shared props
-              acc =mergeProps(sp, acc, true);
+              acc = mergeProps(sp, acc, true);
             }
             return acc;
           }, {} as ReUiPlanElementShareableProps);
       }
       // merge parent's own given shared props if any not overridden by its own onward sharedProps
       if (elementProps.parentSharedProps) {
-        sharedProps =mergeProps(elementProps.parentSharedProps, sharedProps);
+        sharedProps = mergeProps(elementProps.parentSharedProps, sharedProps);
       }
 
       // use shared props as a base, overridden by element options
-      const componentOptions = mergeProps(sharedProps, options || {}) ;
+      const componentOptions = mergeProps(sharedProps, options || {});
 
       if (componentOptions.hidden) {
         return; // Skip rendering if hidden
@@ -128,10 +128,10 @@ export function ReEngine(props: ReEngineProps) {
       let notes: Notes | undefined = undefined;
 
       const componentCallbackHandler = {
-            dataChangeCallback: (_msg: RePubSubMsg) => {
-              return;
-            }
-          }
+        dataChangeCallback: (_msg: RePubSubMsg) => {
+          return;
+        }
+      }
 
       const binding = componentOptions.binding
       if (binding) {
@@ -152,15 +152,17 @@ export function ReEngine(props: ReEngineProps) {
             setMetadataMode(false);
             const subscribe = localData.___proxyPubSub.subscriptionHandler.subscribeToPubSub;
             // Subscribe to proxy fetches to collect metadata
-            proxySubId = subscribe({callback: (msg: RePubSubMsg) => {
-              functionPropsMetaData.push({
-                path: msg.path,
-                propertyKey: msg.propertyKey,
-                setter: msg.setter,
-                subscriptionHandler: msg.subscriptionHandler,
-                notes: msg.notes
-              });
-            }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'});
+            proxySubId = subscribe({
+              callback: (msg: RePubSubMsg) => {
+                functionPropsMetaData.push({
+                  path: msg.path,
+                  propertyKey: msg.propertyKey,
+                  setter: msg.setter,
+                  subscriptionHandler: msg.subscriptionHandler,
+                  notes: msg.notes
+                });
+              }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'
+            });
           }
 
           // when we get the binding value, messages will let us know what properties were accessed
@@ -173,7 +175,7 @@ export function ReEngine(props: ReEngineProps) {
           })
 
           const expVal = getter();
-          
+
           // Unsubscribe from proxy fetches
           for (const metaData of functionPropsMetaData) {
             // redraw if anything changes
@@ -224,24 +226,46 @@ export function ReEngine(props: ReEngineProps) {
         // Handle the case where componentName is not provided
         componentOptions.componentName = componentName;
       }
-      if (containing) {
-        const childElementProps: ReEngineElementSetProps = {
-          uiPlan,
-          uiPlanElementSet: containing,
-          setMetadataMode,
-          context: {
-            rootData: rootData,
-            buildSettings: props.UiPlan.buildSettings,
-            renderSettings: context.renderSettings,
 
-            localData: value,
-            fluxorMetaData: context.fluxorMetaData,
-            temporaryData: context.temporaryData
-          },
-          parentElement: componentOptions, // use any calculated options including shared props
-          parentSharedProps: sharedProps,
-          depth: depth + 1
+      const childElementProps: ReEngineElementSetProps = {
+        uiPlan,
+        uiPlanElementSet: containing ?? [],
+        setMetadataMode,
+        context: {
+          rootData: rootData,
+          buildSettings: props.UiPlan.buildSettings,
+          renderSettings: context.renderSettings,
+
+          localData: value,
+          fluxorMetaData: context.fluxorMetaData,
+          temporaryData: context.temporaryData
+        },
+        parentElement: componentOptions, // use any calculated options including shared props
+        parentSharedProps: sharedProps,
+        depth: depth + 1
+      }
+      // create a factory to pass down to children for creating their own elements
+      let factory = (element: ReUiPlanElementSet | ReUiPlanElementSetMember | ReUiPlanElement, data: any) => {
+        const elements: ReUiPlanElementSetMember[] = [];
+        if (!Array.isArray(element)) {
+          if (!(element as any).options) { // it isn't a set member, make it one
+            const pe = element as ReUiPlanElement;
+            element = {
+              componentName: pe.componentName,
+              options: { ...pe },
+              containing: pe.children
+            }
+          }
+          elements.push(element as ReUiPlanElementSetMember);
+        } else {
+          elements.push(...(element as unknown as ReUiPlanElementSet));
         }
+        return recursiveRender({ ...childElementProps, uiPlanElementSet: elements, context: { ...childElementProps.context, localData: data } });
+      };
+      const systemProps = { reEngineElementFactory:factory, componentCallbackHandler, notes, setMetadataMode, value, record, getter, setter }
+
+      if (containing) {
+        childElementProps.uiPlanElementSet = containing;
         record = childElementProps.context.localData
         const childElements = componentOptions.useSingleChildForArrays
           ? (<>
@@ -253,7 +277,7 @@ export function ReEngine(props: ReEngineProps) {
         elementComponent = (
           <ReComponentWrapper
             key={elementIndex}
-            wrapperProps={{ options: { ...componentOptions }, componentCallbackHandler, notes, setMetadataMode, value, record, getter, setter }}
+            wrapperProps={{ options: { ...componentOptions }, ...systemProps, record }}
             rootData={rootData}
             localData={localData}
           >
@@ -265,7 +289,7 @@ export function ReEngine(props: ReEngineProps) {
           <ReComponentWrapper
             rootData={rootData}
             localData={localData}
-            wrapperProps={{ options: { ...componentOptions }, componentCallbackHandler, notes, setMetadataMode, value, record, getter, setter }} />
+            wrapperProps={{ options: { ...componentOptions }, ...systemProps, record }} />
         );
       }
       if (componentOptions.decorators) {
@@ -275,7 +299,7 @@ export function ReEngine(props: ReEngineProps) {
             <ReComponentWrapper
               rootData={rootData}
               localData={localData}
-              wrapperProps={{ options: { ...decoratorOptions }, componentCallbackHandler,setMetadataMode, value, record, getter, setter }} >
+              wrapperProps={{ options: { ...decoratorOptions }, ...systemProps, record }} >
               {elementComponent}
             </ReComponentWrapper>)
         }

@@ -5,16 +5,22 @@ import { UserSessionProvider } from './contexts/UserSessionContext';
 import { CustomThemeProvider } from './components/CustomThemeProvider';
 
 import defaultTheme from './theme.js';
+import { styled } from '@mui/material';
+
+
+
 
 const App: React.FC = () => {
   return (
-    <CustomThemeProvider theme={defaultTheme}>
-    <UserSessionProvider>
-      <EventProvider>
-        <AppShell/>
-      </EventProvider>
-    </UserSessionProvider>
-    </CustomThemeProvider>
+ 
+      <CustomThemeProvider theme={defaultTheme}>
+        <UserSessionProvider>
+          <EventProvider>
+            <AppShell />
+          </EventProvider>
+        </UserSessionProvider>
+      </CustomThemeProvider>
+ 
   );
 };
 
