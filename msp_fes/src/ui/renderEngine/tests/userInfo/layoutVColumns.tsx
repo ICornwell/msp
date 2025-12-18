@@ -11,7 +11,81 @@ import { TableComponent, CellRendererProps } from '../../../components/tables/ta
 import { PresetDateComponent } from '../../../components/primatives/presets/PresetDate'
 import { vehicleFluxorData } from '../../../components/tables/testData'
 
+export function UserInfoLayout1() {
+   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+     .withElementSet
+       .usingFluxor(vehicleFluxorData)
+      .fromInlineElementSet
+       .showingItem.fromComponentElement(TableComponent)
+          .withLabel('User Info Table')
+          .withHelperText('A table showing vehicle information and calculated premiums')
+       //   .enableFiltering(true)
+          .withColumns()
+          .endColumns
+        .endElement
+      .endSet
+      .BuildUiPlan()
+    return userInfoLauout
+}
 
+export function UserInfoLayout2() {
+   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+     .withElementSet
+       .usingFluxor(vehicleFluxorData)
+      .fromInlineElementSet
+       .showingItem.fromComponentElement(TableComponent)
+       .enableFiltering(true)
+
+          .withLabel('User Info Table')
+          .withHelperText('A table showing vehicle information and calculated premiums')
+             
+        .endElement
+
+      .endSet
+      .BuildUiPlan()
+    return userInfoLauout
+}
+export function UserInfoLayout22() {
+   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+     .withElementSet
+       .usingFluxor(vehicleFluxorData)
+      .fromInlineElementSet
+       .showingItem.fromComponentElement(TableComponent)
+          .withLabel('User Info Table')
+          .withHelperText('A table showing vehicle information and calculated premiums')
+    //    .enableFiltering(true)
+        
+
+        .endElement
+
+      .endSet
+      .BuildUiPlan()
+    return userInfoLauout
+}
+
+export function UserInfoLayout3() {
+  const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+    .withElementSet.usingFluxor(userInfoFluxorData)
+    .fromInlineElementSet
+        .usingFluxor(userInfoFluxorData)
+         .showingItem.fromComponentElement(ColumnsComponent)
+       //   .withComponentProps({columns: 2, fillDirection: 'down'})
+          .containingElementSet()
+              .withSharedProps()
+                .withDisplayMode('editing')
+              .endSharedProps
+              .showingItem.fromComponentElement(PresetTextComponent)
+                  .withValueBinding((context) => context.localData.userName)
+                  .withHelperText('Please enter your full name')
+                .endElement
+               
+            .endSet
+        .endElement 
+    .endSet
+    
+    .BuildUiPlan({})
+    return userInfoLauout
+}
 
 export function UserInfoLayout() {
    const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
@@ -25,10 +99,12 @@ export function UserInfoLayout() {
        .showingItem.fromComponentElement(TableComponent)
           .withLabel('User Info Table')
           .withHelperText('A table showing vehicle information and calculated premiums')
-
+       //   .enableFiltering(true)
+          
           .withColumns()
           .endColumns
     
+      
       .withColumns()
         .column(s => s.registration).pinned('left')
         .column(s => s.type)

@@ -5,6 +5,7 @@ import { createContainerComponent, createExtendedComponent } from '../../renderE
 import { ReComponentCommonProps } from '../../renderEngine/components/ReComponentProps';
 import { styled, SvgIcon } from '@mui/material';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements';
+import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
 
 export type LabelFrameProps = {
   icon?: React.ElementType;
@@ -79,7 +80,7 @@ export default function LabelFrame(props: LabelFrameProps & PropsWithChildren & 
 
 // export const LabelFrameComponent = createContainerComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren>(LabelFrame, 'LabelFrame');
 
-export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, ElementSetContainerExtension<any>>(
+export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, ElementSetContainerExtension<CNTX, any>>(
   LabelFrame, 
   'LabelFrame',
   (builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(builder, dataDescriptor, contextPlaceHolder)

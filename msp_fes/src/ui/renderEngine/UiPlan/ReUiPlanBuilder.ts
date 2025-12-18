@@ -4,6 +4,7 @@ import { defaultDisplayMap } from '../fluxor/defaultDisplayMap'
 import { ReComponentBinder, ReComponentReBinder } from '../components/ReComponentProps'
 import { ComponentWrapper } from '../components/ReComponentWrapper'
 import { FluxorData } from '../fluxor/fluxorData'
+import { ExtensionOf, ComponentBuilderWithExt } from './ReUiPlanBuilder.extensions.generated';
 
 // Re-export CNTX and type helpers for use in extensions
 export type { CNTX, LDDTOf, RDDTOf, BSDDTOf, RSDDTOf, TDDTOf };
@@ -13,44 +14,16 @@ export type ContextAndRtOf<C extends CNTX, RT> = {
   __c: () => C
 }
 
-
+export type FluentSimple = { _fluentSimple: () => void }
+export type FluentSubBuilder<SB> = { _fluentSubBuilder: () => SB }
+export type FluentReturn = {}
+export type FluentExtension = {}
 // ============================================================================
 // Helper Types
 // ============================================================================
 
 export type PropsOf<T extends ComponentWrapper<any>> =
   T extends ComponentWrapper<infer P> ? P : never;
-
-// ExtentionOf extracts the extension type E from ComponentWrapper
-// C = context type, RT = the actual builder type that the extension is attached to
-// Extension methods returning ElementSetBuilder get C and RT properly substituted
-// Other extension methods get return type rewritten to RT & ExtentionOf<C, T, RT>
-export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BLD = unknown> =
-  // 1. Extract E from ComponentWrapper<P, E>
-  T extends ComponentWrapper<any, infer E> 
-    // 2. Is E an object (has properties)?
-    ? E extends object 
-      // 3. Map over each key K in E
-      ? { [K in keyof E]: 
-          // 4. Is E[K] a function?
-          E[K] extends ((...args: infer A) => infer R) 
-            // 5. Does it return an ElementSetBuilder? Substitute C and build proper RT
-            ? R extends ReUiPlanElementSetBuilder<any, any>
-              // Return ElementSetBuilder with correct C and RT that unwinds back to the component builder + extension
-              ? (...args: A) => ReUiPlanElementSetBuilder<C, BLD & ExtensionOf<C, T, BLD>>
-              : R extends ReBuilderBase<any>
-                ? E[K]
-                // 6. Otherwise: Rewrite return type to RT & ExtensionOf<C, T, RT>
-                : (...args: A) => BLD & ExtensionOf<C, T, BLD> 
-            // 7. Not a function: Keep property as-is
-            : E[K] 
-        }
-      : E    // Not an object, return as-is
-    : never; // Didn't match ComponentWrapper
-
-// Full builder type with extension - used to properly type return values
-export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<any, any>, RT> = 
-  ReUiPlanComponentBuilder<C, T, RT> & ExtensionOf<C, T, ReUiPlanComponentBuilder<C, T, RT>>;
 
 export type DataOf<D extends FluxorData<any>> =
   D extends FluxorData<infer T> ? T : never;
@@ -59,11 +32,16 @@ export type ReBuilder = {
   build: <BS>(buildSettings: BS, dataDescriptor: FluxorData<any>) => any
 }
 
-export type ReExtensionBuilder = {
-  _buildExtension: <BS>(buildSettings:BS, extendedElement: any ) => void
+export type ReExtensionBuilder<RT> = {
+  _endExtension?: () => RT;
+  _buildExtension?: <BS>(buildSettings: BS, extendedElement: any) => void;
 }
 
-export type ReNullExtension = {}
+export type ReNullExtension = {
+   _buildExtension?: <BS>(buildSettings: BS, extendedElement: any) => void;
+}
+
+
 
 // ============================================================================
 // Element Builder Quartet - Reusable pattern for configuring elements
@@ -73,7 +51,7 @@ export type ReNullExtension = {}
 export type ElementBuilderQuartet<C extends CNTX, RT> = {
   fromElementBuilder: (builder: ReUiPlanComponentBuilder<any, any, any>) => RT;
   fromElementObject: (element: ReUiPlanElement) => RT;
-  fromComponentElement: <T extends ComponentWrapper<any, any>>(component: T) =>
+  fromComponentElement: <T extends ComponentWrapper<any>>(component: T) =>
     ComponentBuilderWithExt<C, T, RT>;
   fromFluxorElement: () => ReUiPlanComponentBuilder<C, any, RT>;
 };
@@ -130,7 +108,7 @@ export function createElementBuilderQuartet<C extends CNTX, RT>(
       componentBuilders.push(createPrebuiltElementBuilder(element, returnTo));
       return returnTo;
     },
-    fromComponentElement: <T extends ComponentWrapper<any, any>>(component: T): ComponentBuilderWithExt<C, T, RT> =>
+    fromComponentElement: <T extends ComponentWrapper<any>>(component: T): ComponentBuilderWithExt<C, T, RT> =>
       CreateReUiPlanComponent(returnTo, component, componentBuilders, containedElementSetBuilders, dataDescriptor),
     fromFluxorElement: (): ReUiPlanComponentBuilder<C, any, RT> =>
       CreateReUiPlanComponent<C, any, RT>(returnTo, undefined, componentBuilders, containedElementSetBuilders, dataDescriptor)
@@ -208,7 +186,7 @@ export interface ReUiPlanDecoratorSetBuilder<C extends CNTX, RT> extends ReBuild
 // Uses recursive type wrapping for proper stack unwinding
 // ============================================================================
 
-export interface ReUiPlanComponentBuilder<C extends CNTX, T extends ComponentWrapper<any, any>, RT> extends ReBuilderBase<RT> {
+export interface ReUiPlanComponentBuilder<C extends CNTX, T extends ComponentWrapper<any>, RT> extends ReBuilderBase<RT> {
   usingFluxor: <LDDT2 extends FluxorData<any>>(_dataDescriptor: LDDT2, binding?: ReComponentReBinder<C, LDDT2>) => ComponentBuilderWithExt<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, RT>
   withHideWhenRule: (hidden: boolean | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, RT>
   hide: () => ComponentBuilderWithExt<C, T, RT>
@@ -438,7 +416,7 @@ export function CreateReUiPlanDecoratorSet<C extends CNTX, RT>(
   return builder;
 }
 
-export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapper<any, any>, RT>(
+export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapper<any>, RT>(
   returnTo: RT,
   componentWrapper?: T,
   set?: ReUiPlanComponentBuilder<any, any, any>[],
@@ -595,7 +573,7 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
   // If the component has an extension factory, call it and merge into builder
   // Pass dataDescriptor so TypeScript can infer TData from the actual value
   if (componentWrapper?.extensionFactory && dataDescriptor) {
-    const extension = componentWrapper.extensionFactory<C, ComponentBuilderWithExt<C, T, RT>, typeof dataDescriptor>(builder, dataDescriptor, {} as C);
+    const extension = componentWrapper.extensionFactory<C, RT, typeof dataDescriptor>(returnTo, dataDescriptor, {} as C);
     Object.assign(builder, extension);
   }
 

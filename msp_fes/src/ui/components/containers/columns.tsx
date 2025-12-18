@@ -5,6 +5,7 @@ import { Container, Stack } from "@mui/material";
 import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper';
 import { ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements';
+import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
 
 export type ColumnProps = {
   fillDirection: 'across' | 'down';
@@ -68,7 +69,7 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
   return content;
 }
 
-export const ColumnsComponent = createExtendedComponent<ColumnProps, ElementSetContainerExtension<any>>(
+export const ColumnsComponent = createExtendedComponent<ColumnProps, ElementSetContainerExtension<CNTX, any>>(
   Columns, 
   'Columns',
   (builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(builder, dataDescriptor, contextPlaceHolder)  

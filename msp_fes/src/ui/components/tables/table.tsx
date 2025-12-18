@@ -13,7 +13,7 @@ import {
   useReactTable,
   SortingState,
 } from '@tanstack/react-table'
-import { ReExtensionBuilder, ReBuilderBase, DataOf, CreateReUiPlanComponent, ElementBuilderQuartet, createElementBuilderQuartet, CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
+import { ReExtensionBuilder, ReBuilderBase, DataOf, CreateReUiPlanComponent, ElementBuilderQuartet, createElementBuilderQuartet, CNTX, ReUiPlanComponentBuilder } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
 import { ReUiPlanElement, ReUiPlanElementSetMember } from '../../renderEngine/UiPlan/ReUiPlan';
 // ============================================
 // Table Props
@@ -32,6 +32,9 @@ import { FluxorData } from '../../renderEngine/fluxor/fluxorData';
 import { FluxorProps } from '../../renderEngine/fluxor/fluxorProps';
 import { data } from 'happy-dom/lib/PropertySymbol.js';
 import { Re } from '../../renderEngine';
+import { ComponentBuilderWithExt } from '../../renderEngine/UiPlan/ReUiPlanBuilder.extensions.generated';
+
+import { FluentSimple, FluentReturn, FluentSubBuilder, FluentExtension } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
 
 // ============================================
 // Table Layout
@@ -357,30 +360,31 @@ export interface FilterColumnOptions<C extends CNTX, TValue, RT> extends ReBuild
 // ============================================
 // Table Extension Interface
 // ============================================
-export interface TableExtension<C extends CNTX, RT> extends ReExtensionBuilder {
+export interface TableExtension<C extends CNTX, RT> extends ReExtensionBuilder<RT> {
+  
   // Set the data type for type-safe columns
-  forDataType<T extends FluxorData<any>>(): RT & TableExtension<C, RT>;
+  forDataType<T extends FluxorData<any>>(): FluentSimple;
 
   // Orientation
-  withOrientation(orientation: TableOrientation): RT & TableExtension<C, RT>;
+  withOrientation(orientation: TableOrientation): FluentSimple;
 
   // Virtualization for large datasets
-  withVirtualization(rowHeight: number, overscan?: number): RT & TableExtension<C, RT>;
+  withVirtualization(rowHeight: number, overscan?: number): FluentSimple;
 
   // Type-safe column builder - THE MAIN API
-  withColumns(): ColumnBuilder<C, RT & TableExtension<C, RT>>;
+  withColumns(): FluentSubBuilder<ColumnBuilder<C, FluentSimple>>;
 
   // Auto-generate columns from schema (future: will use FluxorProps metadata)
-  withColumnsFromSchema(selector?: <T>(data: T) => (keyof T)[]): RT & TableExtension<C, RT>;
+  withColumnsFromSchema(selector?: <T>(data: T) => (keyof T)[]): FluentSimple;
 
   // Filter configuration
-  withFiltering(): FilterBuilder<C, RT & TableExtension<C, RT>>;
+  withFiltering(): FluentSubBuilder<FilterBuilder<C, FluentSimple>>;
 
   // Global table options
-  enableSorting(enabled?: boolean): RT & TableExtension<C, RT>;
-  enableFiltering(enabled?: boolean): RT & TableExtension<C, RT>;
-  enableColumnResizing(enabled?: boolean): RT & TableExtension<C, RT>;
-  enableRowSelection(enabled?: boolean): RT & TableExtension<C, RT>;
+  enableSorting(enabled?: boolean): FluentSimple;
+  enableFiltering(enabled?: boolean): FluentSimple;
+  enableColumnResizing(enabled?: boolean): FluentSimple;
+  enableRowSelection(enabled?: boolean): FluentSimple;
 }
 
 // ============================================
@@ -952,63 +956,65 @@ function createFilterBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
 export function 
 extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT, dataDescriptor: TData, _contextPlaceHolder: C): TableExtension<C, RT> {
   // TData is inferred from the dataDescriptor argument
-  
+  //type LocalBuilder = ReUiPlanComponentBuilder<C, ComponentWrapper<any>,RT> & TableExtension<C, RT>;
   const config: TableConfig<TData> = {
     orientation: 'rows-horizontal',
     columns: [],
     columnGroups: [],
   };
 
-  const extension: TableExtension<C, RT> = {
-    forDataType<T extends FluxorData<any>>(): RT & TableExtension<C, RT> {
+  const extension: FluentExtension = {
+    forDataType<T extends FluxorData<any>>(): FluentSimple {
       // Returns same extension but with different TData type
       // Cast through returnTo to maintain the builder chain
-      return returnTo as  (RT & TableExtension<C, RT>);
+      return returnTo as  FluentSimple;
     },
 
-    withOrientation(orientation: TableOrientation): RT & TableExtension<C, RT> {
+    withOrientation(orientation: TableOrientation): FluentSimple {
       config.orientation = orientation;
-      return returnTo as  (RT & TableExtension<C, RT>);
+      return returnTo as  (FluentSimple);
     },
 
-    withVirtualization(rowHeight: number, overscan: number = 5): RT & TableExtension<C, RT> {
+    withVirtualization(rowHeight: number, overscan: number = 5): FluentSimple {
       config.virtualization = { enabled: true, rowHeight, overscan };
-      return returnTo as  (RT & TableExtension<C, RT>);
+      return returnTo as  (FluentSimple);
     },
 
-    withColumns(): ColumnBuilder<C, RT & TableExtension<C, RT>> {
-      return createColumnBuilder<C, TData, RT & TableExtension<C, RT>>(returnTo as RT & TableExtension<C, RT>, config, null, dataDescriptor as TData);
+    withColumns(): FluentSubBuilder<ColumnBuilder<C, FluentSimple>> {
+      return createColumnBuilder<C, TData, FluentSimple>(
+        returnTo as FluentSimple, config, null, dataDescriptor as TData
+      ) as FluentSubBuilder<ColumnBuilder<C, FluentSimple>>;
     },
 
-    withColumnsFromSchema(selector?: (data: DataOf<TData>) => (keyof DataOf<TData>)[]): RT & TableExtension<C, RT> {
+    withColumnsFromSchema(selector?: (data: DataOf<TData>) => (keyof DataOf<TData>)[]): FluentSimple {
       (config as any).useSchemaColumns = true;
       (config as any).schemaSelector = selector;
-      return returnTo as (RT & TableExtension<C, RT>);
+      return returnTo as (FluentSimple);
     },
 
-    withFiltering(): FilterBuilder<C, RT & TableExtension<C, RT>> {
+    withFiltering(): FluentSubBuilder<FilterBuilder<C, FluentSimple>> {
       config.enableFiltering = true;
-      return createFilterBuilder<C, TData, RT & TableExtension<C, RT>>(returnTo as RT & TableExtension<C, RT>, config, dataDescriptor);
+      return createFilterBuilder<C, TData, FluentSimple>(returnTo as FluentSimple, config, dataDescriptor);
     },
 
-    enableSorting(enabled: boolean = true): RT & TableExtension<C, RT> {
+    enableSorting(enabled: boolean = true): FluentSimple {
       config.enableSorting = enabled;
-      return returnTo as (RT & TableExtension<C, RT>);
+      return returnTo as (FluentSimple);
     },
 
-    enableFiltering(enabled: boolean = true): RT & TableExtension<C, RT> {
+    enableFiltering(enabled: boolean = true): FluentSimple {
       config.enableFiltering = enabled;
-      return returnTo as (RT & TableExtension<C, RT>);
+      return returnTo as (FluentSimple);
     },
 
-    enableColumnResizing(enabled: boolean = true): RT & TableExtension<C, RT> {
+    enableColumnResizing(enabled: boolean = true): FluentSimple {
       config.enableColumnResizing = enabled;
-      return returnTo  as (RT & TableExtension<C, RT>);
+      return returnTo  as (FluentSimple);
     },
 
-    enableRowSelection(enabled: boolean = true): RT & TableExtension<C, RT> {
+    enableRowSelection(enabled: boolean = true): FluentSimple {
       config.enableRowSelection = enabled;
-      return returnTo  as (RT & TableExtension<C, RT>);
+      return returnTo  as (FluentSimple);
     },
 
     _buildExtension: (_buildConfig: any, extendedElement: any) => {
@@ -1019,7 +1025,7 @@ extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT,
     }
   };
 
-  return extension;
+  return extension as TableExtension<C, RT>;
 }
 
 // ============================================
