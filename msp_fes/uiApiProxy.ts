@@ -59,6 +59,9 @@ app.use('/api/v1', async (req, res, next) => {
     return;
   }
   try {
+    // Rewrite the request to point to the internal core df service
+    // TODO: replace the simple 'internalHost' logic with a obfuscation layer
+    // that maps external non-revealing host refs to internal hostnames
     const internalHost = `${url.host.split(':')[0]}:${Ports.core.dfInternal}`;
     let queryParams = Object.entries(req.query ?? {}).map(([key, value]: [string, any])  =>
       `${key}=${encodeURIComponent(value)}`).join('&');
@@ -67,7 +70,7 @@ app.use('/api/v1', async (req, res, next) => {
     }
     const urlText = `${url.protocol}//${internalHost}/api/v1${req.url.split('?')[0]}${queryParams}`;
     const newUrl = new URL(urlText);
-    console.log(`Chelone Bff request to ${req.originalUrl} redirected to ${newUrl}`);
+    console.log(`MSP UI request to ${req.originalUrl} redirected to ${newUrl}`);
     console.log(`body type is ${typeof req.body}`);
     const bodyContent = (typeof req.body === 'string') ? req.body : JSON.stringify(req.body);
     const controller = new AbortController();
