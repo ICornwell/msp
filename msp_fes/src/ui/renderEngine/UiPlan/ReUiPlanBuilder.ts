@@ -573,7 +573,7 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
   // If the component has an extension factory, call it and merge into builder
   // Pass dataDescriptor so TypeScript can infer TData from the actual value
   if (componentWrapper?.extensionFactory && dataDescriptor) {
-    const extension = componentWrapper.extensionFactory<C, RT, typeof dataDescriptor>(returnTo, dataDescriptor, {} as C);
+    const extension = componentWrapper.extensionFactory<C, RT, typeof builder, typeof dataDescriptor>(returnTo, builder, dataDescriptor, {} as C);
     Object.assign(builder, extension);
   }
 

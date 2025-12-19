@@ -83,5 +83,5 @@ export default function LabelFrame(props: LabelFrameProps & PropsWithChildren & 
 export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, ElementSetContainerExtension<CNTX, any>>(
   LabelFrame, 
   'LabelFrame',
-  (builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(builder, dataDescriptor, contextPlaceHolder)
+  (retutnTo, builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(retutnTo, builder, dataDescriptor, contextPlaceHolder)
 );

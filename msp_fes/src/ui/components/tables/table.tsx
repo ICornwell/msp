@@ -954,7 +954,7 @@ function createFilterBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
 // Table Extension Factory
 // ============================================
 export function 
-extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT, dataDescriptor: TData, _contextPlaceHolder: C): TableExtension<C, RT> {
+extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT, builder: any, dataDescriptor: TData, _contextPlaceHolder: C): TableExtension<C, RT> {
   // TData is inferred from the dataDescriptor argument
   //type LocalBuilder = ReUiPlanComponentBuilder<C, ComponentWrapper<any>,RT> & TableExtension<C, RT>;
   const config: TableConfig<TData> = {
@@ -972,49 +972,51 @@ extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT,
 
     withOrientation(orientation: TableOrientation): FluentSimple {
       config.orientation = orientation;
-      return returnTo as  (FluentSimple);
+      return builder as  (FluentSimple);
     },
 
     withVirtualization(rowHeight: number, overscan: number = 5): FluentSimple {
       config.virtualization = { enabled: true, rowHeight, overscan };
-      return returnTo as  (FluentSimple);
+      return builder as  (FluentSimple);
     },
 
     withColumns(): FluentSubBuilder<ColumnBuilder<C, FluentSimple>> {
       return createColumnBuilder<C, TData, FluentSimple>(
-        returnTo as FluentSimple, config, null, dataDescriptor as TData
-      ) as FluentSubBuilder<ColumnBuilder<C, FluentSimple>>;
+        builder as FluentSimple, config, null, dataDescriptor as TData
+      ) as unknown as FluentSubBuilder<ColumnBuilder<C, FluentSimple>>;
     },
 
     withColumnsFromSchema(selector?: (data: DataOf<TData>) => (keyof DataOf<TData>)[]): FluentSimple {
       (config as any).useSchemaColumns = true;
       (config as any).schemaSelector = selector;
-      return returnTo as (FluentSimple);
+      return builder as (FluentSimple);
     },
 
     withFiltering(): FluentSubBuilder<FilterBuilder<C, FluentSimple>> {
       config.enableFiltering = true;
-      return createFilterBuilder<C, TData, FluentSimple>(returnTo as FluentSimple, config, dataDescriptor);
+      return createFilterBuilder<C, TData, FluentSimple>(
+        builder as FluentSimple, config, dataDescriptor
+      ) as unknown as FluentSubBuilder<FilterBuilder<C, FluentSimple>>;
     },
 
     enableSorting(enabled: boolean = true): FluentSimple {
       config.enableSorting = enabled;
-      return returnTo as (FluentSimple);
+      return builder as (FluentSimple);
     },
 
     enableFiltering(enabled: boolean = true): FluentSimple {
       config.enableFiltering = enabled;
-      return returnTo as (FluentSimple);
+      return builder as (FluentSimple);
     },
 
     enableColumnResizing(enabled: boolean = true): FluentSimple {
       config.enableColumnResizing = enabled;
-      return returnTo  as (FluentSimple);
+      return builder as (FluentSimple);
     },
 
     enableRowSelection(enabled: boolean = true): FluentSimple {
       config.enableRowSelection = enabled;
-      return returnTo  as (FluentSimple);
+      return builder as (FluentSimple);
     },
 
     _buildExtension: (_buildConfig: any, extendedElement: any) => {
@@ -1140,7 +1142,9 @@ function Table<TData extends FluxorData<any> = FluxorData<any>>(
       </>
       );
     } else if (renderer.isComponentWrapper) {
-      const element = CreateReUiPlanComponent(null, renderer)
+      const element = (CreateReUiPlanComponent(
+        null, renderer
+      ) as unknown as ReUiPlanComponentBuilder<any, any, any>)
         .withValueBinding(data => col.accessorFn ? col.accessorFn(data.localData) : data.localData?.[col.accessorKey])
         .build({})
       return (

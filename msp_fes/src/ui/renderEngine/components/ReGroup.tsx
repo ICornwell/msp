@@ -19,5 +19,5 @@ export default function ReGroup({ hidden, children }: ReGroupProps& ReComponentC
 export const ReGroupComponent = createExtendedComponent<ReGroupProps, ElementSetContainerExtension<CNTX, any>>(
   ReGroup, 
   'ReGroup',
-  (builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(builder, dataDescriptor, contextPlaceHolder)
+  (returnTo, builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(returnTo, builder, dataDescriptor, contextPlaceHolder)
 );

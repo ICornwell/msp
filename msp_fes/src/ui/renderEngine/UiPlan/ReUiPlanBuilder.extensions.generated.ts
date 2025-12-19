@@ -73,14 +73,14 @@ export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BL
                      ? ((...args: A) => ColumnBuilder<C, ComponentBuilderWithExt<C, typeof TableComponent, RT>>)
                    : BLD2 extends FilterBuilder<C, any>
                      ? ((...args: A) => FilterBuilder<C, ComponentBuilderWithExt<C, typeof TableComponent, RT>>)
-                     : never
-                   : never // not pattern #2 either
+                     : E[K]
+                   : E[K] // not pattern #2 either
                // we are not a function
                : E[K]
            }
       : E  // Fallback: not a recognized extension, return as-is
-    : never
-  : never;
+    : E
+  : T;
 
 
 export type ReturnTypeOf<R> =

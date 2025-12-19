@@ -205,7 +205,7 @@ export interface ComponentWrapper<P, E = ReNullExtension> {
   extensions?: E;
   // Factory function to create runtime extension instance
   // dataDescriptor is generic to allow type inference from the actual value
-  extensionFactory?: <C extends CNTX, RT, TData extends FluxorData<any>>(builder: RT, dataDescriptor: TData, contextPlaceHolder: C) => E;
+  extensionFactory?: <C extends CNTX, RT, BLD, TData extends FluxorData<any>>(returnTo: RT, builder: BLD, dataDescriptor: TData, contextPlaceHolder: C) => E;
 }
 
 /**
@@ -274,7 +274,7 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
 export function createExtendedComponent<P extends Object, E>(
   component: ComponentType<P>,
   displayName?: string,
-  extensionFactory?: <C extends CNTX, RT, TData extends FluxorData<any>>(builder: RT, dataDescriptor: TData, _contextPlaceHolder: C) => E
+  extensionFactory?: <C extends CNTX, RT, BLD, TData extends FluxorData<any>>(returnTo: RT, builder: BLD, dataDescriptor: TData, _contextPlaceHolder: C) => E
 ): ComponentWrapper<P, E> {
   return {
     isComponentWrapper: true,
@@ -283,6 +283,6 @@ export function createExtendedComponent<P extends Object, E>(
     acceptsChildren: true,
     isManagedForm: false,
     displayMode: 'all',
-    extensionFactory: extensionFactory as<C extends CNTX, RT, TData extends FluxorData<any>>(builder: RT, dataDescriptor: TData, contextPlaceHolder: C) => E
+    extensionFactory: extensionFactory as<C extends CNTX, RT, BLD, TData extends FluxorData<any>>(returnTo: RT, builder: BLD, dataDescriptor: TData, contextPlaceHolder: C) => E
   };
 }

@@ -31,10 +31,15 @@ extension.containingSingle = CreateReUiPlanComponent<any, any, RT>(returnTo,
   return extension;
 }
 
-export function extendWithElementSetContainer<C extends CNTX<any, any, FluxorData<any>, FluxorData<any>, any>,RT, TData extends FluxorData<any>>(returnTo: RT, dataDescriptor: TData, _contextPlaceHolder: C): ElementSetContainerExtension<C, RT> {
+export function extendWithElementSetContainer<C extends CNTX<any, any, FluxorData<any>, FluxorData<any>, any>,RT, BLD, TData extends FluxorData<any>>(
+  _returnTo: RT,
+  builder: BLD,
+   dataDescriptor: TData,
+    _contextPlaceHolder: C
+): ElementSetContainerExtension<C, BLD> {
   const containedBuilders: ReUiPlanElementSetBuilder<any, any>[] = [];
-  const extension: ElementSetContainerExtension<C, RT> = {
-    containingElementSet: () => CreateReUiPlanElementSet<C, RT & ElementSetContainerExtension<C, RT>>(returnTo as RT & ElementSetContainerExtension<C, RT>, containedBuilders, dataDescriptor),
+  const extension: ElementSetContainerExtension<C, BLD> = {
+    containingElementSet: () => CreateReUiPlanElementSet<C, BLD & ElementSetContainerExtension<C, BLD>>(builder as BLD & ElementSetContainerExtension<C, BLD>, containedBuilders, dataDescriptor),
     _buildExtension: (buildConfig: any, extendedElement: ReUiPlanElement) => {
       if (!extendedElement.children) extendedElement.children = [];
       if (!extendedElement.sharedProps) extendedElement.sharedProps = [];

@@ -72,5 +72,5 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
 export const ColumnsComponent = createExtendedComponent<ColumnProps, ElementSetContainerExtension<CNTX, any>>(
   Columns, 
   'Columns',
-  (builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(builder, dataDescriptor, contextPlaceHolder)  
+  (returnTo, builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(returnTo, builder, dataDescriptor, contextPlaceHolder)  
 );
