@@ -1,6 +1,6 @@
 import { isTestEnvironment } from './hooks-debug';
 
-export default function PubSub() {
+export default function createPubSubSub() {
   const subscribers = new Map<string, Function>();
 
   function subscribe(subscriberId: string, callback: Function) {

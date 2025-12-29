@@ -1,6 +1,6 @@
-import type { ServiceActivity, ServiceActivityResultBuilder } from './serviceActivitySet';
-import { isMatch } from './isMatch';
-import { CreateResultBuilder, defaultResult, addServiceActivityToSet } from './serviceActivitySet';
+import type { ServiceActivity, ServiceActivityResultBuilder } from './serviceActivitySet.js';
+import { isMatch } from './isMatch.js';
+import { CreateResultBuilder, defaultResult, addServiceActivityToSet } from './serviceActivitySet.js';
 
 export function serviceManager() {
     const activities: ServiceActivity[] = []

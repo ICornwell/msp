@@ -12,7 +12,7 @@ import { PresetDateComponent } from '../../../components/primatives/presets/Pres
 import { vehicleFluxorData } from '../../../components/tables/testData'
 
 export function UserInfoLayout1() {
-   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+   const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
      .withElementSet
        .usingFluxor(vehicleFluxorData)
       .fromInlineElementSet
@@ -29,7 +29,7 @@ export function UserInfoLayout1() {
 }
 
 export function UserInfoLayout2() {
-   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+   const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
      .withElementSet
        .usingFluxor(vehicleFluxorData)
       .fromInlineElementSet
@@ -46,7 +46,7 @@ export function UserInfoLayout2() {
     return userInfoLauout
 }
 export function UserInfoLayout22() {
-   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+   const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
      .withElementSet
        .usingFluxor(vehicleFluxorData)
       .fromInlineElementSet
@@ -64,7 +64,7 @@ export function UserInfoLayout22() {
 }
 
 export function UserInfoLayout3() {
-  const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+  const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
     .withElementSet.usingFluxor(userInfoFluxorData)
     .fromInlineElementSet
         .usingFluxor(userInfoFluxorData)
@@ -88,7 +88,7 @@ export function UserInfoLayout3() {
 }
 
 export function UserInfoLayout() {
-   const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+   const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
      
      .withElementSet
       

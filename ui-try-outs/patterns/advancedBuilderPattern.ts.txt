@@ -1,0 +1,184 @@
+import { ComponentBuilderFunction } from './builderPattern';
+
+// Base component config that all components should have
+export interface BaseComponentConfig {
+  id?: string;
+  className?: string;
+  label?: string;
+  hidden?: boolean;
+  disabled?: boolean;
+}
+
+// Base component result
+export interface BaseComponent {
+  type: string;
+  config: BaseComponentConfig;
+}
+
+// Base builder type with common methods
+export type BaseBuilderFunction<TConfig extends BaseComponentConfig, TComponent extends BaseComponent> = 
+  ComponentBuilderFunction<TConfig, TComponent> & {
+    // Additional methods all components should have
+    setId: (id: string) => ReturnType<BaseBuilderFunction<TConfig, TComponent>>;
+    setClassName: (className: string) => ReturnType<BaseBuilderFunction<TConfig, TComponent>>;
+  };
+
+// Factory function to create base builder functionality
+export function createBaseBuilder<
+  TConfig extends BaseComponentConfig,
+  TComponent extends BaseComponent,
+  TBuilder extends BaseBuilderFunction<TConfig, TComponent>
+>(
+  type: string,
+  extendBuilder: (config: TConfig) => TBuilder
+): (initialConfig?: TConfig) => TBuilder {
+  return (initialConfig = {} as TConfig) => {
+    let config: TConfig = { ...initialConfig };
+    
+    const baseBuilder = {
+      setId: (id: string) => {
+        config.id = id;
+        return builder;
+      },
+      setClassName: (className: string) => {
+        config.className = className;
+        return builder;
+      },
+      setLabel: (label: string) => {
+        config.label = label;
+        return builder;
+      },
+      setDisabled: (disabled: boolean) => {
+        config.disabled = disabled;
+        return builder;
+      },
+      setHidden: (hidden: boolean) => {
+        config.hidden = hidden;
+        return builder;
+      },
+      build: () => ({ 
+        type, 
+        config 
+      } as TComponent)
+    } as TBuilder;
+    
+    // Create the extended builder using the provided function
+    const builder = extendBuilder(config);
+    
+    // Return the complete builder with both base and extended functionality
+    return builder;
+  };
+}
+
+// Example of a specialized form field config
+export interface FormFieldConfig extends BaseComponentConfig {
+  name?: string;
+  required?: boolean;
+  validationMessage?: string;
+}
+
+export interface FormFieldComponent extends BaseComponent {
+  config: FormFieldConfig;
+}
+
+// Extension of the base builder type for form fields
+export type FormFieldBuilderFunction<
+  TConfig extends FormFieldConfig, 
+  TComponent extends FormFieldComponent
+> = BaseBuilderFunction<TConfig, TComponent> & {
+  setName: (name: string) => ReturnType<FormFieldBuilderFunction<TConfig, TComponent>>;
+  setRequired: (required: boolean) => ReturnType<FormFieldBuilderFunction<TConfig, TComponent>>;
+  setValidationMessage: (message: string) => ReturnType<FormFieldBuilderFunction<TConfig, TComponent>>;
+};
+
+// Usage example
+export interface TextInputConfig extends FormFieldConfig {
+  placeholder?: string;
+  maxLength?: number;
+}
+
+export interface TextInputComponent extends FormFieldComponent {
+  config: TextInputConfig;
+}
+
+// Type for the text input builder with all inherited methods
+export type TextInputBuilderFunction = FormFieldBuilderFunction<TextInputConfig, TextInputComponent> & {
+  setPlaceholder: (placeholder: string) => ReturnType<TextInputBuilderFunction>;
+  setMaxLength: (maxLength: number) => ReturnType<TextInputBuilderFunction>;
+};
+
+// Create the text input builder
+export const createTextInputBuilder = createBaseBuilder<
+  TextInputConfig,
+  TextInputComponent, 
+  TextInputBuilderFunction
+>('textInput', (config) => {
+  let builder: TextInputBuilderFunction = {
+    // Base methods are inherited from createBaseBuilder
+    setId: (id) => {
+      config.id = id;
+      return builder;
+    },
+    setClassName: (className) => {
+      config.className = className;
+      return builder;
+    },
+    setLabel: (label) => {
+      config.label = label;
+      return builder;
+    },
+    setDisabled: (disabled) => {
+      config.disabled = disabled;
+      return builder;
+    },
+    setHidden: (hidden) => {
+      config.hidden = hidden;
+      return builder;
+    },
+    
+    // Form field methods
+    setName: (name) => {
+      config.name = name;
+      return builder;
+    },
+    setRequired: (required) => {
+      config.required = required;
+      return builder;
+    },
+    setValidationMessage: (message) => {
+      config.validationMessage = message;
+      return builder;
+    },
+    
+    // Text input specific methods
+    setPlaceholder: (placeholder) => {
+      config.placeholder = placeholder;
+      return builder;
+    },
+    setMaxLength: (maxLength) => {
+      config.maxLength = maxLength;
+      return builder;
+    },
+    
+    build: () => ({
+      type: 'textInput',
+      config
+    })
+  } as TextInputBuilderFunction;
+  
+  // Note: The recursive type definition is necessary here for method chaining
+  
+  return builder;
+});
+
+// Function to demonstrate type checking
+export function processFormField<
+  TConfig extends FormFieldConfig, 
+  TComponent extends FormFieldComponent
+>(
+  builder: FormFieldBuilderFunction<TConfig, TComponent>,
+  initialConfig?: TConfig
+): TComponent {
+  // TypeScript will ensure the builder has all required methods
+  return builder(initialConfig).build();
+}

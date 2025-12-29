@@ -1,4 +1,4 @@
-import { isMatch, Matcher } from "./isMatch";
+import { isMatch, Matcher } from "./isMatch.js";
 
 export type ServiceActivityExec = (payload: any, serviceResult: ServiceActivityResultBuilder) => ServiceActivityResultBuilder;
 
@@ -8,6 +8,7 @@ export type ServiceActivity = {
     activityName: Matcher;
     namespace: Matcher;
     version: Matcher;
+    context: Matcher
     funcs: ServiceActivityExec | ServiceActivityExec[];
 }
 
@@ -93,12 +94,14 @@ export function  addServiceActivityToSet(set: ServiceActivity[], activity: Servi
              namespace: activity.namespace,
              activityName: activity.activityName,
              version: activity.version,
+             context: activity.context,
               funcs: f }))));
     } else {
         set.push({
             namespace: activity.namespace,
             activityName: activity.activityName,
             version: activity.version,
+            context: activity.context,
             funcs: activity.funcs });
     }
 }

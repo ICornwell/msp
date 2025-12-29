@@ -10,7 +10,7 @@ import { userInfoFluxorData } from './UserInfo'
 
 
 export function UserInfoLayout() {
-  const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+  const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
    
     .withElementSet.usingFluxor(userInfoFluxorData)
     .fromInlineElementSet

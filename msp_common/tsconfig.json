@@ -14,7 +14,7 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "declarationDir": "./dist/types",
+  //  "declarationDir": "./dist/types",
     "esModuleInterop": true,
 
     /* Linting */

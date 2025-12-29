@@ -6,7 +6,7 @@ import { MoneyComponent } from '../../../../../../ui-try-outs/editing/moneyInput
 import { CheckboxComponent } from '../../../../../../ui-try-outs/editing/checkboxInput'
 
 export function UserInfoLayout() {
-  const userInfoLauout = Re.UiPlan('UserInfo', '1.0')
+  const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
     
     .withElementSet.usingFluxor(userInfoFluxorData)
      .fromInlineElementSet

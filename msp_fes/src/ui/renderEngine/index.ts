@@ -8,38 +8,25 @@ import { ComponentWrapper } from './components/ReComponentWrapper.js';
 //import { ReComponentAttributeBinder, ReComponentRecordBinder } from './components/ReComponentProps';
 //import { Bind } from './data/binders.js'
 
-class ReUiPlan {
-  UiPlan(name: string, version: string = 'default') {
+function ReUiPlanner()  {
+  const plan = {
+    makeUiPlan: (name: string, version: string = 'default') => {
     return CreateReUiPlan(name, version)
-  }
+  },
 
-  get ElementSet(): ReUiPlanElementSetBuilder<CNTX, any> {
+    makeElementSetPlan: (): ReUiPlanElementSetBuilder<CNTX, any> =>  {
     return CreateReUiPlanElementSet(undefined as any, [])
-  }
+  },
 
-  StandaloneElement<T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<CNTX, T, PropsOf<T>, any> {
-    return CreateReUiPlanComponent<CNTX, T, PropsOf<T>, any>(undefined, component, [])
-  }
+  makeElementPlan: <T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<CNTX, T, any> => {
+    return CreateReUiPlanComponent<CNTX, T, any>(undefined, component, [])
+  },
 
-  ContainerElement<T extends ComponentWrapper<any>>(component: T): ReUiPlanComponentBuilder<CNTX, T, PropsOf<T>, any> {
-    return CreateReUiPlanComponent<CNTX, T, PropsOf<T>, any>(undefined, component, [])
-  }
- /*  get Bind() {
-    return Bind
-  } */
+ 
+}
+  return plan
 }
 
-export const Re = new ReUiPlan()
+export const Re = ReUiPlanner()
 
 
-// export const Re =  {
-//     UiPlan: CreateReUiPlan,
-//     Element: CreateReUiPlanElement,
-//     Component: {
-//       Options: CreateReUiPlanComponent()
-//     },
-//     Binders : {
-//       Simple: simple,
-//       Function: functionAttribute
-//     }
-//   }

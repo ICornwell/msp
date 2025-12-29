@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
     "experimentalDecorators": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "es2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-    "paths": {
-      "react": ["./node_modules/react"],
-      "react-dom": ["./node_modules/react-dom"]
-    },
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": false,          /* Temporarily relax TypeScript's type checking */
+    "typeRoots": ["./node_modules/@types", "src/ui/types"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -28,5 +29,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src/ui", "handler.ts", "uiApiProxy.ts", "../ui-try-outs/binders", "../ui-try-outs/ReSchema.ts", "../ui-try-outs/ReEvents.ts", "../ui-try-outs/editing"],
 }
