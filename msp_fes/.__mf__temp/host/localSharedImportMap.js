@@ -120,7 +120,7 @@
         ,
           "@emotion/styled": {
             name: "@emotion/styled",
-            version: "11.14.0",
+            version: "11.14.1",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -158,7 +158,7 @@
         ,
           "@mui/icons-material": {
             name: "@mui/icons-material",
-            version: "7.1.0",
+            version: "7.3.6",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -196,7 +196,7 @@
         ,
           "@mui/material": {
             name: "@mui/material",
-            version: "7.1.0",
+            version: "7.3.6",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -234,7 +234,7 @@
         ,
           "react": {
             name: "react",
-            version: "19.1.0",
+            version: "19.2.3",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -272,7 +272,7 @@
         ,
           "react-dom": {
             name: "react-dom",
-            version: "19.1.0",
+            version: "19.2.3",
             scope: ["default"],
             loaded: false,
             from: "host",

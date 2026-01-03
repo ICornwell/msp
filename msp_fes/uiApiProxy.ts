@@ -9,11 +9,7 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import fetch from 'node-fetch';
 
-const Ports = {
-  core: {
-    dfInternal: process.env.CORE_DF_INTERNAL_PORT || '5000'
-  }
-};
+import { Ports } from 'msp_common'
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
@@ -62,7 +58,7 @@ app.use('/api/v1', async (req, res, next) => {
     // Rewrite the request to point to the internal core df service
     // TODO: replace the simple 'internalHost' logic with a obfuscation layer
     // that maps external non-revealing host refs to internal hostnames
-    const internalHost = `${url.host.split(':')[0]}:${Ports.core.dfInternal}`;
+    const internalHost = `${url.host.split(':')[0]}:${Ports.core.uiBff}`;
     let queryParams = Object.entries(req.query ?? {}).map(([key, value]: [string, any])  =>
       `${key}=${encodeURIComponent(value)}`).join('&');
     if (queryParams && queryParams.length > 0) {
@@ -70,7 +66,7 @@ app.use('/api/v1', async (req, res, next) => {
     }
     const urlText = `${url.protocol}//${internalHost}/api/v1${req.url.split('?')[0]}${queryParams}`;
     const newUrl = new URL(urlText);
-    console.log(`MSP UI request to ${req.originalUrl} redirected to ${newUrl}`);
+    console.log(`MSP UI request to ${req.originalUrl} redirected to ${newUrl} using method ${req.method}`);
     console.log(`body type is ${typeof req.body}`);
     const bodyContent = (typeof req.body === 'string') ? req.body : JSON.stringify(req.body);
     const controller = new AbortController();

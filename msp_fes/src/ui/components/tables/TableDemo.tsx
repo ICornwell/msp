@@ -1,17 +1,21 @@
 import { 
   AggregationType, 
   RangeStyle,
-  CellRendererProps 
+  CellRendererProps, 
+  TableConfig
 } from './table';
 import Table from './table';
 import { 
   vehicleTestData, 
   Vehicle,
 } from './testData/vehicleList';
+import { vehicleFluxorData } from './testData';
 import { 
   taskTestData, 
   Task,
 } from './testData/taskList';
+import { FluxorData } from '../../renderEngine/fluxor/fluxorData';
+import { taskFluxorData } from './TableDemoLayouts';
 
 // ============================================
 // Custom Cell Renderers
@@ -38,7 +42,7 @@ function ModifierRenderer({ value }: CellRendererProps<any, number>) {
 }
 
 // Priority badge renderer
-function PriorityRenderer({ value }: CellRendererProps<Task, Task['priority']>) {
+function PriorityRenderer({ value }: CellRendererProps<FluxorData<Task>, Task['priority']>) {
   const colors: Record<Task['priority'], string> = {
     low: '#90caf9',
     medium: '#ffb74d',
@@ -60,7 +64,7 @@ function PriorityRenderer({ value }: CellRendererProps<Task, Task['priority']>) 
 }
 
 // Status badge renderer
-function StatusRenderer({ value }: CellRendererProps<Task, Task['status']>) {
+function StatusRenderer({ value }: CellRendererProps<FluxorData<Task>, Task['status']>) {
   const colors: Record<Task['status'], string> = {
     pending: '#9e9e9e',
     'in-progress': '#42a5f5',
@@ -123,7 +127,7 @@ export function VehicleTableDemo() {
 // Build a table with manually constructed config (simulating what the builder creates)
 function VehicleTableWithConfig() {
   // This is what the builder would create:
-  const tableConfig = {
+  const tableConfig: TableConfig<FluxorData<Vehicle>> = {
     orientation: 'rows-horizontal' as const,
     columns: [
       { 
@@ -214,6 +218,7 @@ function VehicleTableWithConfig() {
   
   return (
     <Table 
+    dataDescriptor={vehicleFluxorData}
       tableConfig={tableConfig} 
       data={vehicleTestData.slice(0, 20)} // First 20 for demo
     />
@@ -225,7 +230,7 @@ function VehicleTableWithConfig() {
 // ============================================
 
 export function TaskTableDemo() {
-  const tableConfig = {
+  const tableConfig: TableConfig<FluxorData<Task>> = {
     orientation: 'rows-horizontal' as const,
     columns: [
       { 
@@ -284,6 +289,7 @@ export function TaskTableDemo() {
     <div style={{ padding: '20px' }}>
       <h2>Task Queue - Table Demo</h2>
       <Table 
+        dataDescriptor={taskFluxorData}
         tableConfig={tableConfig} 
         data={taskTestData}
       />

@@ -1,6 +1,6 @@
 import { isMatch, Matcher } from "./isMatch.js";
 
-export type ServiceActivityExec = (payload: any, serviceResult: ServiceActivityResultBuilder) => ServiceActivityResultBuilder;
+export type ServiceActivityExec = (payload: any, serviceResult: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
 
 export type ServiceActivityList = ServiceActivityExec[] | ServiceActivityExec;
 
@@ -88,41 +88,51 @@ export function CreateResultBuilder(result?: ServiceActivityResult): ServiceActi
     }
 }
 
-export function  addServiceActivityToSet(set: ServiceActivity[], activity: ServiceActivity) {
+export function addServiceActivityToSet(set: ServiceActivity[], activity: ServiceActivity) {
     if (Array.isArray(activity.funcs)) {
         set.push(...(activity.funcs.map((f) => ({
-             namespace: activity.namespace,
-             activityName: activity.activityName,
-             version: activity.version,
-             context: activity.context,
-              funcs: f }))));
+            namespace: activity.namespace,
+            activityName: activity.activityName,
+            version: activity.version,
+            context: activity.context,
+            funcs: f
+        }))));
     } else {
         set.push({
             namespace: activity.namespace,
             activityName: activity.activityName,
             version: activity.version,
             context: activity.context,
-            funcs: activity.funcs });
+            funcs: activity.funcs
+        });
     }
 }
 
-export function ActivitySet() {
+export type ActivitySet = {
+    use: (serviceActivity: ServiceActivity) => void;
+    useBefore: (serviceActivity: ServiceActivity) => void;
+    useAfter: (serviceActivity: ServiceActivity) => void;
+    handle: (namespace: string, activityName: string, version: string, payload: any, resultBuilder?: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
+}
+
+
+export function activitySet(): ActivitySet {
 
     const activities: ServiceActivity[] = []
 
     const middlewareBefore: ServiceActivity[] = []
     const middlewareAfter: ServiceActivity[] = []
 
-    
 
-    function useBefore(serviceActivity: ServiceActivity): void{
+
+    function useBefore(serviceActivity: ServiceActivity): void {
         addServiceActivityToSet(middlewareBefore, serviceActivity);
     }
-    function useAfter(serviceActivity: ServiceActivity): void{
-       addServiceActivityToSet(middlewareAfter, serviceActivity);
+    function useAfter(serviceActivity: ServiceActivity): void {
+        addServiceActivityToSet(middlewareAfter, serviceActivity);
     }
 
-    function use(serviceActivity: ServiceActivity): void{
+    function use(serviceActivity: ServiceActivity): void {
         addServiceActivityToSet(activities, serviceActivity);
     }
 

@@ -1,4 +1,4 @@
-import { useState, useContext, createContext  } from 'react';
+import { useState, useContext, createContext } from 'react';
 import { AuthenticationResult, PublicClientApplication, AccountInfo } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
@@ -79,6 +79,17 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
     })
   }
 
+  if (state.isAuthenticated) {
+    // Send user info to service worker
+    (navigator.serviceWorker.getRegistration()).then(registration => {
+          // You can now use the registration object
+          registration.active.postMessage({ type: 'USER_INFO', userIdToken: state.idToken });
+          console.log('Service Worker sent token:', state.idToken);
+        }).catch(error => {
+          console.error('Error fetching Service Worker registration:', error);
+        });
+      }
+
   function handleResponse(response: AuthenticationResult | null) {
     if (response !== null) {
       loggedIn(response.account);
@@ -96,7 +107,7 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
       } else if (currentAccounts.length > 1) {
         // Add choose account code here
       } else if (currentAccounts.length === 1) {
-        loggedIn(currentAccounts[0])
+        loggedIn(currentAccounts[0]);
       }
     }
   }

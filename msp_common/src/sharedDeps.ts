@@ -1,12 +1,10 @@
 export const sharedVersions = {
   'react': '*',
   'react-dom': '*',
-  'react-router': '*',
   '@mui/material': '*',
   '@mui/icons-material': '*',
   '@emotion/react': '*',
   '@emotion/styled': '*',
-  '@emotion/styled-base': '*',
   '@emotion/cache': '*'
 }
 

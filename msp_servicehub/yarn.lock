@@ -1618,9 +1618,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@module-federation/vite@portal:../module-federation-vite::locator=msp_fes%40workspace%3A.":
+"@module-federation/vite@portal:../../module-federation-vite::locator=msp_fes%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@module-federation/vite@portal:../module-federation-vite::locator=msp_fes%40workspace%3A."
+  resolution: "@module-federation/vite@portal:../../module-federation-vite::locator=msp_fes%40workspace%3A."
   dependencies:
     "@module-federation/runtime": "npm:^0.18.3"
     "@module-federation/sdk": "npm:^0.18.3"
@@ -6891,7 +6891,7 @@ __metadata:
     "@emotion/babel-plugin": "npm:^11.13.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
-    "@module-federation/vite": "portal:../module-federation-vite"
+    "@module-federation/vite": "portal:../../module-federation-vite"
     "@mui/icons-material": "npm:^7.0.2"
     "@mui/material": "npm:^7.0.2"
     "@mui/x-date-pickers": "npm:^8.22.0"

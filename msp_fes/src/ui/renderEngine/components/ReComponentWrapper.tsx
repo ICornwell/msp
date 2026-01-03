@@ -10,7 +10,6 @@ import { ReSubscriptionHandler } from './RePubSubHook';
 import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan';
 import { ReNullExtension } from '../UiPlan/ReUiPlanBuilder';
 import { FluxorData } from '../fluxor/fluxorData';
-import { F } from 'vitest/dist/chunks/config.d.UqE-KR0o.js';
 
 const useStyles = makeStyles()((theme: Theme) => ({
   label: {

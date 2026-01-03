@@ -67,7 +67,7 @@ export const pricingFieldFluxorData: FluxorData<PricingField> = {
 // ============================================
 
 export function TaskListLayout() {
-  const taskListUiPlan = Re.UiPlan('TaskList', '1.0')
+  const taskListUiPlan = Re.makeUiPlan('TaskList', '1.0')
     .withElementSet
     .usingFluxor(taskFluxorData)
     .fromInlineElementSet
@@ -96,7 +96,7 @@ export const taskListTestData = taskTestData;
 // ============================================
 
 export function VehicleFleetLayout() {
-  const vehicleFleetUiPlan = Re.UiPlan('VehicleFleet', '1.0')
+  const vehicleFleetUiPlan = Re.makeUiPlan('VehicleFleet', '1.0')
     .withElementSet
     .usingFluxor(vehicleFluxorData)
     .fromInlineElementSet
@@ -125,7 +125,7 @@ export const vehicleFleetTestData = vehicleTestData;
 // ============================================
 
 export function LayerPricingLayout() {
-  const layerPricingUiPlan = Re.UiPlan('LayerPricing', '1.0')
+  const layerPricingUiPlan = Re.makeUiPlan('LayerPricing', '1.0')
     .withElementSet
     .usingFluxor(pricingFieldFluxorData)
     .fromInlineElementSet

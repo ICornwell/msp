@@ -115,7 +115,8 @@ export function ReEngine(props: ReEngineProps) {
       }
 
       // use shared props as a base, overridden by element options
-      const componentOptions = mergeProps(sharedProps, options || {});
+      // multi-use options so cast to any
+      const componentOptions = mergeProps(sharedProps, options || {}) as any;
 
       if (componentOptions.hidden) {
         return; // Skip rendering if hidden
@@ -171,7 +172,7 @@ export function ReEngine(props: ReEngineProps) {
             localData: localData,
             localIsCollection: Array.isArray(localData),
             attributeName: '',
-            collectionIndexerId: componentOptions.collectionIndexerId,
+            collectionIndexerId: (componentOptions as any).collectionIndexerId,
           })
 
           const expVal = getter();

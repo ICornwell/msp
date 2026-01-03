@@ -3,7 +3,7 @@ import { expect, test, describe } from 'vitest'
 import { render } from '@testing-library/react';
 import { act } from 'react';
 import { ReEngine } from '../../components/ReEngine';
-import { UserInfoLayout } from './layoutSimple.tsx';
+import { UserInfoLayout } from './layoutAutoList.tsx';
 import { TestAppShell } from '../testAppShell.tsx';
 
 const exampleData = {

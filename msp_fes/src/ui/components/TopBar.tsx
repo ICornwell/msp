@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useContext, useReducer, useCallback, useMemo, FormEvent, FormEventHandler } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -21,6 +21,7 @@ import {
 import { AppMenu } from './AppMenu';
 import { MenuItem as AppMenuItem } from '../types';
 import { useUserSessionContext } from '../contexts/UserSessionContext';
+import { HTMLFormElement } from 'happy-dom';
 
 interface TopBarProps {
   toggleSidebar: () => void;
@@ -82,12 +83,12 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [profileMenuAnchorEl, setProfileMenuAnchorEl] = useState<HTMLElement | null>(null);
   const [mainMenuAnchorEl, setMainMenuAnchorEl] = useState<HTMLElement | null>(null);
 
-  const handleProfileMenuOpen = (event: MouseEvent) => {
+  const handleProfileMenuOpen = (event: Partial<MouseEvent>) => {
     console.log('Profile menu open', event.currentTarget, mainMenuAnchorEl, event.currentTarget == mainMenuAnchorEl);
     setProfileMenuAnchorEl(event.currentTarget as HTMLElement);
   };
 
-  const handleMainMenuOpen = (event: MouseEvent) => {
+  const handleMainMenuOpen = (event: Partial<MouseEvent>) => {
     console.log('Profile menu open', event.currentTarget, mainMenuAnchorEl, event.currentTarget == profileMenuAnchorEl);
     setMainMenuAnchorEl(event.currentTarget as HTMLElement);
   };
@@ -100,13 +101,13 @@ export const TopBar: React.FC<TopBarProps> = ({
     setMainMenuAnchorEl(null);
   };
 
-  const handleSearchChange = (e: Event) => {
-    const target = e.target as HTMLInputElement;
+  const handleSearchChange = (e: Partial<Event>) => {
+    const target = e?.target as HTMLInputElement;
     setSearchValue(target.value);
   };
 
-  const handleSearchSubmit = (e: Event) => {
-    e.preventDefault();
+  const handleSearchSubmit = (e: Partial<Event>) => {
+    e.preventDefault?.();
     console.log('Search submitted:', searchValue);
     // Implement search functionality
   };
@@ -165,7 +166,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             edge="start"
             color="inherit"
             aria-label="toggle menu"
-            onClick={handleMainMenuOpen}
+            onClick={(e) => handleMainMenuOpen(e as unknown as MouseEvent)}
             sx={{ mr: 2 }}
           >
             <MenuIcon sx={{ display: { xs: 'block' } }} />
@@ -184,7 +185,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <Button
               key="profile-menu-button"
               color="inherit"
-              onClick={handleProfileMenuOpen}
+              onClick={(e) => handleProfileMenuOpen(e as unknown as MouseEvent)}
               startIcon={<Avatar sx={{ width: 24, height: 24 }}>{currentUser.userName?.charAt(0) || 'U'}</Avatar>}
               endIcon={<ArrowDropDownIcon />}
             >

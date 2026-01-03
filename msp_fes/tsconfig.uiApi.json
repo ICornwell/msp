@@ -3,24 +3,33 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "ES2022",
     "lib": ["ES2023"],
-    "module": "ESNext",
+    "module": "nodenext",
     "skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "experimentalDecorators": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./distApi",
+  //  "declarationDir": "./dist/types",
+    "esModuleInterop": true,
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+
+    /* Bundler mode */
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": false,
+    "experimentalDecorators": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": false,
+
+    /* Linting */
+
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     
   },
-  "include": ["./src/uiApi/**/*.js", "./src/uiApi/**/*.ts"]
+  "include": ["./src/uiApi/**/*.js", "./src/uiApi/**/*.ts", "./src/config.ts"]
 }

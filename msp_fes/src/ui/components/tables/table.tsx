@@ -20,7 +20,7 @@ import { ReUiPlanElement, ReUiPlanElementSetMember } from '../../renderEngine/Ui
 // ============================================
 export type TableProps<TData extends FluxorData<any> = FluxorData<any>> = {
   icon?: React.ElementType;
-  tableConfig?: TableConfig<DataOf<TData>>;
+  tableConfig?: TableConfig<TData>;
   data?: DataOf<TData>[];
   // These come from the render engine
   record?: DataOf<TData> | DataOf<TData>[];

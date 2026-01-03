@@ -3,7 +3,7 @@ import express from 'express';
 import { Express, Request, Response } from 'express';
 import asyncify from 'express-asyncify';
 import cors from 'cors';
-import helmet, { crossOriginOpenerPolicy } from 'helmet';
+import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
@@ -11,12 +11,12 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
-import { join } from 'path';
+
 import { config } from 'dotenv';
 import winston from 'winston';
 
-import apiRoutes from './routes'; // Import your API routes
-import { Policy } from '@mui/icons-material';
+import apiRoutes from './routes.js'; // Import your API routes
+
 
 // Load environment variables
 config();
@@ -72,6 +72,11 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 // Create Express application with asyncify for async route handlers
 const app: Express = asyncify(express());
+
+apiRoutes.use((req, _res, next) => {
+  console.log(`Start of BFF API request to ${req.originalUrl}`);
+  next();
+});
 
 // Trust proxy if behind a reverse proxy
 if (process.env.TRUST_PROXY === 'true') {
@@ -133,6 +138,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Simple health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+apiRoutes.use((req, _res, next) => {
+  console.log(`End of BFF API request to ${req.originalUrl}`);
+  next();
 });
 
 // API routes will be registered here

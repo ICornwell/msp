@@ -1,54 +1,39 @@
 import {Re} from '../../index'
 
 import { userInfoFluxorData } from './UserInfo'
-import { TextComponent } from '../../../../../../ui-try-outs/editing/textInput'
-import { MoneyComponent } from '../../../../../../ui-try-outs/editing/moneyInput'
-import { CheckboxComponent } from '../../../../../../ui-try-outs/editing/checkboxInput'
-
+import { PresetTextComponent } from '../../../components/primatives/presets/PresetText'
+import { PresetMoneyComponent } from '../../../components/primatives/presets/PresetMoney'
+// import { PresetNumberComponent } from '../../../components/primatives/presets/PresetNumber'
+import { PresetBooleanComponent } from '../../../components/primatives/presets/PresetBoolean'
+// import { ColumnsComponent } from '../../../components/containers/columns'
+// import { LabelFrameComponent } from '../../../components/containers/labelframe'
+// import { TableComponent } from '../../../components/tables/table'
+// import { PresetDateComponent } from '../../../components/primatives/presets/PresetDate'
+// import { vehicleFluxorData } from '../../../components/tables/testData'
 export function UserInfoLayout() {
   const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
     
     .withElementSet.usingFluxor(userInfoFluxorData)
      .fromInlineElementSet
-      .showingItem.fromComponentElement(TextComponent)
+      .showingItem.fromComponentElement(PresetTextComponent)
           .withValueBinding((context) => context.localData.userName)
         .endElement
-        .showingItem.fromComponentElement(TextComponent)
+        .showingItem.fromComponentElement(PresetTextComponent)
           .withValueBinding((context) => context.localData.email)
         .endElement
-        .showingItem.fromComponentElement(MoneyComponent)
+        .showingItem.fromComponentElement(PresetMoneyComponent)
           .withValueBinding((context) => context.localData.creditLimit)
         .endElement
-        .showingItem.fromComponentElement(CheckboxComponent)
+        .showingItem.fromComponentElement(PresetBooleanComponent)
           .withValueBinding((context) => context.localData.marketingConsent)
         .endElement
-        .showingItem.fromComponentElement(TextComponent)
+        .showingItem.fromComponentElement(PresetTextComponent)
           .withValueBinding((context) => context.localData.userName)
         .endElement
     .endSet
-    .build()
+    .BuildUiPlan()
     
-    /* (
-      Re.ElementSet.showFixedComponent(EngineComponentNames.Text, Re.StandaloneElement
-        .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: recordPath, dataAttributeName: attributes.userName}))
-      )
-      .showFluxorComponent(Re.StandaloneElement
-        .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: recordPath, dataAttributeName: attributes.userName}))
-      )
-      .showFluxorComponent(Re.StandaloneElement
-        .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: recordPath, dataAttributeName: attributes.marketingConsent}))
-      )
-      .showFluxorComponent(Re.StandaloneElement
-        .withValueBinding(Re.Bind.Attribute.FromPath({recordPropertyPath: recordPath, dataAttributeName: attributes.creditLimit}))
-      )
-      .showFixedComponent(EngineComponentNames.Text, Re.StandaloneElement
-        .withValueBinding(Re.Bind.Attribute.FromFunction({recordFetchingFunction: (data: any) => data.testUserInfo,
-           dataAttributeName: attributes.email, sourceType: 'Absolute'}))
-      )
-      .showFixedComponent(EngineComponentNames.Button, Re.StandaloneElement
-        .withLabel('Test Button')
-      )
-    ) */
+
 
     return userInfoLauout
 }

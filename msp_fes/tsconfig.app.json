@@ -23,11 +23,11 @@
     "jsxImportSource": "@emotion/react",
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/ui", "handler.ts", "uiApiProxy.ts", "../ui-try-outs/binders", "../ui-try-outs/ReSchema.ts", "../ui-try-outs/ReEvents.ts", "../ui-try-outs/editing"],
+  "include": ["src/ui", "handler.ts", "uiApiProxy.ts", "src/config.ts"],
 }

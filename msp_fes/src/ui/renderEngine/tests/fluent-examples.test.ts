@@ -1,13 +1,14 @@
-import TextInput, {TextComponent, TextInputProps} from '../../../../../ui-try-outs/editing/textInput.tsx'
 import { ReGroupComponent } from '../components/ReGroup.tsx'
 import { Re } from '../index.ts'
+import { PresetTextComponent } from '../../components/primatives/presets/PresetText'
+
 //import { ReUiPlanElementSetBuilder } from '../UiPlan/ReUiPlanBuilder.ts'
 //import { TestClassA, TestClassB } from './fluxSchema.test.ts'
 import { userInfoFluxorData, userPreferencesFluxorData } from './userInfo/UserInfo.ts'
 
 describe('ReUiPlanBuilder', () => { 
   it('using inline elements', () => {
-    const builder = Re.UiPlan('testPlan')
+    const builder = Re.makeUiPlan('testPlan')
     .withDescription('An example plan')
 //    .withSchema([TestClassA, TestClassB])
     .withRules(['rule1', 'rule2'])
@@ -18,7 +19,7 @@ describe('ReUiPlanBuilder', () => {
           .withDisplayMode('editable')
           .withLabelPosition('start')
         .endSharedProps
-        .showingItem.fromComponentElement(TextComponent)
+        .showingItem.fromComponentElement(PresetTextComponent)
           .withLabel('Standalone Component')
           .withComponentProps({ })
           .withValueBinding((context)=>context.localData.phoneNumber)
@@ -37,7 +38,7 @@ describe('ReUiPlanBuilder', () => {
                 .withDisplayMode('readonly')
                 .withComponentProps({ style: { color: 'blue' } })
               .endSharedProps
-              .showingItem.fromComponentElement(TextComponent)
+              .showingItem.fromComponentElement(PresetTextComponent)
                
                 .withLabel('Standalone Component')
                 .withComponentProps({type: 'email'  })
@@ -54,14 +55,14 @@ describe('ReUiPlanBuilder', () => {
   })
 
   it('using external builder elements', () => {
-    const text1Builder = Re.StandaloneElement(TextComponent)
+    const text1Builder = Re.makeElementPlan(PresetTextComponent)
         .withLabel('Standalone Component')
         .withComponentProps({textVariant: 'header1'  })
 
-    const text2Builder = Re.StandaloneElement(TextComponent)
+    const text2Builder = Re.makeElementPlan(PresetTextComponent)
         .withLabel('Standalone Component')
 
-    const builder = Re.UiPlan('testPlan')
+    const builder = Re.makeUiPlan('testPlan')
     .withDescription('An example plan')
  //   .withSchema([TestClassA, TestClassB])
     .withRules(['rule1', 'rule2'])

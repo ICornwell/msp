@@ -5,8 +5,7 @@ import svgr from 'vite-plugin-svgr'
 
 import mix from 'vite-plugin-mix'
 
-import { sharedDeps } from 'msp_common'
-
+import { sharedDeps, Ports } from 'msp_common'
 
 
 // https://vite.dev/config/
@@ -54,7 +53,6 @@ export default defineConfig({
   },
   esbuild: {
     sourcemap: true,
-    topLevelAwait: true,
     supported: {
       'top-level-await': true
     }
@@ -89,7 +87,7 @@ export default defineConfig({
   server: {
     hmr: false,
     cors: false,
-    port: 3000,
+    port: Ports.core.uiWeb,
     open: true,
   }
 })

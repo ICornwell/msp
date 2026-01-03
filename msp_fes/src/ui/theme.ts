@@ -1,6 +1,4 @@
 import { createTheme } from '@mui/material/styles';
-import { w } from 'happy-dom/lib/PropertySymbol.js';
-
 
 const theme = createTheme({
   spacing: 6,

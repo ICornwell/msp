@@ -1,6 +1,5 @@
 import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext';
 
-import { ButtonComponent } from '../../../../ui-try-outs/editing/button';
 import { ColumnsComponent } from './containers/columns';
 import { LabelFrameComponent } from './containers/labelframe';
 
@@ -17,7 +16,7 @@ import { PresetDateComponent } from './primatives/presets/PresetDate';
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
 
-  addComponent(ButtonComponent);
+  // addComponent(ButtonComponent);
  
   addComponent(ColumnsComponent);
   addComponent(LabelFrameComponent);

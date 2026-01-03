@@ -6,16 +6,11 @@ export {
   type Dependencies
 } from './sharedDeps.js';
 
-// Re-export manifest types
-export type {
-  Manifest,
-  DomainManifest,
-  ServiceManifest,
-  UiFeatureManifest,
-  ApiFeatureManifest,
-  InformationManifest,
-  WorkManifest
-} from './manifests/manifest.js';
+export {Ports} from './ports.js';
+
+export {SharedConfig} from './sharedconfig.js';
+
+export type { UiFeatureManifest,Manifest } from './manifests/index.js';
 
 // Re-export service manager utilities
 export {
@@ -31,7 +26,7 @@ export {
   CreateResultBuilder,
   defaultResult,
   addServiceActivityToSet,
-  ActivitySet,
+  activitySet as ActivitySet,
   type ServiceActivityExec,
   type ServiceActivityList,
   type ServiceActivity,
@@ -45,3 +40,6 @@ export type {
   ServiceActivityFunction,
   ServiceActivityRegistration
 } from './service-manager/types/index.js';
+
+// Re-export ALS and JWT utilities
+export * from './als/index.js';

@@ -1,10 +1,10 @@
 // import React from 'react';
 import { render, screen } from '../../../test-utils';
-import TextInput from '../../../../../../ui-try-outs/editing/textInput';
+import TextInput from '../presets/PresetText';
 import { vi } from 'vitest';
 
 // Create a simplified mock version of the TextInput for testing
-vi.mock('../textInput', () => {
+vi.mock('../presets/PresetText', () => {
   return {
     default: function MockTextInput(props: any) {
       return (

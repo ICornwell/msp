@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "skipLibCheck": true,
+
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./distApi",
+  //  "declarationDir": "./dist/types",
+    "esModuleInterop": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    /* Bundler mode */
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": false,
+    "experimentalDecorators": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": false,
+
+
+  },
+  "include": ["./src/api/**/*.js", "./src/api/**/*.ts"]
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"appCore-BpwD_EZB.js","sources":["../../src/uiElements/features/appCore/appCore.tsx"],"sourcesContent":["function AppCore() {\n    const ui = <>App Core UI Elements</>;\n\n    return ui\n}\n\nexport default AppCore;"],"names":[],"mappings":";AAAA,SAAS,UAAU;AACT,QAAA,qCAAO,UAAoB,uBAAA,CAAA;AAE1B,SAAA;AACX;"}

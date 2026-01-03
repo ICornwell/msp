@@ -1,0 +1,1 @@
+{"version":3,"file":"uiFeatureRegistry.js","sourceRoot":"","sources":["../../src/api/services/uiFeatureRegistry.ts"],"names":[],"mappings":"AAGA,MAAM,aAAa,GAAwB,EAAE,CAAA;AAE7C,SAAS,eAAe,CAAC,OAA0B;IACjD,aAAa,CAAC,IAAI,CAAC,OAAO,CAAC,CAAA;AAC7B,CAAC;AAED,SAAS,WAAW;IAClB,OAAO,aAAa,CAAA;AACtB,CAAC;AAED,MAAM,CAAC,MAAM,iBAAiB,GAAG;IAC/B,eAAe;IACf,WAAW;CACZ,CAAA"}

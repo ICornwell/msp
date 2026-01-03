@@ -15,6 +15,7 @@ import {
 import { Vehicle } from './testData/vehicleList';
 import { Task } from './testData/taskList';
 import { testLayerPricingContext } from './testData/layerPricing';
+import { FluxorData } from '../../renderEngine/fluxor/fluxorData';
 
 // ============================================
 // Example 1: Basic Vehicle Table
@@ -44,12 +45,12 @@ type VehicleBasicExample = void; // Placeholder for the example pattern
 // ============================================
 
 // Custom cell renderer for money values
-const MoneyCell = ({ value }: CellRendererProps<Vehicle, number>) => (
+const MoneyCell = ({ value }: CellRendererProps<FluxorData<Vehicle>, number>) => (
   <span>${value.toLocaleString()}</span>
 );
 
 // Custom cell renderer for rating modifiers (highlight deviations from 1.0)
-const ModifierCell = ({ value }: CellRendererProps<Vehicle, number>) => {
+const ModifierCell = ({ value }: CellRendererProps<FluxorData<Vehicle>, number>) => {
   const deviation = value - 1.0;
   const color = deviation > 0 ? 'red' : deviation < 0 ? 'green' : 'black';
   return <span style={{ color }}>{value.toFixed(2)}</span>;

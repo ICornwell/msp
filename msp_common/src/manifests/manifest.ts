@@ -6,6 +6,8 @@ export declare type Manifest = {
   version: string;
   description?: string;
   author?: string;
+  allowedContexts: string[]; // e.g., ['admin', 'user', '*']
+  serverUrl: string; // e.g., URL or file path
 }
 
 export declare type DomainManifest = Manifest & {
@@ -22,8 +24,7 @@ export declare type ServiceManifest = Manifest & {
 }
 
 export declare type UiFeatureManifest = Manifest & {
- informationPackages: InformationManifest[]
- work: WorkManifest[]
+   remotePath: string;
 }
 
 export declare type ApiFeatureManifest = Manifest & {

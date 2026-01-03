@@ -64,8 +64,11 @@ export interface UniversalInputProps {
 // Component
 // ============================================================================
 
+// Omit circular reference props that cause preview.js to hang
+type SafeSystemProps = Omit<ReComponentSystemProps, 'reEngineElementFactory' | 'children'>;
+
 export default function UniversalInput(
-  props: UniversalInputProps & ReComponentCommonProps & ReComponentSystemProps
+  props: UniversalInputProps & ReComponentCommonProps & SafeSystemProps
 ) {
   const { 
     label, 
@@ -225,7 +228,8 @@ export default function UniversalInput(
     } else {
       // Invalid value - store as a note
       if (notes?.setNotes) {
-        notes.setNotes([result.rawInput]);
+        // ts being weird about result type for success=false
+        notes.setNotes([(result as any).rawInput]);
       }
       // Keep the raw input visible (user typed it, they should see it)
     }
