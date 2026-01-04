@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "msp_ws"
+		},
+		{
+			"path": "msp_common"
+		},
+		{
+			"path": "msp_fes"
+		},
+		{
+			"path": "msp_servicehub"
+		},
+		{
+			"path": "msp_actorwork"
+		}
+	],
+	"settings": {}
+}
