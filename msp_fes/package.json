@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "yarn start:bff & vite",
-    "start:bff": "yarn build:server && node ./distApi/uiApi/server.js",
-    "dev": "vite",
+    "start:bff": "yarn build:bff && node ./distApi/uiApi/server.js",
+    "dev": "vite --port 3000",
     "build": "tsc -b && vite build",
-    "build:server": "tsc -b",
+    "build:bff": "tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

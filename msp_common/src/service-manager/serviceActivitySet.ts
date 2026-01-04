@@ -47,21 +47,21 @@ export const defaultResult: ServiceActivityResult = {
 
 export function CreateResultBuilder(result?: ServiceActivityResult): ServiceActivityResultBuilder {
     if (!result) {
-        result = defaultResult
+        result = { ...defaultResult };
     }
     return {
         updatePayload: function (payload: any) {
             result.updatedPayload = payload;
             return this;
         },
-        updateResult: function (result: any) {
-            result.result = result;
+        updateResult: function (value: any) {
+            result.result = value;
             return this;
         },
-        success: function (result?: any) {
+        success: function (value?: any) {
             result.success = true;
-            if (result) {
-                result.result = result;
+            if (value) {
+                result.result = value;
             }
             return this;
         },
@@ -83,7 +83,7 @@ export function CreateResultBuilder(result?: ServiceActivityResult): ServiceActi
             return this;
         },
         currentResult: function () {
-            return defaultResult;
+            return result;
         }
     }
 }

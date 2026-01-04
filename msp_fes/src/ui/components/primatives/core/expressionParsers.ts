@@ -45,7 +45,6 @@ export const expressionParsers = {
   register: (parser: ExpressionParser) => {
     parserRegistry.set(parser.id, parser);
   },
-
   nullParser: <T>(): ExpressionParser<T> => ({
     id: 'null',
     canParse: (_input: string): boolean => false,

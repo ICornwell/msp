@@ -78,7 +78,7 @@ export default defineConfig({
       sourcemap: true,
       loader: {
         '.js': 'jsx',
-        '.ts': 'tsx'
+        '.ts': 'ts'
       }
     }
   },
@@ -88,6 +88,6 @@ export default defineConfig({
     hmr: false,
     cors: false,
     port: Ports.core.uiWeb,
-    open: true,
+    open: false,
   }
 })

@@ -17,7 +17,12 @@ export function serviceManager() {
         },
 
         runAllMatches: async function (namespace: string, activityName: string, version: string, payload: any): Promise<ServiceActivityResult> {
-            const result = {...defaultResult}
+            const result = {
+                ...defaultResult,
+                namespace: namespace,
+                activityName:  activityName,
+                version: version
+            }
             const rb = CreateResultBuilder(result)
 
             async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder) {
