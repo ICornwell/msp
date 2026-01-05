@@ -1,41 +1,48 @@
+import { ProductConfig } from "../sharedconfig.js";
 
+export declare type ManifestCommon = {
+  // manifest sections can restrict usage contexts
+  allowedContexts: string[]; // e.g., ['admin', 'user', '*']
+  // manifest sections can speficy products ot override
+  // higer level product info set to '?' to indicate overrides
+  product?: Partial<ProductConfig>
+}
 
-export declare type Manifest = {
-  domain: string;
-  name: string;
-  version: string;
+export declare type Manifest = ManifestCommon & {
   description?: string;
   author?: string;
-  allowedContexts: string[]; // e.g., ['admin', 'user', '*']
   serverUrl: string; // e.g., URL or file path
+  services?: ServiceManifestSection[]
 }
+
+
 
 export declare type DomainManifest = Manifest & {
-  informationPackages: InformationManifest[]
+  informationPackages: InformationManifestSection[]
   subDomains: DomainManifest[]
-  work: WorkManifest[]
+  work: WorkManifestSection[]
 }
 
-export declare type ServiceManifest = Manifest & {
- informationPackages: InformationManifest[]
- uiFeatures: UiFeatureManifest[]
- apiFeatures: UiFeatureManifest[]
- work: WorkManifest[]
+export declare type ServiceManifestSection = ManifestCommon & {
+ informationPackages: InformationManifestSection[]
+ uiFeatures: UiFeatureManifestSection[]
+ apiFeatures: ApiFeatureManifestSection[]
+ work: WorkManifestSection[]
 }
 
-export declare type UiFeatureManifest = Manifest & {
+export declare type UiFeatureManifestSection =  ManifestCommon &{
    remotePath: string;
 }
 
-export declare type ApiFeatureManifest = Manifest & {
- information: InformationManifest[]
- work: WorkManifest[]
+export declare type ApiFeatureManifestSection = ManifestCommon & {
+ information: InformationManifestSection[]
+ work: WorkManifestSection[]
 }
 
-export declare type InformationManifest = Manifest & {
+export declare type InformationManifestSection = ManifestCommon & {
  
 }
 
-export declare type WorkManifest = Manifest & {
+export declare type WorkManifestSection = ManifestCommon & {
  
 }

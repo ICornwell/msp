@@ -44,7 +44,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/../msp_fes/distApi/uiApi/server.js",
+            "program": "${workspaceFolder}/../msp_fes/distApi/server.js",
             "preLaunchTask": "build bff",
             "outFiles": ["${workspaceFolder}/../msp_fes/distApi/**/*.js"]
         }

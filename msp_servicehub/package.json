@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node ./distApi/server.js & vite",
+    "start:server": "node ./distApi/server.js",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:server": "tsc -b",

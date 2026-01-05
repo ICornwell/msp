@@ -8,7 +8,7 @@
 
     "declaration": true,
     "sourceMap": true,
-    "sourceRoot": "/home/ian/msp/msp_fes/src/",
+    "rootDir": "./src/uiApi",
     "outDir": "./distApi",
   //  "declarationDir": "./dist/types",
     "esModuleInterop": true,
@@ -32,5 +32,5 @@
     "noUncheckedSideEffectImports": true,
     
   },
-  "include": ["./src/uiApi/**/*.js", "./src/uiApi/**/*.ts", "./src/config.ts"]
+  "include": ["./src/uiApi/**/*.js", "./src/uiApi/**/*.ts", "./src/uiApi/config.ts"]
 }

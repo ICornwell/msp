@@ -7,8 +7,8 @@ const router = asyncify(express.Router());
 router.post("/:namespace/:activityName", async (req, res) => {
   const sm = serviceManager()
   sm.use(discoveryActivitySet);
-
-  const result = await sm.runAllMatches(req.params.namespace, req.params.activityName, "1.0.0", req.query)
+  const body = req.body;
+  const result = await sm.runAllMatches(req.params.namespace, req.params.activityName, "1.0.0", body)
 
   res.json({
     status: "ok",

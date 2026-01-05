@@ -5,13 +5,16 @@
 import { handler as app } from './api.js';
 import http from 'http';
 import { config } from 'dotenv';
-import { Ports } from 'msp_common';
+import { setConfig } from 'msp_common';
+import { registerWithBff } from './register.js';
+import Config from './config.js';
+setConfig(Config);
 // Load environment variables
 config();
 /**
  * Get port from environment and store in Express.
  */
-const port = normalizePort(process.env.SPORT || Ports.core.serviceHubApi.toString());
+const port = normalizePort(process.env.SPORT || '4100');
 app.set('port', port);
 /**
  * Create HTTP server.
@@ -23,6 +26,14 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+registerWithBff()
+    .then((response) => {
+    console.log('Successfully registered with BFF');
+    console.log('BFF response:', response);
+})
+    .catch((err) => {
+    console.error('Error registering with BFF:', err);
+});
 /**
  * Normalize a port into a number, string, or false.
  */
