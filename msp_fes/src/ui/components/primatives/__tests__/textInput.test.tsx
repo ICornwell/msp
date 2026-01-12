@@ -1,6 +1,6 @@
 // import React from 'react';
 import { render, screen } from '../../../test-utils';
-import TextInput from '../presets/PresetText';
+import TextInput from '../presets/PresetText.js';
 import { vi } from 'vitest';
 
 // Create a simplified mock version of the TextInput for testing

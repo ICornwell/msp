@@ -6,10 +6,14 @@ import { v4 } from 'uuid';
 // MSAL Configuration
 const msalConfig = {
   auth: {
-    clientId: '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',
-    authority: 'https://login.microsoftonline.com/027f47db-adad-450a-8118-4bd5b6feef63',
-    redirectUri: 'http://localhost:3000', // Your redirect URI
-    postLogoutRedirectUri: 'http://localhost:3000', // Your post logout redirect URI
+    // clientId: '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',
+    // authority: 'https://login.microsoftonline.com/027f47db-adad-450a-8118-4bd5b6feef63',
+    // redirectUri: 'http://localhost:3000', // Your redirect URI
+    // postLogoutRedirectUri: 'http://localhost:3000', // Your post logout redirect URI
+    clientId: import.meta.env.VITE_clientId,
+    authority: import.meta.env.VITE_authority,
+    redirectUri: import.meta.env.VITE_redirectUri,
+    postLogoutRedirectUri: import.meta.env.VITE_postLogoutRedirectUri,
     navigateToLoginRequestUrl: true,
   },
   cache: {

@@ -17,8 +17,8 @@ import FunctionsIcon from '@mui/icons-material/Functions';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps';
-import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper';
-import { Notes } from '../../../renderEngine/data/uiDataProxy';
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper.js';
+import { Notes } from '../../../renderEngine/data/uiDataProxy.js';
 import { 
   InputStrategy, 
   DataTypeHint, 

@@ -1,4 +1,4 @@
-import { FluxorData } from "../../renderEngine/fluxor/fluxorData";
+import { FluxorData } from "../../renderEngine/fluxor/fluxorData.js";
 export type Vehicle = {
     registration: string;
     type: string;

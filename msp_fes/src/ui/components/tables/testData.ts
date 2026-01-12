@@ -1,4 +1,4 @@
-import { FluxorData } from "../../renderEngine/fluxor/fluxorData";
+import { FluxorData } from "../../renderEngine/fluxor/fluxorData.js";
 import { FluxorProps } from "../../renderEngine/fluxor/fluxorProps";
 
 export type Vehicle = {

@@ -1,0 +1,174 @@
+import DeepProxy from "proxy-deep";
+import { v4 as uuidv4 } from 'uuid';
+import { RePubSub, RePubSubMsg, ReSubscription } from "./ReEnginePubSub.js";
+import { ReSubscriptionHandler } from "../components/RePubSubHook.js";
+
+export type Notes = {
+  hasNotes: boolean;
+  getNotes?: () => string[];
+  setNotes?: (notes: string[]) => void;
+  getExpression?: () => string[];
+  setExpression?: (expressions: string[]) => void;
+}
+
+export function getSourceDataProxy(data: any, pubsub: RePubSub) {
+  const proxySubscriberId = uuidv4();
+  const proxySubscribers: string[] = []
+
+  //wrap the metadata mode in an object so we can modify it in closures
+  let metadataMode = { value: false };
+
+  const recordNotes = new Map<string, string[]>();
+  const recordExpressions = new Map<string, string[]>();
+
+  // function to set metadata mode
+  function setMetadataMode(mode: boolean) {
+    metadataMode.value = mode
+  }
+
+  // setter abstracted for reuse
+  function set(target: any, subscriptionHandler: ReSubscriptionHandler, p: PropertyKey, value: any, receiver: any, path: string[]) {
+    const oldValue = Reflect.get(target, p, receiver);
+    const r = Reflect.set(target, p, value, receiver);
+    publishEvent('dataChange', subscriptionHandler, (newValue: any) => set(target, subscriptionHandler, p, newValue, receiver, path), path, p, value, oldValue);
+    return r
+  }
+
+  function getKeyedPropertySubscriber(key: string | symbol | number, path: string[]) {
+    return (subscriber: ReSubscription) => {
+      const singlePropertyMsgTypeFilter = (msg: RePubSubMsg) => {
+        return msg.propertyKey === key
+          && msg.path === path.join('.')
+          && (!subscriber.msgTypeFilter || subscriber.msgTypeFilter(msg));
+      }
+      return pubsub.subscribe({ callback: subscriber.callback, msgTypeFilter: singlePropertyMsgTypeFilter });
+    }
+  }
+
+  function getKeyedPropertySubscriberHandler(key: string | symbol | number, path: string[]): ReSubscriptionHandler {
+    return {
+      subscribeToPubSub: getKeyedPropertySubscriber(key, path),
+      unsubscribeFromPubSub: (subscriberId: string) => {
+        pubsub.unsubscribe(subscriberId);
+      },
+      unsubscribeFromAllPubSub: () => {
+        unsubscribeToAllProxyProperties();
+      }
+    }
+  }
+
+  const sourceData = new (DeepProxy as any)(data, {
+    get(target: any, key: string | symbol, receiver: any) {
+      const stringKey = key.toString();
+      if (stringKey === '___isProxy') {
+        return true;
+      }
+      if (stringKey === '___proxyPubSub') {
+        return {
+          subscriptionHandler: {
+            subscribeToPubSub: subscribeToProxy,
+            unsubscribeFromPubSub: unsubscribeToProxy,
+            unsubscribeFromAllPubSub: unsubscribeToAllProxyProperties
+          },
+          setMetadataMode
+        };
+      }
+      if (stringKey === '___Notes') {
+        return {
+          notes: recordNotes,
+          expressions: recordExpressions
+        };
+      }
+      const val = Reflect.get(target, key, receiver);
+    //  let isObject = false;
+      let objVal: any = undefined
+      if (typeof val === 'object' && val !== null) {
+    //    isObject = true;
+        objVal = this.nest(val)
+      } else {
+    //    isObject = false;
+        objVal = val;
+      }
+
+      const subHandler = getKeyedPropertySubscriberHandler(key, this.path);
+
+      const fullKeyPath = [...this.path, key.toString()].join('.');
+      const notes = {
+        hasNotes: recordNotes.has(fullKeyPath),
+        getNotes: () => {
+          return recordNotes.get(fullKeyPath) || [];
+        },
+        setNotes: (newNotes: string[]) => {
+          recordNotes.set(fullKeyPath, newNotes);
+        },
+        getExpression: () => {
+          return recordExpressions.get(fullKeyPath) || [];
+        },
+        setExpression: (newNotes: string[]) => {
+          recordExpressions.set(fullKeyPath, newNotes);
+        }
+      }
+
+      publishEvent('dataFetch', subHandler,
+        (newValue) => set(target, subHandler, key, newValue, receiver, this.path),
+        this.path, key, objVal, undefined, notes);
+
+      return metadataMode.value ? {
+        __isProxyMetadata: true,
+        path: this.path,
+        key: key,
+        value: objVal,
+        setter: (newValue: any): any => set(target, subHandler, key, newValue, receiver, this.path),
+        subscriptionHandler: subHandler,
+        notes: notes
+      } : objVal;
+
+    },
+
+    set(target: any, p: string | symbol, value: any, receiver: any) {
+      return set(target, getKeyedPropertySubscriberHandler(p, this.path), p, value, receiver, this.path);
+    },
+  })
+
+  function publishEvent(messageType: string,
+    subscriptionHandler: ReSubscriptionHandler,
+    setter: (newValue: any) => void,
+    path: string[], p: PropertyKey, value: any, oldValue: any, notes?: Notes) {
+    pubsub.publish({
+      messageType: messageType,
+      recordSubscriberId: proxySubscriberId,
+      path: path.join('.'),
+      propertyKey: p,
+      newValue: value,
+      oldValue: oldValue,
+      subscriptionHandler,
+      setter: setter,
+      notes: notes
+    } as RePubSubMsg);
+  }
+
+  function unsubscribeToAllProxyProperties() {
+    for (const subscriberId of proxySubscribers) {
+      pubsub.unsubscribe(subscriberId);
+    }
+  }
+
+  function unsubscribeToProxy(subscriberId: string) {
+    pubsub.unsubscribe(subscriberId);
+  }
+
+  function subscribeToProxy(subscription: ReSubscription): string {
+    const subscriberId = pubsub.subscribe(subscription);
+    return subscriberId;
+  }
+
+  return {
+    sourceData,
+    subscriptionHandler: {
+      subscribeToPubSub: subscribeToProxy,
+      unsubscribeFromPubSub: unsubscribeToProxy,
+      unsubscribeFromAllPubSub: unsubscribeToAllProxyProperties
+    },
+    setMetadataMode
+  };
+}

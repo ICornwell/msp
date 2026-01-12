@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 
-import UniversalInput from "../core/UniversalInput";
+import UniversalInput from "../core/UniversalInput.js";
 
 import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps';
-import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper';
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper.js';
 
-import { createBooleanStrategy } from "../core";
+import { createBooleanStrategy } from "../core/index.js";
 
 export type PresetBooleanInputProps = {
   textRepresentation?: { true: string; false: string; undefined: string };

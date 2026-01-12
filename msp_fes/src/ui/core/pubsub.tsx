@@ -1,4 +1,4 @@
-import { isTestEnvironment } from './hooks-debug';
+import { isTestEnvironment } from './hooks-debug.js';
 
 export default function createPubSubSub() {
   const subscribers = new Map<string, Function>();

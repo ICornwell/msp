@@ -1,4 +1,4 @@
-import { AggregationType } from '../table';
+import { AggregationType } from '../table.js';
 // Aggregation metadata - defines what aggregations make sense per field
 // This would eventually be part of FluxorProps, but for now we define separately
 export const taskAggregationMeta = {

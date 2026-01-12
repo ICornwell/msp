@@ -8,13 +8,13 @@
  *
  * Drop these into your rendering UI to see the tables in action.
  */
-import { Re } from '../../renderEngine/index';
-import { TableComponent } from './table';
-import { LabelFrameComponent } from '../containers/labelframe';
+import { Re } from '../../renderEngine/index.js';
+import { TableComponent } from './table.js';
+import { LabelFrameComponent } from '../containers/labelframe.js';
 // Import test data types
-import { taskTestData } from './testData/taskList';
-import { vehicleTestData } from './testData/vehicleList';
-import { testPricingFields, testLayers } from './testData/layerPricing';
+import { taskTestData } from './testData/taskList.js';
+import { vehicleTestData } from './testData/vehicleList.js';
+import { testPricingFields, testLayers } from './testData/layerPricing.js';
 // ============================================
 // FluxorData Definitions for Test Data
 // ============================================

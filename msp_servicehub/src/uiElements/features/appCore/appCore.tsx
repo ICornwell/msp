@@ -1,5 +1,11 @@
-function AppCore() {
-    const ui = <>App Core UI Elements</>;
+import Button from "@mui/material/Button";
+import styled from "@emotion/styled"
+
+function AppCore(props: any) {
+    console.log('styled:', styled);
+    const ui = (<>
+
+    </>);
 
     return ui
 }

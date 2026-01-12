@@ -5,6 +5,7 @@
   },
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.uiApi.json" }
+    { "path": "./tsconfig.uiApi.json" },
+    { "path": "./tsconfig.uiLib.json" }
   ]
 }

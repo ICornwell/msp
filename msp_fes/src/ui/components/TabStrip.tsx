@@ -7,7 +7,7 @@ import {
   styled
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import { Tab } from '../types.ts';
+import { Tab } from '../contexts/uiEventTypes.ts';
 
 interface TabStripProps {
   tabs: Tab[];

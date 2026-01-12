@@ -14,7 +14,7 @@ import {
   strategyRegistry,
   composeStrategies
 } from '../inputStrategies';
-import { createNumberStrategy, NumberStrategyOptions } from './numberStrategy';
+import { createNumberStrategy, NumberStrategyOptions } from './numberStrategy.js';
 
 export interface MoneyStrategyOptions extends NumberStrategyOptions {
   currencySymbol?: string;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
-import { ComponentWrapper, DisplayMode } from '../components/ReComponentWrapper.tsx';
+import { ComponentWrapper, DisplayMode } from '../components/ReComponentWrapper.js';
 
 export type ComponentInstantiator<P> = (props: P) => React.ReactElement
 export type CompomentInstantiatorOptions = { useFormControl?: boolean, isContainer?: boolean, isManagedForm?: boolean }

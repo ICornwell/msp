@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Box, styled } from '@mui/material';
-import { TopBar } from './TopBar';
-import { Sidebar } from './Sidebar';
-import { Blade } from './Blade';
-import { TabStrip } from './TabStrip';
-import { MainContent } from './MainContent';
-import { useEventContext } from '../contexts/EventContext';
+import { TopBar } from './TopBar.js';
+import { Sidebar } from './Sidebar.js';
+import { Blade } from './Blade.js';
+import { TabStrip } from './TabStrip.js';
+import { MainContent } from './MainContent.js';
+import { useEventContext } from '../contexts/UiContentContext.js';
 import EngineComponents from './engineComponents';
-import { ReProvider } from '../renderEngine/contexts/ReEngineContext';
-import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext';
+import { ReProvider } from '../renderEngine/contexts/ReEngineContext.js';
+import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext.js';
 
 const MainContainer = styled(Box)(({  }) => ({
   display: 'flex',
@@ -31,7 +31,17 @@ export const AppShell: React.FC = () => {
   const [configContent, setConfigContent] = useState<string | null>(null);
 
   const { state } = useEventContext();
-  const { navItems, tabs, menuItems, profileMenuItems } = state;
+  const { navItems, contextItems, profileItems } = state;
+
+  const tabs = contextItems.map((ci) => ({
+    id: ci.id,
+    label: ci.label,
+  }));
+
+  const menuItems = navItems.map((ni) => ({
+    id: ni.id,
+    label: ni.label,
+  }));
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -72,7 +82,7 @@ export const AppShell: React.FC = () => {
             toggleSidebar={toggleSidebar}
             sidebarCollapsed={isSidebarCollapsed}
             menuItems={menuItems}
-            profileMenuItems={profileMenuItems}
+            profileMenuItems={profileItems}
             openBlade={openBlade}
           />
 

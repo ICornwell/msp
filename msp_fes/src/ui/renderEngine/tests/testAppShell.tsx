@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { ReProvider } from '../../renderEngine/contexts/ReEngineContext.tsx';
-import { EngineComponentProvider, useEngineComponentsContext } from '../../renderEngine/contexts/ReComponentsContext.tsx';
+import { ReProvider } from '../../renderEngine/contexts/ReEngineContext.js';
+import { EngineComponentProvider, useEngineComponentsContext } from '../../renderEngine/contexts/ReComponentsContext.js';
 
 import { createTheme } from '@mui/material/styles'
-import { CustomThemeProvider } from '../components/CustomThemeProvider.tsx';
+import { CustomThemeProvider } from '../components/CustomThemeProvider.js';
 
 // import { NavItem, Tab } from '../types.ts';
 export default function EngineComponents() {

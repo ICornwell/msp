@@ -18,9 +18,9 @@ import {
   ChevronRight as ChevronRightIcon,
   ChevronLeft as ChevronLeftIcon
 } from '@mui/icons-material';
-import { AppMenu } from './AppMenu';
-import { MenuItem as AppMenuItem } from '../types';
-import { useUserSessionContext } from '../contexts/UserSessionContext';
+import { AppMenu } from './AppMenu.js';
+import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes';
+import { useUserSessionContext } from '../contexts/UserSessionContext.js';
 import { HTMLFormElement } from 'happy-dom';
 
 interface TopBarProps {
@@ -30,6 +30,11 @@ interface TopBarProps {
   profileMenuItems: AppMenuItem[];
   openBlade: (contentId: string) => void;
 }
+
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  zIndex: 5000,
+  '--AppBar-color': theme.palette.secondary.contrastText,
+}));
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -123,7 +128,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <AppBar position="static" style={{ zIndex: 5200 }}>
+    <StyledAppBar position="static">
       <Toolbar>
         <IconButton
           key="toggle-sidebar"
@@ -140,9 +145,10 @@ export const TopBar: React.FC<TopBarProps> = ({
           variant="h6"
           noWrap
           component="div"
+          color='var(--Appbar-color)'
           sx={{ display: { xs: 'none', sm: 'block' } }}
         >
-          App Name
+          Mighty Small Platform
         </Typography>
 
         <Search>
@@ -206,6 +212,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           </Button>
         )}
       </Toolbar>
-    </AppBar>
+    </StyledAppBar>
   );
 };

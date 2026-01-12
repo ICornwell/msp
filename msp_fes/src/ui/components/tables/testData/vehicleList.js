@@ -1,4 +1,4 @@
-import { AggregationType } from '../table';
+import { AggregationType } from '../table.js';
 // Aggregation metadata for flat vehicle view
 export const vehicleAggregationMeta = {
     vehicleId: AggregationType.None,

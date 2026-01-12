@@ -6,7 +6,9 @@
      "compounds": [
         {
             "name": "Front-end",
-            "configurations": ["Launch BFF API", "Run yarn dev", "Launch Chrome", "Attach to Chrome"],
+            "configurations": ["Launch BFF API", "Launch ServiceHub Service Functions",
+             "Run Service Hub Vite", "Run yarn dev",
+             "Launch Chrome", "Attach to Chrome"],
             "stopAll": true
         }
     ],
@@ -47,6 +49,24 @@
             "program": "${workspaceFolder}/../msp_fes/distApi/server.js",
             "preLaunchTask": "build bff",
             "outFiles": ["${workspaceFolder}/../msp_fes/distApi/**/*.js"]
+        },
+        {
+            "command": "yarn dev",
+            "name": "Run Service Hub Vite",
+            "request": "launch",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/../msp_servicehub"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch ServiceHub Service Functions",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/../msp_servicehub/distApi/server.js",
+            "preLaunchTask": "build servicehub",
+            "outFiles": ["${workspaceFolder}/../msp_servicehub/distApi/**/*.js"]
         }
     ]
 }

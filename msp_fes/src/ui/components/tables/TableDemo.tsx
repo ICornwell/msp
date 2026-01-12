@@ -4,17 +4,17 @@ import {
   CellRendererProps, 
   TableConfig
 } from './table';
-import Table from './table';
+import Table from './table.js';
 import { 
   vehicleTestData, 
   Vehicle,
 } from './testData/vehicleList';
-import { vehicleFluxorData } from './testData';
+import { vehicleFluxorData } from './testData.js';
 import { 
   taskTestData, 
   Task,
 } from './testData/taskList';
-import { FluxorData } from '../../renderEngine/fluxor/fluxorData';
+import { FluxorData } from '../../renderEngine/fluxor/fluxorData.js';
 import { taskFluxorData } from './TableDemoLayouts';
 
 // ============================================

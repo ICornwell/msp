@@ -1,7 +1,7 @@
 import DeepProxy from "proxy-deep";
 import { v4 as uuidv4 } from 'uuid';
-import { RePubSub, RePubSubMsg, ReSubscription } from "./ReEnginePubSub";
-import { ReSubscriptionHandler } from "../components/RePubSubHook";
+import { RePubSub, RePubSubMsg, ReSubscription } from "./ReEnginePubSub.js";
+import { ReSubscriptionHandler } from "../components/RePubSubHook.js";
 
 export type Notes = {
   hasNotes: boolean;
@@ -57,7 +57,7 @@ export function getSourceDataProxy(data: any, pubsub: RePubSub) {
     }
   }
 
-  const sourceData = new DeepProxy(data, {
+  const sourceData = new (DeepProxy as any)(data, {
     get(target, key, receiver) {
       const stringKey = key.toString();
       if (stringKey === '___isProxy') {

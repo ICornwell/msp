@@ -1,5 +1,5 @@
-import { FluxorData } from '../../../renderEngine/fluxor/fluxorData';
-import { AggregationType } from '../table';
+import { FluxorData } from '../../../renderEngine/fluxor/fluxorData.js';
+import { AggregationType } from '../table.js';
 export type VehicleType = 'car' | 'van' | 'truck' | 'motorcycle' | 'bus';
 export type VehicleUse = 'private' | 'business' | 'commercial' | 'fleet';
 export interface RatingFactor {

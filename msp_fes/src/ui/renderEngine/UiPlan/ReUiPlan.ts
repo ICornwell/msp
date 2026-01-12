@@ -1,6 +1,6 @@
 import { ReComponentBinder } from "../components/ReComponentProps"
-import { FluxorData } from "../fluxor/fluxorData";
-import { FluxorProps } from "../fluxor/fluxorProps"
+import { FluxorData } from "../fluxor/fluxorData.js";
+import { DataOf, FluxorProps } from "../fluxor/fluxorProps"
 
 // ============================================================================
 // Context Type - bundles all the type parameters for threading through builders
@@ -35,8 +35,8 @@ export type TDDTOf<C extends CNTX> = C extends CNTX<any, any, any, any, infer T>
 export type ContextOf<C extends CNTX> = {
   buildSettings: BSDDTOf<C>,
   renderSettings: RSDDTOf<C>,
-  rootData: RDDTOf<C>,
-  localData: LDDTOf<C>,
+  rootData: DataOf<RDDTOf<C>>,
+  localData: DataOf<LDDTOf<C>>,
   temporaryData: TDDTOf<C>,
 }
 
@@ -64,7 +64,7 @@ export type ReUiPlan = {
   sharedProps?: ReUiPlanElementShareableProps[];
 }
 
-export type ReUiPlanExpressionProp<C> = { executionPlan: any, expression: string | ((context: C) => any) }
+export type ReUiPlanExpressionProp<C> =  ((context: C) => any)
 
 export type ReUiPlanElementSetMember = {componentName?: string, options: ReUiPlanElement, containing? : ReUiPlanElementSet}
 

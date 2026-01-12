@@ -1,12 +1,12 @@
 import { ColumnsComponent } from '../../../components/containers/columns'
-import { LabelFrameComponent } from '../../../components/containers/labelframe'
-import { PresetBooleanComponent } from '../../../components/primatives/presets/PresetBoolean'
-import { PresetDateComponent } from '../../../components/primatives/presets/PresetDate'
-import { PresetMoneyComponent } from '../../../components/primatives/presets/PresetMoney'
-import { PresetNumberComponent } from '../../../components/primatives/presets/PresetNumber'
-import { PresetTextComponent } from '../../../components/primatives/presets/PresetText'
-import {Re} from '../../index'
-import { userInfoFluxorData } from './UserInfo'
+import { LabelFrameComponent } from '../../../components/containers/labelframe.js'
+import { PresetBooleanComponent } from '../../../components/primatives/presets/PresetBoolean.js'
+import { PresetDateComponent } from '../../../components/primatives/presets/PresetDate.js'
+import { PresetMoneyComponent } from '../../../components/primatives/presets/PresetMoney.js'
+import { PresetNumberComponent } from '../../../components/primatives/presets/PresetNumber.js'
+import { PresetTextComponent } from '../../../components/primatives/presets/PresetText.js'
+import {Re} from '../../index.js'
+import { userInfoFluxorData } from './UserInfo.js'
 
 
 export function UserInfoLayout() {
@@ -22,7 +22,7 @@ export function UserInfoLayout() {
             .withLabel('User Information')
           
             .endElement
-          .endDecoratorSet
+          .endDecoratorSet.withLabel('bob').withHideWhenRule(x=>x.localData.userName=='')
           .containingElementSet()
               .withSharedProps()
                 .withDisplayMode('editing')
@@ -36,7 +36,7 @@ export function UserInfoLayout() {
                   .withValueBinding((context) => context.localData.email)
                 .endElement
                   .showingItem.fromComponentElement(PresetMoneyComponent)
-                  .withLabel({executionPlan:'', expression: (context) => context.localData.userName + "'s Credit Limit" })
+                  .withLabel( (context) => context.localData.userName + "'s Credit Limit" )
                   .withComponentProps({})
                   .withValueBinding((context) => context.localData.creditLimit)
                 .endElement
@@ -59,7 +59,7 @@ export function UserInfoLayout() {
                   .withDisplayMode('readonly')
                 .endSharedProps
                 .showingItem.fromComponentElement(PresetMoneyComponent)
-                  .withLabel({executionPlan:'', expression: (context) => context.localData.userName + "'s Credit Limit" })
+                  .withLabel((context) => context.localData.userName + "'s Credit Limit" )
                   .withValueBinding((context) => context.localData.creditLimit)
                 .endElement
                 .showingItem.fromComponentElement(PresetBooleanComponent)
@@ -70,7 +70,7 @@ export function UserInfoLayout() {
                   .withValueBinding((context) => context.localData.userName)
                 .endElement
             .endSet
-        .endElement 
+        .endElement
     .endSet
     
     .BuildUiPlan({})

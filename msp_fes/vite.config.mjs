@@ -45,6 +45,7 @@ export default defineConfig({
     })
   ],
   build: {
+    target: 'es2022',
     sourcemap: true,
     minify: false,
     rollupOptions: {
@@ -52,6 +53,7 @@ export default defineConfig({
     }
   },
   esbuild: {
+    target: 'es2022',
     sourcemap: true,
     supported: {
       'top-level-await': true
@@ -72,10 +74,14 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['uiApi'],
-    include: ['react', 'react-dom'],
+    include: ['react', 'react-dom', '@mui/material', '@mui/system', '@mui/icons-material', '@mui/styled-engine', '@emotion/react', '@emotion/styled'],
     force: true,
     esbuildOptions: {
+      target: 'es2022',
       sourcemap: true,
+      supported: {
+      'top-level-await': true
+    },
       loader: {
         '.js': 'jsx',
         '.ts': 'ts'

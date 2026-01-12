@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
-import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanElementSetMember } from "../UiPlan/ReUiPlan";
-import { DataOf } from "../UiPlan/ReUiPlanBuilder";
-import { FluxorData } from "../fluxor/fluxorData";
+import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanElementSetMember } from "../UiPlan/ReUiPlan.js";
+import { DataOf } from "../UiPlan/ReUiPlanBuilder.js";
+import { FluxorData } from "../fluxor/fluxorData.js";
 import type { Notes } from "../data/uiDataProxy";
-import { ComponentWrapper } from "./ReComponentWrapper";
+import { ComponentWrapper } from "./ReComponentWrapper.js";
 
 export type ReComponentCommonProps = {
   hidden?: boolean;

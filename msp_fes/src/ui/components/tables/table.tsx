@@ -1,7 +1,7 @@
 
 import React, { PropsWithChildren, useMemo } from 'react';
 
-import { ComponentWrapper, createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper';
+import { ComponentWrapper, createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentCommonProps, ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
 
 import {
@@ -13,8 +13,8 @@ import {
   useReactTable,
   SortingState,
 } from '@tanstack/react-table'
-import { ReExtensionBuilder, ReBuilderBase, DataOf, CreateReUiPlanComponent, ElementBuilderQuartet, createElementBuilderQuartet, CNTX, ReUiPlanComponentBuilder } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
-import { ReUiPlanElement, ReUiPlanElementSetMember } from '../../renderEngine/UiPlan/ReUiPlan';
+import { ReExtensionBuilder, ReBuilderBase, DataOf, CreateReUiPlanComponent, ElementBuilderQuartet, createElementBuilderQuartet, CNTX, ReUiPlanComponentBuilder, LDDTOf } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
+import { ReUiPlanElement, ReUiPlanElementSetMember } from '../../renderEngine/UiPlan/ReUiPlan.js';
 // ============================================
 // Table Props
 // ============================================
@@ -28,13 +28,11 @@ export type TableProps<TData extends FluxorData<any> = FluxorData<any>> = {
 };
 
 // Import FluxorData type
-import { FluxorData } from '../../renderEngine/fluxor/fluxorData';
+import { FluxorData } from '../../renderEngine/fluxor/fluxorData.js';
 import { FluxorProps } from '../../renderEngine/fluxor/fluxorProps';
-import { data } from 'happy-dom/lib/PropertySymbol.js';
-import { Re } from '../../renderEngine';
-import { ComponentBuilderWithExt } from '../../renderEngine/UiPlan/ReUiPlanBuilder.extensions.generated';
 
-import { FluentSimple, FluentReturn, FluentSubBuilder, FluentExtension } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
+
+import { FluentSimple, FluentSubBuilder, FluentExtension } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
 
 // ============================================
 // Table Layout
@@ -194,7 +192,7 @@ export interface ColumnBuilder<C extends CNTX, RT> extends ReBuilderBase<RT> {
   // Type-safe column from property accessor - THE KEY API!
   // s => s.userName gives us both the key AND the value type
   column<K extends keyof DataOf<FluxorData<any>>>(
-    accessor: (data: DataOf<FluxorData<any>>) => DataOf<FluxorData<any>>[K]
+    accessor: (data: DataOf<LDDTOf<C>>) => DataOf<FluxorData<any>>[K]
   ): ColumnOptions<C, DataOf<FluxorData<any>>[K], RT>;
 
   // Computed column - accessor returns derived value
@@ -261,14 +259,14 @@ export interface ColumnOptions<C extends CNTX, TValue, RT> extends ReBuilderBase
 
   // Filter UI
   withFilterUI(component: React.ComponentType<FilterUIProps<TValue>>): ColumnOptions<C, TValue, RT>;
-  withCustomFilter(fn: (row: any, value: TValue, filterValue: any) => boolean): ColumnOptions<C, TValue, RT>;
+  withCustomFilter(fn: (row: DataOf<LDDTOf<C>>, value: TValue, filterValue: any) => boolean): ColumnOptions<C, TValue, RT>;
 
   // Footer
   withFooter(footer: string): ColumnOptions<C, TValue, RT>;
-  withFooterFn(fn: (ctx: any) => React.ReactNode): ColumnOptions<C, TValue, RT>;
+  withFooterFn(fn: (ctx: ColumnFooterContext<LDDTOf<C>, TValue>) => React.ReactNode): ColumnOptions<C, TValue, RT>;
 
   // Chain to next column or end
-  column(accessor: (data: any) => any): ColumnOptions<C, any, RT>;
+  column(accessor: (data: DataOf<LDDTOf<C>>) => any): ColumnOptions<C, TValue, RT>;
   computed<TNewValue>(id: string, accessor: (data: any) => TNewValue): ColumnOptions<C, TNewValue, RT>;
   columnGroup(id: string, header: string): ColumnGroupBuilder<C, RT>;
   forEach<TItem>(
@@ -280,8 +278,8 @@ export interface ColumnOptions<C extends CNTX, TValue, RT> extends ReBuilderBase
 
 // Column group builder for nested headers
 export interface ColumnGroupBuilder<C extends CNTX, RT> extends ReBuilderBase<RT> {
-  column(accessor: (data: any) => any): ColumnGroupColumnOptions<C, any, RT>;
-  computed<TValue>(id: string, accessor: (data: any) => TValue): ColumnGroupColumnOptions<C, TValue, RT>;
+  column(accessor: (data: DataOf<LDDTOf<C>>) => any): ColumnGroupColumnOptions<C, any, RT>;
+  computed<TValue>(id: string, accessor: (data: DataOf<LDDTOf<C>>) => TValue): ColumnGroupColumnOptions<C, TValue, RT>;
   endGroup: ColumnBuilder<C, RT>;
 }
 
@@ -319,15 +317,15 @@ export interface ColumnGroupColumnOptions<C extends CNTX, TValue, RT> extends Re
 
   // Filter UI
   withFilterUI(component: React.ComponentType<FilterUIProps<TValue>>): ColumnGroupColumnOptions<C, TValue, RT>;
-  withCustomFilter(fn: (row: any, value: TValue, filterValue: any) => boolean): ColumnGroupColumnOptions<C, TValue, RT>;
+  withCustomFilter(fn: (row: DataOf<LDDTOf<C>>, value: TValue, filterValue: any) => boolean): ColumnGroupColumnOptions<C, TValue, RT>;
 
   // Footer
   withFooter(footer: string): ColumnGroupColumnOptions<C, TValue, RT>;
-  withFooterFn(fn: (ctx: any) => React.ReactNode): ColumnGroupColumnOptions<C, TValue, RT>;
+  withFooterFn(fn: (ctx: ColumnFooterContext<LDDTOf<C>, TValue>) => React.ReactNode): ColumnGroupColumnOptions<C, TValue, RT>;
 
   // Chain to next column in group
-  column(accessor: (data: any) => any): ColumnGroupColumnOptions<C, any, RT>;
-  computed<TNewValue>(id: string, accessor: (data: any) => TNewValue): ColumnGroupColumnOptions<C, TNewValue, RT>;
+  column(accessor: (data: DataOf<LDDTOf<C>>) => any): ColumnGroupColumnOptions<C, any, RT>;
+  computed<TNewValue>(id: string, accessor: (data: DataOf<LDDTOf<C>>) => TNewValue): ColumnGroupColumnOptions<C, TNewValue, RT>;
 
   // End group and return to column builder
   endGroup: ColumnBuilder<C, RT>;
@@ -411,13 +409,13 @@ function getAccessorKey(accessor: (data: any) => any): string {
   return accessed[0] || 'unknown';
 }
 
-function createColumnBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
+function createColumnBuilder<C extends CNTX, RT>(
   returnTo: RT,
-  config: TableConfig<TData>,
+  config: TableConfig<LDDTOf<C>>,
   currentGroupId: string | null,
-  dataDescriptor: TData
+ // dataDescriptor: TData
 ): ColumnBuilder<C, RT> {
-  let currentColumn: TableColumnConfig<TData> | null = null;
+  let currentColumn: TableColumnConfig<LDDTOf<C>> | null = null;
 
   const finishCurrentColumn = () => {
     if (currentColumn) {
@@ -431,11 +429,10 @@ function createColumnBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
 
   // Creates the options object for a column - this gets returned after .column() or .computed()
   const createColumnOptions = <TValue,>(
-    col: TableColumnConfig<TData, TValue>,
-    dataDescriptor: TData
+    col: TableColumnConfig<LDDTOf<C>, TValue>
   ): ColumnOptions<C, TValue, RT> => {
     // Set currentColumn so finishCurrentColumn can push it
-    currentColumn = col as TableColumnConfig<TData>;
+    currentColumn = col as TableColumnConfig<LDDTOf<C>>;
 
     const options: ColumnOptions<C, TValue, RT> = {
       withHeader(header: string) {
@@ -543,40 +540,40 @@ function createColumnBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
       },
 
       // Chain to next column
-      column<K extends keyof DataOf<TData>>(accessor: (data: DataOf<TData>) => DataOf<TData>[K]) {
+      column<K extends keyof DataOf<LDDTOf<C>>>(accessor: (data: DataOf<LDDTOf<C>>) => DataOf<LDDTOf<C>>[K]) {
         finishCurrentColumn();
         const key = getAccessorKey(accessor);
-        const newCol: TableColumnConfig<TData, DataOf<TData>[K]> = {
+        const newCol: TableColumnConfig<LDDTOf<C>, DataOf<LDDTOf<C>>[K]> = {
           id: key,
           accessorKey: key as K,
           accessorFn: accessor,
         };
-        return createColumnOptions(newCol, dataDescriptor);
+        return createColumnOptions(newCol);
       },
 
-      computed<TNewValue>(id: string, accessor: (data: DataOf<TData>) => TNewValue) {
+      computed<TNewValue>(id: string, accessor: (data: DataOf<LDDTOf<C>>) => TNewValue) {
         finishCurrentColumn();
-        const newCol: TableColumnConfig<TData, TNewValue> = {
+        const newCol: TableColumnConfig<LDDTOf<C>, TNewValue> = {
           id,
           accessorFn: accessor,
         };
-        return createColumnOptions(newCol, dataDescriptor);
+        return createColumnOptions(newCol);
       },
 
       columnGroup(id: string, header: string) {
         finishCurrentColumn();
         config.columnGroups.push({ id, header, columns: [] });
-        return createColumnGroupBuilder<C, TData, RT>(returnTo, config, id, dataDescriptor);
+        return createColumnGroupBuilder<C, RT>(returnTo, config, id);
       },
 
       forEach<TItem>(
-        sourceAccessor: (ctx: ForEachContext<TData>) => TItem[],
+        sourceAccessor: (ctx: ForEachContext<LDDTOf<C>  >) => TItem[],
         columnFactory: (item: TItem, index: number, builder: ColumnBuilder<C, RT>) => void
       ) {
         finishCurrentColumn();
         (config as any).forEachFactories = (config as any).forEachFactories || [];
         (config as any).forEachFactories.push({ sourceAccessor, columnFactory });
-        return createColumnBuilder<C, TData, RT>(returnTo, config, currentGroupId, dataDescriptor);
+        return createColumnBuilder<C, RT>(returnTo, config, currentGroupId);
       },
 
       get endColumns() {
@@ -599,15 +596,14 @@ function createColumnBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
     // Store array to collect renderer element builders
     const rendererBuilders: any[] = [];
     options.withRenderer = {
-      fromComponent: (component: React.ComponentType<CellRendererProps<TData, TValue>>) => {
+      fromComponent: (component: React.ComponentType<CellRendererProps<LDDTOf<C>, TValue>>) => {
         col.cellRenderer = component;
         return options;
       },
       ...createElementBuilderQuartet<C, ColumnOptions<C, TValue, RT>>(
         options,
         rendererBuilders,
-        undefined,
-        dataDescriptor
+        undefined
       )
     };
     
@@ -619,40 +615,40 @@ function createColumnBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
 
   // The initial builder - before any column is started
   const builder: ColumnBuilder<C, RT> = {
-    column<K extends keyof DataOf<TData>>(accessor: (data: DataOf<TData>) => DataOf<TData>[K]) {
+    column<K extends keyof DataOf<LDDTOf<C>>>(accessor: (data: DataOf<LDDTOf<C>>) => DataOf<LDDTOf<C>>[K]) {
       finishCurrentColumn();
       const key = getAccessorKey(accessor);
-      const newCol: TableColumnConfig<TData, DataOf<TData>[K]> = {
+      const newCol: TableColumnConfig<LDDTOf<C>, DataOf<LDDTOf<C>>[K]> = {
         id: key,
         accessorKey: key as K,
         accessorFn: accessor,
       };
-      return createColumnOptions(newCol, dataDescriptor);
+      return createColumnOptions(newCol);
     },
 
-    computed<TValue>(id: string, accessor: (data: DataOf<TData>) => TValue) {
+    computed<TValue>(id: string, accessor: (data: DataOf<LDDTOf<C>>) => TValue) {
       finishCurrentColumn();
-      const newCol: TableColumnConfig<TData, TValue> = {
+      const newCol: TableColumnConfig<LDDTOf<C>, TValue> = {
         id,
         accessorFn: accessor,
       };
-      return createColumnOptions(newCol, dataDescriptor);
+      return createColumnOptions(newCol);
     },
 
     columnGroup(id: string, header: string) {
       finishCurrentColumn();
       config.columnGroups.push({ id, header, columns: [] });
-      return createColumnGroupBuilder<C, TData, RT>(returnTo, config, id, dataDescriptor);
+      return createColumnGroupBuilder<C, RT>(returnTo, config, id);
     },
 
     forEach<TItem>(
-      sourceAccessor: (ctx: ForEachContext<TData>) => TItem[],
+      sourceAccessor: (ctx: ForEachContext<LDDTOf<C>>) => TItem[],
       columnFactory: (item: TItem, index: number, builder: ColumnBuilder<C, RT>) => void
     ) {
       finishCurrentColumn();
       (config as any).forEachFactories = (config as any).forEachFactories || [];
       (config as any).forEachFactories.push({ sourceAccessor, columnFactory });
-      return createColumnBuilder<C, TData, RT>(returnTo, config, currentGroupId, dataDescriptor);
+      return createColumnBuilder<C, RT>(returnTo, config, currentGroupId);
     },
 
     get endColumns() {
@@ -674,14 +670,14 @@ function createColumnBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
   return builder;
 }
 
-function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
+function createColumnGroupBuilder<C extends CNTX, RT>(
   returnTo: RT,
-  config: TableConfig<TData>,
+  config: TableConfig<LDDTOf<C>>,
   groupId: string,
-  dataDescriptor: TData
+//  dataDescriptor: TData
 ): ColumnGroupBuilder<C, RT> {
   const group = config.columnGroups.find(g => g.id === groupId)!;
-  let currentColumn: TableColumnConfig<TData> | null = null;
+  let currentColumn: TableColumnConfig<LDDTOf<C>> | null = null;
 
   const finishCurrentColumn = () => {
     if (currentColumn) {
@@ -693,10 +689,10 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
   };
 
   const createGroupColumnOptions = <TValue,>(
-    col: TableColumnConfig<TData, TValue>,
-    dataDescriptor: TData
+    col: TableColumnConfig<LDDTOf<C>, TValue>,
+    // dataDescriptor: TData
   ): ColumnGroupColumnOptions<C, TValue, RT> => {
-    currentColumn = col as TableColumnConfig<TData>;
+    currentColumn = col as TableColumnConfig<LDDTOf<C>>;
 
     const options: ColumnGroupColumnOptions<C, TValue, RT> = {
       withHeader(header: string): ColumnGroupColumnOptions<C, TValue, RT> {
@@ -757,10 +753,10 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
       },
       
       // Use the quartet pattern for withRenderer
-      withRenderer: { fromComponent: (component: React.ComponentType<CellRendererProps<TData, TValue>>) => {
+      withRenderer: { fromComponent: (component: React.ComponentType<CellRendererProps<LDDTOf<C>, TValue>>) => {
         col.cellRenderer = component;
         return options;
-      }} as { fromComponent: (component: React.ComponentType<CellRendererProps<TData, TValue>>) => ColumnGroupColumnOptions<C, TValue, RT>}
+      }} as { fromComponent: (component: React.ComponentType<CellRendererProps<LDDTOf<C>, TValue>>) => ColumnGroupColumnOptions<C, TValue, RT>}
          & ReBuilderBase<ColumnGroupColumnOptions<C, TValue, RT>>
          & ElementBuilderQuartet<C, ColumnGroupColumnOptions<C, TValue, RT>>,
       
@@ -778,7 +774,7 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
         col.filterUI = component;
         return options;
       },
-      withCustomFilter(fn: (row: DataOf<TData>, value: TValue, filterValue: any) => boolean) {
+      withCustomFilter(fn: (row: DataOf<LDDTOf<C>>, value: TValue, filterValue: any) => boolean) {
         col.filterFn = fn;
         return options;
       },
@@ -786,35 +782,35 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
         col.footer = footer;
         return options;
       },
-      withFooterFn(fn: (ctx: ColumnFooterContext<TData, TValue>) => React.ReactNode) {
+      withFooterFn(fn: (ctx: ColumnFooterContext<LDDTOf<C>, TValue>) => React.ReactNode) {
         col.footerFn = fn;
         return options;
       },
 
       // Chain to next column in group
-      column<K extends keyof DataOf<TData>>(accessor: (data: DataOf<TData>) => DataOf<TData>[K]) {
+      column<K extends keyof DataOf<LDDTOf<C>>>(accessor: (data: DataOf<LDDTOf<C>>) => DataOf<LDDTOf<C>>[K]) {
         finishCurrentColumn();
         const key = getAccessorKey(accessor);
-        const newCol: TableColumnConfig<TData, DataOf<TData>[K]> = {
+        const newCol: TableColumnConfig<LDDTOf<C>, DataOf<LDDTOf<C>>[K]> = {
           id: key,
           accessorKey: key as K,
           accessorFn: accessor,
         };
-        return createGroupColumnOptions(newCol, dataDescriptor);
+        return createGroupColumnOptions(newCol);
       },
 
-      computed<TNewValue>(id: string, accessor: (data: DataOf<TData>) => TNewValue) {
+      computed<TNewValue>(id: string, accessor: (data: DataOf<LDDTOf<C>>) => TNewValue) {
         finishCurrentColumn();
-        const newCol: TableColumnConfig<TData, TNewValue> = {
+        const newCol: TableColumnConfig<LDDTOf<C>, TNewValue> = {
           id,
           accessorFn: accessor,
         };
-        return createGroupColumnOptions(newCol, dataDescriptor);
+        return createGroupColumnOptions(newCol);
       },
 
       get endGroup() {
         finishCurrentColumn();
-        return createColumnBuilder<C, TData, RT>(returnTo, config, null, dataDescriptor);
+        return createColumnBuilder<C, RT>(returnTo, config, null);
       },
 
       end() {
@@ -831,7 +827,7 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
     // Initialize withRenderer with the quartet pattern
     const rendererBuilders: any[] = [];
     options.withRenderer = {
-      fromComponent: (component: React.ComponentType<CellRendererProps<TData, TValue>>): ColumnGroupColumnOptions<C, TValue, RT> => {
+      fromComponent: (component: React.ComponentType<CellRendererProps<LDDTOf<C>, TValue>>): ColumnGroupColumnOptions<C, TValue, RT> => {
         col.cellRenderer = component;
         return options;
       },
@@ -850,29 +846,29 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
   };
 
   return {
-    column<K extends keyof DataOf<TData>>(accessor: (data: DataOf<TData>) => DataOf<TData>[K]): ColumnGroupColumnOptions<C, DataOf<TData>[K], RT> {
+    column<K extends keyof DataOf<LDDTOf<C>>>(accessor: (data: DataOf<LDDTOf<C>>) => DataOf<LDDTOf<C>>[K]): ColumnGroupColumnOptions<C, DataOf<LDDTOf<C>>[K], RT> {
       finishCurrentColumn();
       const key = getAccessorKey(accessor);
-      const newCol: TableColumnConfig<TData, DataOf<TData>[K]> = {
+      const newCol: TableColumnConfig<LDDTOf<C>, DataOf<LDDTOf<C>>[K]> = {
         id: key,
         accessorKey: key as K,
         accessorFn: accessor,
       };
-      return createGroupColumnOptions(newCol, dataDescriptor);
+      return createGroupColumnOptions(newCol);
     },
 
-    computed<TValue>(id: string, accessor: (data: DataOf<TData>) => TValue): ColumnGroupColumnOptions<C, TValue, RT> {
+    computed<TValue>(id: string, accessor: (data: DataOf<LDDTOf<C>>) => TValue): ColumnGroupColumnOptions<C, TValue, RT> {
       finishCurrentColumn();
-      const newCol: TableColumnConfig<TData, TValue> = {
+      const newCol: TableColumnConfig<LDDTOf<C>, TValue> = {
         id,
         accessorFn: accessor,
       };
-      return createGroupColumnOptions(newCol, dataDescriptor);
+      return createGroupColumnOptions(newCol);
     },
 
     get endGroup(): ColumnBuilder<C, RT> {
       finishCurrentColumn();
-      return createColumnBuilder<C, TData, RT>(returnTo, config, null, dataDescriptor);
+      return createColumnBuilder<C, RT>(returnTo, config, null);
     },
 
     end(): RT {
@@ -890,17 +886,16 @@ function createColumnGroupBuilder<C extends CNTX, TData extends FluxorData<any>,
 // ============================================
 // Filter Builder Implementation
 // ============================================
-function createFilterBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
+function createFilterBuilder<C extends CNTX, RT>(
   returnTo: RT,
-  config: TableConfig<TData>,
-  dataDescriptor: TData
+  config: TableConfig<LDDTOf<C>>
 ): FilterBuilder<C, RT> {
   return {
-    forColumn<K extends keyof DataOf<TData>>(accessor: (data: DataOf<TData>) => DataOf<TData>[K]) {
+    forColumn<K extends keyof DataOf<LDDTOf<C>>>(accessor: (data: DataOf<LDDTOf<C>>) => DataOf<LDDTOf<C>>[K]) {
       const key = getAccessorKey(accessor);
       const col = config.columns.find(c => c.id === key);
 
-      const filterOptions: FilterColumnOptions<C, DataOf<TData>[K], RT> = {
+      const filterOptions: FilterColumnOptions<C, DataOf<LDDTOf<C>>[K], RT> = {
         withUI(component) {
           if (col) col.filterUI = component;
           return this;
@@ -911,8 +906,8 @@ function createFilterBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
           return this;
         },
 
-        forColumn<K2 extends keyof DataOf<TData>>(accessor2: (data: DataOf<TData>) => DataOf<TData>[K2]) {
-          return createFilterBuilder<C, TData, RT>(returnTo, config, dataDescriptor).forColumn(accessor2);
+        forColumn<K2 extends keyof DataOf<LDDTOf<C>>>(accessor2: (data: DataOf<LDDTOf<C>>) => DataOf<LDDTOf<C>>[K2]) {
+          return createFilterBuilder<C, RT>(returnTo, config).forColumn(accessor2);
         },
 
         get endFiltering() {
@@ -954,10 +949,10 @@ function createFilterBuilder<C extends CNTX, TData extends FluxorData<any>, RT>(
 // Table Extension Factory
 // ============================================
 export function 
-extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT, builder: any, dataDescriptor: TData, _contextPlaceHolder: C): TableExtension<C, RT> {
-  // TData is inferred from the dataDescriptor argument
+extendWithTable<C extends CNTX, RT>(returnTo: RT, builder: any, _contextPlaceHolder: C): TableExtension<C, RT> {
+ 
   //type LocalBuilder = ReUiPlanComponentBuilder<C, ComponentWrapper<any>,RT> & TableExtension<C, RT>;
-  const config: TableConfig<TData> = {
+  const config: TableConfig<LDDTOf<C>> = {
     orientation: 'rows-horizontal',
     columns: [],
     columnGroups: [],
@@ -981,12 +976,12 @@ extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT,
     },
 
     withColumns(): FluentSubBuilder<ColumnBuilder<C, FluentSimple>> {
-      return createColumnBuilder<C, TData, FluentSimple>(
-        builder as FluentSimple, config, null, dataDescriptor as TData
+      return createColumnBuilder<C, FluentSimple>(
+        builder as FluentSimple, config, null //, dataDescriptor as TData
       ) as unknown as FluentSubBuilder<ColumnBuilder<C, FluentSimple>>;
     },
 
-    withColumnsFromSchema(selector?: (data: DataOf<TData>) => (keyof DataOf<TData>)[]): FluentSimple {
+    withColumnsFromSchema(selector?: (data: DataOf<LDDTOf<C>>) => (keyof DataOf<LDDTOf<C>>)[]): FluentSimple {
       (config as any).useSchemaColumns = true;
       (config as any).schemaSelector = selector;
       return builder as (FluentSimple);
@@ -994,8 +989,8 @@ extendWithTable<C extends CNTX, RT, TData extends FluxorData<any>>(returnTo: RT,
 
     withFiltering(): FluentSubBuilder<FilterBuilder<C, FluentSimple>> {
       config.enableFiltering = true;
-      return createFilterBuilder<C, TData, FluentSimple>(
-        builder as FluentSimple, config, dataDescriptor
+      return createFilterBuilder<C, FluentSimple>(
+        builder as FluentSimple, config //, dataDescriptor
       ) as unknown as FluentSubBuilder<FilterBuilder<C, FluentSimple>>;
     },
 
@@ -1142,10 +1137,10 @@ function Table<TData extends FluxorData<any> = FluxorData<any>>(
       </>
       );
     } else if (renderer.isComponentWrapper) {
-      const element = (CreateReUiPlanComponent(
+      const element = (((CreateReUiPlanComponent(
         null, renderer
       ) as unknown as ReUiPlanComponentBuilder<any, any, any>)
-        .withValueBinding(data => col.accessorFn ? col.accessorFn(data.localData) : data.localData?.[col.accessorKey])
+        .withValueBinding(data => col.accessorFn ? col.accessorFn(data.localData) : data.localData?.[col.accessorKey])) as any)
         .build({})
       return (
       <>

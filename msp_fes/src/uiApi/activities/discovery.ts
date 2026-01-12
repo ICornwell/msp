@@ -24,6 +24,8 @@ discoveryActivitySet.use({
     context: '*',
     funcs:  async (payload, serviceResult: ServiceActivityResultBuilder) => {
         console.log(`Discovery registration received: ${JSON.stringify(payload)}`);
+        uiFeatureRegistry.registerFeatures(payload);
+        serviceResult.updateResult({ message: 'Feature registered successfully' })
         return serviceResult
     }
 });

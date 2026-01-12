@@ -1,15 +1,13 @@
 import { useEffect } from 'react';
-import { AppShell } from './components/AppShell';
-import { EventProvider } from './contexts/EventContext';
-import { UserSessionProvider } from './contexts/UserSessionContext';
-import { CustomThemeProvider } from './components/CustomThemeProvider';
+import { AppShell } from './components/AppShell.js';
+import { UiContentProvider } from './contexts/UiContentContext.js';
+import { UserSessionProvider } from './contexts/UserSessionContext.js';
+import { CustomThemeProvider } from './components/CustomThemeProvider.js';
 
 import defaultTheme from './theme.js';
 import { styled } from '@mui/material';
-import { getAvailableFeatures } from './comms/serverRequests.js';
 
-
-
+import { AppUiFeatures } from './appUiFeatures.js';
 
 const App: React.FC = () => {
 
@@ -21,9 +19,7 @@ const App: React.FC = () => {
       .register('/service-worker.js')
       .then((registration) => {
         console.log('Service Worker registered successfully:', registration.scope);
-        getAvailableFeatures().then((features) => {
-          console.log('Discovered UI Features:', features);
-        });
+       
       })
       .catch((error) => {
         console.error('Service Worker registration failed:', error);
@@ -35,9 +31,10 @@ const App: React.FC = () => {
  
       <CustomThemeProvider theme={defaultTheme}>
         <UserSessionProvider>
-          <EventProvider>
+          <UiContentProvider>
+            <AppUiFeatures />
             <AppShell />
-          </EventProvider>
+          </UiContentProvider>
         </UserSessionProvider>
       </CustomThemeProvider>
  

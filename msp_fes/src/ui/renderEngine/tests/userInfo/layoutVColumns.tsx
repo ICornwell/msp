@@ -1,15 +1,15 @@
-import {Re} from '../../index'
+import {Re} from '../../index.js'
 
-import { userInfoFluxorData } from './UserInfo'
-import { PresetTextComponent } from '../../../components/primatives/presets/PresetText'
-import { PresetMoneyComponent } from '../../../components/primatives/presets/PresetMoney'
+import { userInfoFluxorData } from './UserInfo.js'
+import { PresetTextComponent } from '../../../components/primatives/presets/PresetText.js'
+import { PresetMoneyComponent } from '../../../components/primatives/presets/PresetMoney.js'
 // import { PresetNumberComponent } from '../../../components/primatives/presets/PresetNumber'
 // import { PresetBooleanComponent } from '../../../components/primatives/presets/PresetBoolean'
 import { ColumnsComponent } from '../../../components/containers/columns'
 // import { LabelFrameComponent } from '../../../components/containers/labelframe'
-import { TableComponent } from '../../../components/tables/table'
+import { TableComponent } from '../../../components/tables/table.js'
 // import { PresetDateComponent } from '../../../components/primatives/presets/PresetDate'
-import { vehicleFluxorData } from '../../../components/tables/testData'
+import { vehicleFluxorData } from '../../../components/tables/testData.js'
 
 export function UserInfoLayout1() {
    const userInfoLauout = Re.makeUiPlan('UserInfo', '1.0')
@@ -77,6 +77,7 @@ export function UserInfoLayout3() {
               .showingItem.fromComponentElement(PresetTextComponent)
                   .withValueBinding((context) => context.localData.userName)
                   .withHelperText('Please enter your full name')
+                  
                 .endElement
                
             .endSet
@@ -106,7 +107,7 @@ export function UserInfoLayout() {
     
       
       .withColumns()
-        .column(s => s.registration).pinned('left')
+        .column(s => s.registration).pinned('left').pinned('right').withHeader('Reg')
         .column(s => s.type)
         
         // Column group: Vehicle Info

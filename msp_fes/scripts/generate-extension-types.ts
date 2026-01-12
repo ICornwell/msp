@@ -13,16 +13,15 @@
  *   tsx scripts/generate-extension-types.ts
  */
 
-import { Project, SourceFile, InterfaceDeclaration, MethodSignature, TypeNode } from 'ts-morph';
+import { Project, InterfaceDeclaration } from 'ts-morph';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { readFileSync } from 'fs';
+import e from 'express';
 
 interface ExtensionMethodInfo {
   name: string;
   returnType: string;
-  returnsElementSetBuilder: boolean;
-  returnsComponentBuilder: boolean;
   returnsFluentSimple: boolean;
   subBuilderType: string | null;  // Extracted type from FluentSubBuilder<Type>
   returnsOther: boolean;
@@ -32,8 +31,7 @@ interface ExtensionInfo {
   name: string;
   sourceFile: string;
   methods: ExtensionMethodInfo[];
-  subBuilderTypes: Set<string>;  // All unique sub-builder types found
-  signatureMethod: string;  // First unique method, used to identify this extension
+  subBuilderTypes: string[];  // All unique sub-builder types found
   componentName: string;  // e.g., "TableComponent" for TableExtension
 }
 
@@ -43,83 +41,73 @@ interface Config {
   outputFile: string;
 }
 
-class ExtensionTypeGenerator {
-  private project: Project;
-  private config: Config;
-  private extensions: ExtensionInfo[] = [];
-
-  constructor(configPath: string) {
-    this.project = new Project({
-      tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json'),
-    });
-    
-    // Read config file synchronously
-    const configContent = JSON.parse(readFileSync(configPath, 'utf-8'));
-    this.config = configContent;
-  }
+function ExtensionTypeGenerator(configPath: string): { generate: () => Promise<void> } {
+  const project = new Project({ tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json') })
+  const config: Config = JSON.parse(readFileSync(configPath, 'utf-8'));
 
   /**
    * Main entry point - scan files and generate types
    */
-  async generate(): Promise<void> {
-    console.log('🔍 Scanning extension files...\n');
-    
-    for (const filePath of this.config.extensionFiles) {
-      await this.scanFile(filePath);
-    }
 
-    if (this.extensions.length === 0) {
+  async function generate(): Promise<void> {
+    console.log('🔍 Scanning extension files...\n');
+
+    const extensions: ExtensionInfo[] = config.extensionFiles.flatMap(filePath => scanFile(filePath));
+
+
+    if (extensions.length === 0) {
       console.log('⚠️  No extensions found');
-      await this.writeEmptyFile();
+      await writeEmptyFile();
       return;
     }
 
-    console.log(`\n✓ Found ${this.extensions.length} extension(s)\n`);
-    this.extensions.forEach(ext => {
+    console.log(`\n✓ Found ${extensions.length} extension(s)\n`);
+    extensions.forEach(ext => {
       console.log(`  • ${ext.name}`);
-      console.log(`    Signature method: ${ext.signatureMethod}`);
       console.log(`    Methods: ${ext.methods.map(m => m.name).join(', ')}`);
     });
 
-    await this.writeGeneratedFile();
-    console.log(`\n✅ Generated: ${this.config.outputFile}`);
+    await writeGeneratedFile(extensions);
+    console.log(`\n✅ Generated: ${config.outputFile}`);
   }
 
   /**
    * Scan a single file for extension interfaces
    */
-  private async scanFile(filePath: string): Promise<void> {
+  function scanFile(filePath: string): ExtensionInfo[] {
     console.log(`  Scanning: ${filePath}`);
-    const sourceFile = this.project.addSourceFileAtPath(filePath);
+    const sourceFile = project.addSourceFileAtPath(filePath);
     const interfaces = sourceFile.getInterfaces();
     console.log(`    Found ${interfaces.length} interface(s)`);
 
-    for (const iface of interfaces) {
+    const exts = interfaces.reduce((ac, iface) => {
       const ifaceName = iface.getName();
       console.log(`    Checking: ${ifaceName}`);
-      if (this.isExtensionInterface(iface)) {
+      if (isExtensionInterface(iface)) {
         console.log(`      ✓ Is extension!`);
-        const info = this.extractExtensionInfo(iface, filePath);
+        const info = extractExtensionInfo(iface, filePath);
         if (info) {
           console.log(`      Extracted extension info for: ${info.name}`);
-          this.extensions.push(info);
+          ac.push(info);
         }
       }
-    }
+      return ac;
+    }, [] as ExtensionInfo[]);
+    return exts
   }
 
   /**
    * Check if an interface is an extension interface
    */
-  private isExtensionInterface(iface: InterfaceDeclaration): boolean {
+  function isExtensionInterface(iface: InterfaceDeclaration): boolean {
     const name = iface.getName();
-    
+
     // Must end with "Extension"
     if (!name.endsWith('Extension')) return false;
 
     // Must extend ReExtensionBuilder
     const heritage = iface.getExtends();
-    const extendsReExtensionBuilder = heritage.some(h => 
+    const extendsReExtensionBuilder = heritage.some(h =>
       h.getText().includes('ReExtensionBuilder')
     );
 
@@ -129,73 +117,36 @@ class ExtensionTypeGenerator {
   /**
    * Extract method information from an extension interface
    */
-  private extractExtensionInfo(iface: InterfaceDeclaration, sourceFile: string): ExtensionInfo | null {
+  function extractExtensionInfo(iface: InterfaceDeclaration, sourceFile: string): ExtensionInfo | null {
     const name = iface.getName();
-    const methods: ExtensionMethodInfo[] = [];
-    const subBuilderTypes = new Set<string>();
 
     // Get all method signatures
-    for (const method of iface.getMethods()) {
-      const methodName = method.getName();
-      const returnTypeNode = method.getReturnTypeNode();
-      const returnType = returnTypeNode?.getText() || 'unknown';
+    const methods: ExtensionMethodInfo[] = [
+      ...iface.getMethods().map((method) => {
+        const iName = method.getName();
+        const returnTypeNode = method.getReturnTypeNode();
+        const iReturnType = returnTypeNode?.getText() || 'unknown';
 
-      const subBuilderType = this.extractSubBuilderType(returnType);
-      if (subBuilderType) {
-        subBuilderTypes.add(subBuilderType);
-      }
+        const methodInfo = processFluentOperation(iReturnType, iName);
+        console.log(`      Method: ${iName} -> ${iReturnType}${methodInfo.subBuilderType ? ` [SubBuilder: ${methodInfo.subBuilderType}]` : ''}`);
+        return methodInfo;
+      }),
+      ...iface.getProperties().map((prop) => {
 
-      const methodInfo: ExtensionMethodInfo = {
-        name: methodName,
-        returnType,
-        returnsElementSetBuilder: this.returnsElementSetBuilder(returnType),
-        returnsComponentBuilder: this.returnsComponentBuilder(returnType),
-        returnsFluentSimple: this.returnsFluentSimple(returnType),
-        subBuilderType,
-        returnsOther: !this.returnsElementSetBuilder(returnType) && 
-                      !this.returnsComponentBuilder(returnType) &&
-                      !this.returnsFluentSimple(returnType) &&
-                      !subBuilderType
-      };
+        const iName = prop.getName();
+        const iReturnType = prop.getType().getText();
 
-      methods.push(methodInfo);
-      console.log(`      Method: ${methodName} -> ${returnType}${subBuilderType ? ` [SubBuilder: ${subBuilderType}]` : ''}`);
-    }
+        const methodInfo = processFluentOperation(iReturnType, iName);
+        console.log(`      Method: ${iName} -> ${iReturnType}${methodInfo.subBuilderType ? ` [SubBuilder: ${methodInfo.subBuilderType}]` : ''}`);
+        return methodInfo
+      })
+    ];
 
-    // Also check property signatures (like containingSingle: Builder)
-    for (const prop of iface.getProperties()) {
-      const propName = prop.getName();
-      const propType = prop.getType().getText();
-      
-      const subBuilderType = this.extractSubBuilderType(propType);
-      if (subBuilderType) {
-        subBuilderTypes.add(subBuilderType);
-      }
-
-      const methodInfo: ExtensionMethodInfo = {
-        name: propName,
-        returnType: propType,
-        returnsElementSetBuilder: this.returnsElementSetBuilder(propType),
-        returnsComponentBuilder: this.returnsComponentBuilder(propType),
-        returnsFluentSimple: this.returnsFluentSimple(propType),
-        subBuilderType,
-        returnsOther: !this.returnsElementSetBuilder(propType) && 
-                      !this.returnsComponentBuilder(propType) &&
-                      !this.returnsFluentSimple(propType) &&
-                      !subBuilderType
-      };
-
-      methods.push(methodInfo);
-      console.log(`      Property: ${propName} -> ${propType}${subBuilderType ? ` [SubBuilder: ${subBuilderType}]` : ''}`);
-    }
-
-    // Find a signature method (first method that's unique to this extension)
-    const signatureMethod = methods.length > 0 ? methods[0].name : '';
-
+    const subBuilderTypes = methods.filter(m => m.subBuilderType).map(m => m.subBuilderType!);
     // Extract component name from extension name (e.g., "TableExtension" -> "TableComponent")
     const componentName = name.replace(/Extension$/, 'Component');
 
-    console.log(`      Total methods/properties: ${methods.length}, signature: ${signatureMethod}`);
+    console.log(`      Total methods/properties: ${methods.length}`);
     console.log(`      SubBuilder types found: ${Array.from(subBuilderTypes).join(', ') || 'none'}`);
     console.log(`      Component name: ${componentName}`);
 
@@ -209,62 +160,41 @@ class ExtensionTypeGenerator {
       sourceFile,
       methods,
       subBuilderTypes,
-      signatureMethod,
       componentName
     };
-  }
+    // Helper to process a method/property and extract info
+    function processFluentOperation(iReturnType: string, iName: string) {
+      const returnsFluentSimple = iReturnType.includes('FluentSimple');
+      const subBuilderType = iReturnType.match(/FluentSubBuilder<(\w+)</)?.[1] ?? null;
 
-  /**
-   * Check if return type is ReUiPlanElementSetBuilder
-   */
-  private returnsElementSetBuilder(returnType: string): boolean {
-    return returnType.includes('ReUiPlanElementSetBuilder');
-  }
-
-  /**
-   * Check if return type is ReUiPlanComponentBuilder
-   */
-  private returnsComponentBuilder(returnType: string): boolean {
-    return returnType.includes('ReUiPlanComponentBuilder');
-  }
-
-  /**
-   * Check if return type is FluentSimple
-   */
-  private returnsFluentSimple(returnType: string): boolean {
-    return returnType.includes('FluentSimple');
-  }
-
-  /**
-   * Extract sub-builder type from FluentSubBuilder<Type<...>>
-   * Returns the Type name if found, null otherwise
-   * 
-   * Example: "FluentSubBuilder<ColumnBuilder<C, FluentSimple>>" -> "ColumnBuilder"
-   */
-  private extractSubBuilderType(returnType: string): string | null {
-    // Match FluentSubBuilder<TypeName<...>> pattern
-    const match = returnType.match(/FluentSubBuilder<(\w+)</);
-    return match ? match[1] : null;
+      return {
+        name: iName,
+        returnType: iReturnType,
+        returnsFluentSimple: returnsFluentSimple,
+        subBuilderType,
+        returnsOther: !returnsFluentSimple && !subBuilderType
+      };
+    }
   }
 
   /**
    * Generate the ExtensionOf type code
    */
-  private generateExtensionOfType(): string {
-    const extensionNames = this.extensions.map(e => e.name).join(', ');
-    
+  const generateExtensionOfType = (extensions: ExtensionInfo[]): string => {
+    const extensionNames = extensions.map(e => e.name).join(', ');
+
     // Build discriminated union for each extension
     const extensionBranches: string[] = [];
     let itemCount = 0;
-    
-    for (const ext of this.extensions) {
-      const hasSubBuilders = ext.subBuilderTypes.size > 0;
+
+    for (const ext of extensions) {
+      const hasSubBuilders = ext.subBuilderTypes.length > 0;
       const hasFluentSimple = ext.methods.some(m => m.returnsFluentSimple);
-      
+
       extensionBranches.push(`  // Handle ${ext.name}`);
       extensionBranches.push(` ${itemCount == 0 ? ' ' : ':'}  ${ext.name}<any, any> extends E`);
       extensionBranches.push(`    ? { [K in keyof E]:`);
-      
+
       // If this extension uses FluentSimple/FluentSubBuilder pattern (like TableExtension)
       if (hasFluentSimple || hasSubBuilders) {
         extensionBranches.push(`        // calculate the new return type`);
@@ -275,7 +205,7 @@ class ExtensionTypeGenerator {
         extensionBranches.push(`            ? ((...args: A) => ReUiPlanComponentBuilder<C, T, RT> & ${ext.name}<C, RT>)`);
         extensionBranches.push(`            // not simple pattern #1, check for pattern #2`);
         extensionBranches.push(`            : R extends FluentSubBuilder<infer BLD2> // check for sub-builder pattern #2`);
-        
+
         // Generate conditional for each sub-builder type
         if (hasSubBuilders) {
           const subBuilderArray = Array.from(ext.subBuilderTypes);
@@ -283,36 +213,29 @@ class ExtensionTypeGenerator {
             const subBuilder = subBuilderArray[i];
             const isFirst = i === 0;
             const isLast = i === subBuilderArray.length - 1;
-            
+
             extensionBranches.push(`              ${isFirst ? '?' : ':'} BLD2 extends ${subBuilder}<C, any>`);
-            extensionBranches.push(`                ? ((...args: A) => ${subBuilder}<C, ComponentBuilderWithExt<C, typeof ${ext.componentName}, RT>>)`);
+            extensionBranches.push(`                ? ((...args: A) => ${subBuilder}<C, ComponentBuilderWithExt<C, T, RT>>)`);
           }
           // Close the BLD2 extends chain
-          extensionBranches.push(`                : never`);
+          extensionBranches.push(`                : E[K]`);
         } else {
-          extensionBranches.push(`              ? never`);
+          extensionBranches.push(`              ? E[K]`);
         }
-        
-        extensionBranches.push(`              : never // not pattern #2 either`);
+        extensionBranches.push(`              : E[K] // not pattern #2 either`);
         extensionBranches.push(`          // we are not a function`);
         extensionBranches.push(`          : E[K]`);
         extensionBranches.push(`      }`);
       }
       // Otherwise use the simpler pattern (for container extensions)
       else {
-        extensionBranches.push(`        E[K] extends ((...args: infer A) => infer R)`);
-        extensionBranches.push(`          ? R extends ${ext.name} <any, any>`);
-        extensionBranches.push(`            ? (...args: A) => ${ext.name}<C, BLD & ExtensionOf<C, T, BLD, RT>>`);
-        extensionBranches.push(`            : R extends ReBuilderBase<any>`);
-        extensionBranches.push(`              ? E[K]`);
-        extensionBranches.push(`              : (...args: A) => BLD & ExtensionOf<C, T, BLD, RT>`);
-        extensionBranches.push(`          : E[K]`);
+        extensionBranches.push(`       // nothing to do for ${ext.name}  - this shouldn't happen! `);
+        extensionBranches.push(`          E[K]`);
         extensionBranches.push(`      }`);
       }
-
       itemCount++;
     }
-    
+
     // Build the complete type
     let code = `/**
  * Maps extension methods to properly substitute CNTX and RT types.
@@ -323,51 +246,44 @@ export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BL
     ? E extends object
       ? ${extensionBranches.join('\n     ')}
       : E  // Fallback: not a recognized extension, return as-is
-    : never
+    : E
   : never;
 `;
-    
     return code;
   }
 
   /**
    * Write the generated file
    */
-  private async writeGeneratedFile(): Promise<void> {
+  async function writeGeneratedFile(extensions: ExtensionInfo[]): Promise<void> {
     const timestamp = new Date().toISOString();
-    const extensionList = this.extensions.map(e => 
-      `//   - ${e.name} (${e.signatureMethod})`
-      
+    const extensionList = extensions.map(e =>
+      `//   - ${e.name}`
     ).join('\n');
 
     // Build imports - group by source file
     const importsByFile = new Map<string, Set<string>>();
-    
-    for (const ext of this.extensions) {
-      const relPath = path.relative(path.dirname(this.config.outputFile), ext.sourceFile)
+
+    for (const ext of extensions) {
+      const relPath = path.relative(path.dirname(config.outputFile), ext.sourceFile)
         .replace(/\\/g, '/')
         .replace(/\.tsx?$/, '.tsx');
-      
+
       if (!importsByFile.has(relPath)) {
         importsByFile.set(relPath, new Set());
       }
-      
+
       const imports = importsByFile.get(relPath)!;
       imports.add(ext.name);
-      
+
       // Add sub-builder types
       for (const subBuilder of ext.subBuilderTypes) {
         imports.add(subBuilder);
       }
-      
-      // Add component name (e.g., TableComponent)
-      if (ext.subBuilderTypes.size > 0) {
-        imports.add(ext.componentName);
-      }
     }
 
     const extensionImports = Array.from(importsByFile.entries()).map(([filePath, imports]) =>
-      `import {${Array.from(imports).join(', ')}} from '${filePath}';`
+      `import {${Array.from(imports).join(', ')}} from '${filePath.replace(/\.tsx?$/, '.js')}';`
     ).join('\n');
 
     const content = `// ===================================================================
@@ -398,7 +314,7 @@ import type {
 
 ${extensionImports}
 
-${this.generateExtensionOfType()}
+${generateExtensionOfType(extensions)}
 
 export type ReturnTypeOf<R> =
   R extends ReBuilderBase<any> ? (R extends ReBuilderBase<infer RT> ? RT : never) : never;
@@ -409,13 +325,13 @@ export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<a
   ReUiPlanComponentBuilder<C, T, RT> & ExtensionOf<C, T, ReUiPlanComponentBuilder<C, T, RT>, RT>;
 `;
 
-    await fs.writeFile(this.config.outputFile, content, 'utf-8');
+    await fs.writeFile(config.outputFile, content, 'utf-8');
   }
 
   /**
    * Write an empty file when no extensions found
    */
-  private async writeEmptyFile(): Promise<void> {
+  const writeEmptyFile = async (): Promise<void> => {
     const content = `// ===================================================================
 // AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
 // ===================================================================
@@ -429,8 +345,10 @@ export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BL
 export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<any, any>, RT> = RT;
 `;
 
-    await fs.writeFile(this.config.outputFile, content, 'utf-8');
+    await fs.writeFile(config.outputFile, content, 'utf-8');
   }
+
+  return { generate }
 }
 
 // ===================================================================
@@ -439,11 +357,11 @@ export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<a
 
 async function main() {
   const configPath = path.join(import.meta.dirname || __dirname, 'extension-types.config.json');
-  
+
   console.log('Extension Type Generator\n');
   console.log(`Config: ${configPath}\n`);
 
-  const generator = new ExtensionTypeGenerator(configPath);
+  const generator = ExtensionTypeGenerator(configPath);
   await generator.generate();
 }
 

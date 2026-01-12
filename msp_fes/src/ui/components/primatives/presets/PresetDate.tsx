@@ -1,7 +1,7 @@
-import UniversalInput from "../core/UniversalInput";
+import UniversalInput from "../core/UniversalInput.js";
 import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps';
-import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper';
-import { createDateStrategy, DateStrategyOptions } from "../core";
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper.js';
+import { createDateStrategy, DateStrategyOptions } from "../core/index.js";
 
 export type PresetDateInputProps = DateStrategyOptions;
 

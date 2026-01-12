@@ -1,5 +1,5 @@
 import { useState } from 'react'
-
+import Button from '@mui/material/Button'
 import viteLogo from '/vite.svg'
 import './app.css'
 
@@ -16,9 +16,9 @@ export function App() {
       </div>
       <h1>Vite + Preact</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        <Button variant="contained" onClick={() => setCount((count) => count + 1)}>
           count is {count}
-        </button>
+        </Button>
         <p>
           Edit <code>src/app.tsx</code> and save to test HMR
         </p>

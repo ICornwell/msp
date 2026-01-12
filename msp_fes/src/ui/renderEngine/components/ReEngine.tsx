@@ -1,15 +1,15 @@
 import React from 'react'
 
-import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementCommmonProps, ReUiPlanElementShareableProps, ReUiPlanElementSetMember } from '../UiPlan/ReUiPlan'; // Adjust the path './types' to the correct location of ReUiPlan
-import { ReProvider } from '../contexts/ReEngineContext';
+import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementCommmonProps, ReUiPlanElementShareableProps, ReUiPlanElementSetMember } from '../UiPlan/ReUiPlan.js'; // Adjust the path './types' to the correct location of ReUiPlan
+import { ReProvider } from '../contexts/ReEngineContext.js';
 import ReComponentWrapper, { ComponentWrapper } from './ReComponentWrapper';
 
 import { FluxorProps } from '../fluxor/fluxorProps';
-import { getSourceDataProxy, Notes } from '../data/uiDataProxy';
+import { getSourceDataProxy, Notes } from '../data/uiDataProxy.js';
 import PubSub, { RePubSubMsg } from '../data/ReEnginePubSub'
-import { resolvePath } from '../data/pathResolver';
+import { resolvePath } from '../data/pathResolver.js';
 
-import { ReSubscriptionHandler, useRePubSub } from './RePubSubHook';
+import { ReSubscriptionHandler, useRePubSub } from './RePubSubHook.js';
 
 export type ReEngineProps = {
   UiPlan: ReUiPlan,

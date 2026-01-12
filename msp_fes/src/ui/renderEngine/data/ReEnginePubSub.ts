@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
-import { ReSubscriptionHandler } from '../components/RePubSubHook';
-import { Notes } from './uiDataProxy';
+import { ReSubscriptionHandler } from '../components/RePubSubHook.js';
+import { Notes } from './uiDataProxy.js';
 
 export type RePubSub = {
   subscribe: (subscription: ReSubscription) => string;

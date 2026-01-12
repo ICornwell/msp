@@ -1,15 +1,15 @@
 import { ComponentType, ReactNode, useState } from 'react';
-import { useEngineComponentsContext } from '../contexts/ReComponentsContext';
+import { useEngineComponentsContext } from '../contexts/ReComponentsContext.js';
 import FormHelperText from '@mui/material/FormHelperText';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentProps';
 import { makeStyles } from 'tss-react/mui';
 import { Theme } from '@mui/material/styles';
-import { RePubSubMsg } from '../data/ReEnginePubSub';
-import { ReSubscriptionHandler } from './RePubSubHook';
-import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan';
-import { ReNullExtension } from '../UiPlan/ReUiPlanBuilder';
-import { FluxorData } from '../fluxor/fluxorData';
+import { RePubSubMsg } from '../data/ReEnginePubSub.js';
+import { ReSubscriptionHandler } from './RePubSubHook.js';
+import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan.js';
+import { ReNullExtension } from '../UiPlan/ReUiPlanBuilder.js';
+import { FluxorData } from '../fluxor/fluxorData.js';
 
 const useStyles = makeStyles()((theme: Theme) => ({
   label: {
@@ -204,7 +204,7 @@ export interface ComponentWrapper<P, E = ReNullExtension> {
   extensions?: E;
   // Factory function to create runtime extension instance
   // dataDescriptor is generic to allow type inference from the actual value
-  extensionFactory?: <C extends CNTX, RT, BLD, TData extends FluxorData<any>>(returnTo: RT, builder: BLD, dataDescriptor: TData, contextPlaceHolder: C) => E;
+  extensionFactory?: <C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => E;
 }
 
 /**
@@ -273,7 +273,7 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
 export function createExtendedComponent<P extends Object, E>(
   component: ComponentType<P>,
   displayName?: string,
-  extensionFactory?: <C extends CNTX, RT, BLD, TData extends FluxorData<any>>(returnTo: RT, builder: BLD, dataDescriptor: TData, _contextPlaceHolder: C) => E
+  extensionFactory?: <C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, _contextPlaceHolder: C) => E
 ): ComponentWrapper<P, E> {
   return {
     isComponentWrapper: true,
@@ -282,6 +282,6 @@ export function createExtendedComponent<P extends Object, E>(
     acceptsChildren: true,
     isManagedForm: false,
     displayMode: 'all',
-    extensionFactory: extensionFactory as<C extends CNTX, RT, BLD, TData extends FluxorData<any>>(returnTo: RT, builder: BLD, dataDescriptor: TData, contextPlaceHolder: C) => E
+    extensionFactory: extensionFactory as<C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => E
   };
 }

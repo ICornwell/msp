@@ -1,6 +1,4 @@
 import type { UiFeatureManifestSection} from "msp_common"
-import { httpRequest } from "msp_common"
-import Config from "../config.js"
 
 
 const uiFeatureList: UiFeatureManifestSection[] = [
@@ -15,9 +13,11 @@ const uiFeatureList: UiFeatureManifestSection[] = [
   }
 ]
 
-function registerFeature(feature: UiFeatureManifestSection) {
-  uiFeatureList.push(feature)
-  httpRequest.post(`${Config.uiBffUrl}/api/manifest/register`, feature)
+function registerFeatures(features: UiFeatureManifestSection[]) {
+  for (const feature of features) {
+    uiFeatureList.push(feature)
+  }
+  
 }
 
 function getFeatures() {
@@ -25,6 +25,6 @@ function getFeatures() {
 }
 
 export const uiFeatureRegistry = {
-  registerFeature,
+  registerFeatures,
   getFeatures
 }

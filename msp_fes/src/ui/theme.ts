@@ -3,12 +3,19 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   spacing: 6,
   palette: {
+    grey: {"700": "#4532f3ff", "300": "#1283f7ff"},
     primary: {
+      dark: '#005a9e',
       main: '#0078d4',
+      contrastText: '#2e359bff',
+      
     },
     secondary: {
+      dark: '#1a5fb4',
       main: '#2b88d8',
+      contrastText: '#d7d7d7',
     },
+
     background: {
       default: '#e7e7e7',
       paper: '#e0e0e0',

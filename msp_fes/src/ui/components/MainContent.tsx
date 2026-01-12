@@ -1,9 +1,9 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { Tab } from '../types.ts';
+import { Tab } from '../contexts/uiEventTypes.ts';
 
-import { ReEngine } from '../renderEngine/components/ReEngine.tsx';
-import { UserInfoLayout } from '../renderEngine/tests/userInfo/layoutVColumns.tsx';
+import { ReEngine } from '../renderEngine/components/ReEngine.js';
+import { UserInfoLayout } from '../renderEngine/tests/userInfo/layoutVColumns.js';
 
 import { userData } from '../renderEngine/tests/userInfo/userData.ts';
 import { sampleVehicles } from '../components/tables/testData.ts';

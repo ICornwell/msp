@@ -1,12 +1,12 @@
 // eslint-disable-next-line no-unused-vars
 
-import UniversalInput from "../core/UniversalInput";
+import UniversalInput from "../core/UniversalInput.js";
 
 import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps';
-import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper';
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper.js';
 
-import { createNumberStrategy } from '../core/strategies/numberStrategy';
-import { expressionParsers } from "../core";
+import { createNumberStrategy } from '../core/strategies/numberStrategy.js';
+import { expressionParsers } from "../core/index.js";
 
 export type PresetNumberInputProps = {
   decimalPlaces?: number;

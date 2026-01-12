@@ -11,7 +11,7 @@ import {
   Flight as FlightIcon
 } from '@mui/icons-material';
 
-import { MenuItem as AppMenuItem } from '../types';
+import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes';
 
 interface MenuProps {
   nameTag: string;

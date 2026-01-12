@@ -1,4 +1,4 @@
-import { AggregationType } from '../table';
+import { AggregationType } from '../table.js';
 // Aggregation metadata for pricing fields
 export const pricingFieldAggregationMeta = {
     fieldId: AggregationType.None,

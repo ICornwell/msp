@@ -2,10 +2,10 @@
 import React, { PropsWithChildren } from 'react';
 
 import { Container, Stack } from "@mui/material";
-import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper';
+import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements';
-import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
+import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
 
 export type ColumnProps = {
   fillDirection: 'across' | 'down';
@@ -72,5 +72,5 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
 export const ColumnsComponent = createExtendedComponent<ColumnProps, ElementSetContainerExtension<CNTX, any>>(
   Columns, 
   'Columns',
-  (returnTo, builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(returnTo, builder, dataDescriptor, contextPlaceHolder)  
+  extendWithElementSetContainer
 );

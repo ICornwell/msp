@@ -1,11 +1,11 @@
 
 import React, { PropsWithChildren } from 'react';
 
-import { createContainerComponent, createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper';
+import { createContainerComponent, createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentCommonProps } from '../../renderEngine/components/ReComponentProps';
 import { styled, SvgIcon } from '@mui/material';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements';
-import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder';
+import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
 
 export type LabelFrameProps = {
   icon?: React.ElementType;
@@ -83,5 +83,5 @@ export default function LabelFrame(props: LabelFrameProps & PropsWithChildren & 
 export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, ElementSetContainerExtension<CNTX, any>>(
   LabelFrame, 
   'LabelFrame',
-  (retutnTo, builder, dataDescriptor, contextPlaceHolder) => extendWithElementSetContainer(retutnTo, builder, dataDescriptor, contextPlaceHolder)
+   extendWithElementSetContainer
 );

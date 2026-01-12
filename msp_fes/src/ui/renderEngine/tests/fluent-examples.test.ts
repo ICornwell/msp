@@ -1,6 +1,6 @@
-import { ReGroupComponent } from '../components/ReGroup.tsx'
+import { ReGroupComponent } from '../components/ReGroup.js'
 import { Re } from '../index.ts'
-import { PresetTextComponent } from '../../components/primatives/presets/PresetText'
+import { PresetTextComponent } from '../../components/primatives/presets/PresetText.js'
 
 //import { ReUiPlanElementSetBuilder } from '../UiPlan/ReUiPlanBuilder.ts'
 //import { TestClassA, TestClassB } from './fluxSchema.test.ts'
@@ -31,7 +31,7 @@ describe('ReUiPlanBuilder', () => {
               
               .showingItem.fromFluxorElement()
                 .withLabel('Child Component 1')
-                .withValueBinding((context)=>context.localData.userName)
+                .withValueBinding((context)=>context)
               .endElement
               .usingFluxor(userPreferencesFluxorData, (context)=>context.localData.preferences)
               .withSharedProps()

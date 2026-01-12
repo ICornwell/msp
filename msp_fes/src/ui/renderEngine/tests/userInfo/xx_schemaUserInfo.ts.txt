@@ -1,4 +1,4 @@
-import { fluxorSchemaBase, fluxAttribute, fluxObject } from '../../fluxor/fluxSchemaBase'
+import { fluxorSchemaBase, fluxAttribute, fluxObject } from '../../fluxor/fluxSchemaBase.js'
 
 
 @fluxObject('testUserInfo')

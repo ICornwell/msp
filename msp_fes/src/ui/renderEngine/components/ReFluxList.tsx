@@ -1,6 +1,6 @@
 import React from 'react';
 import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentProps';
-import { createContainerComponent } from './ReComponentWrapper';
+import { createContainerComponent } from './ReComponentWrapper.js';
 
 export type ReFluxListProps = {
   hidden?: boolean;

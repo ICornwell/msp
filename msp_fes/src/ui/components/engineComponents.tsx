@@ -1,17 +1,17 @@
-import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext';
+import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext.js';
 
 import { ColumnsComponent } from './containers/columns';
-import { LabelFrameComponent } from './containers/labelframe';
+import { LabelFrameComponent } from './containers/labelframe.js';
 
-import { ReGroupComponent } from '../renderEngine/components/ReGroup';
-import { ReFluxListComponent } from '../renderEngine/components/ReFluxList';
+import { ReGroupComponent } from '../renderEngine/components/ReGroup.js';
+import { ReFluxListComponent } from '../renderEngine/components/ReFluxList.js';
 
-import { TableComponent } from './tables/table';
-import { PresetBooleanComponent } from './primatives/presets/PresetBoolean';
-import { PresetNumberComponent } from './primatives/presets/PresetNumber';
-import { PresetMoneyComponent } from './primatives/presets/PresetMoney';
-import { PresetTextComponent } from './primatives/presets/PresetText';
-import { PresetDateComponent } from './primatives/presets/PresetDate';
+import { TableComponent } from './tables/table.js';
+import { PresetBooleanComponent } from './primatives/presets/PresetBoolean.js';
+import { PresetNumberComponent } from './primatives/presets/PresetNumber.js';
+import { PresetMoneyComponent } from './primatives/presets/PresetMoney.js';
+import { PresetTextComponent } from './primatives/presets/PresetText.js';
+import { PresetDateComponent } from './primatives/presets/PresetDate.js';
 
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();

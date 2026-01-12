@@ -12,10 +12,10 @@ import {
   RangeStyle,
   CellRendererProps 
 } from './table';
-import { Vehicle } from './testData/vehicleList';
-import { Task } from './testData/taskList';
-import { testLayerPricingContext } from './testData/layerPricing';
-import { FluxorData } from '../../renderEngine/fluxor/fluxorData';
+import { Vehicle } from './testData/vehicleList.js';
+import { Task } from './testData/taskList.js';
+import { testLayerPricingContext } from './testData/layerPricing.js';
+import { FluxorData } from '../../renderEngine/fluxor/fluxorData.js';
 
 // ============================================
 // Example 1: Basic Vehicle Table

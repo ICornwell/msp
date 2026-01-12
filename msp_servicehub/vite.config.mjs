@@ -15,10 +15,10 @@ export default defineConfig({
     mix.default({ handler: './uiApiProxyHandler.ts' }),
 
     federation({
-      filename: 'remoteEntry.js',
+      filename: 'servicehub_remoteEntry.js',
       name: 'remote',
       exposes:{
-        'AppCore': './src/uiElements/features/appCore/appCore.tsx',
+        './AppCore': './src/uiElements/features/appCore/appCore.tsx',
       },
       shared: { ...sharedDeps }
     }),
@@ -48,15 +48,16 @@ export default defineConfig({
     })
   ],
   build: {
+    target: 'es2022',
     sourcemap: true,
     minify: false,
     rollupOptions: {
-      external: id => id.startsWith('uiApi/') || id.startsWith('dist_uiApi/')
+      external: id => id.startsWith('api/') || id.startsWith('distApi/')
     }
   },
   esbuild: {
     sourcemap: true,
-
+    target: 'es2022',
     supported: {
       'top-level-await': true
     }
@@ -76,13 +77,14 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['uiApi'],
-    include: ['react', 'react-dom'],
+    include: ['react', 'react-dom', '@mui/material', '@mui/system', '@mui/icons-material', '@mui/styled-engine', '@emotion/react', '@emotion/styled'],
     force: true,
     esbuildOptions: {
+      target: 'es2022',
       sourcemap: true,
       loader: {
         '.js': 'jsx',
-        '.ts': 'tsx'
+        '.ts': 'ts'
       }
     }
   },
@@ -92,6 +94,6 @@ export default defineConfig({
     hmr: false,
     cors: false,
     port: Ports.core.serviceHubMF,
-    open: true,
+    open: false,
   }
 })
