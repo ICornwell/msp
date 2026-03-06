@@ -146,7 +146,7 @@ export function addDomainObjectRelationTo<TO extends DomainObject,
 }
 function addNamedRelations<SO extends DomainObject,
   N extends string,
-  TO extends DomainObject>(sourceObject: SO, targetObject: TO, name: N, cascadeDeletes: boolean)
+  TO extends DomainObject>(sourceObject: SO, targetObject: TO, name: N, _cascadeDeletes: boolean)
   : { target: DOWithNewToRels<TO, N, NameOfDomainObject<SO>>, source: DOWithNewFromRels<SO, N, NameOfDomainObject<TO>> } {
    let toArr = targetObject._allowedRelationsFromNames as any;
   let fromArr = sourceObject._allowedRelationsToNames as any;

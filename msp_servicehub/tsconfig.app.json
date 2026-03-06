@@ -29,5 +29,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src/ui", "handler.ts", "uiApiProxy.ts", "src/config.ts"],
+  "include": ["src/ui", "uiApiProxyHandler.ts", "uiApiProxy.ts", "src/config.ts"],
 }

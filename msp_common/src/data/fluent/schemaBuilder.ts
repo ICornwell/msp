@@ -16,7 +16,7 @@ export interface SchemaBuilder<D extends SchemaType, IS extends Schema<any, any>
   inheritsFrom: <IS2 extends Schema<any, any>>(parentSchema: IS2) => SchemaBuilder<D, IS extends undefined ? IS2 : Schema<IS,IS2>>;
   withProperty: <PT, PK extends SchemaPropertyName = any>(
     name: PK
-  ) => PropertyBuilder<PT, PK, SchemaBuilder<D & { [P in PK]: PT }, IS>, IS>
+  ) => PropertyBuilder<any, PK, SchemaBuilder<D & { [P in PK]: PT }, IS>, IS>
   buildSchema: () => Schema<D, IS>;
 }
 

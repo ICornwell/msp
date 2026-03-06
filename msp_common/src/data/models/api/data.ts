@@ -26,9 +26,9 @@ export type DataObject = {
 }
 
 export type InheritedPropertiesOf<T extends Schema<any, any>> =
-  T extends Schema<infer D, undefined>
+  T extends Schema<any, undefined>
   ? {}  // Base case: no inheritsFromSchema, return empty
-  : T extends Schema<infer D, infer IS>
+  : T extends Schema<any, infer IS>
   ? IS extends Schema<infer ID, any>
   ? JOIN<ID, InheritedPropertiesOf<IS>> // Recurse on parent schema
   : {}  // Fallback: shouldn't reach here
@@ -58,6 +58,7 @@ export type SchemaProperty<T> = {
   dictionaryId: versionedResourceId;
   infoType: SchemaPropertyInfoType;
   defaultLabel?: string;
+  type? : T
 }
 
 export type SchemaPropertiesFor<D> = {
@@ -86,10 +87,10 @@ export type SchemaOfDomainObject<DO extends DomainObject> =
 export type RelsTypes = {};
 
 type RelsFromNames<DO extends DomainObject> =
-  DO extends DomainObject<infer N, any, any, infer RF> ? { [rk in keyof RF]: (RF[rk] extends never ? never : RF[rk]) } : never;
+  DO extends DomainObject<any, any, any, infer RF> ? { [rk in keyof RF]: (RF[rk] extends never ? never : RF[rk]) } : never;
 
 type RelsToNames<DO extends DomainObject> =
-  DO extends DomainObject<infer N, any, infer RT, any> ? { [rk in keyof RT]: (RT[rk] extends never ? never : RT[rk]) } : never;
+  DO extends DomainObject<any, any, infer RT, any> ? { [rk in keyof RT]: (RT[rk] extends never ? never : RT[rk]) } : never;
 
 export type DOWithNewToRels<DO extends DomainObject, N extends string, O extends string> =
   DomainObject<
@@ -144,75 +145,6 @@ export type DomainObject<N extends string = string, S extends Schema<any, any> =
 
 export type RelsFromDO<DO extends DomainObject> = DO extends DomainObject<any, any, any, infer RF> ? RF : never;
 export type RelsToDO<DO extends DomainObject> = DO extends DomainObject<any, any, infer RT, any> ? RT : never;
-
-type BaseObject = {
-  id: string;
-}
-
-type BasicAccountData = {
-  accountNumber: number;
-}
-
-type AccountData = {
-  name: string;
-  isOpen: boolean;
-}
-function fromSchema<T>(): T {
-  return {} as T;
-}
-
-const sch1: Schema<BasicAccountData, Schema<BaseObject>> = {
-  vid: { id: "schema-001", version: "1.0" },
-  name: "BasicAccountSchema",
-  domain: { id: "domain-001", version: "1.0" },
-  product: { id: "product-001", version: "1.0" },
-  properties: {
-    "id": {
-      name: "id",
-      dictionaryId: { id: "dict-id", version: "1.0" },
-      infoType: "Text",
-      defaultLabel: "Identifier"
-    },
-    "accountNumber": {
-      name: "accountNumber",
-      dictionaryId: { id: "dict-acc-num", version: "1.0" },
-      infoType: "Text",
-      defaultLabel: "Account Number"
-    },
-    /* "otherProp" will show a type error, as it does not exist in BasicAccountData or BaseObject
-      "otherProp": {
-          name: "otherProp",
-          dictionaryId: { id: "dict-other-prop", version: "1.0" },
-          infoType: "Text",
-          defaultLabel: "Other Property"
-      }
-    */
-  }
-}
-
-const sch2: Schema<AccountData, typeof sch1> = {
-  vid: { id: "schema-001", version: "1.0" },
-  name: "AccountSchema",
-  domain: { id: "domain-001", version: "1.0" },
-  product: { id: "product-001", version: "1.0" },
-
-  properties: {
-    "name": {
-      name: "name",
-      dictionaryId: { id: "dict-name", version: "1.0" },
-      infoType: "Text",
-      defaultLabel: "Name"
-    },
-    "isOpen": {
-      name: "isOpen",
-      dictionaryId: { id: "dict-name", version: "1.0" },
-      infoType: "Boolean",
-      defaultLabel: "Is Open"
-    }
-  }
-};
-
-
 
 export type PropertiesOf<T extends Schema<any, any>> =
   InheritedPropertiesOf<T> & (T extends Schema<infer D, any> ? Partial<D> : never);

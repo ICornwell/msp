@@ -31,5 +31,5 @@
     "noUncheckedSideEffectImports": true,
     
   },
-  "include": ["./src/api/**/*.js", "./src/api/**/*.ts", "./src/api/config.ts", "../msp_datahub/src/api/services/informationRegistry.ts"]
+  "include": ["./src/api/**/*.js", "./src/api/**/*.ts", "./src/api/config.ts"]
 }

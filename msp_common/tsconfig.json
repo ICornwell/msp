@@ -27,5 +27,6 @@
     "noUncheckedSideEffectImports": true,
   
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["**/*.test.*"]
 }

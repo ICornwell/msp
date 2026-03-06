@@ -1,4 +1,4 @@
-import { isMatch, Matcher } from "./isMatch.js";
+import { isMatch, highestVersionMatches, Matcher } from "./isMatch.js";
 
 export type ServiceActivityExec = (payload: any, serviceResult: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
 
@@ -7,7 +7,8 @@ export type ServiceActivityList = ServiceActivityExec[] | ServiceActivityExec;
 export type ServiceActivity = {
     activityName: Matcher;
     namespace: Matcher;
-    version: Matcher;
+    version: string;
+    matchingVersionRange: string
     context: Matcher
     funcs: ServiceActivityExec | ServiceActivityExec[];
 }
@@ -94,6 +95,7 @@ export function addServiceActivityToSet(set: ServiceActivity[], activity: Servic
             namespace: activity.namespace,
             activityName: activity.activityName,
             version: activity.version,
+            matchingVersionRange: activity.matchingVersionRange,
             context: activity.context,
             funcs: f
         }))));
@@ -102,6 +104,7 @@ export function addServiceActivityToSet(set: ServiceActivity[], activity: Servic
             namespace: activity.namespace,
             activityName: activity.activityName,
             version: activity.version,
+            matchingVersionRange: activity.matchingVersionRange,
             context: activity.context,
             funcs: activity.funcs
         });
@@ -142,9 +145,11 @@ export function activitySet(): ActivitySet {
 
         async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder) {
             const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
-                && isMatch(activityName, handler.activityName)
-                && isMatch(version, handler.version));
-            for (const activity of matchingActivities) {
+                && isMatch(activityName, handler.activityName));
+
+            const highestVersionActivities = highestVersionMatches(matchingActivities, version,
+                 (x: ServiceActivity) => `${x.namespace}:${x.activityName}`, (x: ServiceActivity) => x.version);
+            for (const activity of highestVersionActivities) {
                 for (const func of Array.isArray(activity.funcs) ? activity.funcs : [activity.funcs]) {
                     await func(payload, resultBuilder);
                     if (resultBuilder.currentResult().updatedPayload) {

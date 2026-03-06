@@ -17,6 +17,7 @@ export interface ViewElement<
 }
 
 export interface View<VT extends Flatten<any> = any>  {
+    targetDataStore?: string;
     name: string;
     version: string;
     configSet: string;

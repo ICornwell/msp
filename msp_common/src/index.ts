@@ -10,7 +10,7 @@ export {Ports} from './ports.js';
 
 export {SharedConfig, Config, ProductConfig} from './sharedconfig.js';
 
-export type { UiFeatureManifestSection, ManifestCommon, Manifest } from './manifests/index.js';
+export type { UiFeatureManifestSection, InformationManifestSection, ManifestCommon, Manifest } from './manifests/index.js';
 
 export { ManifestBuilder, makeManifest } from './manifests/manifestBuilder.js';
 
@@ -47,3 +47,5 @@ export * from './configuredCommon.js'
 
 // Re-export ALS and JWT utilities
 export * from './als/index.js';
+
+export * from './data/fluent/index.js';

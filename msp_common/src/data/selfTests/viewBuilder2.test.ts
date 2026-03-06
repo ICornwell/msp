@@ -135,7 +135,6 @@ describe('Declarative View Builder', () => {
 
     const accView = simpleViewContext.build();
 
-    type SimpleViewType = typeof accView.dataType;
 
     // Extract the data type
    // type SimpleViewData = typeof simpleViewContext.data;
