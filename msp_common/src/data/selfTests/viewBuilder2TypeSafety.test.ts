@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { view } from '../fluent/viewBuilder.js';
-import { schema } from '../fluent/schemaBuilder.js';
+import { createView } from '../fluent/viewBuilder.js';
+import { createSchema } from '../fluent/schemaBuilder.js';
 import { domainObject } from '../fluent/objectBuilder.js';
 import { relationsBuilder } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder - Type Safety', () => {
   it('should provide type-safe sub-element names', () => {
     // Define schemas
-    const accountSchema = schema('account')
+    const accountSchema = createSchema('account')
       .withId('account', '1.0')
       .withProperty('accountId')
         .forType<string>()
@@ -17,7 +17,7 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const personSchema = schema('person')
+    const personSchema = createSchema('person')
       .withId('person', '1.0')
       .withProperty('name')
         .forType<string>()
@@ -27,7 +27,7 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const orderSchema = schema('order')
+    const orderSchema = createSchema('order')
       .withId('order', '1.0')
       .withProperty('orderId')
         .forType<string>()
@@ -37,7 +37,7 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const itemSchema = schema('item')
+    const itemSchema = createSchema('item')
       .withId('item', '1.0')
       .withProperty('itemId')
         .forType<string>()
@@ -70,7 +70,7 @@ describe('Declarative View Builder - Type Safety', () => {
 
 
     // Build view - TypeScript will enforce that only 'person' or 'order' are valid
-    const testViewB = view('test-view')
+    const testViewB = createView('test-view')
       .withVersion('1.0')
       .withConfigSet('main')
       .withRootKey('accountId')
@@ -113,7 +113,7 @@ describe('Declarative View Builder - Type Safety', () => {
   });
 
   it('should work with deeply nested structures', () => {
-    const level1Schema = schema('level1')
+    const level1Schema = createSchema('level1')
       .withId('level1', '1.0')
       .withProperty('id1')
         .forType<string>()
@@ -123,7 +123,7 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const level2Schema = schema('level2')
+    const level2Schema = createSchema('level2')
       .withId('level2', '1.0')
       .withProperty('id2')
         .forType<string>()
@@ -133,7 +133,7 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const level3Schema = schema('level3')
+    const level3Schema = createSchema('level3')
       .withId('level3', '1.0')
       .withProperty('id3')
         .forType<string>()
@@ -143,7 +143,7 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const level4Schema = schema('level4')
+    const level4Schema = createSchema('level4')
       .withId('level4', '1.0')
       .withProperty('id4')
         .forType<string>()
@@ -169,7 +169,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .withId('l4-123', '1.0')
       .buildDomainObject(); 
 
-    const testview = view('deep-view')
+    const testview = createView('deep-view')
       .withVersion('1.0')
       .withConfigSet('main')
       .withRootKey('id1')

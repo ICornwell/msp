@@ -17,7 +17,17 @@
 		},
 		{
 			"path": "msp_datahub"
+		},
+		{
+			"path": "module-federation-vite"
+		},
+		{
+			"path": "msp_ui_common"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"typescript.tsdk": "/home/ian/js/msp/.yarn/sdks/typescript/lib",
+		"typescript.enablePromptUseWorkspaceTsdk": true,
+		"js/ts.tsdk.path": "/home/ian/js/msp/.yarn/sdks/typescript/lib"
+	}
 }

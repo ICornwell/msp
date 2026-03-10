@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { PropertiesOf } from '../models/api/data.js';
-import { schema } from '../fluent/schemaBuilder.js';
+import { createSchema } from '../fluent/schemaBuilder.js';
 
 
 describe('Type Inference Tests', () => {
   it('should demonstrate type inference at various levels', () => {
     // Define schemas
-    const personSchema = schema('person')
+    const personSchema = createSchema('person')
       .withId('person', '1.0')
       .withProperty('name')
       .forType<string>()
@@ -16,7 +16,7 @@ describe('Type Inference Tests', () => {
       .endProperty()
       .buildSchema();
 
-    const addressSchema = schema('address')
+    const addressSchema = createSchema('address')
       .withId('address', '1.0')
       .withProperty('street')
       .forType<string>()
@@ -31,7 +31,7 @@ describe('Type Inference Tests', () => {
       .withDefaultLabel('City')
       .endProperty()
       .buildSchema();
-    const phoneSchema = schema('phone')
+    const phoneSchema = createSchema('phone')
       .withId('phone', '1.0')
       .withProperty('number')
       .forType<string>()

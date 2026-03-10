@@ -7,7 +7,12 @@
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "paths": {
+      "msp_common": ["../msp_common/src/index.ts"],
+      "msp_fes/uiLib": ["../msp_fes/src/uiLib/index.ts"],
+      "msp_fes/uiLib/renderEngine": ["../msp_fes/src/uiLib/renderEngine/index.ts"],
       "react": ["./node_modules/react"],
       "react-dom": ["./node_modules/react-dom"]
     },
@@ -28,5 +33,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-    "include": ["src/ui", "handler.ts", "uiApiProxy.ts"],
+    "include": ["src"],
 }

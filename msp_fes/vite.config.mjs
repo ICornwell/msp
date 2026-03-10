@@ -1,22 +1,21 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import { federation } from '@module-federation/vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 
-import mix from 'vite-plugin-mix'
-
 import { sharedDeps, Ports } from 'msp_common'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     svgr({ svgrOptions: {} }),
-    mix.default({ handler: './uiApiProxyHandler.ts' }),
 
     federation({
       name: 'host',
-      filename: 'remoteEntry.js',
       shared: { ...sharedDeps }
     }),
     react({
@@ -60,28 +59,18 @@ export default defineConfig({
     }
   },
   resolve: {
-    external: [
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "@mui/material",
-      "@mui/system",
-      "@mui/icons-material",
-      "@mui/styled-engine",
-      "@emotion/react",
-      "@emotion/styled"
-    ]
+    alias: {
+      '__mf__virtual': path.resolve(__dirname, 'node_modules/__mf__virtual')
+    }
   },
   optimizeDeps: {
     exclude: ['uiApi'],
-    include: ['react', 'react-dom', '@mui/material', '@mui/system', '@mui/icons-material', '@mui/styled-engine', '@emotion/react', '@emotion/styled'],
-    force: true,
     esbuildOptions: {
       target: 'es2022',
       sourcemap: true,
       supported: {
-      'top-level-await': true
-    },
+        'top-level-await': true
+      },
       loader: {
         '.js': 'jsx',
         '.ts': 'ts'

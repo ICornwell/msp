@@ -8,11 +8,13 @@ export {
 
 export {Ports} from './ports.js';
 
-export {SharedConfig, Config, ProductConfig} from './sharedconfig.js';
+export {SharedConfig} from './sharedconfig.js';
+export type {Config, ProductConfig} from './sharedconfig.js';
 
 export type { UiFeatureManifestSection, InformationManifestSection, ManifestCommon, Manifest } from './manifests/index.js';
 
-export { ManifestBuilder, makeManifest } from './manifests/manifestBuilder.js';
+export { makeManifest } from './manifests/manifestBuilder.js';
+export type { ManifestBuilder } from './manifests/manifestBuilder.js';
 
 // Re-export service manager utilities
 export {
@@ -43,9 +45,20 @@ export type {
   ServiceActivityRegistration
 } from './service-manager/types/index.js';
 
+export {
+  serviceRequest,
+  runServiceActivity,
+  type ServiceRequestEnvelope,
+  type ServiceRequestOptions,
+  type ServiceRequestResult,
+} from './comms/serviceRequest.js';
+
 export * from './configuredCommon.js'
 
 // Re-export ALS and JWT utilities
 export * from './als/index.js';
 
 export * from './data/fluent/index.js';
+
+// Re-export UI message types
+export * from './messages/index.js';

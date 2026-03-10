@@ -1,23 +1,14 @@
 import React, { ReactNode, useEffect } from 'react';
 import { render as tlRender, RenderResult } from '@testing-library/react';
-import { act } from 'react'; // Import act from React instead of react-dom/test-utils
-import { EngineComponentProvider } from './renderEngine/contexts/ReComponentsContext.js';
-import { ReProvider } from './renderEngine/contexts/ReEngineContext.js';
-import { UserSessionProvider } from './contexts/UserSessionContext.js';
-import { UiContentProvider } from './contexts/UiContentContext.js';
+import { act } from 'react';
+import { DataCacheProvider } from 'msp_ui_common/uiLib/contexts';
 
 // Create wrapper component for providers to use in tests
 const AllTheProviders: React.FC<{ children: ReactNode }> = ({ children }) => {
   return (
-    <UserSessionProvider>
-      <UiContentProvider>
-        <ReProvider>
-          <EngineComponentProvider>
-            {children}
-          </EngineComponentProvider>
-        </ReProvider>
-      </UiContentProvider>
-    </UserSessionProvider>
+    <DataCacheProvider>
+      {children}
+    </DataCacheProvider>
   );
 };
 

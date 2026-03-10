@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "references": [
+    { "path": "./tsconfig.uiLib.json" }
+  ]
+}

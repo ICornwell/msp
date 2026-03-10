@@ -25,5 +25,5 @@
 
 
   },
-  "include": ["./src/api/**/*.js", "./src/api/**/*.ts"]
+  "include": ["./src/apis/**/*.js", "./src/apis/**/*.ts", "./src/services/**/*.ts", "./src/manifest/**/*.ts"]
 }

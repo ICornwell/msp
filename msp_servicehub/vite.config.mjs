@@ -3,8 +3,6 @@ import { federation } from '@module-federation/vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 
-import mix from 'vite-plugin-mix'
-
 import { Ports, sharedDeps } from 'msp_common'
 
 
@@ -12,7 +10,6 @@ import { Ports, sharedDeps } from 'msp_common'
 export default defineConfig({
   plugins: [
     svgr({ svgrOptions: {} }),
-    mix.default({ handler: './uiApiProxyHandler.ts' }),
 
     federation({
       filename: 'servicehub_remoteEntry.js',
@@ -62,23 +59,8 @@ export default defineConfig({
       'top-level-await': true
     }
   },
-  resolve: {
-    external: [
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "@mui/material",
-      "@mui/system",
-      "@mui/icons-material",
-      "@mui/styled-engine",
-      "@emotion/react",
-      "@emotion/styled"
-    ]
-  },
   optimizeDeps: {
     exclude: ['uiApi'],
-    include: ['react', 'react-dom', '@mui/material', '@mui/system', '@mui/icons-material', '@mui/styled-engine', '@emotion/react', '@emotion/styled'],
-    force: true,
     esbuildOptions: {
       target: 'es2022',
       sourcemap: true,

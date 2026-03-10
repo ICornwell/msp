@@ -74,7 +74,7 @@ export function createPropertyBuilder<T,
 };
 
 
-export function createSchema<D extends SchemaType, IS extends Schema<any, any> | undefined = undefined>(name: string): SchemaBuilder<D, IS> {
+export function createSchemaBuilder<D extends SchemaType, IS extends Schema<any, any> | undefined = undefined>(name: string): SchemaBuilder<D, IS> {
   let schema: Partial<Schema<D, any>> = {
     name: name,
     vid: { id: '', version: '1.0' },
@@ -135,6 +135,6 @@ export function createSchema<D extends SchemaType, IS extends Schema<any, any> |
 
 
 // Convenience function to start building a schema
-export function schema(name: string): SchemaBuilder<SchemaType, undefined> {
-  return createSchema<SchemaType, undefined>(name);
+export function createSchema(name: string): SchemaBuilder<SchemaType, undefined> {
+  return createSchemaBuilder<SchemaType, undefined>(name);
 }

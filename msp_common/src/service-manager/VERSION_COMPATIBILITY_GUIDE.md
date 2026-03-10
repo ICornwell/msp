@@ -183,7 +183,7 @@ export function calculateTaxWithDiscount(
 }
 
 // plugins/calculateTax_v2.ts
-import { calculateStandardTax } from '../shared/taxCalculations';
+import { calculateStandardTax } from '../shared/taxCalculations.js';
 
 export const calculateTax_v2: ProcessPlugin = {
   name: "calculateTax",
@@ -193,7 +193,7 @@ export const calculateTax_v2: ProcessPlugin = {
 };
 
 // plugins/calculateTax_v3.ts
-import { calculateStandardTax } from '../shared/taxCalculations';
+import { calculateStandardTax } from '../shared/taxCalculations.js';
 
 export const calculateTax_v3: ProcessPlugin = {
   name: "calculateTax",

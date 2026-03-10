@@ -13,6 +13,7 @@
         }
     ],
     "configurations": [
+        
         {
             "command": "yarn dev",
             "name": "Run yarn dev",
@@ -52,7 +53,14 @@
         },
         {
             "command": "yarn dev",
-            "name": "Run Service Hub Vite",
+            "name": "Run Service Hub",
+            "request": "launch",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/../msp_servicehub"
+        },
+        {
+            "command": "yarn dev",
+            "name": "Run Data Hub",
             "request": "launch",
             "type": "node-terminal",
             "cwd": "${workspaceFolder}/../msp_servicehub"

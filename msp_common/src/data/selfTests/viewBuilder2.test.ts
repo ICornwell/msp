@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
 
-import { view } from '../fluent/viewBuilder.js';
-import { schema } from '../fluent/schemaBuilder.js';
+import { createView } from '../fluent/viewBuilder.js';
+import { createSchema } from '../fluent/schemaBuilder.js';
 
 import { domainObject } from '../fluent/objectBuilder.js';
 import { relationsBuilder } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder', () => {
 
-    const accountSchema = schema('account')
+    const accountSchema = createSchema('account')
     .withId('account', '1.0')
     .withProperty('accountNumber')
       .forType<string>()
@@ -24,7 +24,7 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const personSchema = schema('person')
+  const personSchema = createSchema('person')
     .withId('person', '1.0')
     .withProperty('name').withDictionaryId('dict-account-number', '1.0')
       .forType<string>()
@@ -33,7 +33,7 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const orderSchema = schema('order')
+  const orderSchema = createSchema('order')
     .withId('order', '1.0')
     .withProperty('orderId')
       .forType<string>()
@@ -43,7 +43,7 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const orderItemSchema = schema('orderItem')
+  const orderItemSchema = createSchema('orderItem')
     .withId('orderItem', '1.0')
     .withProperty('itemId')
       .forType<string>()
@@ -53,7 +53,7 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const productSchema = schema('product')
+  const productSchema = createSchema('product')
     .withId('product', '1.0')
     .withProperty('productId')
       .forType<string>()
@@ -114,7 +114,7 @@ describe('Declarative View Builder', () => {
 
 
     // Build view with declarative structure using TypeScript-native array syntax
-    const simpleViewContext = view('account-people-orders')
+    const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs.accountObject, false)  // Object notation with element name
@@ -206,7 +206,7 @@ describe('Declarative View Builder', () => {
 
 
     // Build view with declarative structure using TypeScript-native array syntax
-    const simpleViewContext = view('account-people-orders')
+    const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs.accountObject, true)  // Object notation with element name
@@ -249,7 +249,7 @@ describe('Declarative View Builder', () => {
 
 
     // Build view with declarative structure using TypeScript-native array syntax
-    const simpleViewContext = view('account-people-orders')
+    const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs.accountObject, true)  // Object notation with element name
@@ -305,7 +305,7 @@ describe('Declarative View Builder', () => {
 
    it('should  allow schema inheritance', () => {
     // Define schemas
-      const accountSchema2 = schema('account2')
+      const accountSchema2 = createSchema('account2')
         .inheritsFrom(accountSchema)
         .withId('account', '2.0')
           .withProperty('creditLimit')
@@ -316,7 +316,7 @@ describe('Declarative View Builder', () => {
           .endProperty()
         .buildSchema();
 
-      const personSchema2 = schema('person')
+      const personSchema2 = createSchema('person')
         .withId('person', '2.0')
         .inheritsFrom(personSchema)
         .withProperty('country').withDictionaryId('dict-country', '1.0')
@@ -345,7 +345,7 @@ describe('Declarative View Builder', () => {
     
 
     // Build view with declarative structure using TypeScript-native array syntax
-    const simpleViewContext = view('account-people-orders')
+    const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs2.accountObject2, true)  // Object notation with element name
@@ -382,7 +382,7 @@ describe('Declarative View Builder', () => {
   });
 
   it('should work with simpler structures', () => {
-    const userSchema = schema('userSchema')
+    const userSchema = createSchema('userSchema')
       .withId('user', '1.0')
       .withProperty('userId')
         .forType<string>()
@@ -398,7 +398,7 @@ describe('Declarative View Builder', () => {
         .endProperty()
       .buildSchema();
 
-    const postSchema = schema('postSchema')
+    const postSchema = createSchema('postSchema')
       .withId('post', '1.0')
       .withProperty('postId')
         .forType<string>()
@@ -426,7 +426,7 @@ describe('Declarative View Builder', () => {
       .withIsEntity(true)
       .buildDomainObject();
 
-    const upviewBuilder = view('user-posts')
+    const upviewBuilder = createView('user-posts')
       .withVersion('1.0')
       .withConfigSet('main')
       .withRootKey('userId')
@@ -454,7 +454,7 @@ describe('Declarative View Builder', () => {
   });
 
   it('should allow configuring sub-elements after definition', () => {
-    const accountSchema = schema('accountSchema')
+    const accountSchema = createSchema('accountSchema')
       .withId('account', '1.0')
       .withProperty('accountNumber')
         .forType<string>()
@@ -464,7 +464,7 @@ describe('Declarative View Builder', () => {
         .endProperty()
       .buildSchema();
 
-    const orderSchema = schema('orderSchema')
+    const orderSchema = createSchema('orderSchema')
       .withId('order', '1.0')
       .withProperty('orderId')
         .forType<string>()
@@ -474,7 +474,7 @@ describe('Declarative View Builder', () => {
         .endProperty()
       .buildSchema();
 
-    const itemSchema = schema('itemSchema')
+    const itemSchema = createSchema('itemSchema')
       .withId('item', '1.0')
       .withProperty('itemId')
         .forType<string>()
@@ -484,7 +484,7 @@ describe('Declarative View Builder', () => {
         .endProperty()
       .buildSchema();
 
-    const productSchema = schema('productSchema')
+    const productSchema = createSchema('productSchema')
       .withId('product', '1.0')
       .withProperty('productId')
         .forType<string>()
@@ -531,7 +531,7 @@ describe('Declarative View Builder', () => {
     .buildRelatedObjects();
 
     // Build view with structure, then configure sub-elements using nested builder pattern
-    const aoView = view('account-orders')
+    const aoView = createView('account-orders')
       .withVersion('1.0')
       .withConfigSet('main')
       .withRootKey('accountNumber')

@@ -1,4 +1,4 @@
-import { UiFeatureManifestSection } from "msp_common/dist/manifests/manifest.js";
+import { UiFeatureManifestSection } from "msp_common";
 import serviceHubManifest from "./manifest/serviceHubManifest.js";
 import { uiFeatureRegistry } from "./services/uiFeatureRegistry.js";
 
@@ -19,5 +19,5 @@ export function registerWithBff() {
     }
   }
 
-  return uiFeatureRegistry.registerFeature(uiFeatureList);
+  return uiFeatureRegistry.registerFeatures(uiFeatureList);
 }

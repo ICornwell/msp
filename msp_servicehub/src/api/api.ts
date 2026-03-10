@@ -1,7 +1,6 @@
 // app.ts
 import express from 'express';
 import { Express, Request, Response } from 'express';
-import asyncify from 'express-asyncify';
 import cors from 'cors';
 
 import compression from 'compression';
@@ -16,6 +15,7 @@ import { config } from 'dotenv';
 import winston from 'winston';
 
 import apiRoutes from './routes.js'; // Import your API routes
+import uiRoutes from './uiRoutes.js'; // Import UI/MF routes
 
 // Load environment variables
 config();
@@ -69,12 +69,8 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-// Create Express application with asyncify for async route handlers
-const syncApp: Express = express();
-
-
-
-const app: Express = asyncify(syncApp);
+// Express 5 natively supports async route handlers.
+const app: Express = express();
 
 // Trust proxy if behind a reverse proxy
 if (process.env.TRUST_PROXY === 'true') {
@@ -137,6 +133,9 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API routes will be registered here
 app.use('/api/v1', apiRoutes);
+
+// UI/Module Federation routes
+app.use('/ui/v1', uiRoutes);
 
 // no 404 handler, as if this does nothing, it will fall back to the static file serving
 // of the the frontend app

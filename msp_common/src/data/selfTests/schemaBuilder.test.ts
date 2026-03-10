@@ -1,9 +1,9 @@
-import { schema } from '../fluent/schemaBuilder.js';
+import { createSchema } from '../fluent/schemaBuilder.js';
 
 describe('Declarative View Builder', () => {
 
   it('should build a schema', () => {
-    const accountSchema = schema('account')
+    const accountSchema = createSchema('account')
     .withId('account', '1.0')
     .withProperty('accountNumber')
       .forType<string>()
@@ -34,7 +34,7 @@ describe('Declarative View Builder', () => {
   });
 
   it('should build a schema with inheritance', () => {
-  const personSchema1 = schema('person')
+  const personSchema1 = createSchema('person')
     .withId('person', '1.0')
     .withProperty('name').withDictionaryId('dict-account-number', '1.0')
       .forType<string>()
@@ -43,7 +43,7 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const personSchema2 = schema('person')
+  const personSchema2 = createSchema('person')
       .withId('person2', '1.2')
       .inheritsFrom(personSchema1)
       .withProperty('age').withDictionaryId('dict-age', '1.2')

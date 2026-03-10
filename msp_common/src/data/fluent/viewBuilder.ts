@@ -1,4 +1,4 @@
-import { Flatten, MakeArray, JOIN, TrueFalse } from './builderUtils';
+import { Flatten, MakeArray, JOIN, TrueFalse } from './builderUtils.js';
 import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO } from '../models/api/data.js';
 import { View, ViewElement, SubElement } from '../models/api/view.js';
 
@@ -316,6 +316,6 @@ export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootD
 // Convenience function
 // ============================================================================================================
 
-export function view(name: string): ViewBuilder<any> {
+export function createView(name: string): ViewBuilder<any> {
   return createViewBuilder<{}>(name);
 }

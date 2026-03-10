@@ -1,5 +1,4 @@
 import express, { json, urlencoded, static as staticEx } from 'express';
-import asyncify from 'express-asyncify';
 
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
@@ -17,8 +16,8 @@ const Ports = {
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
-// Initialize Express application
-const app = asyncify(express());
+// Express 5 natively supports async route handlers.
+const app = express();
 
 app.use((_req: any, res: any, next: any) => {
   res.socket.setTimeout(0); // 5 minutes

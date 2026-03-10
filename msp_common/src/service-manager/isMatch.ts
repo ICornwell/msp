@@ -35,7 +35,7 @@ export function highestVersionMatches<T>(candidates: T[], requestedVersionRange:
   const results: T[] = [];
   
   // For each name group, find the highest version that satisfies the range
-  for (const [name, groupCandidates] of groupedByName.entries()) {
+  for (const [_name, groupCandidates] of groupedByName.entries()) {
     let highestMatch: T | null = null;
     let highestVersion: string | null = null;
     

@@ -1,7 +1,11 @@
-import { ProductBuilder, createProduct } from "./productBuilder";
-import { SchemaBuilder, createSchema  } from "./schemaBuilder";
-import { DomainObjectBuilder, createDomainObject } from "./objectBuilder"
-import { ViewBuilder, createViewBuilder } from "./viewBuilder";
+import { createProduct } from "./productBuilder.js";
+import { createSchema } from "./schemaBuilder.js";
+import { createDomainObject } from "./objectBuilder.js"
+import { createView } from "./viewBuilder.js";
+import type { ProductBuilder } from "./productBuilder.js";
+import type { SchemaBuilder } from "./schemaBuilder.js";
+import type { DomainObjectBuilder } from "./objectBuilder.js";
+import type { ViewBuilder } from "./viewBuilder.js";
 
 import type {Schema, SchemaProperty, DataObject, DomainObject,
   DataOfSchema
@@ -11,17 +15,17 @@ import type {View, ViewElement} from "../models/api/view.js";
 
 
 export {
-  ProductBuilder,
   createProduct,
-  SchemaBuilder,
   createSchema,
-  DomainObjectBuilder,
   createDomainObject,
-  ViewBuilder,
-  createViewBuilder
+  createView
 }
 
 export type {
+  ProductBuilder,
+  SchemaBuilder,
+  DomainObjectBuilder,
+  ViewBuilder,
   Schema,
   SchemaProperty,
   DataObject,

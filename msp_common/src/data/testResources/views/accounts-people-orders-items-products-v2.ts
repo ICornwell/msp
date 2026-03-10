@@ -1,11 +1,11 @@
-import { view } from '../../fluent/viewBuilder.js';
-import { schema } from '../../fluent/schemaBuilder.js';
+import { createView } from '../../fluent/viewBuilder.js';
+import { createSchema } from '../../fluent/schemaBuilder.js';
 
 import { domainObject } from '../../fluent/objectBuilder.js';
 import { relationsBuilder } from '../../fluent/objectRelationsBuilder.js';
 
 // Define schemas for each entity
-export const accountSchema = schema('account')
+export const accountSchema = createSchema('account')
   .withId('account', '1.0')
   .withProperty('accountNumber')
     .forType<string>()
@@ -15,7 +15,7 @@ export const accountSchema = schema('account')
     .endProperty()
   .buildSchema();
 
-export const personSchema = schema('person')
+export const personSchema = createSchema('person')
   .withId('person', '1.0')
   .withProperty('name')
     .forType<string>()
@@ -25,7 +25,7 @@ export const personSchema = schema('person')
     .endProperty()
   .buildSchema();
 
-export const orderSchema = schema('order')
+export const orderSchema = createSchema('order')
   .withId('order', '1.0')
   .withProperty('orderId')
     .forType<string>()
@@ -35,7 +35,7 @@ export const orderSchema = schema('order')
     .endProperty()
   .buildSchema();
 
-export const orderItemSchema = schema('orderItem')
+export const orderItemSchema = createSchema('orderItem')
   .withId('orderItem', '1.0')
   .withProperty('itemId')
     .forType<string>()
@@ -45,7 +45,7 @@ export const orderItemSchema = schema('orderItem')
     .endProperty()
   .buildSchema();
 
-export const productSchema = schema('product')
+export const productSchema = createSchema('product')
   .withId('product', '1.0')
   .withProperty('productId')
     .forType<string>()
@@ -99,7 +99,7 @@ export const productSchema = schema('product')
       .buildRelatedObjects();
 
 // Build view with fluent syntax
-export const accountsPeopleOrdersItemsProductsView2Context = view('account-people')
+export const accountsPeopleOrdersItemsProductsView2Context = createView('account-people')
   .withVersion('1.0')
   .withConfigSet('main')
   .withRootKey('accountNumber')

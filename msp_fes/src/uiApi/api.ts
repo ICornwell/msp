@@ -1,7 +1,6 @@
 // app.ts
 import express from 'express';
 import { Express, Request, Response } from 'express';
-import asyncify from 'express-asyncify';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -16,6 +15,7 @@ import { config } from 'dotenv';
 import winston from 'winston';
 
 import apiRoutes from './routes.js'; // Import your API routes
+import uiRoutes from './uiRoutes.js'; // Import UI/MF routes
 
 
 // Load environment variables
@@ -70,8 +70,8 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-// Create Express application with asyncify for async route handlers
-const app: Express = asyncify(express());
+// Express 5 natively supports async route handlers.
+const app: Express = express();
 
 apiRoutes.use((req, _res, next) => {
   console.log(`Start of BFF API request to ${req.originalUrl}`);
@@ -147,6 +147,9 @@ apiRoutes.use((req, _res, next) => {
 
 // API routes will be registered here
 app.use('/api/v1', apiRoutes);
+
+// UI/Module Federation routes
+app.use('/ui/v1', uiRoutes);
 
 // no 404 handler, as if this does nothing, it will fall back to the static file serving
 // of the the frontend app

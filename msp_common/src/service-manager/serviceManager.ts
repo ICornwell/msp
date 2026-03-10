@@ -1,6 +1,6 @@
-import type { ActivitySet, ServiceActivity, ServiceActivityResult, ServiceActivityResultBuilder } from './serviceActivitySet.js';
-import { isMatch } from './isMatch.js';
-import { CreateResultBuilder, defaultResult, addServiceActivityToSet, activitySet } from './serviceActivitySet.js';
+import type { ActivitySet, ServiceActivity, ServiceActivityResult } from './serviceActivitySet.js';
+//import { isMatch } from './isMatch.js';
+import { CreateResultBuilder, defaultResult, activitySet } from './serviceActivitySet.js';
 
 export function serviceManager() {
     const activities: ActivitySet = activitySet()

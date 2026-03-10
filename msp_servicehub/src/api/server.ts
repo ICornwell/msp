@@ -35,13 +35,13 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 registerWithBff()
-  .then((response) => {
+//  .then((response: any) => {
     console.log('Successfully registered with BFF');
-    console.log('BFF response:', response);
-  })
-  .catch((err) => {
-    console.error('Error registering with BFF:', err);
-  });
+ //   console.log('BFF response:', response);
+ // })
+  // .catch((err: any) => {
+  //   console.error('Error registering with BFF:', err);
+  // });
 
 /**
  * Normalize a port into a number, string, or false.

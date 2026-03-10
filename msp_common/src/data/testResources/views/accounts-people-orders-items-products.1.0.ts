@@ -1,10 +1,10 @@
-import { view } from '../../fluent/viewBuilder.js';
-import { schema } from '../../fluent/schemaBuilder.js';
+import { createView } from '../../fluent/viewBuilder.js';
+import { createSchema } from '../../fluent/schemaBuilder.js';
 import { relationsBuilder } from '../../fluent/objectRelationsBuilder.js';
 import { domainObject } from '../../fluent/objectBuilder.js';
 
 // Define schemas for each entity
-export const accountSchema = schema('account')
+export const accountSchema = createSchema('account')
   .withId('acc-123', '1.0')
   .withProperty('accountNumber')
     .forType<string>()
@@ -14,7 +14,7 @@ export const accountSchema = schema('account')
     .endProperty()
   .buildSchema();
 
-export const personSchema = schema('person')
+export const personSchema = createSchema('person')
   .withId('person-123', '1.0')
   .withProperty('name')
     .forType<string>()
@@ -24,7 +24,7 @@ export const personSchema = schema('person')
     .endProperty()
   .buildSchema();
 
-export const addressSchema = schema('address')
+export const addressSchema = createSchema('address')
   .withId('address-123', '1.0')
   .withProperty('street')
     .forType<string>()
@@ -46,7 +46,7 @@ export const addressSchema = schema('address')
     .endProperty()
   .buildSchema();
 
-export const orderSchema = schema('order')
+export const orderSchema = createSchema('order')
   .withId('order-123', '1.0')
   .withProperty('orderId')
     .forType<string>()
@@ -56,7 +56,7 @@ export const orderSchema = schema('order')
     .endProperty()
   .buildSchema();
 
-export const orderItemSchema = schema('orderItem')
+export const orderItemSchema = createSchema('orderItem')
   .withId('item-123', '1.0')
   .withProperty('itemId')
     .forType<string>()
@@ -72,7 +72,7 @@ export const orderItemSchema = schema('orderItem')
     .endProperty()
   .buildSchema();
 
-export const productSchema = schema('product')
+export const productSchema = createSchema('product')
   .withId('product-123', '1.0')
   .withProperty('productId')
     .forType<string>()
@@ -134,7 +134,7 @@ export const productSchema = schema('product')
   
 
 // Build the view using the fluent builder with schemas
-export const accountsPeopleOrdersItemsProductsViewContext = view('account-people')
+export const accountsPeopleOrdersItemsProductsViewContext = createView('account-people')
   .withVersion('1.0')
   .withConfigSet('main')
   .withRootKey('accountNumber')

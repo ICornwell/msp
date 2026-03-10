@@ -6,6 +6,11 @@ export declare type ManifestCommon = {
   // manifest sections can speficy products ot override
   // higer level product info set to '?' to indicate overrides
   product?: Partial<ProductConfig>
+  name?: string,
+  version?: string,
+  description?: string,
+  serverUrl?: string,
+  domain?: string
 }
 
 export declare type Manifest = ManifestCommon & {

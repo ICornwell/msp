@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { AppShell } from './components/AppShell.js';
-import { UiContentProvider } from './contexts/UiContentContext.js';
-import { UserSessionProvider } from './contexts/UserSessionContext.js';
-import { CustomThemeProvider } from './components/CustomThemeProvider.js';
+import { AppShell } from 'msp_ui_common/uiLib/components';
+import { UiContentProvider } from 'msp_ui_common/uiLib/contexts';
+import { UserSessionProvider } from 'msp_ui_common/uiLib/contexts';
+import { CustomThemeProvider } from 'msp_ui_common/uiLib/components';
 
 import defaultTheme from './theme.js';
 import { styled } from '@mui/material';

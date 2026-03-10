@@ -1,5 +1,4 @@
 import express, { json, urlencoded, static as staticEx } from 'express';
-import asyncify from 'express-asyncify';
 
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
@@ -9,12 +8,16 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import fetch from 'node-fetch';
 
-import { Ports } from 'msp_common'
+const Ports = {
+  core: {
+    serviceHub: process.env.SERVICEHUB_INTERNAL_PORT || '4100'
+  }
+};
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : join(fileURLToPath(new URL('.', import.meta.url)), '..');
 
-// Initialize Express application
-const app = asyncify(express());
+// Express 5 natively supports async route handlers.
+const app = express();
 
 app.use((_req: any, res: any, next: any) => {
   res.socket.setTimeout(0); // 5 minutes
@@ -58,7 +61,7 @@ app.use('/api/v1', async (req, res, next) => {
     // Rewrite the request to point to the internal core df service
     // TODO: replace the simple 'internalHost' logic with a obfuscation layer
     // that maps external non-revealing host refs to internal hostnames
-    const internalHost = `${url.host.split(':')[0]}:${Ports.core.uiBff}`;
+    const internalHost = `${url.host.split(':')[0]}:${Ports.core.serviceHub}`;
     let queryParams = Object.entries(req.query ?? {}).map(([key, value]: [string, any])  =>
       `${key}=${encodeURIComponent(value)}`).join('&');
     if (queryParams && queryParams.length > 0) {
@@ -66,7 +69,7 @@ app.use('/api/v1', async (req, res, next) => {
     }
     const urlText = `${url.protocol}//${internalHost}/api/v1${req.url.split('?')[0]}${queryParams}`;
     const newUrl = new URL(urlText);
-    console.log(`MSP UI request to ${req.originalUrl} redirected to ${newUrl} using method ${req.method}`);
+    console.log(`MSP UI request to ${req.originalUrl} redirected to ${newUrl}`);
     console.log(`body type is ${typeof req.body}`);
     const bodyContent = (typeof req.body === 'string') ? req.body : JSON.stringify(req.body);
     const controller = new AbortController();

@@ -3,11 +3,8 @@ export const sharedVersions = {
   'react-dom':{version: '*', isEsm: false},
   '@mui/material': {version: '*', isEsm: false},
   '@mui/system': {version: '*', isEsm: false},
-  '@mui/styled-engine': {version: '*', isEsm: true},
   '@mui/icons-material': {version: '*', isEsm: false},
-   '@emotion/react':{version: '*', isEsm: true},
-  '@emotion/styled': {version: '*', isEsm: true},
-  '@emotion/cache': {version: '*', isEsm: true} 
+  'msp_ui_common': {version: '*', isEsm: true}
 }
 
 type DependencyInfo = { singleton: boolean; requiredVersion: string | false; isEsm: boolean }

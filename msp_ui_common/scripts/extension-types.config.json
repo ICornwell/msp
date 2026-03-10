@@ -1,0 +1,8 @@
+{
+  "comment": "Configuration for extension type generator",
+  "extensionFiles": [
+    "src/ui/renderEngine/components/ContainerElements.tsx",
+    "src/ui/components/tables/table.tsx"
+  ],
+  "outputFile": "src/ui/renderEngine/UiPlan/ReUiPlanBuilder.extensions.generated.ts"
+}

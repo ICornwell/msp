@@ -1,7 +1,6 @@
 // app.ts
 import express from 'express';
 import { Express, Request, Response } from 'express';
-import asyncify from 'express-asyncify';
 import cors from 'cors';
 
 import compression from 'compression';
@@ -69,12 +68,8 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-// Create Express application with asyncify for async route handlers
-const syncApp: Express = express();
-
-
-
-const app: Express = asyncify(syncApp);
+// Express 5 natively supports async route handlers.
+const app: Express = express();
 
 // Trust proxy if behind a reverse proxy
 if (process.env.TRUST_PROXY === 'true') {

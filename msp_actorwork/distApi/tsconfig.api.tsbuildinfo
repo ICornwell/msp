@@ -1,0 +1,1 @@
+{"root":["../src/apis/api.ts","../src/apis/config.ts","../src/apis/manifestRegistration.ts","../src/apis/routes.ts","../src/apis/server.ts","../src/services/getUserProfileData.ts","../src/services/index.ts","../src/manifest/manifest.ts"],"version":"5.9.3"}
