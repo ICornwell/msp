@@ -8,39 +8,6 @@ const router = express.Router();
 
 const getServiceHubUrl = () => getConfig().serviceHubApiUrl || 'http://localhost:4001';
 
-// Legacy POST endpoint for backward compatibility - proxy to servicehub
-router.post("/:namespace/:activityName", async (req, res) => {
-  try {
-    const serviceHubUrl = getServiceHubUrl();
-    const response = await fetch(`${serviceHubUrl}/api/v1/service/run`, {
-      method: 'PUT',
-      headers: { 
-        'content-type': 'application/json',
-        ...extractForwardHeaders(req)
-      },
-      body: JSON.stringify({
-        namespace: req.params.namespace,
-        activityName: req.params.activityName,
-        version: '1.0.0',
-        payload: req.body
-      })
-    });
-
-    const result = await response.json();
-    res.status(response.status).json({
-      status: response.ok ? "ok" : "error",
-      serviceResult: result
-    });
-  } catch (error: any) {
-    console.error('DMZ gateway error:', error);
-    res.status(500).json({
-      status: "error",
-      message: 'Gateway communication failed',
-      error: error?.message
-    });
-  }
-});
-
 // Standard service execution endpoint - proxy to servicehub
 router.put('/service/run', async (req, res) => {
   try {
@@ -51,7 +18,12 @@ router.put('/service/run', async (req, res) => {
         'content-type': 'application/json',
         ...extractForwardHeaders(req)
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify({
+        namespace: req.body.namespace || 'default',
+        activityName: req.body.activityName || 'default',
+        version: req.body.version ||'1.0.0',
+        payload: req.body.payload | req.body
+      })
     });
 
     const result = await response.json();

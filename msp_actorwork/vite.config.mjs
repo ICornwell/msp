@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { sharedDeps } from 'msp_common';
 
 const mfPort = parseInt(process.env['VITE_PORT'] || '3002', 10);
-const mfShared = sharedDeps as unknown as Record<string, string | { singleton?: boolean; requiredVersion?: string }>;
+const mfShared = sharedDeps ;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
@@ -15,11 +15,11 @@ export default defineConfig({
     svgr({ svgrOptions: {} }),
     federation({
       filename: 'actorwork_remoteEntry.js',
-      name: 'actorwork',
       exposes: {
         './UserProfileFeature': './src/uiElements/features/blades/userProfile/UserProfileFeature.tsx',
       },
-      shared: mfShared,
+      name: 'actorwork',
+      shared: mfShared
     }),
     react(),
   ],
@@ -44,7 +44,21 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ['uiApi'],
+     exclude: [
+      'uiApi'
+    ],
+    include: [
+      'react',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-dom',
+      'react-dom/client',
+      '@mui/material',
+      '@mui/system',
+      '@mui/icons-material',
+      '@emotion/react',
+      '@emotion/styled'
+    ],
     esbuildOptions: {
       target: 'es2022',
       sourcemap: true,

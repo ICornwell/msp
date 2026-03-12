@@ -8,7 +8,7 @@ import http from 'http';
 import { config } from 'dotenv';
 
 import { setConfig } from 'msp_common';
-import { registerWithBff } from './register.js';
+// import { registerWithBff } from './register.js';
 import Config from './config.js';
 
 setConfig(Config);
@@ -34,14 +34,14 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-registerWithBff()
-  .then((response) => {
-    console.log('Successfully registered with BFF');
-    console.log('BFF response:', response);
-  })
-  .catch((err) => {
-    console.error('Error registering with BFF:', err);
-  });
+//registerWithBff()
+  // .then((response) => {
+  //   console.log('Successfully registered with BFF');
+  //   console.log('BFF response:', response);
+  // })
+  // .catch((err) => {
+  //   console.error('Error registering with BFF:', err);
+  // });
 
 /**
  * Normalize a port into a number, string, or false.

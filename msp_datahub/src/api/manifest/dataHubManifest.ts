@@ -4,11 +4,11 @@ import Config from "../config.js";
 // Service Hub API is the collector of all manifests for the platform
 // but still requires it's own manifest
 
-const serviceHubManifest = makeManifest(Config)
+const dataHubManifest = makeManifest(Config)
   .withAllowedContexts(['*'])
   .addService()
     
     .endService
 .build()
 
-export default serviceHubManifest;
+export default dataHubManifest;

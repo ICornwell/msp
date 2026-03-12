@@ -8,11 +8,7 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import fetch from 'node-fetch';
 
-const Ports = {
-  core: {
-    serviceHub: process.env.SERVICEHUB_INTERNAL_PORT || '4100'
-  }
-};
+import { Ports } from 'msp_common'
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : join(fileURLToPath(new URL('.', import.meta.url)), '..');
 

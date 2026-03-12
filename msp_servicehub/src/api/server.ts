@@ -7,8 +7,8 @@ import { handler as app } from './api.js';
 import http from 'http';
 import { config } from 'dotenv';
 
-import { setConfig } from 'msp_common';
-import { registerWithBff } from './register.js';
+import { setConfig, Ports } from 'msp_common';
+import { registerForBff } from './register.js';
 import Config from './config.js';
 
 setConfig(Config);
@@ -19,7 +19,7 @@ config();
 /**
  * Get port from environment and store in Express.
  */
-const port = normalizePort(process.env.SPORT || '4100');
+const port = normalizePort(Ports.core.serviceHub.toString());
 app.set('port', port);
 
 /**
@@ -34,7 +34,7 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-registerWithBff()
+   registerForBff()
 //  .then((response: any) => {
     console.log('Successfully registered with BFF');
  //   console.log('BFF response:', response);

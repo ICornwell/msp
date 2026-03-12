@@ -1,5 +1,5 @@
 
-import { ClientCredentialsConfig, SharedConfig } from "msp_common"
+import { ClientCredentialsConfig, ProductConfig, SharedConfig } from "msp_common"
 
 const clientCredentials: ClientCredentialsConfig = {
     clientId: process.env['UI_API_CLIENT_ID'] || '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',
@@ -9,9 +9,18 @@ const clientCredentials: ClientCredentialsConfig = {
     authority: process.env['AUTH_AUTHORITY_HOST'] || 'https://login.microsoftonline.com'
 }
 
+const thisProduct: ProductConfig = {
+    domain: 'msp_core',
+    name: 'uiBff',
+    variantName: 'default',
+    version: '1.0.0'
+}
+
 const config = {
     ...SharedConfig,
-    clientCredentials
+    clientCredentials,
+    product: thisProduct,
+    myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4000'
 } as const
 
 export const Config = config

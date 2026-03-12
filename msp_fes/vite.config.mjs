@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 import { federation } from '@module-federation/vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
-
+import mix from 'vite-plugin-mix'
 import { sharedDeps, Ports } from 'msp_common'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [
     svgr({ svgrOptions: {} }),
-
+    mix.default({ handler: './uiApiProxyHandler.ts' }),
     federation({
       name: 'host',
       shared: { ...sharedDeps }
@@ -61,10 +61,25 @@ export default defineConfig({
   resolve: {
     alias: {
       '__mf__virtual': path.resolve(__dirname, 'node_modules/__mf__virtual')
-    }
+    },
+    
   },
   optimizeDeps: {
-    exclude: ['uiApi'],
+    exclude: [
+      'uiApi'
+    ],
+    include: [
+      'react',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-dom',
+      'react-dom/client',
+      '@mui/material',
+      '@mui/system',
+      '@mui/icons-material',
+      '@emotion/react',
+      '@emotion/styled'
+    ],
     esbuildOptions: {
       target: 'es2022',
       sourcemap: true,

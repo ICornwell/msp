@@ -23,7 +23,7 @@ export { DataCacheProvider, useDataCacheContext } from './contexts/DataCacheCont
 export type { DataCacheContextType } from './contexts/DataCacheContext.js';
 
 // Behaviour system
-export { createBehaviour } from './behaviours/behaviourBuilder.js';
+export { createBehaviour as createBehaviour } from './behaviours/behaviourBuilder.js';
 export { Behaviour } from './behaviours/Behaviour.js';
 export type { behaviourConfig, behaviourElement, behaviourAction } from './behaviours/behaviourConfig.js';
 export type {
@@ -39,6 +39,9 @@ export { UiEventProvider, useUiEventContext } from './contexts/UiEventContext.js
 export type { UiEventContextType } from './contexts/UiEventContext.js';
 export { useUiEventSubscriber } from './hooks/useUiEvents.js';
 export type { UiEventUnsubscribe } from './hooks/useUiEvents.js';
+
+export type { UserChangeHandler } from './hooks/useUserSession.js';
+export { useUserSession } from './hooks/useUserSession.js';
 
 // Service dispatcher
 export { ServiceDispatcher } from './components/ServiceDispatcher.js';

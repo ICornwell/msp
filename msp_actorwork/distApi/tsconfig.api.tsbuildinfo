@@ -1,1 +1,1 @@
-{"root":["../src/apis/api.ts","../src/apis/config.ts","../src/apis/manifestRegistration.ts","../src/apis/routes.ts","../src/apis/server.ts","../src/services/getUserProfileData.ts","../src/services/index.ts","../src/manifest/manifest.ts"],"version":"5.9.3"}
+{"root":["../src/api/api.ts","../src/api/config.ts","../src/api/manifestRegistration.ts","../src/api/routes.ts","../src/api/server.ts","../src/services/getUserProfileData.ts","../src/services/index.ts","../src/manifest/manifest.ts"],"version":"5.9.3"}

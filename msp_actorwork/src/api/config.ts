@@ -16,9 +16,9 @@ function getEnvOrDefault(key: string, defaultValue: string): string {
 }
 
 export const config: ActorworkConfig = {
-  port: parseInt(getEnvOrDefault('PORT', '3001'), 10),
-  myUrl: getEnvOrDefault('MY_URL', 'http://localhost:3001'),
-  uiRemoteUrl: getEnvOrDefault('UI_REMOTE_URL', 'http://localhost:3002'),
+  port: parseInt(getEnvOrDefault('PORT', '3101'), 10),
+  myUrl: getEnvOrDefault('MY_URL', 'http://localhost:3101'),
+  uiRemoteUrl: getEnvOrDefault('UI_REMOTE_URL', 'http://localhost:3102'),
   serviceHubUrl: getEnvOrDefault('SERVICEHUB_URL', 'http://localhost:4001'),
   service: {
     name: 'actorwork',

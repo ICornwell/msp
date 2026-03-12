@@ -12,6 +12,7 @@ import {
   ActivityCallDefinition,
 } from './fluentBehaviour.js';
 
+
 export function createBehaviour<DT = any>(): FluentBehaviour<DT> {
   const config: behaviourConfig = {
     localCustomComponents: [],

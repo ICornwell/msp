@@ -1,29 +1,39 @@
-import type { UiFeatureManifestSection} from "msp_common"
+import type { Manifest, ServiceManifestSection, UiFeatureManifestSection} from "msp_common"
 
-const uiFeatureList: UiFeatureManifestSection[] = [
-  {
-    name: 'Sample Feature',
-    version: '1.0.0',
-    description: 'A sample UI feature for demonstration purposes',
-    serverUrl: '/features/sample-feature',
-    domain: 'sample-domain',
-    allowedContexts: ['*'],
-    remotePath: '/features/sample-feature/feature.js'
-  }
-]
+export type ServiceUIRegistration = {
+  namespace: string;
+  featureName: string;
+  version: string;
+  matchingVersionRange?: string;  // e.g., '^1.0.0', defaults to exact version
+  serviceUrl: string;  // e.g., 'http://localhost:3001' for actorwork
+  remotePath: string;
+};
 
-function registerFeatures(features: UiFeatureManifestSection | UiFeatureManifestSection[]) {
-  const featureArray = Array.isArray(features) ? features : [features];
-  for (const feature of featureArray) {
-    uiFeatureList.push(feature);
+const registrations: ServiceUIRegistration[] = [];
+const uiFeatureList: UiFeatureManifestSection[] = [];
+
+function registerFeatures(manifest: Partial<Manifest>, service: Partial<ServiceManifestSection>, features: UiFeatureManifestSection | UiFeatureManifestSection[]) {
+
+    for (const feature of Array.isArray(features) ? features : [features]) {
+        const product = { ...manifest.product, ...service.product, ...feature.product };
+        const registration: ServiceUIRegistration = {
+          namespace: product?.domain || 'default', // Assuming namespace is derived from product domain
+          featureName: feature.name || 'unnamed-feature',
+          version: product.version || '1.0.0',
+          matchingVersionRange: product.version || 'none',
+          serviceUrl: feature.serverUrl || 'none',
+          remotePath: feature.remotePath || 'none'
+        };
+        uiFeatureList.push(feature);
+        registrations.push(registration);
   }
 }
 
-function getFeatures() {
-  return uiFeatureList;
+function getRegisteredFeatures() {
+  return [...registrations];
 }
 
-export const uiFeatureRegistry = {
+export {
   registerFeatures,
-  getFeatures
+  getRegisteredFeatures
 }

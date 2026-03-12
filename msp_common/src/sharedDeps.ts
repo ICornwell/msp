@@ -1,6 +1,9 @@
 export const sharedVersions = {
   'react': {version: '*', isEsm: false},
   'react-dom':{version: '*', isEsm: false},
+  'react-dom/client': {version: '*', isEsm: false},
+  'react/jsx-runtime': {version: '*', isEsm: false},
+  'react/jsx-dev-runtime': {version: '*', isEsm: false},
   '@mui/material': {version: '*', isEsm: false},
   '@mui/system': {version: '*', isEsm: false},
   '@mui/icons-material': {version: '*', isEsm: false},

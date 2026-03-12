@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { behaviourConfig } from './behaviourConfig.js';
 import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext.js';
 import { useUiEventContext } from '../contexts/UiEventContext.js';
+import { useDataCache } from '../hooks/useDataCache.js';
 import {
   createDataRequest,
   createMenuRequest,
@@ -10,14 +11,21 @@ import {
   createServiceCallRequest,
 } from 'msp_common/messages';
 
+
 type BehaviourProps = {
   config: behaviourConfig;
-  data?: any;
+  initialData?: any;
 };
 
-export function Behaviour({ config, data }: BehaviourProps) {
+export function Behaviour({ config, initialData }: BehaviourProps) {
   const { addComponent, removeComponent } = useEngineComponentsContext();
   const { subscribe, unsubscribe, publish } = useUiEventContext();
+
+  const [data, setData ] = useState(initialData);
+
+  useDataCache((dataEvent) => {
+    setData(dataEvent.payload)
+  })
 
   useEffect(() => {
     config.localCustomComponents.forEach(component => {
@@ -39,13 +47,20 @@ export function Behaviour({ config, data }: BehaviourProps) {
       const subscriptionId = subscribe({
         msgTypeFilter: (msg: any) => msg?.messageType === element.eventType,
         callback: (event: any) => {
-          if (!element.eventCondition(event)) {
+
+          try {
+          if (element.eventCondition && !element.eventCondition(event)) {
             return;
           }
 
-          if (!element.dataCondition(data)) {
+          if (element.dataCondition && !element.dataCondition(data)) {
             return;
           }
+        } catch (_e) {
+          // if we failed it will be because the condition function threw an error.
+          // which is the same as them not being met
+          return
+        }
 
           for (const action of element.actions || []) {
             const request = toRequestMessage(action, event, data);

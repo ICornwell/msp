@@ -1,7 +1,7 @@
 // Actorwork API Server
 import app from './api.js';
 import { config } from './config.js';
-import { registerWithRetry, registerUiFeatures } from './manifestRegistration.js';
+import { registerWithRetry } from './manifestRegistration.js';
 
 const PORT = config.port;
 
@@ -14,8 +14,7 @@ const server = app.listen(PORT, () => {
 
   // Register with servicehub in the background (with retry)
   registerWithRetry().then(() => {
-    // Once registered, also register UI features
-    registerUiFeatures();
+    console.log('Actorwork is fully operational and registered with servicehub');
   });
 });
 

@@ -3,7 +3,7 @@ const ports = {
         uiWeb: 3000,
         uiBff: 4000,
         serviceHubMF: 3001,
-        serviceHubApi: 4001
+        serviceHub:  process.env.SERVICEHUB_INTERNAL_PORT || 4001
     }
 }
 

@@ -15,7 +15,7 @@ const uiFeatureList: UiFeatureManifestSection[] = [
 
 function registerFeatures(features: UiFeatureManifestSection[]) {
   for (const feature of features) {
-    uiFeatureList.push(feature)
+    uiFeatureList.push({...feature, serverUrl: feature.serverUrl || 'none'})
   }
   
 }

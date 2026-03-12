@@ -11,7 +11,7 @@ const router = express.Router();
 const getServiceHubUrl = () => getConfig().serviceHubMfUrl || getConfig().serviceHubApiUrl || 'http://localhost:4001';
 
 // Module Federation remote proxy - keeps client proxy-blind
-router.get('/*', async (req, res) => {
+router.get('/*all', async (req, res) => {
   try {
     const serviceHubUrl = getServiceHubUrl();
     const remotePath = req.path; // Includes leading slash

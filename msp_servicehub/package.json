@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node ./distApi/server.js",
-    "start:server": "node ./distApi/server.js",
+    "start": "node ./distApi/api/server.js",
+    "start:server": "node ./distApi/api/server.js",
     "dev": "vite",
     "build": "tsc -b",
     "build:server": "tsc -b",
@@ -13,9 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "generate:extension-types": "tsx scripts/generate-extension-types.ts",
-    "prebuild": "npm run generate:extension-types"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.11.0",

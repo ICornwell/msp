@@ -11,7 +11,9 @@ export {Ports} from './ports.js';
 export {SharedConfig} from './sharedconfig.js';
 export type {Config, ProductConfig} from './sharedconfig.js';
 
-export type { UiFeatureManifestSection, InformationManifestSection, ManifestCommon, Manifest } from './manifests/index.js';
+export type { UiFeatureManifestSection, InformationManifestSection,
+  ApiFeatureManifestSection, ActivityFeatureManifestSection, ServiceManifestSection,
+  ManifestCommon, Manifest } from './manifests/index.js';
 
 export { makeManifest } from './manifests/manifestBuilder.js';
 export type { ManifestBuilder } from './manifests/manifestBuilder.js';
@@ -23,6 +25,8 @@ export {
 
 export {
   isMatch,
+  bestVersionMatch,
+  highestVersionMatches,
   type Matcher
 } from './service-manager/isMatch.js';
 
@@ -30,9 +34,10 @@ export {
   CreateResultBuilder,
   defaultResult,
   addServiceActivityToSet,
-  activitySet as ActivitySet,
+  activitySet,
   type ServiceActivityExec,
   type ServiceActivityList,
+  type ActivitySet,
   type ServiceActivity,
   type ServiceActivityResult,
   type ServiceActivityResultBuilder

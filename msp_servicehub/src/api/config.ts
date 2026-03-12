@@ -5,7 +5,7 @@ import { SharedConfig, Config as ConfigType, ProductConfig, ClientCredentialsCon
 // ServiceHub is a little unusual in that it hosts the platform itself
 const thisProduct: ProductConfig = {
     domain: 'msp_core',
-    name: 'msp_core',
+    name: 'serviceHub',
     variantName: 'default',
     version: '1.0.0'
 }
@@ -23,7 +23,8 @@ const config: Partial<ConfigType> ={
     ...SharedConfig,
     product: thisProduct,
     clientCredentials,
-    myUrl: SharedConfig?.getHostUrl?.('core') || 'http://localhost:3000'
+    myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4001'
+    
 }
 
 export const Config = config

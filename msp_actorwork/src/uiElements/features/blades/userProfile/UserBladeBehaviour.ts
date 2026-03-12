@@ -8,11 +8,7 @@ import { createBehaviour } from 'msp_ui_common/uiLib/behaviours';
 // 5. Listen for menu click
 // 6. Open User Profile blade
 
-export function useUserProfileBehaviour() {
-  return UserProfileBehaviourConfig;
-}
-
-export const UserProfileBehaviourConfig = createBehaviour()
+export const useUserProfileBehaviour = () => createBehaviour()
   .whenEventRaised('UserChanged')
     .requestIsRaised.toActivitySubSystem
       .toCallActivityAsync({

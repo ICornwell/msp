@@ -2,28 +2,20 @@
 import { serviceRequest } from 'msp_common';
 import { createActorworkManifest } from '../manifest/manifest.js';
 import { config } from './config.js';
-import { GetUserProfileDataActivity } from '../services/getUserProfileData.js';
 
 export async function registerManifest(): Promise<boolean> {
   try {
     console.log(`Registering actorwork manifest with servicehub at ${config.serviceHubUrl}...`);
 
     // Register the GetUserProfileData activity
-    const registration = {
-      namespace: GetUserProfileDataActivity.namespace,
-      activityName: GetUserProfileDataActivity.activityName,
-      version: GetUserProfileDataActivity.version,
-      matchingVersionRange: GetUserProfileDataActivity.matchingVersionRange,
-      serviceUrl: config.myUrl,
-      serviceName: config.service.name,
-    };
+    const manifest = createActorworkManifest(config) as any;
 
     const result = await serviceRequest(
       {
         namespace: 'servicehub',
-        activityName: 'registerServiceActivity',
+        activityName: 'registerManifest',
         version: '1.0.0',
-        payload: registration,
+        payload: manifest,
       },
       {
         baseUrl: config.serviceHubUrl,
@@ -33,7 +25,7 @@ export async function registerManifest(): Promise<boolean> {
     );
 
     if (result.success) {
-      console.log(`✓ Successfully registered activity: ${registration.namespace}/${registration.activityName}@${registration.version}`);
+      console.log(`✓ Successfully registered manifest with servicehub`);
       return true;
     } else {
       console.error(`✗ Failed to register manifest:`, result.message, result.error);
@@ -61,7 +53,7 @@ export async function registerWithRetry(intervalMs = 5000): Promise<void> {
 }
 
 // Also register UI features (future expansion)
-export async function registerUiFeatures(): Promise<void> {
+/* export async function registerUiFeatures(): Promise<void> {
   const manifest = createActorworkManifest(config) as any;
   const uiFeatures = (manifest.services || []).flatMap((service: any) =>
     (service.uiFeatures || []).map((feature: any) => ({
@@ -100,3 +92,4 @@ export async function registerUiFeatures(): Promise<void> {
 
   console.log(`✓ Registered ${uiFeatures.length} actorwork UI feature(s) with discovery`);
 }
+ */

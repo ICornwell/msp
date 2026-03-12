@@ -29,9 +29,11 @@ export declare type DomainManifest = Manifest & {
 }
 
 export declare type ServiceManifestSection = ManifestCommon & {
+  
  informationPackages: InformationManifestSection[]
  uiFeatures: UiFeatureManifestSection[]
  apiFeatures: ApiFeatureManifestSection[]
+ activityFeatures: ActivityFeatureManifestSection[]
  work: WorkManifestSection[]
 }
 
@@ -39,9 +41,15 @@ export declare type UiFeatureManifestSection =  ManifestCommon &{
    remotePath: string;
 }
 
+export declare type ActivityFeatureManifestSection =  ManifestCommon &{
+   remotePath: string;
+   
+}
+
 export declare type ApiFeatureManifestSection = ManifestCommon & {
- information: InformationManifestSection[]
- work: WorkManifestSection[]
+ information?: InformationManifestSection[]
+ work?: WorkManifestSection[]
+ remotePath: string;
 }
 
 export declare type InformationManifestSection = ManifestCommon & {

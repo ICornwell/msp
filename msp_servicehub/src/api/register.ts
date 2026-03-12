@@ -1,12 +1,11 @@
 import { UiFeatureManifestSection } from "msp_common";
 import serviceHubManifest from "./manifest/serviceHubManifest.js";
-import { uiFeatureRegistry } from "./services/uiFeatureRegistry.js";
+import { registerFeatures } from "./services/uiFeatureRegistry.js";
 
 // push all my UI features to the bff registry
 
 
-export function registerWithBff() {
-  const uiFeatureList: UiFeatureManifestSection[] = []
+export function registerForBff() {
   for (const service of serviceHubManifest.services || []) {
     for (const uiFeature of service.uiFeatures || []) {
       const productUiFeature = {
@@ -14,10 +13,8 @@ export function registerWithBff() {
         product: { ...serviceHubManifest.product, ...service.product, ...uiFeature.product },
 
       }
-      uiFeatureList.push(productUiFeature);
-
+      registerFeatures(serviceHubManifest, service, productUiFeature);
     }
   }
 
-  return uiFeatureRegistry.registerFeatures(uiFeatureList);
 }

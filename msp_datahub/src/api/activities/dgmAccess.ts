@@ -1,8 +1,9 @@
-import { ActivitySet, ServiceActivityResultBuilder } from 'msp_common'
+import { activitySet, ServiceActivityResultBuilder } from 'msp_common'
+import type { ActivitySet } from 'msp_common'
 import { ReadData } from '../services/dgmRead.js';
 import { WriteData } from '../services/dgmWrite.js';
 
-const discoveryActivitySet = ActivitySet()
+const discoveryActivitySet: ActivitySet = activitySet()
 
 discoveryActivitySet.use({
     namespace: 'datahub_dgm',

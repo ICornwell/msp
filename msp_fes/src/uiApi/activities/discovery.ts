@@ -1,6 +1,7 @@
-import { ActivitySet, ServiceActivityResultBuilder, serviceRequest, getConfig } from 'msp_common'
+import { activitySet, ServiceActivityResultBuilder, serviceRequest, getConfig } from 'msp_common'
+import type { ActivitySet } from 'msp_common'
 
-const discoveryActivitySet = ActivitySet()
+const discoveryActivitySet: ActivitySet = activitySet()
 
 discoveryActivitySet.use({
     namespace: 'discovery',

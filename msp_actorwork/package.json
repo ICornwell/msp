@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node ./distApi/server.js & vite",
-    "start:server": "node ./distApi/server.js",
+    "start": "node ./distApi/api/server.js & vite",
+    "start:server": "node ./distApi/api/server.js",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:server": "tsc -b",

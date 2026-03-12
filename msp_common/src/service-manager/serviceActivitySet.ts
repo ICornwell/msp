@@ -1,4 +1,4 @@
-import { isMatch, highestVersionMatches, Matcher } from "./isMatch.js";
+import { isMatch, bestVersionMatch, Matcher } from "./isMatch.js";
 
 export type ServiceActivityExec = (payload: any, serviceResult: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
 
@@ -147,9 +147,10 @@ export function activitySet(): ActivitySet {
             const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
                 && isMatch(activityName, handler.activityName));
 
-            const highestVersionActivities = highestVersionMatches(matchingActivities, version,
-                 (x: ServiceActivity) => `${x.namespace}:${x.activityName}`, (x: ServiceActivity) => x.version);
-            for (const activity of highestVersionActivities) {
+            const bestVersionActivities = bestVersionMatch(matchingActivities, version,
+                 (x) => `${x.namespace}:${x.activityName}`, (x) => x.version,
+                x => (x.matchingVersionRange??'none'));
+            for (const activity of bestVersionActivities) {
                 for (const func of Array.isArray(activity.funcs) ? activity.funcs : [activity.funcs]) {
                     await func(payload, resultBuilder);
                     if (resultBuilder.currentResult().updatedPayload) {

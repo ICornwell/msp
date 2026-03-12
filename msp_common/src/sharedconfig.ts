@@ -8,6 +8,8 @@ export type ProductConfig = {
     version: string
 }
 
+
+
 export type Config = {
     product: ProductConfig,
     myUrl: string,

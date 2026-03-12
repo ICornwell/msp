@@ -1,7 +1,9 @@
 // Service Activity Registry
 // Uses ActivitySet for version matching and name matching
 
-import { ActivitySet, ServiceActivityResultBuilder, ServiceRequestEnvelope, serviceRequest } from 'msp_common';
+import { serviceManager, activitySet, ServiceActivityResultBuilder, ServiceRequestEnvelope, serviceRequest } from 'msp_common';
+import type { ActivitySet } from 'msp_common';
+import { ActivityFeatureManifestSection, Manifest, ServiceManifestSection } from 'msp_common';
 
 export type ServiceActivityRegistration = {
   namespace: string;
@@ -12,25 +14,27 @@ export type ServiceActivityRegistration = {
   serviceName: string;
 };
 
-// ActivitySet is actually the factory function (exported as: activitySet as ActivitySet)
-type ActivitySetInstance = ReturnType<typeof ActivitySet>;
+const registrations: ServiceActivityRegistration[] = [];
+const registeredActivitySet: ActivitySet = activitySet();
 
-class ServiceActivityRegistry {
-  private activitySet: ActivitySetInstance;
-  private registrations: ServiceActivityRegistration[] = [];
+export function registerFeatures(manifest: Manifest, service: ServiceManifestSection, features: ActivityFeatureManifestSection | ActivityFeatureManifestSection[]) {
+  // Store registration for tracking
+  for (const feature of Array.isArray(features) ? features : [features]) {
+    const product = { ...manifest.product, ...service.product, ...feature.product };
+    const registration: ServiceActivityRegistration = {
+      namespace: product?.domain || 'default', // Assuming namespace is derived from product domain
+      activityName: feature.name || 'unnamed-activity',
+      version: product.version || '1.0.0',
+      matchingVersionRange: product.version || 'none',
+      serviceUrl: feature.serverUrl || 'none',
+      serviceName: feature.remotePath || 'none'
+    };
+    registrations.push(registration);
 
-  constructor() {
-    this.activitySet = ActivitySet();
-  }
-
-  register(registration: ServiceActivityRegistration) {
-    // Store registration for tracking
-    this.registrations.push(registration);
-    
     const matchingVersionRange = registration.matchingVersionRange || registration.version;
-    
+
     // Create a proxy activity that forwards to the remote service
-    this.activitySet.use({
+    registeredActivitySet.use({
       namespace: registration.namespace,
       activityName: registration.activityName,
       version: registration.version,
@@ -70,23 +74,26 @@ class ServiceActivityRegistry {
         }
       }
     });
-
     console.log(`Registered activity: ${registration.namespace}/${registration.activityName}@${registration.version} (${matchingVersionRange}) -> ${registration.serviceUrl}`);
-  }
-
-  // Use the ActivitySet's handle method which has fancy version matching and name matching
-  async handle(namespace: string, activityName: string, version: string, payload: any, resultBuilder?: ServiceActivityResultBuilder) {
-    return this.activitySet.handle(namespace, activityName, version, payload, resultBuilder);
-  }
-
-  getAll(): ServiceActivityRegistration[] {
-    return [...this.registrations];
-  }
-
-  clear() {
-    this.registrations = [];
-    this.activitySet = ActivitySet();
   }
 }
 
-export const serviceActivityRegistry = new ServiceActivityRegistry();
+// Use the ActivitySet's handle method which has fancy version matching and name matching
+export async function handle(namespace: string, activityName: string, version: string, payload: any, resultBuilder?: ServiceActivityResultBuilder) {
+  return await registeredActivitySet.handle(namespace, activityName, version, payload, resultBuilder);
+}
+
+export function getAll(): ServiceActivityRegistration[] {
+  return [...registrations];
+}
+
+export function createServiceManager() {
+  const sm = serviceManager();
+  sm.use(registeredActivitySet);
+  return sm;
+}
+
+
+export default {
+
+};

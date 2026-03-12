@@ -4,8 +4,7 @@ import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
 
 // MSAL Configuration
-// used to prevent ts errors on import.meta.env
-const viteMeta: any = import.meta;
+const viteEnv = (import.meta as any).env ?? {};
 
 const msalConfig = {
   auth: {
@@ -13,10 +12,10 @@ const msalConfig = {
     // authority: 'https://login.microsoftonline.com/027f47db-adad-450a-8118-4bd5b6feef63',
     // redirectUri: 'http://localhost:3000', // Your redirect URI
     // postLogoutRedirectUri: 'http://localhost:3000', // Your post logout redirect URI
-    clientId: viteMeta.env.VITE_clientId,
-    authority: viteMeta.env.VITE_authority,
-    redirectUri: viteMeta.env.VITE_redirectUri,
-    postLogoutRedirectUri: viteMeta.env.VITE_postLogoutRedirectUri,
+    clientId: viteEnv.VITE_clientId,
+    authority: viteEnv.VITE_authority,
+    redirectUri: viteEnv.VITE_redirectUri,
+    postLogoutRedirectUri: viteEnv.VITE_postLogoutRedirectUri,
     navigateToLoginRequestUrl: true,
   },
   cache: {

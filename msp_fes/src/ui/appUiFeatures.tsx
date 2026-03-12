@@ -4,6 +4,8 @@ import { Remote } from "@module-federation/runtime/types";
 
 import type { UiFeatureManifestSection } from "msp_common";
 import { getAvailableFeatures } from "msp_ui_common/uiLib/comms";
+import { useUserSession } from "msp_ui_common/uiLib/hooks";
+import type { UserChangeHandler } from 'msp_ui_common/uiLib/hooks';
 
 type DiscoveryUiFeature = UiFeatureManifestSection & {
   serverUrl?: string;
@@ -30,8 +32,21 @@ function toRemoteDescriptor(feature: DiscoveryUiFeature): { remoteName: string; 
 }
 
 export function AppUiFeatures() {
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const componentRef = useRef<React.FC<any>[]>([]);
+
+  const userChangeHAndler = useUserSession()
+
+  userChangeHAndler.onLoggedIn = (userId: string) => {
+    console.log(`User logged in: ${userId}`);
+    setCurrentUser(userId);
+  }
+
+  userChangeHAndler.onLoggedOut = (userId: string) => {
+    console.log(`User logged out: ${userId}`);
+    setCurrentUser(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -86,7 +101,7 @@ export function AppUiFeatures() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currentUser]);
   return (<>
     {loaded && componentRef.current.map((Component, index) => {
       const MemoComponent = memo(Component);
