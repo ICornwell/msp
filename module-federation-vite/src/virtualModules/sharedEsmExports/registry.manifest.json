@@ -1,0 +1,125 @@
+{
+  "defaultExport": {
+    "module": "./defaultExport",
+    "factory": "defaultExportCode"
+  },
+  "packages": [
+    {
+      "package": "react",
+      "module": "./react",
+      "factory": "reactExportCode",
+      "forceEsmInServe": true,
+      "namedExports": [
+        "Children",
+        "Component",
+        "Fragment",
+        "Profiler",
+        "PureComponent",
+        "StrictMode",
+        "Suspense",
+        "cloneElement",
+        "createContext",
+        "createElement",
+        "createRef",
+        "forwardRef",
+        "isValidElement",
+        "lazy",
+        "memo",
+        "startTransition",
+        "use",
+        "useActionState",
+        "useCallback",
+        "useContext",
+        "useDebugValue",
+        "useDeferredValue",
+        "useEffect",
+        "useId",
+        "useImperativeHandle",
+        "useInsertionEffect",
+        "useLayoutEffect",
+        "useMemo",
+        "useOptimistic",
+        "useReducer",
+        "useRef",
+        "useState",
+        "useSyncExternalStore",
+        "useTransition",
+        "version"
+      ]
+    },
+    {
+      "package": "react-dom",
+      "module": "./reactDom",
+      "factory": "reactDomExportCode",
+      "forceEsmInServe": true,
+      "namedExports": [
+        "createPortal",
+        "flushSync",
+        "unstable_batchedUpdates",
+        "version"
+      ]
+    },
+    {
+      "package": "react-dom/client",
+      "module": "./reactDomClient",
+      "factory": "reactDomClientExportCode",
+      "forceEsmInServe": true,
+      "namedExports": [
+        "createRoot",
+        "hydrateRoot",
+        "version"
+      ]
+    },
+    {
+      "package": "react/jsx-runtime",
+      "module": "./reactJsxRuntime",
+      "factory": "reactJsxRuntimeExportCode",
+      "forceEsmInServe": true,
+      "namedExports": [
+        "Fragment",
+        "jsx",
+        "jsxs"
+      ]
+    },
+    {
+      "package": "react/jsx-dev-runtime",
+      "module": "./reactJsxDevRuntime",
+      "factory": "reactJsxDevRuntimeExportCode",
+      "forceEsmInServe": true,
+      "namedExports": [
+        "Fragment",
+        "jsxDEV"
+      ]
+    },
+    {
+      "package": "@mui/material",
+      "module": "./muiMaterial",
+      "factory": "muiMaterialExportCode",
+      "forceEsmInServe": false
+    },
+    {
+      "package": "@mui/system",
+      "module": "./muiSystem",
+      "factory": "muiSystemExportCode",
+      "forceEsmInServe": false
+    },
+    {
+      "package": "@mui/icons-material",
+      "module": "./muiIconsMaterial",
+      "factory": "muiIconsMaterialExportCode",
+      "forceEsmInServe": false
+    },
+    {
+      "package": "@emotion/react",
+      "module": "./emotionReact",
+      "factory": "emotionReactExportCode",
+      "forceEsmInServe": false
+    },
+    {
+      "package": "@emotion/styled",
+      "module": "./emotionStyled",
+      "factory": "emotionStyledExportCode",
+      "forceEsmInServe": false
+    }
+  ]
+}
