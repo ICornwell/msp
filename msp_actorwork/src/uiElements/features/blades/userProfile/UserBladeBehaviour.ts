@@ -1,4 +1,10 @@
-import { createBehaviour } from 'msp_ui_common/uiLib/behaviours';
+import * as uiLibNs from 'msp_ui_common/uiLib';
+
+type UiLibModule = typeof uiLibNs;
+type UiLibModuleWithDefault = UiLibModule & { default?: UiLibModule };
+
+const uiLib: UiLibModule = (uiLibNs as UiLibModuleWithDefault).default ?? uiLibNs;
+const { createBehaviour } = uiLib;
 
 // This behaviour orchestrates the User Profile feature flow:
 // 1. Listen for UserChanged

@@ -1,12 +1,10 @@
 import { useEffect, useRef } from 'react';
-import {
-  Tabs,
-  Tab as MuiTab,
-  Box,
-  IconButton,
-  styled
-} from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import Tabs from '@mui/material/Tabs';
+import MuiTab from '@mui/material/Tab';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import { styled } from '@mui/material/styles';
+import CloseIcon from '@mui/icons-material/Close';
 import { Tab } from '../contexts/uiEventTypes.js';
 
 interface TabStripProps {

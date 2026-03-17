@@ -10033,6 +10033,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"msp_semaphors@workspace:*, msp_semaphors@workspace:msp_semaphors":
+  version: 0.0.0-use.local
+  resolution: "msp_semaphors@workspace:msp_semaphors"
+  dependencies:
+    "@types/cors": "npm:^2"
+    "@types/express": "npm:^5"
+    "@types/node": "npm:^25.0.3"
+    cors: "npm:^2.8.5"
+    express: "npm:^5.1.0"
+    msp_common: "workspace:*"
+    tsx: "npm:^4.21.0"
+    typescript: "npm:5.9.3"
+    uuid: "npm:^11.1.0"
+    vitest: "npm:^3.1.3"
+  languageName: unknown
+  linkType: soft
+
 "msp_servicehub@workspace:msp_servicehub":
   version: 0.0.0-use.local
   resolution: "msp_servicehub@workspace:msp_servicehub"
@@ -10096,6 +10113,7 @@ __metadata:
     math-expression-evaluator: "npm:^2.0.7"
     morgan: "npm:^1.10.0"
     msp_common: "workspace:*"
+    msp_semaphors: "workspace:*"
     node-fetch: "npm:^3.3.2"
     object-path: "npm:^0.11.8"
     proxy-deep: "npm:^4.0.1"

@@ -7,7 +7,7 @@ const uiFeatureList: UiFeatureManifestSection[] = [
     version: '1.0.0',
     description: 'A sample UI feature for demonstration purposes',
     serverUrl: '/features/sample-feature',
-    domain: 'sample-domain',
+    namespace: 'sample-domain',
     allowedContexts: ['*'],
     remotePath: '/features/sample-feature/feature.js'
   }

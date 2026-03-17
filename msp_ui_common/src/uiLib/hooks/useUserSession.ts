@@ -12,7 +12,7 @@ export type UserChangeHandler = {
 const userChangeHandlers: Record<string, UserChangeHandler> = {}
 
 export function useUserSession(): UserChangeHandler {
-  const {sessionUser} = useUserSessionContext();
+  const {currentUser} = useUserSessionContext();
 
   const handlerId = uuid();
 
@@ -23,14 +23,14 @@ export function useUserSession(): UserChangeHandler {
 
   useEffect(() => {
     Object.values(userChangeHandlers).forEach(h => {
-      h.onLoggedIn(sessionUser?.userId || '');
+      h.onLoggedIn(currentUser?.userId || '');
     })
     return () => {
       Object.values(userChangeHandlers).forEach(h => {
-      h.onLoggedOut(sessionUser?.userId || '');
+      h.onLoggedOut(currentUser?.userId || '');
     })
     };
-  }, [sessionUser]);
+  }, [currentUser]);
 
   useEffect(() => {
     userChangeHandlers[handlerId] = handler;

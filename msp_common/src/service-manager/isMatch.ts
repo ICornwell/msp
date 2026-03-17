@@ -91,7 +91,7 @@ export function bestVersionMatch<T>(candidates: T[], requestedVersion: string, u
       
       // Check if the requested version satisfies this candidate's range
       try {
-        if (satisfies(requestedVersion, candidateRange)) {
+        if ((requestedVersion === '*') || satisfies(requestedVersion, candidateRange)) {
           // If this is the first match or has a higher version than current best
           if (bestMatchVersion === null || gt(candidateVersion, bestMatchVersion)) {
             bestMatch = candidate;

@@ -10,9 +10,8 @@ const informationList: InformationManifestSection[] = [
     version: '1.0.0',
     description: 'A sample information set  for demonstration purposes',
     serverUrl: '/features/sample-information',
-    domain: 'sample-domain',
+    namespace: 'sample-domain',
     allowedContexts: ['*'],
-    remotePath: '/features/sample-information/feature.js'
   }
 ]
 

@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  Drawer,
- 
-  Box,
-//  Tooltip
-} from '@mui/material';
+import Drawer from '@mui/material/Drawer';
+import Box from '@mui/material/Box';
 import { NavItem } from '../contexts/uiEventTypes.js'
 import NavigationTree from './trees/NavigationTree.js';
 

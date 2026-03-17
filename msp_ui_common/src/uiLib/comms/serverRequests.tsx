@@ -1,17 +1,16 @@
 import ky from 'ky';
-import { UiFeatureManifestSection } from 'msp_common';
 
 const apiHostName = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 
-export async function getAvailableFeatures(): Promise<UiFeatureManifestSection[]> {
+export async function getAvailableFeatures<FeatureType>(discoveryType: string, payload?: unknown): Promise<FeatureType[]> {
   const response = await ky.put(`${apiHostName}/api/v1/service/run`, {
     json: {
       namespace: 'discovery',
-      activityName: 'discoverOpenUiFeatures',
+      activityName: discoveryType,
       version: '1.0.0',
-      payload: {},
+      payload: payload ?? {},
     },
-  }).json<{ result?: { features?: UiFeatureManifestSection[] } }>();
+  }).json<{ result?: { features?: FeatureType[] } }>();
 
   return response.result?.features || [];
 }

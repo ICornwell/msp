@@ -1,14 +1,15 @@
 // Actorwork API Server
 import app from './api.js';
-import { config } from './config.js';
+import { Config } from './config.js';
 import { registerWithRetry } from './manifestRegistration.js';
-const PORT = config.port;
+import { Ports } from 'msp_common';
+const PORT = Ports.core.actorWork;
 // Start the server
 const server = app.listen(PORT, () => {
-    console.log(`\n🚀 Actorwork API server running on ${config.myUrl}`);
-    console.log(`   - Health check: ${config.myUrl}/health`);
-    console.log(`   - API endpoint: ${config.myUrl}/api/v1/service/run`);
-    console.log(`   - ServiceHub:   ${config.serviceHubUrl}\n`);
+    console.log(`\n🚀 Actorwork API server running on ${Config.myUrl}`);
+    console.log(`   - Health check: ${Config.myUrl}/health`);
+    console.log(`   - API endpoint: ${Config.myUrl}/api/v1/service/run`);
+    console.log(`   - ServiceHub:   ${Config.serviceHubApiUrl}\n`);
     // Register with servicehub in the background (with retry)
     registerWithRetry().then(() => {
         console.log('Actorwork is fully operational and registered with servicehub');

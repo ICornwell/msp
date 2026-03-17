@@ -18,8 +18,10 @@ import {
   getHostAutoInitImportId,
   getHostAutoInitPath,
   getLocalSharedImportMapPath,
+  getPreBuildLibImportId,
   initVirtualModules,
   REMOTE_ENTRY_ID,
+  writePreBuildLibPath,
 } from './virtualModules';
 import { VIRTUAL_EXPOSES } from './virtualModules/virtualExposes';
 
@@ -92,6 +94,19 @@ function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
         config.optimizeDeps?.include?.push(virtualDir);
         config.optimizeDeps?.needsInterop?.push(virtualDir);
         config.optimizeDeps?.needsInterop?.push(getLocalSharedImportMapPath());
+
+        if (_command === 'serve') {
+          for (const shareKey of Object.keys(shared || {})) {
+            // Ensure each shared package has a concrete prebuild virtual module
+            // and register it up-front so Vite does not discover it late and
+            // force a client reload mid-bootstrap.
+            writePreBuildLibPath(shareKey);
+            const prebuildImportId = getPreBuildLibImportId(shareKey);
+            if (!config.optimizeDeps?.include?.includes(prebuildImportId)) {
+              config.optimizeDeps?.include?.push(prebuildImportId);
+            }
+          }
+        }
       },
     },
     ...pluginManifest(),

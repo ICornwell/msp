@@ -1,24 +1,24 @@
 // Manifest Registration Service
 import { serviceRequest } from 'msp_common';
 import { createActorworkManifest } from '../manifest/manifest.js';
-import { config } from './config.js';
+import { Config } from './config.js';
 
 export async function registerManifest(): Promise<boolean> {
   try {
-    console.log(`Registering actorwork manifest with servicehub at ${config.serviceHubUrl}...`);
+    console.log(`Registering actorwork manifest with servicehub at ${Config.serviceHubApiUrl}...`);
 
     // Register the GetUserProfileData activity
-    const manifest = createActorworkManifest(config) as any;
+    const manifest = createActorworkManifest(Config) as any;
 
     const result = await serviceRequest(
       {
-        namespace: 'servicehub',
+        namespace: 'discovery',
         activityName: 'registerManifest',
         version: '1.0.0',
         payload: manifest,
       },
       {
-        baseUrl: config.serviceHubUrl,
+        baseUrl: Config.serviceHubApiUrl,
         endpointPath: '/api/v1/service/run',
         timeoutMs: 5000,
       }

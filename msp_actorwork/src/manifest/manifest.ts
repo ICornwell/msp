@@ -2,23 +2,23 @@ import { makeManifest } from 'msp_common';
 
 export function createActorworkManifest(config?: any) {
   const manifest = makeManifest(config)
+  
     .withAllowedContexts(['*'])
-    .addService()
-      .forProduct({
-        domain: 'actorwork',
-        name: 'Actor Work Management',
-        version: '1.0.0',
-        variantName: 'default'
-      })
+    .addService('ActorWork-UserService')
+      .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
       .withAllowedContexts(['*'])
-      .addUiFeature()
-        .withRemoteName('actorwork/UserProfileFeature')
+      .addUiFeature('UserProfileFeature')
+        .withRemoteName('actorwork_remoteEntry.js')
         .withAllowedContexts(['*'])
-        .forProduct({
-          domain: 'actorwork',
-          name: 'User Profile UI',
-          version: '1.0.0'
-        })
+        .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
         .endUiFeature
       .endService
     .build();

@@ -3,7 +3,8 @@ import { Manifest, ServiceManifestSection,
 import { Config, ProductConfig } from '../sharedconfig.js'
 
 export interface ManifestBuilder {
-  addService(): ManifestServiceBuilder
+  addService(name: string, version?: string, variantName?: string): ManifestServiceBuilder
+  forProducts(products: Partial<ProductConfig>[]): ManifestBuilder
   withAllowedContexts(contexts: string[]): ManifestBuilder
   build(): Partial<Manifest>
 }
@@ -13,23 +14,26 @@ export function makeManifest(config: Partial<Config>): ManifestBuilder {
   const values: {
     allowedContexts: string[]
     serviceBuilders: ManifestServiceBuilder[]
+    forProducts: Partial<ProductConfig>[]
   } = {
     allowedContexts: [],
-    serviceBuilders: []
+    serviceBuilders: [],
+    forProducts: []
   }
   const builder: ManifestBuilder = {
-    addService: () => makeServiceManifest(builder, values.serviceBuilders),
+    addService: (name: string, version: string = "1.0.0", variantName: string = "default") => makeServiceManifest(builder, name, version, variantName, values.serviceBuilders),
+    forProducts: (products: Partial<ProductConfig>[]) => { values.forProducts = products; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
     build: () => {
       // Finalize and return the manifest
       return {
-        product: {
-          domain: config.product?.domain || 'None',
-          name: config.product?.name || 'Unnamed Manifest',
-          version: config.product?.version || '1.0.0',
-          variantName: config.product?.variantName || 'default-variant'
-        },
+        namespace: config.product?.domain,
+        name: config.product?.name || 'Unnamed Manifest',
+        version: config.product?.version || 'Unnamed Manifest',
+        variantName: config.product?.variantName || 'Unnamed Manifest',
+        forProducts: values.forProducts,
         serverUrl: config?.myUrl || 'http://localhost',
+        serverMFUrl: config?.myMFUrl || 'http://localhost',
         services: values.serviceBuilders.map(sb => sb.build()),
         allowedContexts: values.allowedContexts
 
@@ -40,21 +44,24 @@ export function makeManifest(config: Partial<Config>): ManifestBuilder {
 }
 
 export interface ManifestServiceBuilder {
-  addUiFeature(): ManifestUiFeatureBuilder
-  addApiFeature(): ManifestApiFeatureBuilder
-  addActivityFeature(): ManifestActivityFeatureBuilder
+  addUiFeature(name: string, version?: string, variantName?: string): ManifestUiFeatureBuilder
+  addApiFeature(name: string, version?: string, variantName?: string): ManifestApiFeatureBuilder
+  addActivityFeature(name: string, version?: string, variantName?: string): ManifestActivityFeatureBuilder
 
   withAllowedContexts(contexts: string[]): ManifestServiceBuilder
-  forProduct(product: Partial<ProductConfig>): ManifestServiceBuilder
+  forProducts(products: Partial<ProductConfig>[]): ManifestServiceBuilder
 
   endService: ManifestBuilder
   build(): Partial<ServiceManifestSection>
 }
 
-export function makeServiceManifest(returnTo: ManifestBuilder, services: ManifestServiceBuilder[]): ManifestServiceBuilder {
+export function makeServiceManifest(returnTo: ManifestBuilder, name:string, version: string, variantName: string, services: ManifestServiceBuilder[]): ManifestServiceBuilder {
   const feature = {
+    name,
+    version,
+    variantName,
     allowedContexts: ['*'],
-    product: {} as Partial<ProductConfig>,
+    forProducts: [] as Partial<ProductConfig>[],
     uiFeatureBuilders: [] as ManifestUiFeatureBuilder[],
     apiFeatureBuilders: [] as ManifestApiFeatureBuilder[],
     activityFeatureBuilders: [] as ManifestActivityFeatureBuilder[]
@@ -62,16 +69,19 @@ export function makeServiceManifest(returnTo: ManifestBuilder, services: Manifes
 
 
   const builder = {
-    addUiFeature: () => makeUiFeatureManifest(builder, feature.uiFeatureBuilders),
-    addApiFeature: () => makeApiFeatureManifest(builder, feature.apiFeatureBuilders),
-    addActivityFeature: () => makeActivityFeatureManifest(builder, feature.activityFeatureBuilders),
+    addUiFeature: (name: string, version: string = "1.0.0", variantName: string = "default") => makeUiFeatureManifest(builder, name, version, variantName, feature.uiFeatureBuilders),
+    addApiFeature: (name: string, version: string = "1.0.0", variantName: string = "default") => makeApiFeatureManifest(builder, name, version, variantName, feature.apiFeatureBuilders),
+    addActivityFeature: (name: string, version: string = "1.0.0", variantName: string = "default") => makeActivityFeatureManifest(builder, name, version, variantName, feature.activityFeatureBuilders),
     withAllowedContexts: (contexts: string[]) => { feature.allowedContexts = contexts; return builder },
-    forProduct: (product: Partial<ProductConfig>): ManifestServiceBuilder => { feature.product = product; return builder },
+    forProducts: (products: Partial<ProductConfig>[]): ManifestServiceBuilder => { feature.forProducts = products; return builder },
     endService: returnTo,
     build: () => {
       const serviceManifest: Partial<ServiceManifestSection> = {
+        name: feature.name,
+        version: feature.version,
+        variantName: feature.variantName,
         allowedContexts: feature.allowedContexts,
-        product: feature.product,
+        forProducts: feature.forProducts,
         uiFeatures: feature.uiFeatureBuilders.map(fb => fb.build())
       }
 
@@ -86,7 +96,7 @@ export function makeServiceManifest(returnTo: ManifestBuilder, services: Manifes
 export interface ManifestUiFeatureBuilder {
   withRemoteName(remoteName: string): ManifestUiFeatureBuilder
   withAllowedContexts(contexts: string[]): ManifestUiFeatureBuilder
-  forProduct(product: Partial<ProductConfig>): ManifestUiFeatureBuilder
+  forProducts(product: Partial<ProductConfig>[]): ManifestUiFeatureBuilder
 
   endUiFeature: ManifestServiceBuilder
   build(): UiFeatureManifestSection
@@ -95,7 +105,7 @@ export interface ManifestUiFeatureBuilder {
 export interface ManifestApiFeatureBuilder {
   withRemoteName(remoteName: string): ManifestApiFeatureBuilder
   withAllowedContexts(contexts: string[]): ManifestApiFeatureBuilder
-  forProduct(product: Partial<ProductConfig>): ManifestApiFeatureBuilder
+  forProducts(product: Partial<ProductConfig>[]): ManifestApiFeatureBuilder
 
   endApiFeature: ManifestServiceBuilder
   build(): ApiFeatureManifestSection
@@ -104,31 +114,37 @@ export interface ManifestApiFeatureBuilder {
 export interface ManifestActivityFeatureBuilder {
   withRemoteName(remoteName: string): ManifestActivityFeatureBuilder
   withAllowedContexts(contexts: string[]): ManifestActivityFeatureBuilder
-  forProduct(product: Partial<ProductConfig>): ManifestActivityFeatureBuilder
+  forProducts(product: Partial<ProductConfig>[]): ManifestActivityFeatureBuilder
 
   endActivityFeature: ManifestServiceBuilder
   build(): ActivityFeatureManifestSection
 }
 
-export function makeUiFeatureManifest(returnTo: ManifestServiceBuilder, featureBuilders: ManifestUiFeatureBuilder[]): ManifestUiFeatureBuilder {
+export function makeUiFeatureManifest(returnTo: ManifestServiceBuilder, name: string, version: string, variantName: string, featureBuilders: ManifestUiFeatureBuilder[]): ManifestUiFeatureBuilder {
   const values = {
+    name,
+    version,
+    variantName,
     remoteName: 'default-remote',
     allowedContexts: ['*'],
-    product: {} as Partial<ProductConfig>
+    forProducts: {} as Partial<ProductConfig>[]
   }
 
 
   const builder = {
     withRemoteName: (remoteName: string) => { values.remoteName = remoteName; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
-    forProduct: (product: Partial<ProductConfig>): ManifestUiFeatureBuilder => { values.product = product; return builder },
+    forProducts: (products: Partial<ProductConfig>[]): ManifestUiFeatureBuilder => { values.forProducts = products; return builder },
     endUiFeature: returnTo,
     build: () => {
       // Finalize and return the manifest
       const uiFeatureManifest: UiFeatureManifestSection = {
+        name: values.name,
+        version: values.version,
+        variantName: values.variantName,
         remotePath: values.remoteName,
         allowedContexts: values.allowedContexts,
-        product: values.product
+        forProducts: values.forProducts
       }
       return uiFeatureManifest
 
@@ -138,25 +154,31 @@ export function makeUiFeatureManifest(returnTo: ManifestServiceBuilder, featureB
   return builder
 }
 
-export function makeApiFeatureManifest(returnTo: ManifestServiceBuilder, featureBuilders: ManifestApiFeatureBuilder[]): ManifestApiFeatureBuilder {
+export function makeApiFeatureManifest(returnTo: ManifestServiceBuilder, name: string, version: string, variantName: string, featureBuilders: ManifestApiFeatureBuilder[]): ManifestApiFeatureBuilder {
   const values = {
+    name,
+    version,
+    variantName,
     remoteName: 'default-remote',
     allowedContexts: ['*'],
-    product: {} as Partial<ProductConfig>
+    forProducts: {} as Partial<ProductConfig>[]
   }
 
 
   const builder = {
     withRemoteName: (remoteName: string) => { values.remoteName = remoteName; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
-    forProduct: (product: Partial<ProductConfig>): ManifestApiFeatureBuilder => { values.product = product; return builder },
+    forProducts: (products: Partial<ProductConfig>[]): ManifestApiFeatureBuilder => { values.forProducts = products; return builder },
     endApiFeature: returnTo,
     build: () => {
       // Finalize and return the manifest
       const apiFeatureManifest: ApiFeatureManifestSection = {
+        name: values.name,
+        version: values.version,
+        variantName: values.variantName,
         remotePath: values.remoteName,
         allowedContexts: values.allowedContexts,
-        product: values.product
+        forProducts: values.forProducts
       }
       return apiFeatureManifest
 
@@ -166,25 +188,31 @@ export function makeApiFeatureManifest(returnTo: ManifestServiceBuilder, feature
   return builder
 }
 
-export function makeActivityFeatureManifest(returnTo: ManifestServiceBuilder, featureBuilders: ManifestActivityFeatureBuilder[]): ManifestActivityFeatureBuilder {
+export function makeActivityFeatureManifest(returnTo: ManifestServiceBuilder, name: string, version: string, variantName: string, featureBuilders: ManifestActivityFeatureBuilder[]): ManifestActivityFeatureBuilder {
   const values = {
+    name,
+    version,
+    variantName,
     remoteName: 'default-remote',
     allowedContexts: ['*'],
-    product: {} as Partial<ProductConfig>
+    forProducts: {} as Partial<ProductConfig>[]
   }
 
 
   const builder = {
     withRemoteName: (remoteName: string) => { values.remoteName = remoteName; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
-    forProduct: (product: Partial<ProductConfig>): ManifestActivityFeatureBuilder => { values.product = product; return builder },
+    forProducts: (products: Partial<ProductConfig>[]): ManifestActivityFeatureBuilder => { values.forProducts = products; return builder },
     endActivityFeature: returnTo,
     build: () => {
       // Finalize and return the manifest
       const activityFeatureManifest: ActivityFeatureManifestSection = {
+        name: values.name,
+        version: values.version,
+        variantName: values.variantName,
         remotePath: values.remoteName,
         allowedContexts: values.allowedContexts,
-        product: values.product
+        forProducts: values.forProducts
       }
       return activityFeatureManifest
 

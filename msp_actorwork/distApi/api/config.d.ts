@@ -1,13 +1,2 @@
-export type ActorworkConfig = {
-    port: number;
-    myUrl: string;
-    uiRemoteUrl: string;
-    serviceHubUrl: string;
-    service: {
-        name: string;
-        domain: string;
-        version: string;
-    };
-};
-export declare const config: ActorworkConfig;
-export default config;
+import { Config as ConfigType } from "msp_common";
+export declare const Config: Partial<ConfigType>;

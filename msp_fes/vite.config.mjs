@@ -59,6 +59,16 @@ export default defineConfig({
     }
   },
   resolve: {
+    dedupe: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      '@emotion/react',
+      '@emotion/styled',
+      '@emotion/cache',
+      '@mui/styled-engine'
+    ],
     alias: {
       '__mf__virtual': path.resolve(__dirname, 'node_modules/__mf__virtual')
     },
@@ -66,19 +76,29 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
-      'uiApi'
+      'uiApi',
+      'msp_ui_common',
+      'msp_ui_common/uiLib',
+      'msp_ui_common/uiLib/components',
+      'msp_ui_common/uiLib/contexts'
     ],
     include: [
       'react',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
       'react-dom',
       'react-dom/client',
-      '@mui/material',
-      '@mui/system',
-      '@mui/icons-material',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       '@emotion/react',
-      '@emotion/styled'
+      '@emotion/styled',
+      '@emotion/cache',
+      '@emotion/react/jsx-runtime',
+      '@mui/styled-engine',
+      'hoist-non-react-statics',
+      'react-is',
+      '@emotion/is-prop-valid'
+    ],
+    needsInterop: [
+      'hoist-non-react-statics'
     ],
     esbuildOptions: {
       target: 'es2022',

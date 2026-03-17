@@ -11,7 +11,10 @@
  * - Seamless readonly/edit mode switching
  */
 
-import { TextField, InputAdornment, IconButton, Tooltip } from '@mui/material';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import NoteIcon from '@mui/icons-material/StickyNote2Outlined';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import { useState, useEffect, useRef, useMemo } from 'react';

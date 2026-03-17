@@ -1,4 +1,6 @@
 import { default as express } from "express";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { getConfig } from "msp_common";
 
 const router = express.Router();
@@ -13,6 +15,7 @@ const getServiceHubUrl = () => getConfig().serviceHubMfUrl || getConfig().servic
 // Module Federation remote proxy - keeps client proxy-blind
 router.get('/*all', async (req, res) => {
   try {
+    console.log(`UI MF proxy request: ${req.originalUrl}`);
     const serviceHubUrl = getServiceHubUrl();
     const remotePath = req.path; // Includes leading slash
     const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
@@ -22,13 +25,19 @@ router.get('/*all', async (req, res) => {
     
     const response = await fetch(targetUrl, {
       method: 'GET',
-      headers: extractForwardHeaders(req)
+      headers: {
+        ...extractForwardHeaders(req),
+        'accept-encoding': 'identity',
+      }
     });
-
+    console.log(`UI MF proxy response: ${req.originalUrl} → ${targetUrl}: status ${response.status}`);
     // Forward status and headers for proper caching/304 handling
     res.status(response.status);
     response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
+      if (shouldForwardResponseHeader(key)) {
+        console.log (`fes-bff forwarding header ${key}: ${value}`);
+        res.setHeader(key, value);
+      }
     });
 
     // Handle 304 Not Modified
@@ -39,16 +48,7 @@ router.get('/*all', async (req, res) => {
 
     // Stream response body
     if (response.body) {
-      const reader = response.body.getReader();
-      const pump = async () => {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(Buffer.from(value));
-        }
-        res.end();
-      };
-      await pump();
+      await pipeline(Readable.fromWeb(response.body as any), res);
     } else {
       res.end();
     }
@@ -64,7 +64,7 @@ router.get('/*all', async (req, res) => {
 
 function extractForwardHeaders(req: express.Request): Record<string, string> {
   const headers: Record<string, string> = {};
-  const forwardHeaders = ['authorization', 'x-correlation-id', 'x-request-id', 'user-agent', 'if-none-match', 'if-modified-since', 'cache-control'];
+  const forwardHeaders = ['authorization', 'x-correlation-id', 'x-request-id', 'user-agent', 'cache-control'];
   
   for (const header of forwardHeaders) {
     const value = req.headers[header];
@@ -74,6 +74,26 @@ function extractForwardHeaders(req: express.Request): Record<string, string> {
   }
   
   return headers;
+}
+
+function shouldForwardResponseHeader(headerName: string): boolean {
+  const hopByHopHeaders = new Set([
+    'connection',
+    'keep-alive',
+    'proxy-authenticate',
+    'proxy-authorization',
+    'te',
+    'trailer',
+    'transfer-encoding',
+    'upgrade',
+    // fetch may transparently decompress upstream payloads. Do not forward
+    // encoding/length validators that could describe the pre-decoded body.
+    'content-encoding',
+    'content-length',
+    'etag',
+  ]);
+
+  return !hopByHopHeaders.has(headerName.toLowerCase());
 }
 
 export default router;

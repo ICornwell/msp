@@ -41,29 +41,28 @@ export function generateLocalSharedImportMap() {
     import {loadShare} from "@module-federation/runtime";
     const importMap = {
       ${Array.from(getUsedShares())
-        .sort()
-        .map((pkg) => {
-          const shareItem = getNormalizeShareItem(pkg);
-          return `
+      .sort()
+      .map((pkg) => {
+        const shareItem = getNormalizeShareItem(pkg);
+        return `
         ${JSON.stringify(pkg)}: async () => {
-          ${
-            shareItem?.shareConfig.import === false
-              ? `throw new Error(\`Shared module '\${${JSON.stringify(pkg)}}' must be provided by host\`);`
-              : `let pkg = await import("${getPreBuildLibImportId(pkg)}");
+          ${shareItem?.shareConfig.import === false
+            ? `throw new Error(\`Shared module '\${${JSON.stringify(pkg)}}' must be provided by host\`);`
+            : `let pkg = await import("${getPreBuildLibImportId(pkg)}");
             return pkg;`
           }
         }
       `;
-        })
-        .join(',')}
+      })
+      .join(',')}
     }
       const usedShared = {
       ${Array.from(getUsedShares())
-        .sort()
-        .map((key) => {
-          const shareItem = getNormalizeShareItem(key);
-          if (!shareItem) return null;
-          return `
+      .sort()
+      .map((key) => {
+        const shareItem = getNormalizeShareItem(key);
+        if (!shareItem) return null;
+        return `
           ${JSON.stringify(key)}: {
             name: ${JSON.stringify(key)},
             version: ${JSON.stringify(shareItem.version)},
@@ -89,9 +88,25 @@ export function generateLocalSharedImportMap() {
                   return exportModule
                 } else {
                   const mod = exportModule.default;
-                  Object.assign(mod, exportModule);
-                  delete exportModule.default;
-                  return mod;
+                  if (typeof mod === 'function') {
+                    try {
+                      return Object.assign(mod, exportModule);
+                    } catch (_error) {
+                      return mod;
+                    }
+                  }
+
+                  if (typeof mod === 'object' && mod !== null) {
+                    // ESM namespace objects can be non-extensible. Build a merged
+                    // plain object instead of mutating module/default objects.
+                    return {
+                      ...exportModule,
+                      ...mod,
+                      default: mod,
+                    };
+                  }
+
+                  return exportModule;
                 }
               }
             },
@@ -102,15 +117,15 @@ export function generateLocalSharedImportMap() {
             }
           }
         `;
-        })
-        .filter((x) => x !== null)
-        .join(',')}
+      })
+      .filter((x) => x !== null)
+      .join(',')}
     }
       const usedRemotes = [${Object.keys(getUsedRemotesMap())
-        .map((key) => {
-          const remote = options.remotes[key];
-          if (!remote) return null;
-          return `
+      .map((key) => {
+        const remote = options.remotes[key];
+        if (!remote) return null;
+        return `
                 {
                   entryGlobalName: ${JSON.stringify(remote.entryGlobalName)},
                   name: ${JSON.stringify(remote.name)},
@@ -119,9 +134,9 @@ export function generateLocalSharedImportMap() {
                   shareScope: ${JSON.stringify(remote.shareScope) ?? 'default'},
                 }
           `;
-        })
-        .filter((x) => x !== null)
-        .join(',')}
+      })
+      .filter((x) => x !== null)
+      .join(',')}
       ]
       export {
         usedShared,

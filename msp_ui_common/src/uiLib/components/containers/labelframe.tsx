@@ -3,7 +3,8 @@ import React, { PropsWithChildren } from 'react';
 
 import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentCommonProps } from '../../renderEngine/components/ReComponentProps.js';
-import { styled, SvgIcon } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import SvgIcon from '@mui/material/SvgIcon';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements.js';
 import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
 

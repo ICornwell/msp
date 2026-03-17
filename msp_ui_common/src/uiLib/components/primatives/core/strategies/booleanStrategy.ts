@@ -7,7 +7,9 @@
  * - Center alignment
  */
 
-import { Checkbox, Switch, IconButton } from '@mui/material';
+import Checkbox from '@mui/material/Checkbox';
+import Switch from '@mui/material/Switch';
+import IconButton from '@mui/material/IconButton';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';

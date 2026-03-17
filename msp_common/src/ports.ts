@@ -2,8 +2,11 @@ const ports = {
     core: {
         uiWeb: 3000,
         uiBff: 4000,
-        serviceHubMF: 3001,
-        serviceHub:  process.env.SERVICEHUB_INTERNAL_PORT || 4001
+        semaphors: process.env.SERVICEHUB_INTERNAL_PORT || 4200,
+        serviceHub:  process.env.SERVICEHUB_INTERNAL_PORT || 4001,
+        dataHub:  process.env.SERVICEHUB_INTERNAL_PORT || 4002,
+        actorWork:  process.env.ACTORWORK_INTERNAL_PORT || 4003,
+        MF_actorWork:  process.env.ACTORWORK_MF_INTERNAL_PORT || 3003
     }
 }
 

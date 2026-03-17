@@ -6,7 +6,7 @@ import Config from "../config.js";
 
 const dataHubManifest = makeManifest(Config)
   .withAllowedContexts(['*'])
-  .addService()
+  .addService('datahub_service1')
     
     .endService
 .build()

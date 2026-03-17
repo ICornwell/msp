@@ -42,13 +42,18 @@ export function getLoadShareModulePath(pkg: string): string {
   return filepath;
 }
 export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command: string) {
-  const devWarmupImport = '';
+  if (command !== 'build') {
+    // In serve mode, virtual modules are executed as browser ESM. Never emit
+    // CommonJS require/module.exports wrappers there.
+    writeLoadShareModuleESM(pkg, shareItem, command);
+    return;
+  }
+
+  const prebuildWarmupImport = `;() => import(${JSON.stringify(getPreBuildLibImportId(pkg))}).catch(() => {});`;
 
   loadShareCacheMap[pkg].writeSync(`
 
-    ;() => import(${JSON.stringify(getPreBuildLibImportId(pkg))}).catch(() => {});
-    // dev uses dynamic import to separate chunks
-    ${devWarmupImport}
+    ${prebuildWarmupImport}
     const {loadShare} = require("@module-federation/runtime")
     const {initPromise} = require("${virtualRuntimeInitStatus.getImportId()}")
     const res = initPromise.then(_ => loadShare(${JSON.stringify(pkg)}, {
@@ -57,7 +62,7 @@ export function writeLoadShareModule(pkg: string, shareItem: ShareItem, command:
       strictVersion: ${shareItem.shareConfig.strictVersion},
       requiredVersion: ${JSON.stringify(shareItem.shareConfig.requiredVersion)}
     }}}))
-    let exportModule = ${command !== 'build' ? '/*mf top-level-await placeholder replacement mf*/' : 'await '}res.then(factory => factory())
+    let exportModule = ${command !== 'build' ? '/*mf top-level-await placeholder replacement mf*/' : 'await '}res.then(factoryOrModule => typeof factoryOrModule === 'function' ? factoryOrModule() : factoryOrModule)
     module.exports = exportModule
   `);
 }
@@ -75,21 +80,16 @@ export function writeLoadShareModuleESM(pkg: string, shareItem: ShareItem, comma
     return;
   }
 
-  const devWarmupImport = '';
+  const prebuildWarmupImport = command === 'serve'
+    ? ''
+    : `;() => import(${JSON.stringify(getPreBuildLibImportId(pkg))}).catch(() => {});`;
   const prebuildImportId = JSON.stringify(getPreBuildLibImportId(pkg));
-
-  const moduleFactoryPrefix =
-    command === 'build'
-      ? 'await '
-      : '/*mf top-level-await placeholder replacement mf*/';
 
   const exportCode = getSharedEsmExportCode(pkg);
 
   loadShareCacheMap[pkg].writeSync(`
 
-    ;() => import(${JSON.stringify(getPreBuildLibImportId(pkg))}).catch(() => {});
-    // dev uses dynamic import to separate chunks
-    ${devWarmupImport}
+    ${prebuildWarmupImport}
     import {loadShare} from "@module-federation/runtime"
     const {initPromise} = await import("${virtualRuntimeInitStatus.getImportId()}")
     const res = initPromise.then(_ => loadShare(${JSON.stringify(pkg)}, {
@@ -100,7 +100,9 @@ export function writeLoadShareModuleESM(pkg: string, shareItem: ShareItem, comma
     }}}))
 
     const fallbackModule = await import(${prebuildImportId}).then(m => ((m) => m?.__esModule ? m : { ...typeof m === "object" && !Array.isArray(m) || typeof m === "function" ? m : {}, default: m })(m.default)).catch(() => undefined)
-    const moduleFactory = ${moduleFactoryPrefix}res.then(factory => factory())
+    const moduleFactory = await res
+      .then(factoryOrModule => typeof factoryOrModule === 'function' ? factoryOrModule() : factoryOrModule)
+      .catch(() => fallbackModule)
     // ESM re-export instead of module.exports
     ${exportCode}
   `);

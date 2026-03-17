@@ -1,30 +1,32 @@
 // Actorwork Service Configuration
-export type ActorworkConfig = {
-  port: number;
-  myUrl: string;
-  uiRemoteUrl: string;
-  serviceHubUrl: string;
-  service: {
-    name: string;
-    domain: string;
-    version: string;
-  };
-};
+import { SharedConfig, Config as ConfigType, ProductConfig, ClientCredentialsConfig } from "msp_common"
 
-function getEnvOrDefault(key: string, defaultValue: string): string {
-  return process.env[key] || defaultValue;
+// what/which product is service for?
+// ServiceHub is a little unusual in that it hosts the platform itself
+const thisProduct: ProductConfig = {
+    domain: 'msp_core',
+    name: 'actorWork',
+    variantName: 'default',
+    version: '1.0.0'
 }
 
-export const config: ActorworkConfig = {
-  port: parseInt(getEnvOrDefault('PORT', '3101'), 10),
-  myUrl: getEnvOrDefault('MY_URL', 'http://localhost:3101'),
-  uiRemoteUrl: getEnvOrDefault('UI_REMOTE_URL', 'http://localhost:3102'),
-  serviceHubUrl: getEnvOrDefault('SERVICEHUB_URL', 'http://localhost:4001'),
-  service: {
-    name: 'actorwork',
-    domain: 'actorwork',
-    version: '1.0.0',
-  },
-};
+const clientCredentials: ClientCredentialsConfig = {
+    clientId: process.env['UI_API_CLIENT_ID'] || '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',
+   // clientDev: process.env['UI_API_CLIENT_DEVKEY'] || '',
+    clientSecret: process.env['UI_API_CLIENT_SECRET'] || '', 
+    tenantId: process.env['AUTH_TOKEN_URL'] || '027f47db-adad-450a-8118-4bd5b6feef63',
+    scope: process.env['UI_API_CLIENT_SCOPES'] || 'api://76202d65-88a6-4d3e-8bf6-b67ecb0fe78c/.default',
+    authority: process.env['AUTH_AUTHORITY_HOST'] || ''
+}
 
-export default config;
+const config: Partial<ConfigType> ={
+    ...SharedConfig,
+    product: thisProduct,
+    clientCredentials,
+    serviceHubApiUrl: SharedConfig?.getHostUrl?.('serviceHub') || 'http://localhost:4001',
+    myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4003',
+    myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name) || 'http://localhost:3003'
+    
+}
+
+export const Config = config

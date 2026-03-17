@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "msp_ui_common"
+		},
+		{
+			"path": "msp_semaphors"
 		}
 	],
 	"settings": {

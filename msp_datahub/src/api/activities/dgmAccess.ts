@@ -9,6 +9,7 @@ discoveryActivitySet.use({
     namespace: 'datahub_dgm',
     activityName: 'readData',
     version: '1.0.0',
+    matchingVersionRange: '*',
     context: '*',
     funcs:  async (payload, serviceResult: ServiceActivityResultBuilder) => {
         console.log(`ReadData request received: ${JSON.stringify(payload)}`);
@@ -20,6 +21,7 @@ discoveryActivitySet.use({
      namespace: 'datahub_dgm',
     activityName: 'writeData',
     version: '1.0.0',
+    matchingVersionRange: '*',
     context: '*',
     funcs:  async (payload, serviceResult: ServiceActivityResultBuilder) => {
         console.log(`WriteData request received: ${JSON.stringify(payload)}`);

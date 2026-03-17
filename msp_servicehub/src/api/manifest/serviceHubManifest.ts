@@ -6,11 +6,8 @@ import Config from "../config.js";
 
 const serviceHubManifest = makeManifest(Config)
   .withAllowedContexts(['*'])
-  .addService()
-    .addUiFeature()
-      .withRemoteName('service-hub-ui-feature')
-      .withAllowedContexts(['*'])
-      .endUiFeature
+  .addService('default-navigation')
+   
     .endService
 .build()
 

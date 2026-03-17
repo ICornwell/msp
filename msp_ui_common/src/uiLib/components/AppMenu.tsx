@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import {
-  Menu,
-  MenuItem,
-  Box
-} from '@mui/material';
+import Menu from '@mui/material/Menu';
 
-import {
-  FlightTakeoff as FlightTakeoffIcon,
-  FlightLand as FlightLandIcon,
-  Flight as FlightIcon
-} from '@mui/icons-material';
+import MenuItem from '@mui/material/MenuItem';
+
+import Box from '@mui/material/Box';
+
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+
+import FlightLandIcon from '@mui/icons-material/FlightLand';
+
+import FlightIcon from '@mui/icons-material/Flight';
 
 import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes.js';
 
@@ -18,8 +18,8 @@ interface MenuProps {
   anchorEl: HTMLElement | null;
   menuItems: AppMenuItem[];
   open: boolean;
-  onClose: Function
-  onMenuItemClick:Function;
+  onClose: () => void;
+  onMenuItemClick: (menuItem: AppMenuItem) => void;
 }
 
 
@@ -33,14 +33,14 @@ export const AppMenu: React.FC<MenuProps> = ({
   }, [open]);
 
   console.log('AppMenu', nameTag, anchorEl, open, isOpen);
-  
+
   const handleProfileMenuClose = () => {
     setIsOpen(false);
     if (onClose) {
       onClose();
     }
   };
-  
+
   const handleMenuItemClick = (menuItem: AppMenuItem) => {
     if (menuItem.bladeId) {
       // openBlade(menuItem.bladeId);
@@ -51,7 +51,7 @@ export const AppMenu: React.FC<MenuProps> = ({
     if (onMenuItemClick) {
       onMenuItemClick(menuItem);
     }
-     handleProfileMenuClose();
+    handleProfileMenuClose();
   };
 
   const onLogout = () => {
@@ -69,7 +69,7 @@ export const AppMenu: React.FC<MenuProps> = ({
       transformOrigin={{ horizontal: 'right', vertical: 'top' }}
       anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
     >
-      {(menuItems??[]).map((item) => (
+      {(menuItems ?? []).map((item) => (
         <MenuItem
           key={item.id}
           onClick={() => handleMenuItemClick(item)}
@@ -83,22 +83,22 @@ export const AppMenu: React.FC<MenuProps> = ({
         </MenuItem>
       ))}
       <MenuItem>
-            <Box component="span" sx={{ mr: 1, display: 'inline-flex' }}>
-              <FlightTakeoffIcon/>
-            </Box>
-          'Test 1'
+        <Box component="span" sx={{ mr: 1, display: 'inline-flex' }}>
+          <FlightTakeoffIcon />
+        </Box>
+        'Test 1'
       </MenuItem>
       <MenuItem>
-            <Box component="span" sx={{ mr: 1, display: 'inline-flex' }}>
-              <FlightLandIcon/>
-            </Box>
-          'Test 2'
+        <Box component="span" sx={{ mr: 1, display: 'inline-flex' }}>
+          <FlightLandIcon />
+        </Box>
+        'Test 2'
       </MenuItem>
-      <MenuItem onClick={()=>onLogout}>
-            <Box component="span" sx={{ mr: 1, display: 'inline-flex' }}>
-              <FlightIcon/>
-            </Box>
-          'Test 3'
+      <MenuItem onClick={() => onLogout}>
+        <Box component="span" sx={{ mr: 1, display: 'inline-flex' }}>
+          <FlightIcon />
+        </Box>
+        'Test 3'
       </MenuItem>
     </Menu>
   )

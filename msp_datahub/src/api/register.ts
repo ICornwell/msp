@@ -1,4 +1,4 @@
-import { InformationManifestSection } from "msp_common/dist/manifests/manifest.js";
+/* import { InformationManifestSection } from "msp_common/dist/manifests/manifest.js";
 import dataHubManifest from "./manifest/dataHubManifest.js";
 import { informationRegistry } from "./services/informationRegistry.js";
 
@@ -21,4 +21,4 @@ export function registerWithBff() {
   }
 
   return informationRegistry.registerFeature(uiFeatureList);
-}
+} */

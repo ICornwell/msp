@@ -5,12 +5,14 @@ export declare type ManifestCommon = {
   allowedContexts: string[]; // e.g., ['admin', 'user', '*']
   // manifest sections can speficy products ot override
   // higer level product info set to '?' to indicate overrides
-  product?: Partial<ProductConfig>
+  forProducts?: Partial<ProductConfig>[]
   name?: string,
   version?: string,
+  variantName?: string,
   description?: string,
   serverUrl?: string,
-  domain?: string
+  serverMFUrl?: string,
+  namespace?: string
 }
 
 export declare type Manifest = ManifestCommon & {
@@ -29,7 +31,7 @@ export declare type DomainManifest = Manifest & {
 }
 
 export declare type ServiceManifestSection = ManifestCommon & {
-  
+
  informationPackages: InformationManifestSection[]
  uiFeatures: UiFeatureManifestSection[]
  apiFeatures: ApiFeatureManifestSection[]

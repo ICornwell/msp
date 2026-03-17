@@ -1,23 +1,18 @@
 import { useState } from 'react';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  IconButton,
-  InputBase,
-  Box,
-  Avatar,
-  styled,
-  alpha
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Search as SearchIcon,
-  ArrowDropDown as ArrowDropDownIcon,
-  ChevronRight as ChevronRightIcon,
-  ChevronLeft as ChevronLeftIcon
-} from '@mui/icons-material';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import InputBase from '@mui/material/InputBase';
+import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
+import { styled, alpha } from '@mui/material/styles';
+import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { AppMenu } from './AppMenu.js';
 import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes.js';
 import { useUserSessionContext } from '../contexts/UserSessionContext.js';

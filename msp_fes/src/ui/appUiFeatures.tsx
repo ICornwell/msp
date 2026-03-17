@@ -4,31 +4,28 @@ import { Remote } from "@module-federation/runtime/types";
 
 import type { UiFeatureManifestSection } from "msp_common";
 import { getAvailableFeatures } from "msp_ui_common/uiLib/comms";
-import { useUserSession } from "msp_ui_common/uiLib/hooks";
-import type { UserChangeHandler } from 'msp_ui_common/uiLib/hooks';
+import * as uiLibNs from "msp_ui_common/uiLib";
+// import type { UserChangeHandler } from 'msp_ui_common/uiLib/hooks';
+import { UiRemoteRegistration } from 'msp_common';
+
+type UiLibModule = typeof uiLibNs;
+type UiLibModuleWithDefault = UiLibModule & { default?: UiLibModule };
+
+const uiLib: UiLibModule = (uiLibNs as UiLibModuleWithDefault).default ?? uiLibNs;
+const { useUserSession } = uiLib;
 
 type DiscoveryUiFeature = UiFeatureManifestSection & {
   serverUrl?: string;
   remotePath: string;
 };
 
-function toRemoteDescriptor(feature: DiscoveryUiFeature): { remoteName: string; modulePath: string; entry: string } | null {
-  if (!feature.remotePath) {
-    return null;
+const context = {
+  product: {
+    domain: '*',
+    name: '*',
+    version: '*',
+    variantName: '*'
   }
-
-  const [remoteName, moduleName] = feature.remotePath.split('/');
-  if (!remoteName) {
-    return null;
-  }
-
-  const modulePath = moduleName ? `./${moduleName}` : './AppCore';
-  const baseUrl = (feature.serverUrl || '').replace(/\/$/, '');
-  const entry = baseUrl
-    ? `${baseUrl}/${remoteName}_remoteEntry.js`
-    : `${window.location.origin}/ui/v1/${remoteName}_remoteEntry.js`;
-
-  return { remoteName, modulePath, entry };
 }
 
 export function AppUiFeatures() {
@@ -53,34 +50,29 @@ export function AppUiFeatures() {
 
     async function discoverAndLoadFeatures() {
       try {
-        const features = await getAvailableFeatures() as DiscoveryUiFeature[];
-        console.log('Discovered UI Features:', features);
+        const remotes = await getAvailableFeatures<UiRemoteRegistration>('discoverOpenUiFeatures', {
+          product: context.product,
+        }) as UiRemoteRegistration[];
+        console.log('Discovered UI Features:', remotes);
 
-        const descriptors = features
-          .map(toRemoteDescriptor)
-          .filter((value): value is { remoteName: string; modulePath: string; entry: string } => value !== null);
 
-        const uniqueRemotes = Array.from(new Map(
-          descriptors.map((d) => [d.remoteName, d])
-        ).values());
-
-        if (uniqueRemotes.length > 0) {
-          registerRemotes(uniqueRemotes.map((descriptor) => ({
+        if (remotes.length > 0) {
+          registerRemotes(remotes.map((remote) => ({
             type: 'module',
-            name: descriptor.remoteName,
-            entry: descriptor.entry,
+            name: remote.remoteName,
+            entry: `${window.location.origin}/ui/v1/${remote.remoteFileName}?__msp_mf_route=${encodeURIComponent(remote.remoteFileName)}`,
           } as Remote)));
         }
 
         const loadedComponents: React.FC<any>[] = [];
-        for (const descriptor of descriptors) {
+        for (const remote of remotes) {
           try {
-            const module: any = await loadRemote(`${descriptor.remoteName}/${descriptor.modulePath.replace('./', '')}`);
+            const module: any = await loadRemote(`${remote.remoteName}/${remote.moduleName}`);
             if (module?.default) {
               loadedComponents.push(module.default as React.FC<any>);
             }
           } catch (error) {
-            console.error(`Error loading remote module ${descriptor.remoteName}/${descriptor.modulePath}:`, error);
+            console.error(`Error loading remote module ${remote.moduleName} @ ${remote.remoteEntry}:`, error);
           }
         }
 

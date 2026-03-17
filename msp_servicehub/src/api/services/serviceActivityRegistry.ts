@@ -2,8 +2,9 @@
 // Uses ActivitySet for version matching and name matching
 
 import { serviceManager, activitySet, ServiceActivityResultBuilder, ServiceRequestEnvelope, serviceRequest } from 'msp_common';
-import type { ActivitySet } from 'msp_common';
+import type { ActivitySet, ProductConfig } from 'msp_common';
 import { ActivityFeatureManifestSection, Manifest, ServiceManifestSection } from 'msp_common';
+import { expandFeatureProducts } from './productsListExpander.js';
 
 export type ServiceActivityRegistration = {
   namespace: string;
@@ -12,23 +13,37 @@ export type ServiceActivityRegistration = {
   matchingVersionRange?: string;  // e.g., '^1.0.0', defaults to exact version
   serviceUrl: string;  // e.g., 'http://localhost:3001' for actorwork
   serviceName: string;
+  forProducts: ProductConfig[]
 };
 
 const registrations: ServiceActivityRegistration[] = [];
 const registeredActivitySet: ActivitySet = activitySet();
 
+  function isSameFeature(a: ServiceActivityRegistration, b: ServiceActivityRegistration): unknown {
+    return a.namespace === b.namespace && a.activityName === b.activityName && a.version === b.version;
+  }
+
+
+
 export function registerFeatures(manifest: Manifest, service: ServiceManifestSection, features: ActivityFeatureManifestSection | ActivityFeatureManifestSection[]) {
   // Store registration for tracking
   for (const feature of Array.isArray(features) ? features : [features]) {
-    const product = { ...manifest.product, ...service.product, ...feature.product };
+    const forProducts = expandFeatureProducts(manifest, service, feature);
     const registration: ServiceActivityRegistration = {
-      namespace: product?.domain || 'default', // Assuming namespace is derived from product domain
+      namespace: feature.namespace || 'default', // Assuming namespace is derived from product domain
       activityName: feature.name || 'unnamed-activity',
-      version: product.version || '1.0.0',
-      matchingVersionRange: product.version || 'none',
+      version: feature.version || '1.0.0',
+      
       serviceUrl: feature.serverUrl || 'none',
-      serviceName: feature.remotePath || 'none'
+      serviceName: feature.remotePath || 'none',
+      forProducts: forProducts??[]
     };
+
+      const existingIndex = registrations.findIndex(r => isSameFeature(r, registration));
+        if (existingIndex >= 0) {
+          registrations.splice(existingIndex, 1);
+        }
+
     registrations.push(registration);
 
     const matchingVersionRange = registration.matchingVersionRange || registration.version;

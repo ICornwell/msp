@@ -1,7 +1,8 @@
 
 import React, { PropsWithChildren } from 'react';
 
-import { Container, Stack } from "@mui/material";
+import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
 import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps.js';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements.js';

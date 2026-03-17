@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 import { Tab } from '../contexts/uiEventTypes.js';
 
 import { ReEngine } from '../renderEngine/components/ReEngine.js';

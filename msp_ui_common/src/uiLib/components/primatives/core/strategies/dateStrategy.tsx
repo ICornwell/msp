@@ -1,7 +1,13 @@
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider,  DateCalendar, MultiSectionDigitalClock } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import { MultiSectionDigitalClock } from '@mui/x-date-pickers/MultiSectionDigitalClock';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import { Button, Container, Popper, Stack, styled } from '@mui/material';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Popper from '@mui/material/Popper';
+import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import { useState, memo } from 'react';
 import { InputStrategy, StrategyContext } from '../inputStrategies.js';
 import { format, parse, isValid } from 'date-fns';

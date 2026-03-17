@@ -1,39 +1,94 @@
-import type { Manifest, ServiceManifestSection, UiFeatureManifestSection} from "msp_common"
+import { bestVersionMatch, isMatch, type Manifest, type ServiceManifestSection, type UiFeatureManifestSection} from "msp_common"
+import { expandFeatureProducts } from "./productsListExpander.js";
+import { expandFeatureName } from "./featureIdExpander.js";
+import { v4 as uuid } from 'uuid';
+import { UiRemoteRegistration } from "msp_common";
 
-export type ServiceUIRegistration = {
-  namespace: string;
-  featureName: string;
-  version: string;
-  matchingVersionRange?: string;  // e.g., '^1.0.0', defaults to exact version
-  serviceUrl: string;  // e.g., 'http://localhost:3001' for actorwork
-  remotePath: string;
-};
+const registrations: UiFeatureManifestSection[] = [];
 
-const registrations: ServiceUIRegistration[] = [];
-const uiFeatureList: UiFeatureManifestSection[] = [];
+const featureAliases: Record<string, [string, UiFeatureManifestSection]> = {}
 
-function registerFeatures(manifest: Partial<Manifest>, service: Partial<ServiceManifestSection>, features: UiFeatureManifestSection | UiFeatureManifestSection[]) {
+function featureUnqiueName(feature: UiFeatureManifestSection): string {
+  return `${feature.namespace}/${feature.name}`;
+}
 
+
+export function registerFeatures(manifest: Partial<Manifest>, service: Partial<ServiceManifestSection>, features: UiFeatureManifestSection | UiFeatureManifestSection[]) {
+    
     for (const feature of Array.isArray(features) ? features : [features]) {
-        const product = { ...manifest.product, ...service.product, ...feature.product };
-        const registration: ServiceUIRegistration = {
-          namespace: product?.domain || 'default', // Assuming namespace is derived from product domain
-          featureName: feature.name || 'unnamed-feature',
-          version: product.version || '1.0.0',
-          matchingVersionRange: product.version || 'none',
-          serviceUrl: feature.serverUrl || 'none',
-          remotePath: feature.remotePath || 'none'
+      const forProducts = expandFeatureProducts(manifest, service, feature);
+      const namedFeature = expandFeatureName(manifest, service, feature);
+
+      const unqiueName = featureUnqiueName(namedFeature);
+      
+        const registration: UiFeatureManifestSection = {
+          ...feature,
+          serverUrl: feature.serverUrl ?? service.serverUrl ?? manifest.serverUrl,
+          serverMFUrl: feature.serverMFUrl ?? service.serverMFUrl ?? manifest.serverMFUrl,
+          forProducts,
         };
-        uiFeatureList.push(feature);
+        let alias = `${uuid()}`
+        const existingIndex = registrations.findIndex(r => isSameFeature(r, registration));
+        if (existingIndex >= 0) {
+          registrations.splice(existingIndex, 1);
+          // find and remove the existing alias if it exists
+          const aliasEntry = Object.entries(featureAliases).find(([_, v]) => v?.[0] === unqiueName);
+          if (aliasEntry) {
+            alias = aliasEntry[0];
+          }
+        }
+        if (!featureAliases[feature.remotePath]) {
+          featureAliases[feature.remotePath] = [unqiueName, registration];
+        }
+        featureAliases[alias] = [unqiueName, registration];
         registrations.push(registration);
+  }
+
+  function isSameFeature(a: UiFeatureManifestSection, b: UiFeatureManifestSection): unknown {
+    return a.namespace === b.namespace && a.name === b.name
+       && a.version === b.version && a.variantName === b.variantName;
   }
 }
 
-function getRegisteredFeatures() {
-  return [...registrations];
+export function getFeatureAliasForProduct(featureNamespace: string, featureName: string,
+  productDomain: string, productName: string ,productVersion: string, productVariantName: string)
+    : UiRemoteRegistration | null {
+      const features = getRegisteredFeaturesByAlias();
+      const candidateFeatures = Object.entries(features).filter(([_a, [_n,f]]) => isMatch(f.namespace??'*', featureNamespace)
+          && isMatch(f.name??'*', featureName));
+
+      function getVersionRangeForProduct(feature: UiFeatureManifestSection): string | undefined {
+        const matchingProduct = feature.forProducts?.find(p => isMatch(p.domain??'*', productDomain)
+          && isMatch(p.name??'*', productName)
+          && isMatch(p.variantName??'*', productVariantName));
+        return matchingProduct ? matchingProduct.version : undefined;
+      }
+  
+      const bestFeatures = bestVersionMatch(candidateFeatures, productVersion,
+        (f) => f[1][0]
+        , (f) => f[1][1].version??'*', (f) => (getVersionRangeForProduct(f[1][1]) ?? 'none'));
+      
+      if (bestFeatures.length === 0) {
+        return null
+      }
+      const feature = bestFeatures[0];
+      const remoteFileName = feature[1][1].remotePath;
+      const remoteContainerName = remoteFileName?.replace(/_remoteEntry\.js$/, '')
+        || feature[1][1].namespace
+        || 'default';
+
+      return {
+        remoteFileName,
+        remoteName: remoteContainerName,
+        remoteEntry: feature[1][1].serverMFUrl ?? feature[1][1].serverUrl ?? 'none',
+        moduleName: feature[1][1].name ?? 'default',
+      };
 }
 
-export {
-  registerFeatures,
-  getRegisteredFeatures
+export function getRegisteredFeaturesByAlias() {
+  return featureAliases;
+}
+
+export function getRegisteredFeatures() {
+  return registrations;
 }

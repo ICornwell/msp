@@ -58,6 +58,8 @@ export {
   type ServiceRequestResult,
 } from './comms/serviceRequest.js';
 
+export type {UiRemoteRegistration} from './comms/ui/UiRemoteRegistration.js'
+
 export * from './configuredCommon.js'
 
 // Re-export ALS and JWT utilities
