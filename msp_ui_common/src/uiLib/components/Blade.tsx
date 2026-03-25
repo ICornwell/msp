@@ -10,6 +10,7 @@ interface BladeProps {
   isOpen: boolean;
   onClose: () => void;
   contentId: string | null;
+  children?: React.ReactNode;
 }
 
 const bladeWidth = 320;
@@ -17,7 +18,8 @@ const bladeWidth = 320;
 export const Blade: React.FC<BladeProps> = ({
   isOpen,
   onClose,
-  contentId
+  contentId,
+  children,
 }) => {
   return (
     <Drawer
@@ -48,10 +50,12 @@ export const Blade: React.FC<BladeProps> = ({
       <Divider />
       
       <Box sx={{ p: 2 }}>
-        {contentId ? (
-          <Box>{`Configuration options for ${contentId}`}</Box>
-        ) : (
-          <Box>Select a configuration option</Box>
+        {children ?? (
+          contentId ? (
+            <Box>{`Configuration options for ${contentId}`}</Box>
+          ) : (
+            <Box>Select a configuration option</Box>
+          )
         )}
       </Box>
     </Drawer>

@@ -1,18 +1,4 @@
-import * as uiLibNs from 'msp_ui_common/uiLib';
-
-type UiLibModule = typeof uiLibNs;
-type UiLibModuleWithDefault = UiLibModule & { default?: UiLibModule };
-
-const uiLib: UiLibModule = (uiLibNs as UiLibModuleWithDefault).default ?? uiLibNs;
-const { createBehaviour } = uiLib;
-
-// This behaviour orchestrates the User Profile feature flow:
-// 1. Listen for UserChanged
-// 2. Request GetUserProfileData from service
-// 3. Listen for DataLoaded
-// 4. Add "See User Profile" menu item
-// 5. Listen for menu click
-// 6. Open User Profile blade
+import { createBehaviour } from 'msp_ui_common/uiLib';
 
 export const useUserProfileBehaviour = () => createBehaviour()
   .whenEventRaised('UserChanged')
@@ -25,7 +11,7 @@ export const useUserProfileBehaviour = () => createBehaviour()
       })
       .end()
   .whenEventRaised('DataLoaded')
-    .whenEventSatisfies((event: any) => event.payload?.dataType === 'userProfile')
+    .whenEventSatisfies((event: any) => event.payload?.dataType === 'GetUserProfileData')
     .requestIsRaised.toPresentationSubsystem.menus
       .toAdd({
         id: 'user-profile-menu',

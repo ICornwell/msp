@@ -12,6 +12,11 @@
   "scripts": {
     "prepare": "husky install",
     "generate:shared-esm-registry": "node ./scripts/generate-shared-esm-exports-registry.mjs",
+    "generate:factory-files": "tsx ./scripts/generate-factory-files.ts",
+    "generate:factory-files:dry": "tsx ./scripts/generate-factory-files.ts --dry-run",
+    "audit:shared-esm-exports": "node ./src/esmExportEnumerator/index.mjs",
+    "audit:shared-esm-exports:write": "node ./src/esmExportEnumerator/index.mjs --write",
+    "audit:shared-esm-exports:check": "node ./src/esmExportEnumerator/index.mjs --check",
     "fmt": "prettier --write src",
     "fmt.check": "prettier --check src",
     "format": "pretty-quick",
@@ -102,7 +107,10 @@
   "devDependencies": {
     "@playwright/test": "^1.47.2",
     "@types/node": "^22.7.4",
+    "acorn": "^8.16.0",
+    "acorn-walk": "^8.3.5",
     "husky": "^8.0.3",
+    "ts-morph": "^27.0.2",
     "microbundle": "^0.15.1",
     "mime-types": "^2.1.35",
     "prettier": "3.3.3",

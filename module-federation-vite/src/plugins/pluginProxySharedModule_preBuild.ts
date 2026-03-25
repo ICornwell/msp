@@ -14,7 +14,6 @@ import {
   writeLocalSharedImportMap,
   writePreBuildLibPath,
 } from '../virtualModules';
-import { shouldForceEsmInServe } from '../virtualModules/sharedEsmExports';
 import { parsePromise } from './pluginModuleParseEnd';
 
 export function proxySharedModule(options: {
@@ -62,15 +61,28 @@ export function proxySharedModule(options: {
                 // Avoid proxying shared imports that originate from our generated
                 // virtual modules, otherwise they can alias back to themselves.
                 if (importer && importer.includes('__mf__virtual')) return null;
+                // Also skip imports from __mf__temp (localSharedImportMap etc.)
+                if (importer && importer.includes('__mf__temp')) return null;
                 // Only proxy application imports. If a dependency inside node_modules
                 // requests a shared package (e.g. react-dom -> react), let it resolve
                 // normally so CJS expectations are preserved.
                 if (importer && /[\\/]node_modules[\\/]/.test(importer)) return null;
+                // During esbuild dep optimisation, top-level include entries are
+                // resolved with an empty-string importer. We must NOT intercept those:
+                // the optimized dep must contain the real package bytes, not the
+                // loadShare TLA wrapper. If the wrapper is baked in, all subsequent
+                // prebuild→import(pkg) calls during serve get the wrapper back and
+                // moduleFactory ends up undefined.
+                if (!importer) return null;
+                // Also skip non-JS source importers (e.g. index.html). The dep
+                // optimizer crawls from HTML entry points — if we redirect their
+                // shared-package imports to loadShare wrappers, esbuild bundles the
+                // TLA wrapper into the optimized dep instead of the real package.
+                if (importer && !/\.[cm]?[jt]sx?$/.test(importer)) return null;
                 const loadSharePath = getLoadShareModulePath(source);
                 const sharedItem = shared[key];
-                const forceEsmLoadShare = command === 'serve' && shouldForceEsmInServe(source);
 
-                if (sharedItem.shareConfig.isEsm || forceEsmLoadShare) {
+                if (sharedItem.shareConfig.isEsm) {
                   writeLoadShareModuleESM(source, sharedItem, command);
                 } else {
                   writeLoadShareModule(source, sharedItem, command);

@@ -165,6 +165,8 @@ describe('normalizeModuleFederationOption', () => {
           scope: 'default',
           version: '1.0.0',
           shareConfig: {
+            import: undefined,
+            isEsm: false,
             requiredVersion: '*',
             singleton: false,
             strictVersion: false,
@@ -176,6 +178,8 @@ describe('normalizeModuleFederationOption', () => {
           scope: 'default',
           version: undefined,
           shareConfig: {
+            import: undefined,
+            isEsm: false,
             requiredVersion: '^2.0.0',
             singleton: true,
             strictVersion: true,
@@ -270,8 +274,8 @@ describe('normalizeModuleFederationOption', () => {
         });
       }).toThrow(
         'Invalid virtualModuleDir: "/path/to/__mf__virtual". ' +
-          'The virtualModuleDir option cannot contain slashes (/). ' +
-          "Please use a single directory name like '__mf__virtual__your_app_name'."
+        'The virtualModuleDir option cannot contain slashes (/). ' +
+        "Please use a single directory name like '__mf__virtual__your_app_name'."
       );
     });
 

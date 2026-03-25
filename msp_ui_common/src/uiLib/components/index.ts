@@ -7,6 +7,7 @@ export * from './ServiceDispatcher.js';
 export * from './Sidebar.js';
 export * from './TabStrip.js';
 export * from './TopBar.js';
+export * from './UiEventMenuBridge.js';
 export * from './engineComponents.js';
 export * from './containers/index.js';
 export * from './primatives/index.js';

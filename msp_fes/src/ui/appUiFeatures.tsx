@@ -4,15 +4,9 @@ import { Remote } from "@module-federation/runtime/types";
 
 import type { UiFeatureManifestSection } from "msp_common";
 import { getAvailableFeatures } from "msp_ui_common/uiLib/comms";
-import * as uiLibNs from "msp_ui_common/uiLib";
-// import type { UserChangeHandler } from 'msp_ui_common/uiLib/hooks';
+import { useUserSession } from "msp_ui_common/uiLib/hooks";
+import { useUiEventContext } from "msp_ui_common/uiLib/contexts";
 import { UiRemoteRegistration } from 'msp_common';
-
-type UiLibModule = typeof uiLibNs;
-type UiLibModuleWithDefault = UiLibModule & { default?: UiLibModule };
-
-const uiLib: UiLibModule = (uiLibNs as UiLibModuleWithDefault).default ?? uiLibNs;
-const { useUserSession } = uiLib;
 
 type DiscoveryUiFeature = UiFeatureManifestSection & {
   serverUrl?: string;
@@ -33,16 +27,19 @@ export function AppUiFeatures() {
   const [loaded, setLoaded] = useState(false);
   const componentRef = useRef<React.FC<any>[]>([]);
 
+  const { publish } = useUiEventContext();
   const userChangeHAndler = useUserSession()
 
   userChangeHAndler.onLoggedIn = (userId: string) => {
     console.log(`User logged in: ${userId}`);
     setCurrentUser(userId);
+    publish({ messageType: 'UserChanged', payload: { userId }, timestamp: Date.now() });
   }
 
   userChangeHAndler.onLoggedOut = (userId: string) => {
     console.log(`User logged out: ${userId}`);
     setCurrentUser(null);
+    publish({ messageType: 'UserChanged', payload: { userId: '' }, timestamp: Date.now() });
   }
 
   useEffect(() => {
@@ -55,13 +52,19 @@ export function AppUiFeatures() {
         }) as UiRemoteRegistration[];
         console.log('Discovered UI Features:', remotes);
 
-
+        const serverOriginParts = window.location.origin.split(':');
+        const serverBase = `${serverOriginParts[0]}:${serverOriginParts[1]}`
+        const serverPort = serverOriginParts.length > 2 ? `:${serverOriginParts[2]}` : '';
         if (remotes.length > 0) {
-          registerRemotes(remotes.map((remote) => ({
-            type: 'module',
-            name: remote.remoteName,
-            entry: `${window.location.origin}/ui/v1/${remote.remoteFileName}?__msp_mf_route=${encodeURIComponent(remote.remoteFileName)}`,
-          } as Remote)));
+          registerRemotes(remotes.map((remote) => {
+            const safeRemoteName = encodeURIComponent(remote.remoteName);
+            const safeRemoteFileName = encodeURIComponent(remote.remoteFileName);
+            return {
+              type: 'module',
+              name: safeRemoteName,
+              entry: `${serverBase}_${safeRemoteName}${serverPort}/${safeRemoteFileName}`,
+            } as Remote;
+          }));
         }
 
         const loadedComponents: React.FC<any>[] = [];

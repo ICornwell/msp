@@ -3,8 +3,8 @@ import { SharedConfig } from "msp_common";
 // what/which product is service for?
 // ServiceHub is a little unusual in that it hosts the platform itself
 const thisProduct = {
-    domain: 'msp_core',
-    name: 'actorWork',
+    domain: 'actorWork',
+    name: 'actorWorkMainService',
     variantName: 'default',
     version: '1.0.0'
 };

@@ -5,9 +5,9 @@
   "type": "module",
   "moduleResolution": "nodenext",
   "scripts": {
-    "start": "yarn start:bff & vite",
+    "start": "yarn start:bff & vite dev --port 3000",
     "start:bff": "yarn build:bff && node ./distApi/server.js",
-    "dev": "vite --port 3000",
+    "dev": "vite --port 3000 ",
     "build": "tsc -b && vite build",
     "build:bff": "rm -rf ./distApi && tsc -b --force --verbose",
     "preview": "vite preview",

@@ -3,7 +3,7 @@ import app from './api.js';
 import { Config } from './config.js';
 import { registerWithRetry } from './manifestRegistration.js';
 import { Ports } from 'msp_common';
-const PORT = Ports.core.actorWork;
+const PORT = Ports.core.actorWorkMainService;
 // Start the server
 const server = app.listen(PORT, () => {
     console.log(`\n🚀 Actorwork API server running on ${Config.myUrl}`);

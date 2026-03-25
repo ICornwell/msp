@@ -1,7 +1,6 @@
 import { bestVersionMatch, isMatch, type Manifest, type ServiceManifestSection, type UiFeatureManifestSection} from "msp_common"
 import { expandFeatureProducts } from "./productsListExpander.js";
 import { expandFeatureName } from "./featureIdExpander.js";
-import { v4 as uuid } from 'uuid';
 import { UiRemoteRegistration } from "msp_common";
 
 const registrations: UiFeatureManifestSection[] = [];
@@ -27,7 +26,7 @@ export function registerFeatures(manifest: Partial<Manifest>, service: Partial<S
           serverMFUrl: feature.serverMFUrl ?? service.serverMFUrl ?? manifest.serverMFUrl,
           forProducts,
         };
-        let alias = `${uuid()}`
+        let alias = (feature.namespace ?? 'default').toLowerCase();
         const existingIndex = registrations.findIndex(r => isSameFeature(r, registration));
         if (existingIndex >= 0) {
           registrations.splice(existingIndex, 1);
@@ -73,8 +72,7 @@ export function getFeatureAliasForProduct(featureNamespace: string, featureName:
       }
       const feature = bestFeatures[0];
       const remoteFileName = feature[1][1].remotePath;
-      const remoteContainerName = remoteFileName?.replace(/_remoteEntry\.js$/, '')
-        || feature[1][1].namespace
+      const remoteContainerName = feature[1][1].namespace
         || 'default';
 
       return {

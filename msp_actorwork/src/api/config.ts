@@ -4,8 +4,8 @@ import { SharedConfig, Config as ConfigType, ProductConfig, ClientCredentialsCon
 // what/which product is service for?
 // ServiceHub is a little unusual in that it hosts the platform itself
 const thisProduct: ProductConfig = {
-    domain: 'msp_core',
-    name: 'actorWork',
+    domain: 'actorWork',
+    name: 'actorWorkMainService',
     variantName: 'default',
     version: '1.0.0'
 }

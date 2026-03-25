@@ -15,15 +15,19 @@ import {
 import normalizeOptimizeDepsPlugin from './utils/normalizeOptimizeDeps';
 import VirtualModule from './utils/VirtualModule';
 import {
+  addUsedShares,
   getHostAutoInitImportId,
   getHostAutoInitPath,
   getLocalSharedImportMapPath,
-  getPreBuildLibImportId,
   initVirtualModules,
   REMOTE_ENTRY_ID,
-  writePreBuildLibPath,
+  virtualRuntimeInitStatus,
+  writeHostAutoInit,
+  writeLoadShareModule,
+  writePreBuildLibPath
 } from './virtualModules';
 import { VIRTUAL_EXPOSES } from './virtualModules/virtualExposes';
+import { writeRuntimeInitStatus } from './virtualModules/virtualRuntimeInitStatus';
 
 function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
   const options = normalizeModuleFederationOptions(mfUserOptions);
@@ -89,22 +93,43 @@ function federation(mfUserOptions: ModuleFederationOptions): Plugin[] {
             strictRequires: 'auto',
           },
         });
-        const virtualDir = options.virtualModuleDir || '__mf__virtual';
         config.optimizeDeps?.include?.push('@module-federation/runtime');
-        config.optimizeDeps?.include?.push(virtualDir);
-        config.optimizeDeps?.needsInterop?.push(virtualDir);
+        // Do NOT push the bare virtualDir — Vite would scan all files in that
+        // directory including loadShare modules that don't exist yet, causing
+        // ENOENT crashes. Individual IDs are registered per-module below.
         config.optimizeDeps?.needsInterop?.push(getLocalSharedImportMapPath());
 
         if (_command === 'serve') {
+          // Set root early so VirtualModule can find node_modules before
+          // configResolved fires. Without this, file writes use process.cwd().
+          VirtualModule.setRoot((config as any).root || process.cwd());
+
+          // Write all virtual module files so they exist on disk before Vite
+          // starts. Files NOT in include still need to exist for when Vite's
+          // module runner encounters them at request time.
+          writeRuntimeInitStatus();
+          writeHostAutoInit();
           for (const shareKey of Object.keys(shared || {})) {
-            // Ensure each shared package has a concrete prebuild virtual module
-            // and register it up-front so Vite does not discover it late and
-            // force a client reload mid-bootstrap.
             writePreBuildLibPath(shareKey);
-            const prebuildImportId = getPreBuildLibImportId(shareKey);
-            if (!config.optimizeDeps?.include?.includes(prebuildImportId)) {
-              config.optimizeDeps?.include?.push(prebuildImportId);
-            }
+            writeLoadShareModule(shareKey, shared![shareKey], _command);
+            // Pre-populate usedShares so localSharedImportMap is fully written
+            // by initVirtualModules() in configResolved. Without this, the map
+            // is empty at startup and loadShare() returns undefined for all
+            // shared deps (including react), causing runtime errors.
+            addUsedShares(shareKey);
+          }
+
+          // runtimeInit is now ESM (uses export let/const) so no interop needed.
+          // prebuild/* and loadShare/* are served as raw ESM by Vite's module
+          // runner — they don't go through esbuild at all. The real packages
+          // they re-export (react, msp_ui_common/*, @mui/*, etc.) are already
+          // in optimizeDeps.include via Object.keys(sharedDeps) in vite.config,
+          // so esbuild discovers all shared packages in the first pass.
+          // Adding prebuildIds to include here would cause double-registration:
+          // esbuild processes prebuild → finds the real pkg import → re-runs.
+          const runtimeInitId = virtualRuntimeInitStatus.getImportId();
+          if (!config.optimizeDeps?.include?.includes(runtimeInitId)) {
+            config.optimizeDeps?.include?.push(runtimeInitId);
           }
         }
       },

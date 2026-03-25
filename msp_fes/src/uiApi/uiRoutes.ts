@@ -17,7 +17,7 @@ router.get('/*all', async (req, res) => {
   try {
     console.log(`UI MF proxy request: ${req.originalUrl}`);
     const serviceHubUrl = getServiceHubUrl();
-    const remotePath = req.path; // Includes leading slash
+    const remotePath = req.path; // Includes leading slash, but without the /ui/v1 prefix, since that is stripped by the route handler in uiRoutes.ts before proxying to servicehub.
     const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
     
     const targetUrl = `${serviceHubUrl}/ui/v1${remotePath}${queryString}`;

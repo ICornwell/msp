@@ -9,7 +9,7 @@ const manifestPath = path.resolve(sharedEsmDir, 'registry.manifest.json');
 const outputPath = path.resolve(sharedEsmDir, 'index.ts');
 
 /** @typedef {{ module: string, factory: string }} DefaultExportConfig */
-/** @typedef {{ package: string, module: string, factory: string, forceEsmInServe: boolean, namedExports?: string[] }} PackageConfig */
+/** @typedef {{ package: string, module: string, factory: string, namedExports?: string[] }} PackageConfig */
 /** @typedef {{ defaultExport: DefaultExportConfig, packages: PackageConfig[] }} Manifest */
 
 /** @returns {Manifest} */
@@ -59,22 +59,6 @@ function buildSource(manifest) {
     .map((pkg) => `  ${quote(pkg.package)}: ${pkg.factory},`)
     .join('\n');
 
-  const forcedPackages = manifest.packages
-    .filter((pkg) => pkg.forceEsmInServe)
-    .map((pkg) => `  ${quote(pkg.package)},`)
-    .join('\n');
-
-  // For forced-serve packages we generate static wrapper modules from bare specifiers.
-  // Keep named exports explicit because `export * from <cjs>` is unreliable for entries
-  // that branch through conditional require() (common in react/react-dom runtime files).
-  const directServeNamedExports = manifest.packages
-    .filter((pkg) => pkg.forceEsmInServe && pkg.namedExports?.length)
-    .map((pkg) => {
-      const names = pkg.namedExports.map((n) => `'${n}'`).join(', ');
-      return `  ${quote(pkg.package)}: [${names}],`;
-    })
-    .join('\n');
-
   return `${imports}
 
 type ExportCodeFactory = () => string;
@@ -83,34 +67,9 @@ const exportCodeByPackage: Record<string, ExportCodeFactory> = {
 ${packageMap}
 };
 
-const forceEsmInServePackages = new Set<string>([
-${forcedPackages}
-]);
-
 export function getSharedEsmExportCode(pkg: string): string {
   const exportFactory = exportCodeByPackage[pkg] || ${manifest.defaultExport.factory};
   return exportFactory();
-}
-
-export function shouldForceEsmInServe(pkg: string): boolean {
-  return forceEsmInServePackages.has(pkg);
-}
-
-// Explicit named exports for the static serve path.
-// 'export * from pkg' doesn't work for CJS with conditional require() because esbuild
-// can't statically determine named exports. Explicit re-exports are required instead.
-const directServeNamedExports: Record<string, string[]> = {
-${directServeNamedExports}
-};
-
-export function getDirectServeExportCode(pkg: string): string {
-  const named = directServeNamedExports[pkg] ?? [];
-  const namedLines = named.map(n => \`export const \${n} = sharedModule.\${n};\`).join('\\n    ');
-  return \`
-    import * as sharedModule from \${JSON.stringify(pkg)};
-    export default sharedModule;
-    \${namedLines}
-  \`;
 }
 `;
 }

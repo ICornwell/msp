@@ -1,12 +1,5 @@
-import * as uiLibNs from 'msp_ui_common/uiLib'
-
+import { Re, PresetTextComponent } from 'msp_ui_common/uiLib';
 import { userInfoFluxorData } from '../../../fluxorObjects/userActorFluxor.js';
-
-type UiLibModule = typeof uiLibNs;
-type UiLibModuleWithDefault = UiLibModule & { default?: UiLibModule };
-
-const uiLib: UiLibModule = (uiLibNs as UiLibModuleWithDefault).default ?? uiLibNs;
-const { Re, PresetTextComponent } = uiLib;
 
 
 export function UserInfoLayout() {

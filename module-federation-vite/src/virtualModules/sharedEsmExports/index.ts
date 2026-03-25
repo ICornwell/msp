@@ -1,6 +1,16 @@
 import { defaultExportCode } from './defaultExport';
 import { emotionReactExportCode } from './emotionReact';
 import { emotionStyledExportCode } from './emotionStyled';
+import { msalBrowserExportCode } from './msalBrowser';
+import { msalCommonExportCode } from './msalCommon';
+import { msalReactExportCode } from './msalReact';
+import { mspUiCommonBehavioursExportCode } from './mspUiCommonBehaviours';
+import { mspUiCommonCommsExportCode } from './mspUiCommonComms';
+import { mspUiCommonComponentsExportCode } from './mspUiCommonComponents';
+import { mspUiCommonContextsExportCode } from './mspUiCommonContexts';
+import { mspUiCommonExportCode } from './mspUiCommon';
+import { mspUiCommonHooksExportCode } from './mspUiCommonHooks';
+import { mspUiCommonRenderEngineExportCode } from './mspUiCommonRenderEngine';
 import { muiIconsMaterialExportCode } from './muiIconsMaterial';
 import { muiMaterialExportCode } from './muiMaterial';
 import { muiSystemExportCode } from './muiSystem';
@@ -23,42 +33,20 @@ const exportCodeByPackage: Record<string, ExportCodeFactory> = {
   '@mui/icons-material': muiIconsMaterialExportCode,
   '@emotion/react': emotionReactExportCode,
   '@emotion/styled': emotionStyledExportCode,
+  '@azure/msal-browser': msalBrowserExportCode,
+  '@azure/msal-react': msalReactExportCode,
+  '@azure/msal-common': msalCommonExportCode,
+  'msp_ui_common': mspUiCommonExportCode,
+  'msp_ui_common/uiLib': mspUiCommonExportCode,
+  'msp_ui_common/uiLib/components': mspUiCommonComponentsExportCode,
+  'msp_ui_common/uiLib/comms': mspUiCommonCommsExportCode,
+  'msp_ui_common/uiLib/behaviours': mspUiCommonBehavioursExportCode,
+  'msp_ui_common/uiLib/contexts': mspUiCommonContextsExportCode,
+  'msp_ui_common/uiLib/hooks': mspUiCommonHooksExportCode,
+  'msp_ui_common/uiLib/renderEngine': mspUiCommonRenderEngineExportCode,
 };
-
-const forceEsmInServePackages = new Set<string>([
-  'react',
-  'react-dom',
-  'react-dom/client',
-  'react/jsx-runtime',
-  'react/jsx-dev-runtime',
-]);
 
 export function getSharedEsmExportCode(pkg: string): string {
   const exportFactory = exportCodeByPackage[pkg] || defaultExportCode;
   return exportFactory();
-}
-
-export function shouldForceEsmInServe(pkg: string): boolean {
-  return forceEsmInServePackages.has(pkg);
-}
-
-// Explicit named exports for the static serve path.
-// 'export * from pkg' doesn't work for CJS with conditional require() because esbuild
-// can't statically determine named exports. Explicit re-exports are required instead.
-const directServeNamedExports: Record<string, string[]> = {
-  'react': ['Children', 'Component', 'Fragment', 'Profiler', 'PureComponent', 'StrictMode', 'Suspense', 'cloneElement', 'createContext', 'createElement', 'createRef', 'forwardRef', 'isValidElement', 'lazy', 'memo', 'startTransition', 'use', 'useActionState', 'useCallback', 'useContext', 'useDebugValue', 'useDeferredValue', 'useEffect', 'useId', 'useImperativeHandle', 'useInsertionEffect', 'useLayoutEffect', 'useMemo', 'useOptimistic', 'useReducer', 'useRef', 'useState', 'useSyncExternalStore', 'useTransition', 'version'],
-  'react-dom': ['createPortal', 'flushSync', 'unstable_batchedUpdates', 'version'],
-  'react-dom/client': ['createRoot', 'hydrateRoot', 'version'],
-  'react/jsx-runtime': ['Fragment', 'jsx', 'jsxs'],
-  'react/jsx-dev-runtime': ['Fragment', 'jsxDEV'],
-};
-
-export function getDirectServeExportCode(pkg: string): string {
-  const named = directServeNamedExports[pkg] ?? [];
-  const namedLines = named.map(n => `export const ${n} = sharedModule.${n};`).join('\n    ');
-  return `
-    import * as sharedModule from ${JSON.stringify(pkg)};
-    export default sharedModule;
-    ${namedLines}
-  `;
 }
