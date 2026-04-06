@@ -1,10 +1,11 @@
-import { makeManifest } from 'msp_common';
+import { makeManifest } from 'msp_svr_common';
 
 export function createActorworkManifest(config?: any) {
   const manifest = makeManifest(config)
   
     .withAllowedContexts(['*'])
     .addService('ActorWork-UserService')
+      
       .forProducts([{
           domain: '*',
           name: '*',
@@ -20,6 +21,14 @@ export function createActorworkManifest(config?: any) {
           version: '*'
         }])
         .endUiFeature
+      .addActivityFeature('getUserProfileData', '1.0.0', 'default')
+        .withAllowedContexts(['*'])
+        .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
+        .endActivityFeature
       .endService
     .build();
 

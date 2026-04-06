@@ -1,4 +1,4 @@
-import { ClientCredentialsConfig } from './als/index.js';
+import { ClientCredentialsConfig } from './types/index.js';
 import { Ports } from './ports.js';
 
 export type ProductConfig = {
@@ -16,7 +16,7 @@ export type Config = {
     myMFUrl: string,
     serviceHubApiUrl: string,
     serviceHubMfUrl: string,
-    semaphorsUrl: string,
+    semaphoresUrl: string,
     uiWebUrl: string,
     uiBffUrl: string,
     getHostUrl: (service: string) => string,
@@ -28,7 +28,7 @@ export type Config = {
 const sharedconfig: Partial<Config> = {
     serviceHubApiUrl: HostName('serviceHub'),
     serviceHubMfUrl: HostName('serviceHub'),
-    semaphorsUrl: HostName('semaphors'),
+    semaphoresUrl: HostName('semaphores'),
     uiWebUrl: HostName('uiWeb'),
     uiBffUrl: HostName('uiBff'),
 

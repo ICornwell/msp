@@ -4,7 +4,8 @@
   "workspaces": [
     "msp_ws",
     "msp_common",
-    "msp_semaphors",
+    "msp_svr_common",
+    "msp_semaphores",
     "msp_ui_common",
     "msp_fes",
     "msp_servicehub",
@@ -14,9 +15,16 @@
   ],
   "packageManager": "yarn@4.9.1",
   "scripts": {
-    "build": " yarn mf:build && yarn semaphors:build && yarn common:build && yarn ui_common:build && yarn fes:build && yarn servicehub:build && yarn datahub:build && yarn actorwork:build",
+    "build": "",
+    "build:all": "yarn build:commons && yarn build:aftercommons",
+    "build:aftercommons": "yarn semaphores:build && yarn build:hubs && yarn build:modules",
+    "build:commons": "yarn common:build && yarn svr_common:build  && yarn ui_common:build  && yarn build:mf",
+    "build:mf": "yarn mf:prebuild && yarn mf:build",
+    "build:hubs": "yarn servicehub:build && yarn datahub:build && yarn fes:build",
+    "build:modules": "yarn actorwork:build && yarn fes:build",
     "start": "yarn servicehub:start & yarn datahub:start & yarn actorwork:start & yarn fes:start",
     "common:build": "yarn workspace msp_common run build",
+    "svr_common:build": "yarn workspace msp_svr_common run build",
     "ui_common:build": "yarn workspace msp_ui_common run build",
     "fes:start": "yarn workspace msp_fes run start",
     "fes:start:bff": "yarn workspace msp_fes run start:bff",
@@ -30,7 +38,7 @@
     "fes:test:coverage": "yarn workspace msp_fes run test:coverage",
     "fes:generate:extension-types": "yarn workspace msp_fes run generate:extension-types",
     "fes:prebuild": "yarn workspace msp_fes run prebuild",
-    "servicehub:start": "yarn workspace msp_semaphors run start & yarn workspace msp_servicehub run start",
+    "servicehub:start": "yarn workspace msp_semaphores run start & yarn workspace msp_servicehub run start",
     "servicehub:start:server": "yarn workspace msp_servicehub run start:server",
     "servicehub:dev": "yarn workspace msp_servicehub run dev",
     "servicehub:build": "yarn workspace msp_servicehub run build",
@@ -42,8 +50,8 @@
     "servicehub:test:coverage": "yarn workspace msp_servicehub run test:coverage",
     "servicehub:generate:extension-types": "yarn workspace msp_servicehub run generate:extension-types",
     "servicehub:prebuild": "yarn workspace msp_servicehub run prebuild",
-    "semaphors:start": "yarn workspace msp_semaphors run start",
-    "semaphors:build": "yarn workspace msp_semaphors run build",
+    "semaphores:start": "yarn workspace msp_semaphores run start",
+    "semaphores:build": "yarn workspace msp_semaphores run build",
     "actorwork:start": "yarn workspace msp_actorwork run start",
     "actorwork:start:server": "yarn workspace msp_actorwork run start:server",
     "actorwork:dev": "yarn workspace msp_actorwork run dev",
@@ -62,7 +70,8 @@
     "datahub:test:watch": "yarn workspace msp_datahub run test:watch",
     "datahub:test:ui": "yarn workspace msp_datahub run test:ui",
     "datahub:test:coverage": "yarn workspace msp_datahub run test:coverage",
-    "mf:build": "yarn workspace @module-federation/vite run build"
+    "mf:build": "yarn workspace @module-federation/vite run build",
+    "mf:prebuild": "yarn workspace @module-federation/vite run prebuild"
   },
   "dependencies": {
     "@types/node": "^25.3.5"

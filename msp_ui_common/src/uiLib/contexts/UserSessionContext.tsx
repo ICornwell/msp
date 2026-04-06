@@ -2,6 +2,12 @@ import { useState, useContext, createContext } from 'react';
 import { AuthenticationResult, PublicClientApplication, AccountInfo } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
+import { useUiEventPublisher } from './UiEventContext.js';
+
+export const UserSessionEvents = {
+  USER_LOGGED_IN: 'USER_LOGGED_IN',
+  USER_LOGGED_OUT: 'USER_LOGGED_OUT'
+}
 
 // MSAL Configuration
 const viteEnv = (import.meta as any).env ?? {};
@@ -60,9 +66,13 @@ export const UserSessionContext = createContext<{
 
 // UserSession provider component
 export const UserSessionProvider = ({ children }: { children: any }) => {
+  const { raiseUiEvent } = useUiEventPublisher();
   const [state, setState] = useState(initialState);
   const loggedIn = (accountInfo: AccountInfo) => {
-    setState({
+    if (state.isAuthenticated) {
+      raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state, timestamp: Date.now(), correlationId: v4()});
+    }
+    const uss: UserSessionState = {
       isAuthenticated: true,
       userName: accountInfo.name,
       userId: accountInfo.username,
@@ -70,9 +80,13 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
       accessToken: accountInfo.idToken,
       idToken: accountInfo.idToken,
       sessionId: v4()
-    });
+    }
+    setState(uss);
+    raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_IN, payload: uss,
+      timestamp: Date.now(), correlationId: v4() });
   };
   const loggedOut = () => {
+    raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state, timestamp: Date.now(), correlationId: v4()});
     setState(initialState);
   };
 

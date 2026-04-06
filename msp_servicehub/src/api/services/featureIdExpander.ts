@@ -1,5 +1,5 @@
 import { Manifest, ServiceManifestSection, ActivityFeatureManifestSection,
-  UiFeatureManifestSection, ApiFeatureManifestSection, ManifestCommon } from "msp_common";
+  UiFeatureManifestSection, ApiFeatureManifestSection, ManifestCommon } from "msp_svr_common";
 
 export function unPartial<T extends ManifestCommon>(manifestPart: Partial<T>): T {
 

@@ -11,7 +11,7 @@
  *   --check           Exit with code 1 if any package has additions or removals (CI mode)
  *   --dry-run         Like --write but only print the updated manifest, don't save
  *
- * If no specifiers are given, reads the full list from msp_common/src/sharedDeps.ts
+ * If no specifiers are given, reads the full list from msp_svr_common/src/sharedDeps.ts
  * by extracting keys from the sharedVersions object (simple regex, no TS compilation needed).
  *
  * Examples:
@@ -33,7 +33,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '../..');
 const monorepoRoot = path.resolve(projectRoot, '..');
 const manifestPath = path.resolve(projectRoot, 'src/virtualModules/sharedEsmExports/registry.manifest.json');
-const sharedDepsPath = path.resolve(monorepoRoot, 'msp_common/src/sharedDeps.ts');
+const sharedDepsPath = path.resolve(monorepoRoot, 'msp_svr_common/src/sharedDeps.ts');
 
 // ─── CLI argument parsing ─────────────────────────────────────────────────────
 
@@ -76,7 +76,7 @@ function readSharedDepsSpecifiers() {
 const specifiers = specifierArgs.length > 0 ? specifierArgs : readSharedDepsSpecifiers();
 
 if (specifiers.length === 0) {
-  console.error('No specifiers to process. Pass specifiers as arguments or ensure msp_common/src/sharedDeps.ts is present.');
+  console.error('No specifiers to process. Pass specifiers as arguments or ensure msp_svr_common/src/sharedDeps.ts is present.');
   process.exit(1);
 }
 

@@ -1,4 +1,4 @@
-import {createView} from 'msp_common'
+import {createView} from 'msp_svr_common'
 import { userActorObject } from '../userActorObjectsAndRelations.js';
 
 

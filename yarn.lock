@@ -2668,6 +2668,8 @@ __metadata:
     "@playwright/test": "npm:^1.47.2"
     "@rollup/pluginutils": "npm:^5.1.0"
     "@types/node": "npm:^22.7.4"
+    acorn: "npm:^8.16.0"
+    acorn-walk: "npm:^8.3.5"
     defu: "npm:^6.1.4"
     estree-walker: "npm:^2"
     husky: "npm:^8.0.3"
@@ -2679,6 +2681,7 @@ __metadata:
     pretty-quick: "npm:^4.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.47.1"
+    ts-morph: "npm:^27.0.2"
     vite: "npm:^6.0.0"
     vitest: "npm:^2.1.1"
     wait-on: "npm:^8.0.1"
@@ -2793,7 +2796,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/styled-engine@npm:^7.3.9":
+"@mui/styled-engine@npm:^7.3.5, @mui/styled-engine@npm:^7.3.9":
   version: 7.3.9
   resolution: "@mui/styled-engine@npm:7.3.9"
   dependencies:
@@ -4651,7 +4654,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn-walk@npm:^8.0.2":
+"acorn-walk@npm:^8.0.2, acorn-walk@npm:^8.3.5":
   version: 8.3.5
   resolution: "acorn-walk@npm:8.3.5"
   dependencies:
@@ -4669,7 +4672,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.1.0, acorn@npm:^8.11.0, acorn@npm:^8.15.0, acorn@npm:^8.8.1":
+"acorn@npm:^8.1.0, acorn@npm:^8.11.0, acorn@npm:^8.15.0, acorn@npm:^8.16.0, acorn@npm:^8.8.1":
   version: 8.16.0
   resolution: "acorn@npm:8.16.0"
   bin:
@@ -9802,6 +9805,7 @@ __metadata:
     math-expression-evaluator: "npm:^2.0.7"
     morgan: "npm:^1.10.0"
     msp_common: "workspace:*"
+    msp_svr_common: "workspace:*"
     msp_ui_common: "workspace:*"
     node-fetch: "npm:^3.3.2"
     object-path: "npm:^0.11.8"
@@ -9832,56 +9836,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "msp_common@workspace:msp_common"
   dependencies:
-    "@azure/msal-browser": "npm:^4.11.0"
-    "@azure/msal-react": "npm:^3.0.10"
-    "@emotion/react": "npm:^11.14.0"
-    "@emotion/styled": "npm:^11.14.0"
-    "@mui/icons-material": "npm:^7.0.2"
-    "@mui/material": "npm:^7.0.2"
-    "@testing-library/dom": "npm:^10.4.0"
-    "@testing-library/react": "npm:^16.3.0"
-    "@types/compression": "npm:^1"
-    "@types/cookie-parser": "npm:^1"
-    "@types/cors": "npm:^2"
-    "@types/express": "npm:^5"
-    "@types/hpp": "npm:^0"
-    "@types/jsonwebtoken": "npm:^9"
-    "@types/morgan": "npm:^1"
     "@types/node": "npm:^25.0.3"
-    "@types/react": "npm:^19.1.4"
-    "@types/react-dom": "npm:^19.1.5"
     "@types/semver": "npm:^7"
-    "@types/swagger-jsdoc": "npm:^6"
-    "@types/swagger-ui-express": "npm:^4.1.8"
     "@types/uuid": "npm:^10.0.0"
-    "@types/ws": "npm:^8"
-    "@vitejs/plugin-react": "npm:^4.4.1"
-    async-local-storage: "npm:^2.3.1"
-    asynchronous-local-storage: "npm:^1.0.2"
-    cls-rtracer: "npm:^2.6.3"
-    compression: "npm:^1.8.0"
-    cookie-parser: "npm:^1.4.7"
-    cors: "npm:^2.8.5"
     dotenv: "npm:^16.5.0"
-    express: "npm:^5.1.0"
-    express-rate-limit: "npm:^7.5.0"
-    helmet: "npm:^8.1.0"
-    hpp: "npm:^0.2.3"
-    jose: "npm:^6.1.3"
-    jsonwebtoken: "npm:^9.0.2"
-    morgan: "npm:^1.10.0"
-    react: "npm:^19.1.0"
-    react-dom: "npm:^19.1.0"
     semver: "npm:^7.7.1"
-    swagger-autogen: "npm:^2.23.7"
-    swagger-jsdoc: "npm:^6.2.8"
-    swagger-ui-express: "npm:^5.0.1"
     typescript: "npm:^5.8.3"
     uuid: "npm:^11.1.0"
-    vite: "npm:^6.4.1"
     vitest: "npm:^4.0.18"
-    winston: "npm:^3.17.0"
-    ws: "npm:^8.18.1"
   languageName: unknown
   linkType: soft
 
@@ -9920,7 +9882,7 @@ __metadata:
     jsonwebtoken: "npm:^9.0.2"
     math-expression-evaluator: "npm:^2.0.7"
     morgan: "npm:^1.10.0"
-    msp_common: "workspace:*"
+    msp_svr_common: "workspace:*"
     node-fetch: "npm:^3.3.2"
     object-path: "npm:^0.11.8"
     proxy-deep: "npm:^4.0.1"
@@ -10006,6 +9968,7 @@ __metadata:
     math-expression-evaluator: "npm:^2.0.7"
     morgan: "npm:^1.10.0"
     msp_common: "workspace:*"
+    msp_svr_common: "workspace:*"
     msp_ui_common: "workspace:*"
     node-fetch: "npm:^3.3.2"
     object-path: "npm:^0.11.8"
@@ -10033,9 +9996,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"msp_semaphors@workspace:*, msp_semaphors@workspace:msp_semaphors":
+"msp_semaphores@workspace:*, msp_semaphores@workspace:msp_semaphores":
   version: 0.0.0-use.local
-  resolution: "msp_semaphors@workspace:msp_semaphors"
+  resolution: "msp_semaphores@workspace:msp_semaphores"
   dependencies:
     "@types/cors": "npm:^2"
     "@types/express": "npm:^5"
@@ -10043,6 +10006,7 @@ __metadata:
     cors: "npm:^2.8.5"
     express: "npm:^5.1.0"
     msp_common: "workspace:*"
+    msp_svr_common: "workspace:*"
     tsx: "npm:^4.21.0"
     typescript: "npm:5.9.3"
     uuid: "npm:^11.1.0"
@@ -10113,7 +10077,8 @@ __metadata:
     math-expression-evaluator: "npm:^2.0.7"
     morgan: "npm:^1.10.0"
     msp_common: "workspace:*"
-    msp_semaphors: "workspace:*"
+    msp_semaphores: "workspace:*"
+    msp_svr_common: "workspace:*"
     node-fetch: "npm:^3.3.2"
     object-path: "npm:^0.11.8"
     proxy-deep: "npm:^4.0.1"
@@ -10139,6 +10104,52 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"msp_svr_common@workspace:*, msp_svr_common@workspace:msp_svr_common":
+  version: 0.0.0-use.local
+  resolution: "msp_svr_common@workspace:msp_svr_common"
+  dependencies:
+    "@types/compression": "npm:^1"
+    "@types/cookie-parser": "npm:^1"
+    "@types/cors": "npm:^2"
+    "@types/express": "npm:^5"
+    "@types/hpp": "npm:^0"
+    "@types/jsonwebtoken": "npm:^9"
+    "@types/morgan": "npm:^1"
+    "@types/node": "npm:^25.0.3"
+    "@types/semver": "npm:^7"
+    "@types/swagger-jsdoc": "npm:^6"
+    "@types/swagger-ui-express": "npm:^4.1.8"
+    "@types/uuid": "npm:^10.0.0"
+    "@types/ws": "npm:^8"
+    async-local-storage: "npm:^2.3.1"
+    asynchronous-local-storage: "npm:^1.0.2"
+    cls-rtracer: "npm:^2.6.3"
+    compression: "npm:^1.8.0"
+    cookie-parser: "npm:^1.4.7"
+    cors: "npm:^2.8.5"
+    dotenv: "npm:^16.5.0"
+    express: "npm:^5.1.0"
+    express-rate-limit: "npm:^7.5.0"
+    helmet: "npm:^8.1.0"
+    hpp: "npm:^0.2.3"
+    jose: "npm:^6.1.3"
+    jsonwebtoken: "npm:^9.0.2"
+    morgan: "npm:^1.10.0"
+    msp_common: "workspace:*"
+    react: "npm:^19.1.0"
+    react-dom: "npm:^19.1.0"
+    semver: "npm:^7.7.1"
+    swagger-autogen: "npm:^2.23.7"
+    swagger-jsdoc: "npm:^6.2.8"
+    swagger-ui-express: "npm:^5.0.1"
+    typescript: "npm:^5.8.3"
+    uuid: "npm:^11.1.0"
+    vitest: "npm:^4.0.18"
+    winston: "npm:^3.17.0"
+    ws: "npm:^8.18.1"
+  languageName: unknown
+  linkType: soft
+
 "msp_ui_common@workspace:*, msp_ui_common@workspace:msp_ui_common":
   version: 0.0.0-use.local
   resolution: "msp_ui_common@workspace:msp_ui_common"
@@ -10149,12 +10160,14 @@ __metadata:
     "@babel/plugin-proposal-decorators": "npm:^7.27.1"
     "@babel/plugin-transform-class-properties": "npm:^7.27.1"
     "@emotion/babel-plugin": "npm:^11.13.0"
+    "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
     "@module-federation/runtime": "npm:^0.18.3"
     "@module-federation/vite": "workspace:*"
     "@mui/icons-material": "npm:^7.0.2"
     "@mui/material": "npm:^7.0.2"
+    "@mui/styled-engine": "npm:^7.3.5"
     "@mui/system": "npm:^7.3.9"
     "@mui/x-date-pickers": "npm:^8.22.0"
     "@mui/x-tree-view": "npm:^8.23.0"
@@ -10229,6 +10242,23 @@ __metadata:
     vitest: "npm:^3.1.3"
     winston: "npm:^3.17.0"
     ws: "npm:^8.18.1"
+  peerDependencies:
+    "@emotion/cache": ^11.14.0
+    "@emotion/react": ^11.14.0
+    "@emotion/styled": ^11.14.0
+    "@mui/icons-material": ^7.0.2
+    "@mui/material": ^7.0.2
+    "@mui/styled-engine": ^7.3.5
+    "@mui/system": ^7.3.9
+    "@mui/x-date-pickers": ^8.22.0
+    "@mui/x-tree-view": ^8.23.0
+    react: ^19.1.0
+    react-dom: ^19.1.0
+  peerDependenciesMeta:
+    "@mui/x-date-pickers":
+      optional: true
+    "@mui/x-tree-view":
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -13704,7 +13734,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0, vite@npm:^6.3.1, vite@npm:^6.4.1":
+"vite@npm:^6.0.0, vite@npm:^6.3.1":
   version: 6.4.1
   resolution: "vite@npm:6.4.1"
   dependencies:

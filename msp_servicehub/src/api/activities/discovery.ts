@@ -1,9 +1,9 @@
-import { activitySet, ServiceActivityResultBuilder } from 'msp_common'
-import type { ActivitySet, Manifest } from 'msp_common'
+import { activitySet, ServiceActivityResultBuilder } from 'msp_svr_common'
+import type { ActivitySet, Manifest } from 'msp_svr_common'
 import { getFeatureAliasForProduct, getRegisteredFeatures, registerFeatures as registerUiFeatures } from '../services/uiFeatureRegistry.js'
 import { registerFeatures as registerActivityFeatures } from '../services/serviceActivityRegistry.js'
 import { UiRemoteRegistration } from 'msp_common'
-import { withSemaphore } from 'msp_semaphors'
+import { withSemaphore } from 'msp_semaphores'
 import {Config} from '../config.js'
 
 const discoveryActivitySet: ActivitySet = activitySet()
@@ -51,7 +51,7 @@ discoveryActivitySet.use({
         console.log(`Discovery registration received: ${JSON.stringify(payload)}`);
         return await withSemaphore(
             {
-                semaphoreBaseUrl: Config.semaphorsUrl || 'no-semaphors-url-configured',
+                semaphoreBaseUrl: Config.semaphoresUrl || 'no-semaphores-url-configured',
                 semaphoreName: 'servicehub:register-manifest',
                 ttlMs: Number(process.env['MSP_SEMAPHORE_REGISTER_MANIFEST_TTL_MS'] || 10000),
                 holderId: process.env['HOSTNAME'] || 'servicehub',

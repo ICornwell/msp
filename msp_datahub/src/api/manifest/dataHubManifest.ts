@@ -1,4 +1,4 @@
-import { makeManifest } from "msp_common";
+import { makeManifest } from "msp_svr_common";
 import Config from "../config.js";
 
 // Service Hub API is the collector of all manifests for the platform

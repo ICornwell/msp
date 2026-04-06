@@ -1,88 +1,201 @@
-# Fluent Behaviours Context
+# Fluent Behaviours
 
-Last updated: 2026-03-07
-Location: `msp_fes/src/uiLib/behaviours`
+Last updated: 2026-03-25
+Location: `msp_ui_common/src/uiLib/behaviours/`
 
 ## Purpose
-Create a functional fluent DSL for UI behaviours that compiles to `behaviourConfig` and is executed by the `Behaviour` React component.
 
-The DSL builds typed `When -> Then` links between:
-- Events: notifications that something happened.
-- Requests: commands that ask subsystems to do something.
+A typed fluent DSL that compiles to `behaviourConfig` at build time and is
+executed at runtime by the `Behaviour` React component.
 
-## Key Design Intent
-- Mirror the fluent stack/unwind style used in `src/uiLib/renderEngine/UiPlan/ReUiPlanBuilder.ts`.
-- Keep this system simpler than UiPlan builder.
-- No extension system needed for behaviour DSL.
-- Keep strong `RT` return types so chained builders can unwind safely.
+The DSL declares **When → Then** rules:
+- **When** — a UIEvent of a given type is raised (with optional guards)
+- **Then** — dispatch a call-to-action to one subsystem, or run a local side-effect
 
-## Messaging Model
-Two high-level message classes:
-- Events
-  - UI interactions (click, input change).
-  - Data change notifications.
-  - Activity/API response notifications.
-- Requests
-  - Presentation subsystem requests.
-  - Data subsystem requests.
-  - Activity subsystem requests.
+---
 
-Pub-sub transport exists at:
-- `src/uiLib/contexts/UiPubSub.ts`
+## The Four Patterns
 
-Planned usage:
-- Potentially two pub-sub instances: one for Events, one for Requests.
+| Pattern | What it is | Who publishes | Who subscribes |
+|---|---|---|---|
+| **UIEvent** | "Something happened" alert | Any leaf component or subsystem provider | Only `Behaviour` components |
+| **Dispatch** | "Do this" call-to-action | Only `Behaviour` (via DSL) | The target subsystem provider |
+| **Private context** | Subsystem-internal state | Subsystem provider | Same provider's consumers |
+| **localEffect** | Direct side-effect on co-located React state | `Behaviour` (via DSL) | n/a — no bus |
 
-## Current Behaviour Files
-- `src/uiLib/behaviours/fluentBehaviour.ts`
-  - Contains initial fluent interfaces for behaviour authoring.
-  - Includes `FluentBehaviour`, `EventHandlerBuilder`, and subsystem request builders.
-- `src/uiLib/behaviours/behaviourConfig.ts`
-  - Runtime config types consumed by behaviour engine/component.
-- `src/uiLib/behaviours/Behaviour.ts`
-  - React component that registers local custom components with render-engine context.
+> **Rule:** Leaf components and subsystems only _publish_ UIEvents — they never
+> subscribe. Only Behaviours subscribe, and only Behaviours dispatch.
 
-## Confirmed Corrections
-- `behaviourAction.contra` is optional (undo/reverse action may exist, but does not require nested contra chains).
-- `Behaviour.ts` `useEffect` has dependency array `[]` so registration runs once on mount and cleanup runs once on unmount.
+---
 
-## Existing Fluent Surface (as-is)
-- `registerLocalComponent(component)`
-- `withData(data)`
-- `whenEventRaised(eventName)`
-- Event guard methods:
-  - `whenDataSatisfies(condition)`
-  - `whenEventSatisfies(condition)`
-- Request builders under `requestIsRaised`:
-  - Presentation menus
-  - Data subsystem
-  - Activity subsystem
+## DSL Surface
 
-## Gaps To Resolve During Implementation
-- Align fluent type `event` generic with real event payload types (currently event name uses `string` generic while predicate receives `E`).
-- Define canonical request/event payload contracts shared between DSL and pub-sub transport.
-- Decide whether nested behaviour elements (`innerElements`) represent:
-  - grouped clauses, or
-  - chained follow-up rules.
-- Add builder factory implementation (currently interfaces only).
-- Add unit tests for:
-  - unwind stack typing (`RT`),
-  - config generation,
-  - request publication behavior,
-  - contra/undo wiring.
+```typescript
+createBehaviour()
+  // ── declare a rule ────────────────────────────────────────────────
+  .whenEventRaised('UserChanged')          // trigger: UIEvent type
+    .whenEventSatisfies(e => ...)          // optional: event payload guard
+    .whenDataSatisfies(d => ...)           // optional: local data guard
 
-## Proposed Incremental Build Plan
-1. Stabilize runtime config shapes in `behaviourConfig.ts`.
-2. Implement minimal concrete fluent builder factory in `fluentBehaviour.ts`.
-3. Build compile step to `behaviourConfig` object.
-4. Connect `Behaviour.ts` to event bus/request bus processing.
-5. Add tests for typed chains and runtime behavior.
-6. Expand subsystem request builders (presentation/data/activity).
+    // dispatch to a subsystem — builder is fluent, `.end()` unwinds the stack
+    .dispatch.toActivity
+      .callAsync({ id, action, payloadFromEvent, contextFromEvent })
+      .end()
 
-## Integration Context
-Behaviours are expected to be loaded via Module Federation from micro-services that may also provide:
-- UI Plans,
-- data views,
-- activity integrations.
+    // or dispatch to menus
+    .dispatch.toMenus
+      .add({ id, label, eventName, action })
+      .remove(...)  .enable(...)  .disable(...)
+      .end()
 
-Cross-service calls are expected to flow through existing proxy infrastructure for CORS control and version selection.
+    // or dispatch to presentation
+    .dispatch.toPresentation
+      .openBlade('MyBladeName', paramsOrFactory)
+      .closeBlade(...)  .openTab(...)  .closeTab(...)  .navigate(...)
+      .end()
+
+    // or dispatch to data cache
+    .dispatch.toData
+      .invalidate(dataId)          // evict from cache
+      .save(dataId, changeFn)      // apply transform + notify
+      .end()
+
+    // or — for co-located React state — a local side-effect (no bus)
+    .localEffect((event, data) => setBladeOpen(true))
+      .end()
+
+  .build()   // → behaviourConfig
+```
+
+Multiple `.whenEventRaised(...)` chains can be chained on the same builder before
+calling `.build()`. Each becomes an independent element in `behaviourConfig.elements`.
+
+---
+
+## ActivityCallDefinition
+
+```typescript
+type ActivityCallDefinition<E> = {
+  id: string;
+  label?: string;
+  /** Fully-qualified path: namespace/activityName/version */
+  action: string;
+  payload?: any;
+  payloadFromEvent?: (event: E) => any;
+  context?: string;
+  contextFromEvent?: (event: E) => string | undefined;
+};
+```
+
+The `BehaviourDispatchProvider` splits `action` on `/` to produce
+`namespace / activityName / version` for the `ActivityDispatchProvider`.
+
+---
+
+## Runtime execution — `Behaviour.ts`
+
+The `<Behaviour config={config} initialData={data} />` React component:
+
+1. Registers any `localCustomComponents` with the render engine context.
+2. For each `behaviourElement`, subscribes to the UIEvent bus filtered by `eventType`.
+3. On each matching event, evaluates `eventCondition` and `dataCondition` guards.
+4. For each action in `element.actions`:
+   - `kind === 'localEffect'` → calls `action.effect(event, data)` directly.
+   - Otherwise → looks up `action.eventType` in the `BehaviourHandlerRegistry` and
+     calls the handler, which dispatches to the appropriate subsystem provider.
+
+---
+
+## Provider tree requirements
+
+Behaviours need the subsystem providers to be mounted above them:
+
+```
+UiEventProvider
+  DataCacheProvider
+    ActivityDispatchProvider
+      MenuDispatchProvider
+        PresentationDispatchProvider
+          BehaviourDispatchProvider   ← wires subsystem hooks into the handler registry
+            <feature components / Behaviour instances>
+```
+
+`BehaviourDispatchProvider` is the **only** place the subsystem dispatch hooks
+(`useActivityDispatch`, `useMenuDispatch`, `usePresentationDispatch`, `useDataDispatch`)
+are called. It builds the handler registry that `Behaviour.ts` reads.
+
+For sub-tree overrides use `BehaviourHandlerRegistryProvider` — it merges
+additional handlers on top of the parent registry.
+
+---
+
+## Key files
+
+| File | Role |
+|---|---|
+| `fluentBehaviour.ts` | Interface contracts for the DSL (`FluentBehaviour`, `EventHandlerBuilder`, `DispatchSurface`, subsystem builders) |
+| `behaviourBuilder.ts` | Concrete factory — `createBehaviour()` entry point |
+| `behaviourConfig.ts` | Runtime config types (`behaviourConfig`, `behaviourElement`, `behaviourAction`) |
+| `Behaviour.ts` | React component — subscribes to UIEventbus and fan-outs to handlers |
+| `BehaviourHandlerRegistryContext.tsx` | `BehaviourDispatchProvider` builds the handler Map; `BehaviourHandlerRegistryProvider` for sub-tree overrides |
+
+---
+
+## Complete example (from UserBladeBehaviour.ts)
+
+```typescript
+export const useUserProfileBehaviour = () => {
+  const [userData, setUserData] = useState<UserProfileData | null>(null);
+  const [bladeOpen, setBladeOpen] = useState(false);
+
+  const config = useMemo(() => createBehaviour()
+    // 1. Fetch user data when the user changes
+    .whenEventRaised('UserChanged')
+      .dispatch.toActivity
+        .callAsync({
+          id: 'getUserProfile',
+          action: 'actorwork/GetUserProfileData/1.0.0',
+          payloadFromEvent: (e: any) => ({ userId: e.payload?.userId }),
+        })
+        .end()
+    // 2. Store result in local state once loaded
+    .whenEventRaised('DataLoaded')
+      .whenEventSatisfies((e: any) => e.payload?.dataType === 'GetUserProfileData')
+      .localEffect((e: any) => setUserData(e.payload?.data))
+        .end()
+    // 3. Add a menu entry
+    .whenEventRaised('DataLoaded')
+      .whenEventSatisfies((e: any) => e.payload?.dataType === 'GetUserProfileData')
+      .dispatch.toMenus
+        .add({ id: 'user-profile-menu', label: 'See User Profile', eventName: 'MENU', action: 'openUserProfile' } as any)
+        .end()
+    // 4. Open the blade on menu click
+    .whenEventRaised('MenuItemClick')
+      .whenEventSatisfies((e: any) => e.payload?.menuId === 'user-profile-menu')
+      .dispatch.toPresentation
+        .openBlade('UserProfileBlade', (e: any) => ({ context: e.payload?.context }))
+        .end()
+    // 5. Sync blade open/close state locally
+    .whenEventRaised('PresentationRequest')
+      .whenEventSatisfies((e: any) => e.payload?.requestType === 'openBlade' && e.payload?.target === 'UserProfileBlade')
+      .localEffect(() => setBladeOpen(true))
+        .end()
+    .whenEventRaised('PresentationRequest')
+      .whenEventSatisfies((e: any) => e.payload?.requestType === 'closeBlade' && e.payload?.target === 'UserProfileBlade')
+      .localEffect(() => setBladeOpen(false))
+        .end()
+    .build()
+  , [setUserData, setBladeOpen]);
+
+  return { config, userData, bladeOpen, setBladeOpen };
+};
+```
+
+The hook is consumed by the feature component:
+
+```typescript
+export const UserProfileFeature = () => {
+  const { config, userData, bladeOpen, setBladeOpen } = useUserProfileBehaviour();
+  return <Behaviour config={config} />;
+};
+```

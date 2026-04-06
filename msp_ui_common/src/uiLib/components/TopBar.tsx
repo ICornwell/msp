@@ -14,16 +14,12 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { AppMenu } from './AppMenu.js';
-import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes.js';
 import { useUserSessionContext } from '../contexts/UserSessionContext.js';
 // import { HTMLFormElement } from 'happy-dom';
 
 interface TopBarProps {
   toggleSidebar: () => void;
   sidebarCollapsed: boolean;
-  menuItems: AppMenuItem[];
-  profileMenuItems: AppMenuItem[];
-  openBlade: (contentId: string) => void;
 }
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -73,9 +69,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export const TopBar: React.FC<TopBarProps> = ({
   toggleSidebar,
   sidebarCollapsed,
-  menuItems,
-  profileMenuItems,
-  openBlade
 }) => {
   const {login, currentUser} = useUserSessionContext();
 
@@ -110,16 +103,6 @@ export const TopBar: React.FC<TopBarProps> = ({
     e.preventDefault?.();
     console.log('Search submitted:', searchValue);
     // Implement search functionality
-  };
-
-  const handleMenuItemClick = (menuItem: AppMenuItem) => {
-    if (menuItem.bladeId) {
-      openBlade(menuItem.bladeId);
-    }
-    if (menuItem.action) {
-      menuItem.action();
-    }
-    handleProfileMenuClose();
   };
 
   return (
@@ -177,9 +160,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               key='menu1'
               anchorEl={mainMenuAnchorEl}
               open={Boolean(mainMenuAnchorEl)}
-              onClose={handleMainMenuClose}
-              menuItems={menuItems}
-              onMenuItemClick={handleMenuItemClick} />
+              onClose={handleMainMenuClose} />
         </Box>
         {currentUser.isAuthenticated ? (
           <Box>
@@ -198,8 +179,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               anchorEl={profileMenuAnchorEl}
               open={Boolean(profileMenuAnchorEl)}
               onClose={handleProfileMenuClose}
-              menuItems={profileMenuItems}
-              onMenuItemClick={handleMenuItemClick} />
+              menuTarget='profile' />
           </Box>
         ) : (
           <Button color="inherit" onClick={login}>

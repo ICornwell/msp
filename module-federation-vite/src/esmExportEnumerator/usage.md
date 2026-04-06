@@ -48,7 +48,7 @@ yarn workspace @module-federation/vite run generate:shared-esm-registry
 When no specifiers are given, the CLI reads specifier keys from:
 
 ```
-msp_common/src/sharedDeps.ts  →  sharedVersions  object
+msp_svr_common/src/sharedDeps.ts  →  sharedVersions  object
 ```
 
 Regex-extracted — no TypeScript compilation required.
@@ -103,7 +103,7 @@ src/esmExportEnumerator/
 
 ## Adding a new shared package
 
-1. Add the specifier to `msp_common/src/sharedDeps.ts` → `sharedVersions`
+1. Add the specifier to `msp_svr_common/src/sharedDeps.ts` → `sharedVersions`
 2. Run `audit:shared-esm-exports:write` — a new entry is added to the manifest
    with auto-generated `module` / `factory` names
 3. Create the factory file at the generated path (e.g. `sharedEsmExports/myPkg.ts`)

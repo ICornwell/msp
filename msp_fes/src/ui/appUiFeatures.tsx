@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, memo } from 'react';
 import { loadRemote, registerRemotes } from '@module-federation/runtime';
 import { Remote } from "@module-federation/runtime/types";
 
-import type { UiFeatureManifestSection } from "msp_common";
+import type { UiFeatureManifestSection } from "msp_svr_common";
 import { getAvailableFeatures } from "msp_ui_common/uiLib/comms";
 import { useUserSession } from "msp_ui_common/uiLib/hooks";
 import { useUiEventContext } from "msp_ui_common/uiLib/contexts";
@@ -27,19 +27,18 @@ export function AppUiFeatures() {
   const [loaded, setLoaded] = useState(false);
   const componentRef = useRef<React.FC<any>[]>([]);
 
-  const { publish } = useUiEventContext();
   const userChangeHAndler = useUserSession()
 
   userChangeHAndler.onLoggedIn = (userId: string) => {
     console.log(`User logged in: ${userId}`);
     setCurrentUser(userId);
-    publish({ messageType: 'UserChanged', payload: { userId }, timestamp: Date.now() });
+    
   }
 
   userChangeHAndler.onLoggedOut = (userId: string) => {
     console.log(`User logged out: ${userId}`);
     setCurrentUser(null);
-    publish({ messageType: 'UserChanged', payload: { userId: '' }, timestamp: Date.now() });
+  
   }
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 
-import { ClientCredentialsConfig, ProductConfig, SharedConfig } from "msp_common"
+import { ProductConfig, SharedConfig } from "msp_svr_common"
+import { ClientCredentialsConfig } from "msp_svr_common"
 
 const clientCredentials: ClientCredentialsConfig = {
     clientId: process.env['UI_API_CLIENT_ID'] || '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',

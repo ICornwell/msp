@@ -1,9 +1,10 @@
 import { useContext, createContext, useRef } from 'react';
-import PubSub, { UiSubscription } from './UiPubSub.js'
+import PubSub, { UiSubscription, UiPubSubMsg } from './UiPubSub.js'
 
 export type UiEventContextType = {
   subscribe: (subscription:UiSubscription) => string;
   unsubscribe: (subscriptionId: string) => void
+  /** @internal use raiseUiEvent / useUiEventPublisher from leaf components and subsystems */
   publish: (msg: any) => void
 }
 
@@ -32,5 +33,14 @@ export const UiEventProvider = ({ children }: { children: any }) => {
   );
 };
 
-// Custom hook to access the context
+// Custom hook to access the context — internal use only (Behaviour component)
 export const useUiEventContext: () => UiEventContextType = () => useContext(UiEventContext);
+
+/**
+ * Hook for leaf UI components and subsystems to publish UIEvents.
+ * This is the only publish surface outside of the Behaviour component.
+ */
+export function useUiEventPublisher(): { raiseUiEvent: (event: UiPubSubMsg) => void } {
+  const { publish } = useContext(UiEventContext);
+  return { raiseUiEvent: publish };
+}

@@ -7,7 +7,7 @@ import { handler as app } from './api.js';
 import http from 'http';
 import { config } from 'dotenv';
 
-import { setConfig, Ports } from 'msp_common';
+import { setConfig, Ports } from 'msp_svr_common';
 import { registerForBff } from './register.js';
 import Config from './config.js';
 

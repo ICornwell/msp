@@ -70,8 +70,12 @@ export interface MenuItem {
   icon?: React.ReactNode;
   bladeId?: string;
   eventName: string;
-  action?: () => void;
+  action?: string | (() => void);
   disabled?: boolean;
+  hidden?: boolean;
+  groupId?: string;
+  menuTarget?: string;
+  context?: any;
 }
 
 export interface AppEvent {
@@ -82,12 +86,11 @@ export interface AppEvent {
 export interface EventState {
   navItems: NavItem[];
   contextItems: ContextItem[];
-  profileItems: MenuItem[];
 }
 
 export type EventMsg = NavItem | NavItemSubItem | ContextSubItem | ContextRelatedContext | MenuItem;
 
-export type UiContentChangeEventType = 'PROFILE_HOST' |'NAVIGATION_HOST' | 'CONTEXT_HOST';
+export type UiContentChangeEventType = 'NAVIGATION_HOST' | 'CONTEXT_HOST';
 export type UiContentChangeAction = 'ADD' | 'REMOVE';
 
 export type UiContentChangeEventNavigationTarget = 'MENU' | 'SIDEBAR' | 'PROFILE' | 'CONTEXT_MENU' | 'QUICK_ACTIONS';

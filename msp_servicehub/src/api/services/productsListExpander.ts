@@ -1,4 +1,8 @@
-import { ProductConfig, Manifest, ServiceManifestSection, ActivityFeatureManifestSection, UiFeatureManifestSection, ApiFeatureManifestSection } from "msp_common";
+import type { Manifest, ServiceManifestSection,
+   ActivityFeatureManifestSection, UiFeatureManifestSection,
+    ApiFeatureManifestSection } from "msp_svr_common";
+
+import type { ProductConfig } from "msp_svr_common";
 
 export function unPartial(products: Partial<ProductConfig>[] | undefined): ProductConfig[] {
   if (!products) return [{

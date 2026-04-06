@@ -1,4 +1,4 @@
-import { bestVersionMatch, isMatch, type Manifest, type ServiceManifestSection, type UiFeatureManifestSection} from "msp_common"
+import { bestVersionMatch, isMatch, type Manifest, type ServiceManifestSection, type UiFeatureManifestSection} from "msp_svr_common"
 import { expandFeatureProducts } from "./productsListExpander.js";
 import { expandFeatureName } from "./featureIdExpander.js";
 import { UiRemoteRegistration } from "msp_common";

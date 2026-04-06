@@ -1,28 +1,48 @@
+import { useMemo } from 'react';
 import { createBehaviour } from 'msp_ui_common/uiLib';
+import { eventTypes } from 'msp_ui_common/uiLib';
+import { UserInfoLayout } from './UserBladeContent.js';
 
-export const useUserProfileBehaviour = () => createBehaviour()
-  .whenEventRaised('UserChanged')
-    .requestIsRaised.toActivitySubSystem
-      .toCallActivityAsync({
-        id: 'getUserProfile',
-        label: 'Get User Profile',
-        action: 'actorwork/GetUserProfileData/1.0.0',
-        payloadFromEvent: (event: any) => ({ userId: event.payload?.userId }),
-      })
-      .end()
-  .whenEventRaised('DataLoaded')
-    .whenEventSatisfies((event: any) => event.payload?.dataType === 'GetUserProfileData')
-    .requestIsRaised.toPresentationSubsystem.menus
-      .toAdd({
-        id: 'user-profile-menu',
-        label: 'See User Profile',
-        eventName: 'MENU',
-        action: 'openUserProfile'
-      } as any)
-      .end()
-  .whenEventRaised('MenuItemClick')
-    .whenEventSatisfies((event: any) => event.payload?.menuId === 'user-profile-menu')
-    .requestIsRaised.toPresentationSubsystem.requests
-      .toOpenBlade('UserProfileBlade', (event: any) => ({ context: event.payload?.context }))
-      .end()
-  .build();
+export const useUserProfileBehaviour = () => {
+  const config = useMemo(() => createBehaviour()
+    .whenEventRaised(eventTypes.UserSession.USER_LOGGED_IN)
+      .dispatch.toActivity
+        .callAsync({
+          id: 'getUserProfile',
+          label: 'Get User Profile',
+          action: 'actorwork/getUserProfileData/1.0.0',
+          payloadFromEvent: (event: any) => ({ userId: event.payload?.userId }),
+        })
+        .end()
+    // Add menu entry once data has arrived
+    .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
+      .whenEventSatisfies((event: any) => event.payload?.viewDataContent?.viewName === 'UserProfile')
+      .dispatch.toMenus
+        .add({
+          id: 'user-profile-menu',
+          label: 'See User Profile',
+          eventName: 'MENU',
+          action: 'openUserProfile',
+          menuTarget: 'profile',
+          context: { viewDataIdentifier: {
+            'viewDomain': 'actorwork',
+            'viewName': 'UserProfile',
+            'viewVersion': '1.0.0',
+            'viewRootEntityId': 'currentuser'}
+          }
+        } as any)
+        .end()
+    .whenEventRaised('MenuItemClick')
+      .whenEventSatisfies((event: any) => event.payload?.menuId === 'user-profile-menu')
+      .dispatch.toPresentation
+        .openBlade('UserProfileBlade',
+          {title: 'User Profile'},
+          UserInfoLayout(),
+          (event: any) => event.payload?.context?.viewDataIdentifier
+        )
+        .end()
+    .build()
+  , []);
+
+  return { config };
+};

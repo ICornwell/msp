@@ -1,5 +1,5 @@
-import { activitySet, ServiceActivityResultBuilder } from 'msp_common'
-import type { ActivitySet } from 'msp_common'
+import { activitySet, ServiceActivityResultBuilder } from 'msp_svr_common'
+import type { ActivitySet } from 'msp_svr_common'
 import { ReadData } from '../services/dgmRead.js';
 import { WriteData } from '../services/dgmWrite.js';
 

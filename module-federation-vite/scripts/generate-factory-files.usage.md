@@ -2,7 +2,7 @@
 
 Generates and regenerates the per-package factory `.ts` files under
 `src/virtualModules/sharedEsmExports/` from metadata stored in
-`msp_common/src/sharedDeps.ts`.
+`msp_svr_common/src/sharedDeps.ts`.
 
 Each package entry in `sharedVersions` can carry a `gen` field that tells
 the generator how to build that package's factory file.
@@ -29,7 +29,7 @@ yarn workspace @module-federation/vite run generate:shared-esm-registry
 
 ## The gen metadata field
 
-Add `gen` to any entry in `sharedVersions` in `msp_common/src/sharedDeps.ts`:
+Add `gen` to any entry in `sharedVersions` in `msp_svr_common/src/sharedDeps.ts`:
 
 ```ts
 'react': {
@@ -194,7 +194,7 @@ you want to re-explore the new surface before committing to a subset.
 
 ## Adding a new shared package end-to-end
 
-1. Add to `msp_common/src/sharedDeps.ts`:
+1. Add to `msp_svr_common/src/sharedDeps.ts`:
    ```ts
    'my-lib': {
      version: '*', isEsm: false,

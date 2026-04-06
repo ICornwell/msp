@@ -1,1 +1,1 @@
-export type DataIdentifier = {domain: string, view: string, eid: string};
+// export type DataIdentifier = {domain: string, view: string, eid: string};

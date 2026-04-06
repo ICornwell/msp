@@ -1,32 +1,14 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { NavItem, EventState, UiContentChangeEvent, ContextItem, MenuItem } from './uiEventTypes.js';
+import { NavItem, EventState, UiContentChangeEvent, ContextItem } from './uiEventTypes.js';
 
 const initialState: EventState = {
   navItems: [],
   contextItems: [],
-  profileItems: [],
 };
 
 // Event reducer to handle state changes
 const eventReducer = (state: EventState, action: UiContentChangeEvent): EventState => {
   switch (action.type) {
-    case 'PROFILE_HOST':
-      switch (action.action) {
-        case 'ADD':
-          // Check if tab already exists
-          if (state.profileItems.some((pi) => pi.id === action.payload.id)) {
-            return state;
-          }
-          return {
-            ...state,
-            profileItems: [...state.profileItems, action.payload as MenuItem]
-          };
-        case 'REMOVE':
-          return {
-            ...state,
-            profileItems: state.profileItems.filter((pi) => pi.id !== action.payload.id)
-          };
-      }
     case 'NAVIGATION_HOST':
       switch (action.action) {
         case 'ADD':

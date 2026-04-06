@@ -1,4 +1,4 @@
-import { createDomainObject } from "msp_common";
+import { createDomainObject } from "msp_svr_common";
 import { userActorSchema } from "./userActorSchemas.js";
 
 export const userActorObject = createDomainObject('user', userActorSchema)

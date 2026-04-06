@@ -1,5 +1,5 @@
 import { default as express } from "express";
-import { serviceManager } from "msp_common";
+import { serviceManager } from "msp_svr_common";
 import { GetUserProfileDataActivity } from "../services/getUserProfileData.js";
 const router = express.Router();
 // Create service manager and register activities

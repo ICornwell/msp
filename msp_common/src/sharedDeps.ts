@@ -99,7 +99,7 @@ export const sharedVersions: Record<string, VersionInfo> = {
   },
   'msp_ui_common/uiLib': {
     version: '*', isEsm: false,
-    gen: { mode: 'list', sentinel: 'Re' },
+    gen: { mode: 'scan', sentinel: 'Re' },
   },
   'msp_ui_common/uiLib/components': {
     version: '*', isEsm: false,
@@ -107,7 +107,7 @@ export const sharedVersions: Record<string, VersionInfo> = {
   },
   'msp_ui_common/uiLib/contexts': {
     version: '*', isEsm: false,
-    gen: { mode: 'list', sentinel: 'UiEventProvider' },
+    gen: { mode: 'scan', sentinel: 'UiEventProvider' },
   },
   'msp_ui_common/uiLib/comms': {
     version: '*', isEsm: false,
@@ -115,7 +115,7 @@ export const sharedVersions: Record<string, VersionInfo> = {
   },
   'msp_ui_common/uiLib/behaviours': {
     version: '*', isEsm: false,
-    gen: { mode: 'list', sentinel: 'Behaviour' },
+    gen: { mode: 'scan', sentinel: 'Behaviour' },
   },
   'msp_ui_common/uiLib/hooks': {
     version: '*', isEsm: false,

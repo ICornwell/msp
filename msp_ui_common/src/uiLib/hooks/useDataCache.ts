@@ -1,18 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { useDataCacheContext, DataCacheMsg, DataRequest, DataEvent } from '../contexts/DataCacheContext.js';
-import { DataIdentifier } from '../contexts/Data.js';
+import { ViewDataQueryIdentifier, ViewDataContent } from 'msp_common';
 
 export type DataCacheOperations = {
   // Request operations (async via pub-sub)
-  loadData: (entityType: string, viewName: string, entityId: string) => void;
-  refreshData: (entityType: string, viewName: string, entityId: string) => void;
-  unloadData: (entityType: string, viewName: string, entityId: string) => void;
-  publishChange: (entityType: string, viewName: string, entityId: string, changePath?: string[], changeValue?: any) => void;
+  loadData: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => void;
+  refreshData: (viewDataContent: ViewDataContent) => void;
+  unloadData: (viewDataContent: ViewDataContent) => void;
+  publishChange: (viewDataContent: ViewDataContent, changePath?: string[], changeValue?: any) => void;
   
   // Query operations (sync from cache)
-  queryData: (entityType: string, viewName: string, entityId: string) => any | undefined;
-  queryDataByIdentifier: (id: DataIdentifier) => any | undefined;
-  isLocked: (entityType: string, viewName: string, entityId: string) => boolean;
+  queryData: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => any | undefined;
+  queryDataByIdentifier: (id: ViewDataQueryIdentifier) => any | undefined;
+  isLocked: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => boolean;
   
   // Direct pub-sub access (for advanced use)
   publishRequest: (request: DataRequest) => void;
@@ -31,7 +31,8 @@ export type DataCacheOperations = {
  */
 export function useDataCache(
   onDataEvent?: (event: DataCacheMsg) => void,
-  eventFilter?: (event: DataCacheMsg) => boolean
+  eventFilter?: (event: DataCacheMsg) => boolean,
+  deps?: any[],
 ): DataCacheOperations {
   const context = useDataCacheContext();
   const subscriptionIdRef = useRef<string | null>(null);
@@ -49,24 +50,28 @@ export function useDataCache(
         subscriptionIdRef.current = null;
       }
     };
-  }, []); // Empty deps - subscribe once on mount
+  }, deps); // Use provided deps for effect
 
   return {
     // Request operations
-    loadData: (entityType, viewName, entityId) => {
-      context.publishRequest({ type: 'LoadDataView', entityType, viewName, entityId });
+    loadData: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => {
+      // Defer the publish to ensure it's not called during rendering,
+      // which can cause issues with state updates in React
+      setTimeout(() => { // Defer to avoid potential state update issues if called during render
+        context.publishRequest({ type: 'LoadDataView', viewDataQueryIdentifier });
+      }, 0);
     },
     
-    refreshData: (entityType, viewName, entityId) => {
-      context.publishRequest({ type: 'RefreshDataView', entityType, viewName, entityId });
+    refreshData: (viewDataContent) => {
+      context.publishRequest({ type: 'RefreshDataView', viewDataContent });
     },
     
-    unloadData: (entityType, viewName, entityId) => {
-      context.publishRequest({ type: 'UnloadDataView', entityType, viewName, entityId });
+    unloadData: (viewDataContent) => {
+      context.publishRequest({ type: 'UnloadDataView', viewDataContent });
     },
     
-    publishChange: (entityType, viewName, entityId, changePath, changeValue) => {
-      context.publishRequest({ type: 'PublishChange', entityType, viewName, entityId, changePath, changeValue });
+    publishChange: (viewDataContent, changePath, changeValue) => {
+      context.publishRequest({ type: 'PublishChange', viewDataContent, changePath, changeValue });
     },
     
     // Query operations (sync)

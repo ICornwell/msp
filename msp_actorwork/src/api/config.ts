@@ -1,5 +1,7 @@
 // Actorwork Service Configuration
-import { SharedConfig, Config as ConfigType, ProductConfig, ClientCredentialsConfig } from "msp_common"
+import { SharedConfig, Config as ConfigType, ProductConfig } from "msp_svr_common"
+
+import { ClientCredentialsConfig } from "msp_svr_common"
 
 // what/which product is service for?
 // ServiceHub is a little unusual in that it hosts the platform itself

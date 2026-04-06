@@ -66,7 +66,7 @@ This option was removed. All packages use the `loadShare`/`initPromise` path
 | `src/virtualModules/sharedEsmExports/*.ts` | Factory files — now generatable; hand-edit still fine for one-offs |
 | `src/virtualModules/virtualShared_preBuild.ts` | Consumes `getSharedEsmExportCode` |
 | `src/esmExportEnumerator/` | This toolset |
-| `msp_common/src/sharedDeps.ts` | Canonical list of shared packages + `gen` metadata for factory generator |
+| `msp_svr_common/src/sharedDeps.ts` | Canonical list of shared packages + `gen` metadata for factory generator |
 
 ---
 
@@ -205,7 +205,7 @@ yarn workspace @module-federation/vite run generate:shared-esm-registry
 
 ### Adding a new shared package
 ```sh
-# 1. Add to msp_common/src/sharedDeps.ts with a gen block
+# 1. Add to msp_svr_common/src/sharedDeps.ts with a gen block
 # 2. Run factory generator (creates factory .ts + manifest entry)
 yarn workspace @module-federation/vite run generate:factory-files -- my-lib
 

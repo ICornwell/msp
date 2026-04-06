@@ -1,5 +1,5 @@
 // Actorwork Service Configuration
-import { SharedConfig } from "msp_common";
+import { SharedConfig } from "msp_svr_common";
 // what/which product is service for?
 // ServiceHub is a little unusual in that it hosts the platform itself
 const thisProduct = {

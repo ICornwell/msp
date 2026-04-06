@@ -1,4 +1,4 @@
-import type { UiFeatureManifestSection} from "msp_common"
+import type { UiFeatureManifestSection} from "msp_svr_common"
 
 
 const uiFeatureList: UiFeatureManifestSection[] = [

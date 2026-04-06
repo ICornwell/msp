@@ -1,5 +1,5 @@
-import { activitySet, ServiceActivityResultBuilder } from 'msp_common'
-import type { ActivitySet } from 'msp_common'
+import { activitySet, ServiceActivityResultBuilder } from 'msp_svr_common'
+import type { ActivitySet } from 'msp_svr_common'
 
 const discoveryActivitySet: ActivitySet = activitySet()
 

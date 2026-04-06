@@ -9,7 +9,7 @@ interface SidebarProps {
   isCollapsed: boolean;
   activeTabId: string | null;
   onTabSelect: (tabId: string) => void;
-  openBlade: (contentId: string) => void;
+//  openBlade: (contentId: string) => void;
 }
 
 const drawerWidth = 240;

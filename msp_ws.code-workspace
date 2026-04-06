@@ -7,7 +7,10 @@
 			"path": "msp_common"
 		},
 		{
-			"path": "msp_fes"
+			"path": "msp_svr_common"
+		},
+		{
+			"path": "msp_ui_common"
 		},
 		{
 			"path": "msp_servicehub"
@@ -19,13 +22,13 @@
 			"path": "msp_datahub"
 		},
 		{
+			"path": "msp_fes"
+		},
+		{
+			"path": "msp_semaphores"
+		},
+		{
 			"path": "module-federation-vite"
-		},
-		{
-			"path": "msp_ui_common"
-		},
-		{
-			"path": "msp_semaphors"
 		}
 	],
 	"settings": {

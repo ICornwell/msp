@@ -1,5 +1,5 @@
 
-import { SharedConfig } from "msp_common"
+import { SharedConfig } from "msp_svr_common"
 
 const config ={
     ...SharedConfig

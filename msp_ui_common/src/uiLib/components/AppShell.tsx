@@ -10,7 +10,7 @@ import { useEventContext } from '../contexts/UiContentContext.js';
 import EngineComponents from './engineComponents.js';
 import { ReProvider } from '../renderEngine/contexts/ReEngineContext.js';
 import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext.js';
-import { NavItem, ContextItem } from '../contexts/uiEventTypes.js';
+import { ContextItem } from '../contexts/uiEventTypes.js';
 
 const MainContainer = styled(Box)(({  }) => ({
   display: 'flex',
@@ -28,12 +28,12 @@ const ContentContainer = styled(Box)(({  }) => ({
 
 export const AppShell: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
-  const [isBladeOpen, setIsBladeOpen] = useState<boolean>(false);
+  // const [isBladeOpen, setIsBladeOpen] = useState<boolean>(false);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
-  const [configContent, setConfigContent] = useState<string | null>(null);
+  // const [configContent, setConfigContent] = useState<string | null>(null);
 
   const { state } = useEventContext();
-  const { navItems, contextItems, profileItems } = state;
+  const { navItems, contextItems } = state;
 
   const tabs = contextItems.map((ci: ContextItem) => ({
     id: ci.id,
@@ -42,25 +42,19 @@ export const AppShell: React.FC = () => {
     content: null,
   }));
 
-  const menuItems = navItems.map((ni: NavItem) => ({
-    id: ni.id,
-    label: ni.label,
-    eventName: ni.eventName || 'MENU',
-  }));
-
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
-  const openBlade = (contentId: string) => {
-    setConfigContent(contentId);
-    setIsBladeOpen(true);
-  };
+  // const openBlade = (contentId: string) => {
+  //   setConfigContent(contentId);
+  //   setIsBladeOpen(true);
+  // };
 
-  const closeBlade = () => {
-    setIsBladeOpen(false);
-    setConfigContent(null);
-  };
+  // const closeBlade = () => {
+  //   setIsBladeOpen(false);
+  //   setConfigContent(null);
+  // };
 
   const handleTabChange = (tabId: string) => {
     setActiveTabId(tabId);
@@ -86,9 +80,6 @@ export const AppShell: React.FC = () => {
           <TopBar
             toggleSidebar={toggleSidebar}
             sidebarCollapsed={isSidebarCollapsed}
-            menuItems={menuItems}
-            profileMenuItems={profileItems}
-            openBlade={openBlade}
           />
 
           <ContentContainer>
@@ -97,7 +88,7 @@ export const AppShell: React.FC = () => {
               isCollapsed={isSidebarCollapsed}
               activeTabId={activeTabId}
               onTabSelect={handleTabChange}
-              openBlade={openBlade}
+              
             />
 
             <MainContainer>
@@ -113,11 +104,7 @@ export const AppShell: React.FC = () => {
               />
             </MainContainer>
 
-            <Blade
-              isOpen={isBladeOpen}
-              onClose={closeBlade}
-              contentId={configContent}
-            />
+            <Blade />
           </ContentContainer>
         </Box>
       </EngineComponentProvider>

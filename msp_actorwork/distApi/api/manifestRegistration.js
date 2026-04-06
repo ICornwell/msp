@@ -1,5 +1,5 @@
 // Manifest Registration Service
-import { serviceRequest } from 'msp_common';
+import { serviceRequest } from 'msp_svr_common';
 import { createActorworkManifest } from '../manifest/manifest.js';
 import { Config } from './config.js';
 export async function registerManifest() {

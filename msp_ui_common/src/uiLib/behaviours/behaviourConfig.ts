@@ -13,10 +13,19 @@ export type behaviourElement<DT, E> = {
   innerElements: behaviourElement<any, any>[]
 }
 
-export type behaviourAction<DT, E> = {
-  eventType: string
-  eventData: DT
-  eventMsg: E
+// Discriminated union — request actions publish a message; local-effect actions call a side-effect
+// directly (e.g. setting component state) without going through the pub-sub bus.
+export type behaviourAction<DT, E> = RequestAction<DT, E> | LocalEffectAction<E>;
 
-  contra?: behaviourAction<DT,E>
-}
+export type RequestAction<DT, E> = {
+  kind?: 'request';
+  eventType: string;
+  eventData: DT;
+  eventMsg: E;
+  contra?: behaviourAction<DT, E>;
+};
+
+export type LocalEffectAction<E = any> = {
+  kind: 'localEffect';
+  effect: (event: E, data: any) => void;
+};

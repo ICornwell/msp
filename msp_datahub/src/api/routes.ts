@@ -1,5 +1,5 @@
 import { default as express } from "express";
-import { serviceManager } from "msp_common";
+import { serviceManager } from "msp_svr_common";
 import { discoveryActivitySet } from "./activities/discovery.js";
 import { discoveryActivitySet as dgmActivitySet } from "./activities/dgmAccess.js";
 

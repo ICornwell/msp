@@ -1,16 +1,18 @@
-import { DataIdentifier } from "../contexts/Data.js";
+import { ViewDataIdentifier } from "msp_common";
 import { MenuItem } from "../contexts/uiEventTypes.js";
 import { ComponentWrapper } from "../renderEngine/components/ReComponentWrapper.js";
-import { behaviourConfig, behaviourElement, behaviourAction } from './behaviourConfig.js';
+import { behaviourConfig, behaviourElement, behaviourAction, LocalEffectAction } from './behaviourConfig.js';
 import {
   FluentBehaviour,
   EventHandlerBuilder,
-  DataRequestBuilder,
-  PresentationMenuRequestBuilder,
-  PresentationRequestBuilder,
-  ActivityRequestBuilder,
+  ActivityDispatchBuilder,
+  MenuDispatchBuilder,
+  PresentationDispatchBuilder,
+  DataDispatchBuilder,
+  LocalEffectBuilder,
   ActivityCallDefinition,
 } from './fluentBehaviour.js';
+import { BehaviourArg } from "./Behaviour.js";
 
 
 export function createBehaviour<DT = any>(): FluentBehaviour<DT> {
@@ -37,7 +39,6 @@ function makeFluentBehaviour<DT>(
     },
 
     withData: <D>(_data: D) => {
-      // Data binding - could store for use in predicates
       return makeFluentBehaviour<D>(config, buildConfig);
     },
 
@@ -75,136 +76,116 @@ function makeEventHandlerBuilder<DT, E, RT>(
       return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
     },
 
-    requestIsRaised: {
-      toPresentationSubsystem: {
-        menus: makeMenuRequestBuilder<DT, E, RT>(element, returnBuilder),
-        requests: makePresentationRequestBuilder<DT, E, RT>(element, returnBuilder),
-      },
-      toDataSubsystem: makeDataRequestBuilder<DT, E, RT>(element, returnBuilder),
-      toActivitySubSystem: makeActivityRequestBuilder<DT, E, RT>(element, returnBuilder)
-    }
+    dispatch: {
+      toActivity:     makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder),
+      toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder),
+      toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder),
+      toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder),
+    },
+
+    localEffect: (effect: (event: E, data: any) => void): LocalEffectBuilder<DT, E, RT> => {
+      const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
+      element.actions.push(action);
+      return { end: () => returnBuilder };
+    },
   };
 }
 
-function makeDataRequestBuilder<DT, E, RT>(
+function makeActivityDispatchBuilder<DT, E, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
-): DataRequestBuilder<DT, E, RT> {
+): ActivityDispatchBuilder<DT, E, RT> {
   return {
-    toRevert: (dataId: DataIdentifier) => {
-      const action: behaviourAction<DT, E> = {
-        eventType: 'DataRequest',
-        eventData: { requestType: 'revert', dataId } as any,
-        eventMsg: undefined as any
-      };
-      element.actions.push(action);
-      return makeDataRequestBuilder<DT, E, RT>(element, returnBuilder);
-    },
-
-    toChange: (dataId: DataIdentifier, changeFn: (data: DT) => DT) => {
-      const action: behaviourAction<DT, E> = {
-        eventType: 'DataRequest',
-        eventData: { requestType: 'change', dataId, changeFn } as any,
-        eventMsg: undefined as any
-      };
-      element.actions.push(action);
-      return makeDataRequestBuilder<DT, E, RT>(element, returnBuilder);
-    },
-
-    end: () => returnBuilder
-  };
-}
-
-function makeMenuRequestBuilder<DT, E, RT>(
-  element: behaviourElement<DT, E>,
-  returnBuilder: RT
-): PresentationMenuRequestBuilder<DT, E, RT> {
-  return {
-    toAdd: (menu: MenuItem) => {
-      const action: behaviourAction<DT, E> = {
-        eventType: 'MenuRequest',
-        eventData: { requestType: 'add', menu } as any,
-        eventMsg: undefined as any
-      };
-      element.actions.push(action);
-      return makeMenuRequestBuilder<DT, E, RT>(element, returnBuilder);
-    },
-
-    toRemove: (menu: MenuItem) => {
-      const action: behaviourAction<DT, E> = {
-        eventType: 'MenuRequest',
-        eventData: { requestType: 'remove', menu } as any,
-        eventMsg: undefined as any
-      };
-      element.actions.push(action);
-      return makeMenuRequestBuilder<DT, E, RT>(element, returnBuilder);
-    },
-
-    toEnable: (menu: MenuItem) => {
-      const action: behaviourAction<DT, E> = {
-        eventType: 'MenuRequest',
-        eventData: { requestType: 'enable', menu } as any,
-        eventMsg: undefined as any
-      };
-      element.actions.push(action);
-      return makeMenuRequestBuilder<DT, E, RT>(element, returnBuilder);
-    },
-
-    toDisable: (menu: MenuItem) => {
-      const action: behaviourAction<DT, E> = {
-        eventType: 'MenuRequest',
-        eventData: { requestType: 'disable', menu } as any,
-        eventMsg: undefined as any
-      };
-      element.actions.push(action);
-      return makeMenuRequestBuilder<DT, E, RT>(element, returnBuilder);
-    },
-
-    end: () => returnBuilder
-  };
-}
-
-function makeActivityRequestBuilder<DT, E, RT>(
-  element: behaviourElement<DT, E>,
-  returnBuilder: RT
-): ActivityRequestBuilder<DT, E, RT> {
-  return {
-    toCallActivityAsync: (activity: ActivityCallDefinition<E> | MenuItem) => {
+    callAsync: (activity: ActivityCallDefinition<E> | MenuItem) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'ServiceCallRequest',
         eventData: { requestType: 'async', activity } as any,
         eventMsg: undefined as any
       };
       element.actions.push(action);
-      return makeActivityRequestBuilder<DT, E, RT>(element, returnBuilder);
+      return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder);
     },
 
-    toCallActivitySync: (activity: ActivityCallDefinition<E> | MenuItem) => {
+    callSync: (activity: ActivityCallDefinition<E> | MenuItem) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'ServiceCallRequest',
         eventData: { requestType: 'sync', activity } as any,
         eventMsg: undefined as any
       };
       element.actions.push(action);
-      return makeActivityRequestBuilder<DT, E, RT>(element, returnBuilder);
+      return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder);
     },
 
     end: () => returnBuilder
   };
 }
 
-function makePresentationRequestBuilder<DT, E, RT>(
+function makeMenuDispatchBuilder<DT, E, RT>(
+  element: behaviourElement<DT, E>,
+  returnBuilder: RT
+): MenuDispatchBuilder<DT, E, RT> {
+  const withMenuAction = (requestType: string, menu: MenuItem): MenuDispatchBuilder<DT, E, RT> => {
+    const action: behaviourAction<DT, E> = {
+      eventType: 'MenuRequest',
+      eventData: { requestType, menu } as any,
+      eventMsg: undefined as any
+    };
+    element.actions.push(action);
+    return makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder);
+  };
+
+  return {
+    add:     (menu) => withMenuAction('add', menu),
+    remove:  (menu) => withMenuAction('remove', menu),
+    enable:  (menu) => withMenuAction('enable', menu),
+    disable: (menu) => withMenuAction('disable', menu),
+    end: () => returnBuilder
+  };
+}
+
+function makeDataDispatchBuilder<DT, E, RT>(
+  element: behaviourElement<DT, E>,
+  returnBuilder: RT
+): DataDispatchBuilder<DT, E, RT> {
+  return {
+    invalidate: (viewDataIdentifier: ViewDataIdentifier) => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'DataRequest',
+        eventData: { requestType: 'revert', viewDataIdentifier } as any,
+        eventMsg: undefined as any
+      };
+      element.actions.push(action);
+      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder);
+    },
+
+    save: (viewDataIdentifier: ViewDataIdentifier, changeFn: (data: DT) => DT) => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'DataRequest',
+        eventData: { requestType: 'change', viewDataIdentifier, changeFn } as any,
+        eventMsg: undefined as any
+      };
+      element.actions.push(action);
+      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder);
+    },
+
+    end: () => returnBuilder
+  };
+}
+
+function makePresentationDispatchBuilder<DT, E, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT,
-): PresentationRequestBuilder<DT, E, RT> {
+): PresentationDispatchBuilder<DT, E, RT> {
   const withAction = (
     requestType: 'openBlade' | 'closeBlade' | 'openTab' | 'closeTab' | 'navigate',
     target: string,
     params?: any | ((event: E) => any),
-  ): PresentationRequestBuilder<DT, E, RT> => {
+    content?: any,
+    viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>,
+  ): PresentationDispatchBuilder<DT, E, RT> => {
     const eventData = typeof params === 'function'
-      ? { requestType, target, paramsFromEvent: params }
-      : { requestType, target, params };
+      ? { requestType, target, paramsFromEvent: params, content, viewDataIdentifier }
+      : { requestType, target, params, content, viewDataIdentifier };
 
     const action: behaviourAction<DT, E> = {
       eventType: 'PresentationRequest',
@@ -213,15 +194,15 @@ function makePresentationRequestBuilder<DT, E, RT>(
     };
 
     element.actions.push(action);
-    return makePresentationRequestBuilder<DT, E, RT>(element, returnBuilder);
+    return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder);
   };
 
   return {
-    toOpenBlade: (target, params) => withAction('openBlade', target, params),
-    toCloseBlade: (target, params) => withAction('closeBlade', target, params),
-    toOpenTab: (target, params) => withAction('openTab', target, params),
-    toCloseTab: (target, params) => withAction('closeTab', target, params),
-    toNavigate: (target, params) => withAction('navigate', target, params),
+    openBlade:  (target, params, content, viewDataIdentifier) => withAction('openBlade', target, params, content, viewDataIdentifier),
+    closeBlade: (target, params) => withAction('closeBlade', target, params),
+    openTab:    (target, params, content, viewDataIdentifier) => withAction('openTab', target, params, content, viewDataIdentifier),
+    closeTab:   (target, params) => withAction('closeTab', target, params),
+    navigate:   (target, params) => withAction('navigate', target, params),
     end: () => returnBuilder,
   };
 }

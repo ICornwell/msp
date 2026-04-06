@@ -5,7 +5,8 @@ import { federation } from '@module-federation/vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 import mix from 'vite-plugin-mix'  // temporarily disabled for BFF isolation test
-import { sharedDeps, Ports } from 'msp_common'
+import { Ports } from 'msp_svr_common'
+import { sharedDeps } from 'msp_common'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -104,9 +105,9 @@ export default defineConfig({
       // Must be listed here — if discovered at serve-time they trigger a
       // second optimization pass which holds chunk requests mid-flight.
       '@mui/material/styles',
-      'msp_common',
-      'jose',    // transitive dep of msp_common dist
-      'semver',  // transitive dep of msp_common dist
+      'msp_svr_common',
+      'jose',    // transitive dep of msp_svr_common dist
+      'semver',  // transitive dep of msp_svr_common dist
     ],
     needsInterop: [
       'hoist-non-react-statics'

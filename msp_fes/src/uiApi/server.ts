@@ -6,7 +6,7 @@
 import { handler as app } from './api.js';
 import http from 'http';
 import { config } from 'dotenv';
-import {Ports} from "msp_common"
+import {Ports} from "msp_svr_common"
 
 // Load environment variables
 config();

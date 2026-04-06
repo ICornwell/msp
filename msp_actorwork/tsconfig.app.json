@@ -10,7 +10,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "paths": {
-      "msp_common": ["../msp_common/src/index.ts"],
+      "msp_svr_common": ["../msp_svr_common/src/index.ts"],
       "msp_fes/uiLib": ["../msp_fes/src/uiLib/index.ts"],
       "msp_fes/uiLib/renderEngine": ["../msp_fes/src/uiLib/renderEngine/index.ts"],
       "react": ["./node_modules/react"],

@@ -337,8 +337,13 @@
       "module": "./mspUiCommon",
       "factory": "mspUiCommonExportCode",
       "namedExports": [
+        "ActivityDispatchProvider",
         "Behaviour",
+        "BehaviourDispatchProvider",
+        "BehaviourHandlerRegistryProvider",
         "DataCacheProvider",
+        "MenuDispatchProvider",
+        "PresentationDispatchProvider",
         "PresetBooleanComponent",
         "PresetDateComponent",
         "PresetMoneyComponent",
@@ -348,10 +353,16 @@
         "ServiceDispatcher",
         "UiEventProvider",
         "createBehaviour",
+        "eventTypes",
+        "useActivityDispatch",
+        "useBehaviourHandlerRegistry",
         "useDataCache",
         "useDataCacheContext",
+        "useDataDispatch",
+        "useMenuDispatch",
+        "usePresentationDispatch",
         "useUiEventContext",
-        "useUiEventSubscriber",
+        "useUiEventPublisher",
         "useUserSession"
       ]
     },
@@ -430,7 +441,10 @@
       "factory": "mspUiCommonBehavioursExportCode",
       "namedExports": [
         "Behaviour",
-        "createBehaviour"
+        "BehaviourDispatchProvider",
+        "BehaviourHandlerRegistryProvider",
+        "createBehaviour",
+        "useBehaviourHandlerRegistry"
       ]
     },
     {
@@ -438,18 +452,34 @@
       "module": "./mspUiCommonContexts",
       "factory": "mspUiCommonContextsExportCode",
       "namedExports": [
+        "ActivityDispatchContext",
+        "ActivityDispatchProvider",
+        "ActivityEvents",
         "DataCacheContext",
+        "DataCacheEvents",
         "DataCacheProvider",
         "EventMessageTypeMapping",
+        "MenuDispatchContext",
+        "MenuDispatchProvider",
+        "MenuEvents",
+        "PresentationDispatchContext",
+        "PresentationDispatchProvider",
         "UiContentContext",
         "UiContentProvider",
         "UiEventContext",
         "UiEventProvider",
         "UserSessionContext",
+        "UserSessionEvents",
         "UserSessionProvider",
+        "useActivityDispatch",
         "useDataCacheContext",
+        "useDataDispatch",
         "useEventContext",
+        "useMenuDispatch",
+        "usePresentationBladeState",
+        "usePresentationDispatch",
         "useUiEventContext",
+        "useUiEventPublisher",
         "useUserSessionContext"
       ]
     },

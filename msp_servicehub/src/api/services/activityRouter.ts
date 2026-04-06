@@ -1,4 +1,4 @@
-import { serviceManager } from 'msp_common';
+import { serviceManager } from 'msp_svr_common';
 import { createServiceManager } from './serviceActivityRegistry.js';
 import { discoveryActivitySet } from '../activities/discovery.js';
 

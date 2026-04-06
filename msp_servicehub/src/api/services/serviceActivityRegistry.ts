@@ -1,15 +1,17 @@
 // Service Activity Registry
 // Uses ActivitySet for version matching and name matching
 
-import { serviceManager, activitySet, ServiceActivityResultBuilder, ServiceRequestEnvelope, serviceRequest } from 'msp_common';
-import type { ActivitySet, ProductConfig } from 'msp_common';
-import { ActivityFeatureManifestSection, Manifest, ServiceManifestSection } from 'msp_common';
+import { serviceManager, activitySet, ServiceActivityResultBuilder, ServiceRequestEnvelope, serviceRequest } from 'msp_svr_common';
+import type { ActivitySet } from 'msp_svr_common';
+import type {ProductConfig} from 'msp_svr_common';
+import { ActivityFeatureManifestSection, Manifest, ServiceManifestSection } from 'msp_svr_common';
 import { expandFeatureProducts } from './productsListExpander.js';
 
 export type ServiceActivityRegistration = {
   namespace: string;
   activityName: string;
   version: string;
+  variantName?: string;
   matchingVersionRange?: string;  // e.g., '^1.0.0', defaults to exact version
   serviceUrl: string;  // e.g., 'http://localhost:3001' for actorwork
   serviceName: string;
@@ -32,10 +34,10 @@ export function registerFeatures(manifest: Manifest, service: ServiceManifestSec
     const registration: ServiceActivityRegistration = {
       namespace: feature.namespace || 'default', // Assuming namespace is derived from product domain
       activityName: feature.name || 'unnamed-activity',
-      version: feature.version || '1.0.0',
-      
-      serviceUrl: feature.serverUrl || 'none',
-      serviceName: feature.remotePath || 'none',
+      version: feature.version || service.version || manifest.version || '1.0.0',
+      variantName: feature.variantName || service.variantName || manifest.variantName || 'default',
+      serviceUrl: feature.serverUrl || service.serverUrl || manifest.serverUrl || 'none',
+      serviceName: service.name || 'none',
       forProducts: forProducts??[]
     };
 

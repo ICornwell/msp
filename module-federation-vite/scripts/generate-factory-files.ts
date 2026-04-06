@@ -3,7 +3,7 @@
  * generate-factory-files.ts
  *
  * Generates / regenerates the factory .ts files under src/virtualModules/sharedEsmExports/
- * from the gen metadata attached to each entry in msp_common/src/sharedDeps.ts.
+ * from the gen metadata attached to each entry in msp_svr_common/src/sharedDeps.ts.
  *
  * Run via:
  *   tsx ./scripts/generate-factory-files.ts [options] [specifier...]
@@ -370,7 +370,12 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    console.log('\nFactory file generation complete.');
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

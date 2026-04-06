@@ -8,6 +8,8 @@ export type UiSPubSub<MsgType = UiPubSubMsg> = {
 
 export type UiPubSubMsg = {
   messageType: string,
+  correlationId?: string,
+  timestamp: number,
   payload: any
 }
 

@@ -1,7 +1,7 @@
 
-import { httpRequest } from "msp_common"
+import { httpRequest } from "msp_svr_common"
 import Config from "../../api/config.js"
-import { InformationManifestSection } from "msp_common"
+import { InformationManifestSection } from "msp_svr_common"
 
 
 const informationList: InformationManifestSection[] = [
