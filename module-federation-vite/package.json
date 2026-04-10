@@ -32,10 +32,7 @@
     "test": "vitest",
     "e2e": "playwright test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/module-federation/vite.git"
-  },
+
   "keywords": [
     "vite",
     "module federation",
