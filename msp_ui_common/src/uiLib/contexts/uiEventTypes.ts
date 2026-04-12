@@ -1,4 +1,5 @@
 import React from 'react';
+import { Tab } from '../contexts/PresentationDispatchContext.js';
 
 export interface NavItem {
   eventName: string;
@@ -53,14 +54,14 @@ export interface ContextRelatedContext {
   index?: number;
 }
 
-export interface Tab {
-  id: string;
-  label: string;
-  eventName: string;
-  icon?: React.ReactNode;
-  content: React.ReactNode;
-  closable?: boolean;
-}
+// export interface Tab {
+//   id: string;
+//   label: string;
+//   eventName: string;
+//   icon?: React.ReactNode;
+//   content: React.ReactNode;
+//   closable?: boolean;
+// }
 
 export interface MenuItem {
   id: string;

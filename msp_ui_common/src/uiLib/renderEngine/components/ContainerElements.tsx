@@ -1,6 +1,5 @@
 import { CNTX, CreateReUiPlanComponent, CreateReUiPlanElementSet, FluentExtension, FluentSimple, FluentSubBuilder, ReExtensionBuilder, ReUiPlanComponentBuilder, ReUiPlanElementSetBuilder } from "../UiPlan/ReUiPlanBuilder.js";
 import { ReUiPlanElement } from "../UiPlan/ReUiPlan.js";
-// import { FluxorData } from "../fluxor/fluxorData.js";
 
 export type SimplifiedReUiPlanComponentBuilder<C extends CNTX, RT> = ReUiPlanComponentBuilder<C, any, RT>;
 

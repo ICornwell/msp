@@ -14,7 +14,8 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { AppMenu } from './AppMenu.js';
-import { useUserSessionContext } from '../contexts/UserSessionContext.js';
+import { UserSessionState } from '../contexts/UserSessionContext.js';
+import { useUserSession } from '../index.js';
 // import { HTMLFormElement } from 'happy-dom';
 
 interface TopBarProps {
@@ -70,7 +71,25 @@ export const TopBar: React.FC<TopBarProps> = ({
   toggleSidebar,
   sidebarCollapsed,
 }) => {
-  const {login, currentUser} = useUserSessionContext();
+  const [currentUser, setCurrentUser] = useState<UserSessionState>({isAuthenticated: false, userName: undefined, userId: undefined});
+  const {login} = useUserSession({
+    onLoggedIn: (sessionInfo) => {
+      console.log(`User logged in: ${sessionInfo.userId}`);
+      setCurrentUser({
+        isAuthenticated: true,
+        userName: sessionInfo.userName,
+        userId: sessionInfo.userId,
+      });
+    },
+    onLoggedOut: (sessionInfo) => {
+      console.log(`User logged out: ${sessionInfo.userId}`);
+      setCurrentUser({
+        isAuthenticated: false,
+        userName: undefined,
+        userId: undefined,
+      });
+    },
+  });
 
   const [searchValue, setSearchValue] = useState<string>('');
   const [profileMenuAnchorEl, setProfileMenuAnchorEl] = useState<HTMLElement | null>(null);

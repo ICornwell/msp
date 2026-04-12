@@ -1,9 +1,8 @@
 import { BSDDTOf, CNTX, ContextOf, LDDTOf, RDDTOf, ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp, RSDDTOf, TDDTOf } from './ReUiPlan.js'
-import type { FluxorProps } from '../fluxor/fluxorProps.js'
 import { defaultDisplayMap } from '../fluxor/defaultDisplayMap.js'
 import { ReComponentBinder, ReComponentReBinder } from '../components/ReComponentProps.js'
 import { ComponentWrapper } from '../components/ReComponentWrapper.js'
-import { FluxorData } from '../fluxor/fluxorData.js'
+import type { FluxorData, FluxorProps } from 'msp_common'
 import { ComponentBuilderWithExt } from './ReUiPlanBuilder.extensions.generated.js';
 
 

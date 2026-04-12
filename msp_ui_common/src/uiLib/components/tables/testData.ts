@@ -1,5 +1,4 @@
-import { FluxorData } from "../../renderEngine/fluxor/fluxorData.js";
-import { FluxorProps } from "../../renderEngine/fluxor/fluxorProps.js";
+import { FluxorData,FluxorProps } from "msp_common";
 
 export type Vehicle = {
   registration: string;

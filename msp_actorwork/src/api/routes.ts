@@ -1,6 +1,6 @@
 import { default as express } from "express";
 import { serviceManager } from "msp_svr_common";
-import { GetUserProfileDataActivity } from "../services/getUserProfileData.js";
+import { getServiceActivities } from "../services/actorWorkActivities.js";
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ type ServiceRequestEnvelope = {
 
 // Create service manager and register activities
 const services = serviceManager();
-services.use(GetUserProfileDataActivity);
+services.use(getServiceActivities());
 
 router.get("/health", (_req, res) => {
   res.status(200).json({

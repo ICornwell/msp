@@ -1,7 +1,7 @@
 import { createContext, useContext, useCallback, type ReactNode } from 'react';
 import { useUiEventPublisher } from './UiEventContext.js';
 import { useDataCacheContext } from './DataCacheContext.js';
-import type { ServiceRequestEnvelope, ServiceRequestResult } from 'msp_svr_common';
+import type { ServiceRequestEnvelope, ServiceRequestResult } from 'msp_common';
 import type { ViewDataContent } from "msp_common";
 export const ActivityEvents = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
@@ -76,6 +76,7 @@ export function ActivityDispatchProvider({
         clearTimeout(timeoutHandle);
 
         if (!response.ok) {
+          console.error('Activity call failed:', response.status, response.statusText);
           throw new Error(`Activity call failed: ${response.status} ${response.statusText}`);
         }
 
@@ -101,6 +102,7 @@ export function ActivityDispatchProvider({
             timestamp: Date.now(),
           });
         } else {
+          console.error('Activity execution failed:', result.message, result.error);
           raiseUiEvent({
             messageType: ActivityEvents.ACTIVITY_FAILED,
             payload: {
@@ -115,6 +117,7 @@ export function ActivityDispatchProvider({
           });
         }
       } catch (err: any) {
+        console.error('Activity call error:', err);
         clearTimeout(timeoutHandle);
         raiseUiEvent({
           messageType: ActivityEvents.ACTIVITY_FAILED,

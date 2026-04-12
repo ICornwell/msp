@@ -1,4 +1,4 @@
-import { FluxorData } from '../../../renderEngine/fluxor/fluxorData.js';
+import { FluxorData } from 'msp_common';
 import { AggregationType } from '../table.js';
 
 // ============================================

@@ -14,6 +14,8 @@ export {
   PresetMoneyComponent
 } from './presetComponets.js';
 
+export { Table  } from './coreComponents.js';
+
 // Data cache hook
 export { useDataCache } from './hooks/useDataCache.js';
 export type { DataCacheOperations } from './hooks/useDataCache.js';

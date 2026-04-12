@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { CNTX, LDDTOf, RDDTOf, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanElementSetMember } from "../UiPlan/ReUiPlan.js";
 import { DataOf } from "../UiPlan/ReUiPlanBuilder.js";
-import { FluxorData } from "../fluxor/fluxorData.js";
+import { FluxorData } from "msp_common";
 import type { Notes } from "../data/uiDataProxy.js";
 
 export type ReComponentCommonProps = {

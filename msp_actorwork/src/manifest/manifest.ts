@@ -21,8 +21,25 @@ export function createActorworkManifest(config?: any) {
           version: '*'
         }])
         .endUiFeature
+      .addUiFeature('UserWorkListFeature')
+        .withRemoteName('actorwork_remoteEntry.js')
+        .withAllowedContexts(['*'])
+        .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
+        .endUiFeature
       .addActivityFeature('getUserProfileData', '1.0.0', 'default')
         .withAllowedContexts(['*'])
+        .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
+        .endActivityFeature
+      .addActivityFeature('getUserWorkListData', '1.0.0', 'default')
+        .withAllowedContexts(['AUTH'])
         .forProducts([{
           domain: '*',
           name: '*',

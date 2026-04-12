@@ -4,6 +4,7 @@ import { useUiEventContext } from './UiEventContext.js';
 //import { DataIdentifier } from './Data.js';
 import type { ViewDataContent, ViewDataQueryIdentifier } from 'msp_common';
 import { v4 as uuid } from 'uuid';
+
 /**
  * UIEvent messageTypes raised by the DataCache subsystem.
  * Use these in .whenEventRaised(...) to match data events in Behaviours.
@@ -117,6 +118,9 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   // Publish to the private DataCache bus AND the UIEvent bus.
   // Behaviours see the UIEvent; render-engine containers subscribe to the private bus.
   function fireDataEvent(event: DataEvent) {
+    // timeout to enusre event is in the next, rather than cuurent react cycle
+    // so fast repsosnes from the cache don't miss the requester's listener subscriptions
+    setTimeout(() => {
     const msg = { messageType: event.type, payload: event, ...event } as any;
     eventPubSubRef.current.publish(msg);
 
@@ -131,7 +135,8 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
       correlationId: event.correlationId || uuid(),
       timestamp: Date.now(),
     });
-  }
+  }, 0);
+}
 
   // Subscribe to requests and handle them
   const requestSubIdRef = useRef<string | undefined>(undefined);

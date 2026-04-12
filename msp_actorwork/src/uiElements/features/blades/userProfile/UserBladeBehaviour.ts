@@ -1,17 +1,17 @@
-import { useMemo } from 'react';
 import { createBehaviour } from 'msp_ui_common/uiLib';
 import { eventTypes } from 'msp_ui_common/uiLib';
 import { UserInfoLayout } from './UserBladeContent.js';
+import { SessionInfo } from 'msp_ui_common/uiLib/contexts';
 
 export const useUserProfileBehaviour = () => {
-  const config = useMemo(() => createBehaviour()
-    .whenEventRaised(eventTypes.UserSession.USER_LOGGED_IN)
+  const config = createBehaviour()
+    .whenStarted()
       .dispatch.toActivity
         .callAsync({
           id: 'getUserProfile',
           label: 'Get User Profile',
           action: 'actorwork/getUserProfileData/1.0.0',
-          payloadFromEvent: (event: any) => ({ userId: event.payload?.userId }),
+          payloadFromSession: (sessionInfo: SessionInfo) => ({ userId: sessionInfo?.userId }),
         })
         .end()
     // Add menu entry once data has arrived
@@ -41,8 +41,7 @@ export const useUserProfileBehaviour = () => {
           (event: any) => event.payload?.context?.viewDataIdentifier
         )
         .end()
-    .build()
-  , []);
+    .build();
 
   return { config };
 };

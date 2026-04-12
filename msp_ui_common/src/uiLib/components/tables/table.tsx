@@ -28,8 +28,8 @@ export type TableProps<TData extends FluxorData<any> = FluxorData<any>> = {
 };
 
 // Import FluxorData type
-import { FluxorData } from '../../renderEngine/fluxor/fluxorData.js';
-import { FluxorProps } from '../../renderEngine/fluxor/fluxorProps.js';
+import { FluxorData } from 'msp_common';
+import { FluxorProps } from 'msp_common';
 
 
 import { FluentSimple, FluentSubBuilder, FluentExtension } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';

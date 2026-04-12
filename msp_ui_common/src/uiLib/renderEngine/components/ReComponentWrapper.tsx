@@ -125,7 +125,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
   if (!children || Array.isArray(children) && children.length === 0) children = undefined
 
   if (typeof (instantiatorProps?.instantiator) != 'function') {
-    console.log(`Component ${shadowsProps?.componentName} as no valid instantiator`)
+    console.log(`Component ${shadowsProps?.componentName} has no valid instantiator`)
     console.log(instantiatorProps)
     console.log(wrapperProps)
     return null

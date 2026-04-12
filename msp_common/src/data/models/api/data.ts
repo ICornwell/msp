@@ -152,6 +152,14 @@ export type PropertiesOf<T extends Schema<any, any>> =
 export type DataOfSchema<T extends Schema<any, any>> =
   (T extends Schema<infer D, any> ? D : never);
 
+type KeyConcat<Prefix extends string | undefined, Key extends string> = Prefix extends string ? `${Prefix}_${Key}` : Key;
+
+export type PrefixedDataOfSchema<Domain extends string | undefined, Prefix extends string | undefined,T extends Schema<any, any>> =
+  (T extends Schema<infer D, any> ? (
+    { [key in keyof D as KeyConcat<Domain, KeyConcat<Prefix, Extract<key, string>>>]: D[key] }
+  ) : never);
+
+
 
 
 

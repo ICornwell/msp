@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { behaviourConfig } from './behaviourConfig.js';
 import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext.js';
 import { useUiEventContext } from '../contexts/UiEventContext.js';
-import { useDataCache } from '../hooks/useDataCache.js';
+// import { useDataCache } from '../hooks/useDataCache.js';
 import { useBehaviourHandlerRegistry } from './BehaviourHandlerRegistryContext.js';
+
+console.log('Loading Behaviour module');
 
 export type BehaviourArg<T> = T | ((event: any, data: any) => T);
 
@@ -18,11 +20,14 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
   const { subscribe, unsubscribe } = useUiEventContext();
   const registry = useBehaviourHandlerRegistry();
 
-  const [data, setData ] = useState(initialData);
+  const data = initialData; // for now we will treat data as static - we can come back to this and decide if we want to support dynamic data in behaviours, and if so how we want to handle it.
+  // TODO: come back to this and decide if we want to support dynamic data in behaviours, and if so how we want to handle it.
+  // const data = useRef(initialData);
 
-  useDataCache((dataEvent) => {
-    setData(dataEvent.payload)
-  })
+  // useDataCache((dataEvent) => {
+  //   data.current = dataEvent;
+  //   // setData(dataEvent.payload)
+  // })
 
   useEffect(() => {
     config.localCustomComponents.forEach(component => {
@@ -61,40 +66,29 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
         // If the Behaviour is not based on a dataCache update, but an event
         // use payloadFromEvent to pull event data
          
-          for (const action of element.actions || []) {
-              
-            if (action.kind === 'localEffect') {
-              action.effect(event, data);
-              continue;
-            }
-            Object.entries(action.eventData).forEach(([key, value]) => {
-              // FromEvent functions are handled seperately to update specific values
-              // keys ending with Func or Function are to be left as-is
-              // so functions can be passed as params without being resolved here
-              // all other values are resoled here
-              if (typeof value === 'function'
-                 && !key.endsWith('FromEvent')
-                 && !key.endsWith('Func')
-                 && !key.endsWith('Function')
-                ) {
-                action.eventData[key] = value(event, data);
-              }
-            })
-            const handler = registry.get(action.eventType);
-            handler?.(action, event, data);
-          }
+          runElementActions(element, event);
         },
       });
 
       subscriptions.push(subscriptionId);
 
+      // TODO: flat registration of inners will trigger them
+      // only on their own filters - but they shouls only trigger if parent filters are also met. 
       for (const inner of element.innerElements || []) {
         registerElement(inner);
       }
     };
 
     for (const element of config.elements) {
-      registerElement(element);
+      if (element.eventType != 'Always') {
+        registerElement(element);
+      } 
+    }
+    console.log('Registered behaviour with subscriptions, running the whenStarted actions');
+    for (const element of config.elements) {
+       if (element.eventType === 'Always') {
+        runElementActions(element, {});
+      } 
     }
 
     return () => {
@@ -105,4 +99,29 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
 
 
   return null
+
+  function runElementActions(element: any, event: any) {
+    for (const action of element.actions || []) {
+
+      if (action.kind === 'localEffect') {
+        action.effect(event, data);
+        continue;
+      }
+      Object.entries(action.eventData).forEach(([key, value]) => {
+        // FromEvent functions are handled seperately to update specific values
+        // keys ending with Func or Function are to be left as-is
+        // so functions can be passed as params without being resolved here
+        // all other values are resoled here
+        if (typeof value === 'function'
+          && !key.endsWith('FromEvent')
+          && !key.endsWith('Func')
+          && !key.endsWith('Function')) {
+          action.eventData[key] = value(event, data);
+        }
+      });
+      console.log('Dispatching action for event', element.eventType, 'with data', action.eventData);
+      const handler = registry.get(action.eventType);
+      handler?.(action, event, data);
+    }
+  }
 }

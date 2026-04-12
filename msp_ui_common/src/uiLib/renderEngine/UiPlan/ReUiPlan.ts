@@ -1,6 +1,5 @@
 import { ReComponentBinder } from "../components/ReComponentProps.js"
-import { FluxorData } from "../fluxor/fluxorData.js";
-import { DataOf, FluxorProps } from "../fluxor/fluxorProps.js"
+import { FluxorData, DataOf, FluxorProps } from "msp_common";
 
 // ============================================================================
 // Context Type - bundles all the type parameters for threading through builders

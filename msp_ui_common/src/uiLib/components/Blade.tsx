@@ -6,9 +6,8 @@ import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import CloseIcon from '@mui/icons-material/Close';
 import { usePresentationBladeState, usePresentationDispatch } from '../contexts/PresentationDispatchContext.js';
-import { useDataCache } from '../hooks/useDataCache.js';
-import { DataCacheMsg } from '../contexts/DataCacheContext.js';
-import { isViewDataContent_Matching_ViewDataIndentifier } from 'msp_common';
+
+import { useDataLoading } from '../hooks/useDataLoading.js';
 import { ReEngine } from '../renderEngine/components/ReEngine.js';
 
 
@@ -22,36 +21,31 @@ export const Blade: React.FC<BladeProps> = ({
 
 }) => {
 
-  const { loadData } = useDataCache();
-  const bladeState  = usePresentationBladeState();
-  const { dispatch } = usePresentationDispatch();
-  const [loadedData, setLoadedData] = React.useState<any>(null);
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [isOpen, setIsOpen] = React.useState<boolean>(false);
 
-  if (!isLoading && !loadedData && bladeState.viewDataIdentifier && bladeState.open) {
-    setIsLoading(true);
-    setIsOpen(true);
-    // Request the data view to be loaded - this will trigger a DataViewLoaded event that we subscribe to below
-    loadData(bladeState.viewDataIdentifier);
+  const bladeState = usePresentationBladeState();
+  const { dispatch } = usePresentationDispatch();
+
+  const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const [title, setTitle] = React.useState<string>(simpleTitle(bladeState?.title, 'Details'));
+
+  let { isLoading, loadedData, clearState } = useDataLoading(bladeState?.viewDataIdentifier, setBladeTitle);
+
+  function setBladeTitle(data: any) {
+    setIsOpen(bladeState.open)
+    setTitle(simpleTitle(bladeState?.title, 'Details', data));
+    loadedData = data;
+  }
+
+  function simpleTitle(title?: string | ((context: any) => string), defaultTitle: string = 'Details', data: any = null) {
+    if (typeof title === 'string') return title
+    if (typeof title === 'function') return title(data);
+    return defaultTitle;
   }
 
   if (!bladeState.open && isOpen) {
     setIsOpen(false);
-    setLoadedData(null);
-    setIsLoading(false);
-  } 
-
-  useDataCache((datamsg: DataCacheMsg) => {
-    if (datamsg.type === 'DataViewLoaded') {
-      console.log('DataViewLoaded event received in Blade:', datamsg);
-      setLoadedData(datamsg.viewDataContent);
-      setIsLoading(false);
-    }
-    
-  }, (dataMsg: DataCacheMsg) => dataMsg.type === 'DataViewLoaded'
-   && isViewDataContent_Matching_ViewDataIndentifier(dataMsg.viewDataContent, bladeState.viewDataIdentifier),
-  [bladeState.viewDataIdentifier]); // Re-subscribe if the blade's viewDataIdentifier changes
+    clearState
+  }
 
   useEffect(() => {
     // For demonstration, we can log the blade state whenever it changes
@@ -73,8 +67,7 @@ export const Blade: React.FC<BladeProps> = ({
 
   function handleClose() {
     setIsOpen(false);
-    setLoadedData(null);
-    setIsLoading(false);
+    clearState();
     dispatch({ requestType: 'closeBlade', target: 'UserProfileBlade' });
   }
 
@@ -92,20 +85,20 @@ export const Blade: React.FC<BladeProps> = ({
         },
       }}
     >
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         p: 2
       }}>
         <Typography variant="h6">
-          {bladeState.title || 'Details'}
+          {title}
         </Typography>
         <IconButton onClick={() => handleClose()} edge="end">
           <CloseIcon />
         </IconButton>
       </Box>
-      
+
       <Divider />
       {bladeContent}
     </Drawer>

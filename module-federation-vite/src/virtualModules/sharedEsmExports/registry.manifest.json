@@ -351,6 +351,7 @@
         "PresetTextComponent",
         "Re",
         "ServiceDispatcher",
+        "Table",
         "UiEventProvider",
         "createBehaviour",
         "eventTypes",
@@ -477,7 +478,9 @@
         "useEventContext",
         "useMenuDispatch",
         "usePresentationBladeState",
+        "usePresentationCurrentTab",
         "usePresentationDispatch",
+        "usePresentationTabSet",
         "useUiEventContext",
         "useUiEventPublisher",
         "useUserSessionContext"

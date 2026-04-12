@@ -11,6 +11,7 @@ import {
   DataDispatchBuilder,
   LocalEffectBuilder,
   ActivityCallDefinition,
+  AlwaysBuilder,
 } from './fluentBehaviour.js';
 import { BehaviourArg } from "./Behaviour.js";
 
@@ -42,6 +43,21 @@ function makeFluentBehaviour<DT>(
       return makeFluentBehaviour<D>(config, buildConfig);
     },
 
+    whenStarted: () => {
+      const element: behaviourElement<DT, any> = {
+        eventType: 'Always',
+        eventCondition: () => true,
+        dataCondition: () => true,
+        actions: [],
+        innerElements: []
+      };
+      config.elements.push(element);
+      return makeAlwaysBuilder<DT, any, FluentBehaviour<DT>>(
+        element,
+        makeFluentBehaviour<DT>(config, buildConfig)
+      );
+    },
+
     whenEventRaised: <E extends string>(eventName: E) => {
       const element: behaviourElement<DT, E> = {
         eventType: eventName,
@@ -61,6 +77,27 @@ function makeFluentBehaviour<DT>(
   };
 }
 
+function makeAlwaysBuilder<DT, E, RT>(
+  element: behaviourElement<DT, E>,
+  returnBuilder: RT
+): AlwaysBuilder<DT, E, RT> {
+  return {
+   
+    dispatch: {
+      toActivity:     makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder),
+      toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder),
+      toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder),
+      toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder),
+    },
+
+    localEffect: (effect: (event: E, data: any) => void): LocalEffectBuilder<DT, E, RT> => {
+      const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
+      element.actions.push(action);
+      return { end: () => returnBuilder };
+    },
+  };
+}
+
 function makeEventHandlerBuilder<DT, E, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
@@ -76,18 +113,7 @@ function makeEventHandlerBuilder<DT, E, RT>(
       return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
     },
 
-    dispatch: {
-      toActivity:     makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder),
-      toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder),
-      toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder),
-      toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder),
-    },
-
-    localEffect: (effect: (event: E, data: any) => void): LocalEffectBuilder<DT, E, RT> => {
-      const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
-      element.actions.push(action);
-      return { end: () => returnBuilder };
-    },
+    ...makeAlwaysBuilder(element, returnBuilder)
   };
 }
 

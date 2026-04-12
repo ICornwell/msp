@@ -10,7 +10,7 @@
  */
 
 import { Re } from '../../renderEngine/index.js'
-import { FluxorData } from '../../renderEngine/fluxor/fluxorData.js'
+import { FluxorData } from 'msp_common'
 import { TableComponent } from './table.js'
 import { LabelFrameComponent } from '../containers/labelframe.js'
 

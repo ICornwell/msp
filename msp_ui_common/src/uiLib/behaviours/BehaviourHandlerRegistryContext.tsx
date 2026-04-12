@@ -1,9 +1,12 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { useActivityDispatch } from '../contexts/ActivityDispatchContext.js';
 import { useMenuDispatch } from '../contexts/MenuDispatchContext.js';
 import { usePresentationDispatch } from '../contexts/PresentationDispatchContext.js';
 import { useDataDispatch } from '../contexts/DataCacheContext.js';
 import type { RequestAction } from './behaviourConfig.js';
+import { useUserSession } from '../hooks/index.js';
+import { SessionInfo } from '../contexts/UserSessionContext.js';
+import { ViewDataIdentifier } from 'msp_common';
 
 /**
  * An ActionHandler receives a RequestAction (from the behaviour config) plus the
@@ -36,10 +39,25 @@ const BehaviourHandlerRegistryContext = createContext<BehaviourHandlerRegistry>(
 type BehaviourDispatchProviderProps = { children: ReactNode };
 
 export function BehaviourDispatchProvider({ children }: BehaviourDispatchProviderProps) {
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
+  useUserSession({
+    onLoggedIn: (sessionInfo: SessionInfo) => { setSessionInfo(sessionInfo); },
+    onLoggedOut: () => { setSessionInfo(null); },
+  });
   const { callActivity } = useActivityDispatch();
   const { dispatch: dispatchMenu } = useMenuDispatch();
   const { dispatch: dispatchPresentation } = usePresentationDispatch();
   const { invalidate, save } = useDataDispatch();
+
+  function objectFromMaybeFunction(maybeFn: any, data: any): Object {
+    try {
+      if (typeof maybeFn === 'function') return maybeFn(data) || {};
+      return {}
+    } catch {
+      return {};
+    }
+
+  }
 
   const registry = useMemo<BehaviourHandlerRegistry>(
     () =>
@@ -51,16 +69,21 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             const actionPath = activity?.action || '';
             const [namespace, activityName, version] = String(actionPath).split('/');
             if (!namespace || !activityName || !version) return;
+       
+            const payload = {
+              ...activity.payload,
+              ...objectFromMaybeFunction(activity.payloadFromnEvent, event),
+              ...objectFromMaybeFunction(activity.payloadFromData, data),
+              ...objectFromMaybeFunction(activity.payloadFromSession, sessionInfo),
+            }
 
-            const payload =
-              typeof activity?.payloadFromEvent === 'function'
-                ? activity.payloadFromEvent(event)
-                : (activity?.payload ?? event?.payload ?? data);
 
-            const context =
-              typeof activity?.contextFromEvent === 'function'
-                ? activity.contextFromEvent(event)
-                : activity?.context;
+            const context = {
+              ...activity.context,
+              ...objectFromMaybeFunction(activity.contextFromEvent, event),
+              ...objectFromMaybeFunction(activity.contextFromData, data),
+              ...objectFromMaybeFunction(activity.contextFromSession, sessionInfo),
+            }
 
             callActivity({ namespace, activityName, version, payload, context });
           },
@@ -97,9 +120,10 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
               typeof action.eventData?.paramsFromEvent === 'function'
                 ? action.eventData.paramsFromEvent(event)
                 : action.eventData?.params;
-            
+
             params.content = action.eventData?.content;
-            params.viewDataIdentifier = action.eventData?.viewDataIdentifier;
+            params.viewDataIdentifier = action.eventData?.viewDataIdentifier
+             || event?.payload?.viewDataContent as ViewDataIdentifier;
 
             dispatchPresentation({ requestType, target, params });
           },

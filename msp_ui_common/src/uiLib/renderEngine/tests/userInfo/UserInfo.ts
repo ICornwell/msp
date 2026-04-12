@@ -1,4 +1,4 @@
-import { FluxorData } from "../../fluxor/fluxorData.js"
+import { FluxorData } from "msp_common"
 
 export type UserInfo = {
   userId: string

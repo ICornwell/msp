@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef, memo } from 'react';
 import { loadRemote, registerRemotes } from '@module-federation/runtime';
 import { Remote } from "@module-federation/runtime/types";
-
 import type { UiFeatureManifestSection } from "msp_svr_common";
 import { getAvailableFeatures } from "msp_ui_common/uiLib/comms";
 import { useUserSession } from "msp_ui_common/uiLib/hooks";
-import { useUiEventContext } from "msp_ui_common/uiLib/contexts";
 import { UiRemoteRegistration } from 'msp_common';
+import { Behaviour, behaviourConfig } from 'msp_ui_common';
 
 type DiscoveryUiFeature = UiFeatureManifestSection & {
   serverUrl?: string;
@@ -25,21 +24,19 @@ const context = {
 export function AppUiFeatures() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const componentRef = useRef<React.FC<any>[]>([]);
+  const behaviourConfigRef = useRef<behaviourConfig[]>([]);
 
-  const userChangeHAndler = useUserSession()
-
-  userChangeHAndler.onLoggedIn = (userId: string) => {
-    console.log(`User logged in: ${userId}`);
-    setCurrentUser(userId);
-    
+  const onLoggedIn = (sessionInfo) => {
+    console.log(`User logged in: ${sessionInfo.userId}`);
+    setCurrentUser(sessionInfo.userId);
   }
 
-  userChangeHAndler.onLoggedOut = (userId: string) => {
-    console.log(`User logged out: ${userId}`);
+  const onLoggedOut = (sessionInfo) => {
+    console.log(`User logged out: ${sessionInfo.userId}`);
     setCurrentUser(null);
-  
   }
+
+   useUserSession({ onLoggedIn, onLoggedOut });
 
   useEffect(() => {
     let cancelled = false;
@@ -66,12 +63,12 @@ export function AppUiFeatures() {
           }));
         }
 
-        const loadedComponents: React.FC<any>[] = [];
+        const loadedConfigs: behaviourConfig[] = [];
         for (const remote of remotes) {
           try {
             const module: any = await loadRemote(`${remote.remoteName}/${remote.moduleName}`);
             if (module?.default) {
-              loadedComponents.push(module.default as React.FC<any>);
+              loadedConfigs.push((module.default as () => behaviourConfig)());
             }
           } catch (error) {
             console.error(`Error loading remote module ${remote.moduleName} @ ${remote.remoteEntry}:`, error);
@@ -79,7 +76,7 @@ export function AppUiFeatures() {
         }
 
         if (!cancelled) {
-          componentRef.current = loadedComponents;
+          behaviourConfigRef.current = loadedConfigs;
           setLoaded(true);
         }
       } catch (error) {
@@ -97,11 +94,11 @@ export function AppUiFeatures() {
     };
   }, [currentUser]);
   return (<>
-    {loaded && componentRef.current.map((Component, index) => {
-      const MemoComponent = memo(Component);
+    {loaded && behaviourConfigRef.current.map((behaviourConfig, index) => {
       return (
-        <MemoComponent key={index} />
+        <Behaviour config={behaviourConfig} key={`fc_${index}_${currentUser}`} />
       );
+     
     }
     )}
   </>)

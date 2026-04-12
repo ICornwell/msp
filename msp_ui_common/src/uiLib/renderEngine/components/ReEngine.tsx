@@ -4,7 +4,7 @@ import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementShareable
 import { ReProvider } from '../contexts/ReEngineContext.js';
 import ReComponentWrapper from './ReComponentWrapper.js';
 
-import { FluxorProps } from '../fluxor/fluxorProps.js';
+import { FluxorProps } from 'msp_common';
 import { getSourceDataProxy, Notes } from '../data/uiDataProxy.js';
 import PubSub, { RePubSubMsg } from '../data/ReEnginePubSub.js'
 import { resolvePath } from '../data/pathResolver.js';

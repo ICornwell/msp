@@ -24,6 +24,8 @@ export type {
   ViewDataContent,
 } from './types/index.js';
 
+export * from './comms/serviceRequest.js';
+
 export {isViewDataContent_Matching_ViewDataIndentifier} from './types/index.js';
 
 export type {UiRemoteRegistration} from './comms/ui/UiRemoteRegistration.js'
@@ -32,6 +34,7 @@ export * from './configuredCommon.js'
 
 
 export * from './data/fluent/index.js';
+export * from './data/models/fluxor/fluxorData.js'
 
 // Re-export UI message types
 export * from './messages/index.js';

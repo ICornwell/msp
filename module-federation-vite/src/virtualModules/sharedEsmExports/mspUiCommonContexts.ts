@@ -50,7 +50,9 @@ export function mspUiCommonContextsExportCode(): string {
     export const useEventContext = pick('useEventContext');
     export const useMenuDispatch = pick('useMenuDispatch');
     export const usePresentationBladeState = pick('usePresentationBladeState');
+    export const usePresentationCurrentTab = pick('usePresentationCurrentTab');
     export const usePresentationDispatch = pick('usePresentationDispatch');
+    export const usePresentationTabSet = pick('usePresentationTabSet');
     export const useUiEventContext = pick('useUiEventContext');
     export const useUiEventPublisher = pick('useUiEventPublisher');
     export const useUserSessionContext = pick('useUserSessionContext');

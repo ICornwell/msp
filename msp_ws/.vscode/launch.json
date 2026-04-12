@@ -33,13 +33,6 @@
             "cwd": "${workspaceFolder}/.."
         },
         {
-            "command": "yarn fes:start",
-            "name": "Front End",
-            "request": "launch",
-            "type": "node-terminal",
-            "cwd": "${workspaceFolder}/.."
-        },
-        {
             "name": "Launch Chrome",
             "request": "launch",
             "type": "chrome",
@@ -93,6 +86,13 @@
             "outFiles": [
                 "${workspaceFolder}/../msp_actorwork/distApi/**/*.js"
             ]
+        },
+        {
+            "command": "yarn fes:start",
+            "name": "RunFront End",
+            "request": "launch",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/.."
         }
     ]
 }

@@ -1,4 +1,4 @@
-import { useState, useContext, createContext } from 'react';
+import { useRef, useContext, createContext } from 'react';
 import { AuthenticationResult, PublicClientApplication, AccountInfo } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
@@ -43,6 +43,15 @@ export interface UserSessionState {
   sessionId?: string;
 }
 
+export type SessionInfo = {
+  userName?: string;
+  userId?: string;
+  // TODO: other session related info we want to make available for behaviours to consume when making decisions or calling activities
+  // no tokens here - we want to keep tokens out of the hands of behaviours for security reasons.
+  //  We can provide relevant claims from the token in the userClaims field if needed
+  //  but as the browser is untrusted, all 'real' authorisation must be determined server-side
+}
+
 const initialState: UserSessionState = {
   isAuthenticated: false,
   userName: undefined,
@@ -53,13 +62,26 @@ const initialState: UserSessionState = {
   sessionId: undefined,
 };
 
+export type UserChangeHandler = {
+  onLoggedIn: (sessionInfo: SessionInfo) => void;
+  onLoggedOut: (sessionInfo: SessionInfo) => void;
+}
+
+
+const userChangeHandlers: Record<string, UserChangeHandler> = {}
+
 // Create context
 export const UserSessionContext = createContext<{
-  currentUser: UserSessionState;
+  //currentUser: UserSessionState;
+  addHandler: (id: string, handler: UserChangeHandler) => void;
+  removeHandler: (id: string) => void;
+  getSessionInfo: () => SessionInfo;
   login: () => void
   loggedOut: () => void
 }>({
-  currentUser: initialState,
+  addHandler: (_id: string, _handler: UserChangeHandler) =>{},
+  removeHandler: (_id: string) => {},
+  getSessionInfo: () => ({ userName: undefined, userId: undefined }),
   login: () => { },
   loggedOut: () => { }
 });
@@ -67,10 +89,10 @@ export const UserSessionContext = createContext<{
 // UserSession provider component
 export const UserSessionProvider = ({ children }: { children: any }) => {
   const { raiseUiEvent } = useUiEventPublisher();
-  const [state, setState] = useState(initialState);
+  const state = useRef(initialState);
   const loggedIn = (accountInfo: AccountInfo) => {
-    if (state.isAuthenticated) {
-      raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state, timestamp: Date.now(), correlationId: v4()});
+    if (state.current.isAuthenticated) {
+      raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
     }
     const uss: UserSessionState = {
       isAuthenticated: true,
@@ -81,13 +103,16 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
       idToken: accountInfo.idToken,
       sessionId: v4()
     }
-    setState(uss);
+    state.current = uss;
     raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_IN, payload: uss,
       timestamp: Date.now(), correlationId: v4() });
+    callHandlers();
   };
   const loggedOut = () => {
-    raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state, timestamp: Date.now(), correlationId: v4()});
-    setState(initialState);
+    raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
+    
+    state.current = initialState;
+    callHandlers();
   };
 
   // Check if we're in a browser environment
@@ -100,14 +125,14 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
     })
   }
 
-  if (state.isAuthenticated && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  if (state.current.isAuthenticated && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     // Send user info to service worker
     const sw = (navigator as any).serviceWorker;
     if (sw && typeof sw.getRegistration === 'function') {
       sw.getRegistration().then((registration: any) => {
         // You can now use the registration object
-        registration?.active?.postMessage({ type: 'USER_INFO', userIdToken: state.idToken });
-        console.log('Service Worker sent token:', state.idToken);
+        registration?.active?.postMessage({ type: 'USER_INFO', userIdToken: state.current.idToken });
+        console.log('Service Worker sent token:', state.current.idToken);
       }).catch((error: any) => {
         console.error('Error fetching Service Worker registration:', error);
       });
@@ -136,30 +161,43 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
     }
   }
 
+  function addHandler(id: string, handler: UserChangeHandler) {
+    userChangeHandlers[id] = handler;
+  }
 
+  function removeHandler(id: string) {
+    delete userChangeHandlers[id];
+  }
 
   async function login() {
     msalInstance.handleRedirectPromise().then(handleResponse);
   }
-  //   try {
-  //     const response: AuthenticationResult = await msalInstance.loginPopup({
-  //       scopes: ['user.read'],
-  //       prompt: 'select_account'
-  //     });
 
-  //     if (response.account) {
-  //       loggedIn(response.account);
-  //     }
-  //   } catch (error) {
-  //     console.error('Login failed', error);
-  //   }
-  // };
+  function callHandlers() {
+    const sessionInfo = getSessionInfo();
+    Object.values(userChangeHandlers).forEach(h => {
+      if (state.current.isAuthenticated) {
+        h.onLoggedIn(sessionInfo);
+      } else {
+        h.onLoggedOut(sessionInfo);
+      }
+    });
+  }
+
+  const getSessionInfo = () => {
+    return {
+      userName: state.current.userName,
+      userId: state.current.userId,
+    }
+  }
 
 
   return (
     <UserSessionContext.Provider value={
       {
-        currentUser: state,
+        addHandler,
+        removeHandler,
+        getSessionInfo,
         login,
         loggedOut
       }}>

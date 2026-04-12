@@ -14,7 +14,7 @@ import {
   taskTestData, 
   Task,
 } from './testData/taskList.js';
-import { FluxorData } from '../../renderEngine/fluxor/fluxorData.js';
+import { FluxorData } from 'msp_common';
 import { taskFluxorData } from './TableDemoLayouts.js';
 
 // ============================================

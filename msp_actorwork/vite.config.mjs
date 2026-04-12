@@ -16,7 +16,7 @@ export default defineConfig({
     federation({
       filename: 'actorwork_remoteEntry.js',
       exposes: {
-        '/UserProfileFeature': './src/uiElements/features/blades/userProfile/UserProfileFeature.tsx',
+        './UserWorkListFeature': './src/uiElements/features/tabs/workList/UserWorkListFeature.tsx',
         './UserProfileFeature': './src/uiElements/features/blades/userProfile/UserProfileFeature.tsx',
       },
       name: 'actorwork',

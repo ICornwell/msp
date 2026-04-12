@@ -150,8 +150,17 @@ export function activitySet(): ActivitySet {
             const bestVersionActivities = bestVersionMatch(matchingActivities, version,
                  (x) => `${x.namespace}:${x.activityName}`, (x) => x.version,
                 x => (x.matchingVersionRange??'none'));
+            console.log(`Found ${matchingActivities.length} matching activities, running ${bestVersionActivities.length} out of ${activities.length} with best version match for version ${version}`);
+            
+            if (bestVersionActivities.length === 0) {
+                console.warn(`No matching activity found for ${namespace}:${activityName} v${version} from ${activities.length} registered activities`);
+                console.warn(`Available activities were: ${candidateActivies.map(a => `${a.namespace}:${a.activityName} v${a.version} (match range: ${a.matchingVersionRange})`).join(', ')}`);
+                return;
+            }
+            
             for (const activity of bestVersionActivities) {
                 for (const func of Array.isArray(activity.funcs) ? activity.funcs : [activity.funcs]) {
+                    console.log(`Running activity ${activity.namespace}:${activity.activityName} v${activity.version} for request version ${version}`);
                     await func(payload, resultBuilder);
                     if (resultBuilder.currentResult().updatedPayload) {
                         payload = resultBuilder.currentResult().updatedPayload;

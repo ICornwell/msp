@@ -1,5 +1,6 @@
 import { activitySet, ServiceActivityResultBuilder } from 'msp_svr_common'
 import type { ActivitySet, Manifest } from 'msp_svr_common'
+import { getAllClaims } from 'msp_svr_common'
 import { getFeatureAliasForProduct, getRegisteredFeatures, registerFeatures as registerUiFeatures } from '../services/uiFeatureRegistry.js'
 import { registerFeatures as registerActivityFeatures } from '../services/serviceActivityRegistry.js'
 import { UiRemoteRegistration } from 'msp_common'
@@ -22,10 +23,15 @@ discoveryActivitySet.use({
             version: '*',
             variantName: '*',
         };
+        const claims = await getAllClaims();
+        const userIdClaim = claims['idTokenClaims'];
 
         const allFeatures = getRegisteredFeatures();
         console.log(`Currently registered features: ${allFeatures.length}`);
-        const matchingFeatures = allFeatures.map(feature => getFeatureAliasForProduct(
+        const matchingFeatures = allFeatures
+            .filter(feature => feature.allowedContexts.includes('*')    
+            || (feature.allowedContexts.includes('AUTH') && userIdClaim))
+            .map(feature => getFeatureAliasForProduct(
                 feature.namespace || '*',
                 feature.name || '*',
                 product.domain || '*',

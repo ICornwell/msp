@@ -32,7 +32,6 @@
     "test": "vitest",
     "e2e": "playwright test"
   },
-
   "keywords": [
     "vite",
     "module federation",

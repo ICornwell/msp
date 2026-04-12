@@ -1,6 +1,6 @@
 import { createView } from '../../fluent/viewBuilder.js';
 import { createSchema } from '../../fluent/schemaBuilder.js';
-import { relationsBuilder } from '../../fluent/objectRelationsBuilder.js';
+import { createRelations } from '../../fluent/objectRelationsBuilder.js';
 import { domainObject } from '../../fluent/objectBuilder.js';
 
 // Define schemas for each entity
@@ -124,7 +124,7 @@ export const productSchema = createSchema('product')
           .withIsEntity(true)
           .buildDomainObject();
     
-    const relObjs = relationsBuilder()
+    const relObjs = createRelations()
         .allowRelationFrom('hasOrder', accountObject, orderObject, true)
         .allowRelationFrom('belongsTo', accountObject, personObject, true)
         .allowRelationFrom('hasItem', orderObject, itemObject, true)

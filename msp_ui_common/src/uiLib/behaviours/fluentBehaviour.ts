@@ -3,6 +3,7 @@ import { MenuItem } from "../contexts/uiEventTypes.js";
 import { ComponentWrapper } from "../renderEngine/components/ReComponentWrapper.js";
 import { behaviourConfig } from "./behaviourConfig.js";
 import { BehaviourArg } from "./Behaviour.js";
+import { SessionInfo } from "../contexts/index.js";
 
 // ── Activity (service call) subsystem ────────────────────────────────────────
 
@@ -13,6 +14,7 @@ export type ActivityCallDefinition<E = any> = {
   action: string;
   payload?: any;
   payloadFromEvent?: (event: E) => any;
+  payloadFromSession?: (sessionInfo: SessionInfo) => any;
   context?: string;
   contextFromEvent?: (event: E) => string | undefined;
 };
@@ -39,7 +41,7 @@ export interface MenuDispatchBuilder<DT, E, RT> {
 export interface PresentationDispatchBuilder<DT, E, RT> {
   openBlade:  (target: string, params?: any | ((event: E) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataQueryIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   closeBlade: (target: string, params?: any | ((event: E) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  openTab:    (target: string, params?: any | ((event: E) => any), content?: any, viewDataIdentifier?: ViewDataQueryIdentifier) => PresentationDispatchBuilder<DT, E, RT>;
+  openTab:    (target: string, params?: any | ((event: E) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataQueryIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   closeTab:   (target: string, params?: any | ((event: E) => any)) => PresentationDispatchBuilder<DT, E, RT>;
   navigate:   (target: string, params?: any | ((event: E) => any)) => PresentationDispatchBuilder<DT, E, RT>;
   end: () => RT;
@@ -74,14 +76,10 @@ export interface DispatchSurface<DT, E, RT> {
   toData:         DataDispatchBuilder<DT, E, RT>;
 }
 
-// ── EventHandlerBuilder ───────────────────────────────────────────────────────
 
-export interface EventHandlerBuilder<DT, E, RT> {
-  /** Guard: only proceed if the current data snapshot satisfies this predicate. */
-  whenDataSatisfies:  (condition: (data: DT) => boolean) => EventHandlerBuilder<DT, E, RT>;
-  /** Guard: only proceed if the triggering UIEvent satisfies this predicate. */
-  whenEventSatisfies: (condition: (event: E) => boolean) => EventHandlerBuilder<DT, E, RT>;
+// ── AlwaysBuilder (dispatch only) ───────────────────────────────────────
 
+export interface AlwaysBuilder<DT, E, RT> {
   /**
    * Dispatch a call-to-action to a subsystem.
    * Only Behaviours dispatch; the subsystem owns what happens next and
@@ -97,11 +95,22 @@ export interface EventHandlerBuilder<DT, E, RT> {
   localEffect: (effect: (event: E, data: any) => void) => LocalEffectBuilder<DT, E, RT>;
 }
 
+// ── EventHandlerBuilder (guards + dispatch)─────────────────────────────────
+
+export interface EventHandlerBuilder<DT, E, RT> extends AlwaysBuilder<DT, E, RT> {
+  /** Guard: only proceed if the current data snapshot satisfies this predicate. */
+  whenDataSatisfies:  (condition: (data: DT) => boolean) => EventHandlerBuilder<DT, E, RT>;
+  /** Guard: only proceed if the triggering UIEvent satisfies this predicate. */
+  whenEventSatisfies: (condition: (event: E) => boolean) => EventHandlerBuilder<DT, E, RT>;
+
+}
+
 // ── FluentBehaviour (root builder) ───────────────────────────────────────────
 
 export interface FluentBehaviour<DT> {
   registerLocalComponent: (component: ComponentWrapper<any>) => FluentBehaviour<DT>;
   withData: <D>(data: D) => FluentBehaviour<D>;
+  whenStarted: () => AlwaysBuilder<DT, any, FluentBehaviour<DT>>;
   /** Declare a response rule triggered when a UIEvent of this type is raised. */
   whenEventRaised: <E extends string>(eventName: E) => EventHandlerBuilder<DT, E, FluentBehaviour<DT>>;
   build: () => behaviourConfig;

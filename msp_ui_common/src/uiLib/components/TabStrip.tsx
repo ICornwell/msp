@@ -5,16 +5,16 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
-import { Tab } from '../contexts/uiEventTypes.js';
+import { Tab } from '../contexts/PresentationDispatchContext.js';
 
 interface TabStripProps {
-  tabs: Tab[];
-  activeTabId: string | null;
-  onTabChange: (tabId: string) => void;
+  tabs?: Tab[];
+  activeTabId?: string | null;
+  onTabChange?: (tabId: string) => void;
 }
 
 // Custom styled Tab component that includes close button for closable tabs
-const StyledTab = styled((props: any) => {
+const StyledTab = styled((props?: any) => {
   const { icon, label, closable, onClose, ...other } = props;
   return (
     <MuiTab
@@ -53,7 +53,8 @@ export const TabStrip: React.FC<TabStripProps> = ({
   const tabsRef = useRef<HTMLDivElement>(null);
 
   const handleTabChange = (_event: any, newValue: string) => {
-    onTabChange(newValue);
+    if(onTabChange)
+      onTabChange(newValue);
   };
 
   const handleCloseTab = (tabId: string) => {
@@ -72,7 +73,7 @@ export const TabStrip: React.FC<TabStripProps> = ({
     }
   }, [activeTabId]);
 
-  if (tabs.length === 0) {
+  if (!tabs ||tabs.length === 0) {
     return null;
   }
 
@@ -89,9 +90,9 @@ export const TabStrip: React.FC<TabStripProps> = ({
           <StyledTab
             key={tab.id}
             value={tab.id}
-            label={tab.label}
+            label={tab.title}
             icon={tab.icon}
-            closable={tab.closable}
+            closable={tab.isClosable}
             onClose={() => handleCloseTab(tab.id)}
             data-tab-id={tab.id}
           />

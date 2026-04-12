@@ -82,10 +82,8 @@ function createRelationsBuilder<RO>(currentObjects: RO) {
   };
 
   return builder;   
-
-
 }
 
-export function relationsBuilder() {
+export function createRelations() {
   return createRelationsBuilder({});
 }

@@ -5,7 +5,7 @@ import {
 } from './UiPlan/ReUiPlanBuilder.js';
 import type { CNTX } from './UiPlan/ReUiPlan.js';
 import { ComponentWrapper } from './components/ReComponentWrapper.js';
-import type { FluxorData } from './fluxor/fluxorData.js';
+import type { FluxorData } from 'msp_common';
 
 //import { ReComponentAttributeBinder, ReComponentRecordBinder } from './components/ReComponentProps';
 //import { Bind } from './data/binders.js'

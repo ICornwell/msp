@@ -81,7 +81,7 @@ export const GetUserProfileDataActivity = {
     activityName: 'getUserProfileData',
     version: '1.0.0',
     matchingVersionRange: '^1.0.0',
-    context: '*',
+    context: '*', //  Anyone can call this activity, no restrictions
     funcs: getUserProfileDataHandler,
 };
 //# sourceMappingURL=getUserProfileData.js.map

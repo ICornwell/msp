@@ -93,14 +93,11 @@ export const AppShell: React.FC = () => {
 
             <MainContainer>
               <TabStrip
-                tabs={tabs}
-                activeTabId={activeTabId}
-                onTabChange={handleTabChange}
+
               />
 
               <MainContent
-                tabs={tabs}
-                activeTabId={activeTabId}
+
               />
             </MainContainer>
 
