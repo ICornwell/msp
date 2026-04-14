@@ -10,7 +10,7 @@
                 "Run Service Hub",
                 "Run Data Hub",
                 "Run Actor-Work",
-                "Front End",
+                "Run Front End",
                 "Launch Chrome",
                 "Attach to Chrome",
             ],
@@ -89,7 +89,7 @@
         },
         {
             "command": "yarn fes:start",
-            "name": "RunFront End",
+            "name": "Run Front End",
             "request": "launch",
             "type": "node-terminal",
             "cwd": "${workspaceFolder}/.."

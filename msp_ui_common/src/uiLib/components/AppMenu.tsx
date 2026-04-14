@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes.js';
 import { useMenuDispatch } from '../contexts/MenuDispatchContext.js';
 import { useUiEventPublisher } from '../contexts/UiEventContext.js';
+import { NavigationEvents } from '../events/navigationEvents.js';
 
 interface MenuProps {
   nameTag?: string;
@@ -50,7 +51,7 @@ export const AppMenu: React.FC<MenuProps> = ({ anchorEl, open, onClose, menuTarg
 
   const handleItemClick = (item: AppMenuItem) => {
     raiseUiEvent({
-      messageType: 'MenuItemClick',
+      messageType: NavigationEvents.ITEM_CLICK,
       payload: {
         menuId: item.id,
         label: item.label,

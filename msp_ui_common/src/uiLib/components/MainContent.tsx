@@ -5,7 +5,7 @@ import { Tab } from '../contexts/PresentationDispatchContext.js';
 import { ReEngine } from '../renderEngine/components/ReEngine.js';
 
 import { usePresentationCurrentTab } from '../contexts/PresentationDispatchContext.js';
-
+import { UiEventProvider } from '../contexts/UiEventContext.js';
 import { useDataLoading } from '../hooks/useDataLoading.js';
 
 
@@ -18,8 +18,12 @@ export const MainContent: React.FC<MainContentProps> = ({
   tabs,
   activeTabId
 }) => {
-
+  const [currentTabId, setCurrentTabId] = React.useState<string|undefined>();
   const contextTab = usePresentationCurrentTab();
+  if (contextTab?.tab?.id !== currentTabId) {
+    // If the activeTabId prop changes and doesn't match the context tab, we should update the context to match it. This allows the MainContent to be controlled by either the context or the props, with the context taking precedence when available.
+    setCurrentTabId(contextTab?.tab?.id);
+  }
   // can support supplied as well as context tabs - if both supplied, context takes precedence
   const { tab: currentTab, setTabTitle } = contextTab 
   || {currentTab :(tabs ?  tabs.find(tab => tab.id === activeTabId): undefined ),setTabTitle: () => null};
@@ -40,10 +44,21 @@ export const MainContent: React.FC<MainContentProps> = ({
       }
   }
 
+  function msgEnricher(msg: any) {
+    // enrich the message with the viewDataIdentifier of the current tab, so that subscribers can filter on that if they want to only listen to events from a specific tab
+    if (msg?.payload?.viewDataIdentifier) {
+      const vdi = msg.payload.viewDataIdentifier;
+      if (typeof vdi === 'string' && currentTab?.content.viewDataIdentifier) {
+        msg.payload.viewDataIdentifier = { ...currentTab?.content.viewDataIdentifier, recordId: vdi };
+      }
+    }
+    return msg;
+  }
+
   return (
     <Box sx={{
       flex: 1,
-      p: 3,
+      p: 0,
       overflow: 'auto',
       backgroundColor: (theme) => {
         console.log(theme);
@@ -62,15 +77,13 @@ export const MainContent: React.FC<MainContentProps> = ({
       ) : (
         <Box sx={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-start',
           height: '100%'
         }}>
-          <ReEngine UiPlan={currentTab?.content.uiPlan} sourceData={loadedData.content} />
-          {/* <ReEngine UiPlan={TableDemoLayouts.VehicleFleet.layout()} sourceData={TableDemoLayouts.VehicleFleet.testData} /> */}
-          {/*  <ReEngine UiPlan={TableDemoLayouts.TaskList.layout()} sourceData={TableDemoLayouts.TaskList.testData} />
-          <ReEngine UiPlan={TableDemoLayouts.LayerPricing.layout()} sourceData={TableDemoLayouts.LayerPricing.testData} /> */}
-
+          <UiEventProvider uiEventEnricher={msgEnricher}>
+            <ReEngine UiPlan={currentTab?.content.uiPlan} sourceData={loadedData.content} />
+          </UiEventProvider>
 
         </Box>
       ))}

@@ -9,50 +9,54 @@ export type ReSubscriptionHandler = {
 
 export function useRePubSub() {
   const handlers = useRef<Set<ReSubscriptionHandler>>(new Set());
+  const subscriptionSets = useRef<Record<string, Set<string>>>({});
 
-function createSubscriptionHandler(subscriptionHandler: ReSubscriptionHandler): ReSubscriptionHandler {
+  function createSubscriptionHandler(subscriptionHandler: ReSubscriptionHandler, hid: string): ReSubscriptionHandler {
 
-const subscriptions = useRef<Set<string>>(new Set());
+    if (!subscriptionSets.current[hid]) {
+      subscriptionSets.current[hid] = new Set();
+    }
+    const subscriptions = subscriptionSets.current[hid];
 
-  function subscribeToPubSub(subscription: ReSubscription): string {
-    const id = subscriptionHandler.subscribeToPubSub(subscription);
-    subscriptions.current.add(id);
-    return id;
-  }
+    function subscribeToPubSub(subscription: ReSubscription): string {
+      const id = subscriptionHandler.subscribeToPubSub(subscription);
+      subscriptions.add(id);
+      return id;
+    }
 
-  function unsubscribeFromPubSub(subscriberId: string) {
-    subscriptionHandler.unsubscribeFromPubSub(subscriberId);
-    subscriptions.current.delete(subscriberId);
-  }
+    function unsubscribeFromPubSub(subscriberId: string) {
+      subscriptionHandler.unsubscribeFromPubSub(subscriberId);
+      subscriptions.delete(subscriberId);
+    }
 
-  function unsubscribeFromAllPubSub() {
-    
+    function unsubscribeFromAllPubSub() {
+
       subscriptionHandler.unsubscribeFromAllPubSub();
-    
-      subscriptions.current.forEach((subscriberId) => {
+
+      subscriptions.forEach((subscriberId) => {
         subscriptionHandler.unsubscribeFromPubSub(subscriberId);
       });
-    
-    subscriptions.current.clear();
+
+      subscriptions.clear();
+    }
+
+    const handler: ReSubscriptionHandler = {
+      subscribeToPubSub,
+      unsubscribeFromPubSub,
+      unsubscribeFromAllPubSub
+    };
+
+    handlers.current.add(handler);
+
+    return handler;
   }
 
-  const handler: ReSubscriptionHandler = {
-    subscribeToPubSub,
-    unsubscribeFromPubSub,
-    unsubscribeFromAllPubSub
-  };
+  function unsubscribeAllHandlers() {
 
-  handlers.current.add(handler);
+    handlers.current.forEach((handler) => {
+      handler.unsubscribeFromAllPubSub();
+    });
 
-  return handler;
-}
-
-function unsubscribeAllHandlers() {
-    
-      handlers.current.forEach((handler) => {
-        handler.unsubscribeFromAllPubSub();
-      });
-    
     handlers.current.clear();
   }
 

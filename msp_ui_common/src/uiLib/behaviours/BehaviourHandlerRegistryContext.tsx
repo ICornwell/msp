@@ -59,6 +59,15 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
 
   }
 
+  function paramFromMaybeFunction<T>(maybeFn: any, data: any, defaultValue: T): T {
+    try {
+      if (typeof maybeFn === 'function') return maybeFn(data) || defaultValue;
+      return maybeFn as T;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   const registry = useMemo<BehaviourHandlerRegistry>(
     () =>
       new Map([
@@ -69,7 +78,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             const actionPath = activity?.action || '';
             const [namespace, activityName, version] = String(actionPath).split('/');
             if (!namespace || !activityName || !version) return;
-       
+
             const payload = {
               ...activity.payload,
               ...objectFromMaybeFunction(activity.payloadFromnEvent, event),
@@ -119,11 +128,17 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             const params =
               typeof action.eventData?.paramsFromEvent === 'function'
                 ? action.eventData.paramsFromEvent(event)
-                : action.eventData?.params;
+                : {}
+
+            Object.entries(action.eventData.params || {}).forEach(([key, value]) => {
+              params[key] = paramFromMaybeFunction(value, event, value);
+            })
 
             params.content = action.eventData?.content;
-            params.viewDataIdentifier = action.eventData?.viewDataIdentifier
-             || event?.payload?.viewDataContent as ViewDataIdentifier;
+            params.viewDataIdentifier =  event?.payload?.viewDataContent as ViewDataIdentifier 
+              || action.eventData?.viewDataIdentifier; // the event is the preferred source for viewDataIdentifier,
+              //  as it allows it to be dynamic based on the triggering event
+              //  and action.eventData.viewDataIdentifier is replaced later 
 
             dispatchPresentation({ requestType, target, params });
           },

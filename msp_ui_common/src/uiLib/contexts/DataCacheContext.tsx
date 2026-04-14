@@ -146,6 +146,14 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     });
   }
 
+  function fromViewData(data: ViewDataContent<any>, viewDataQueryIdentifier: ViewDataQueryIdentifier): ViewDataContent<any> | undefined {
+    if (!data) return undefined;
+    if (Array.isArray(data.content) && viewDataQueryIdentifier.recordId) {
+      return { ...data, recordId: viewDataQueryIdentifier.recordId, content: data.content.find((item: any) => item.id === viewDataQueryIdentifier.recordId) };
+    }
+    return data;
+  }
+
   async function loadData(viewDataQueryIdentifier: ViewDataQueryIdentifier, forceRefresh = false, correlationId?: string): Promise<void> {
     const key = toCacheKey(viewDataQueryIdentifier);
     
@@ -155,12 +163,19 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
 
     if (!forceRefresh && cache.has(key)) {
       const cached = cache.get(key)!;
-      fireDataEvent({ type: 'DataViewLoaded', viewDataContent: cached.viewDataContent, fromCache: true, correlationId } as any);
+      const data = fromViewData(cached.viewDataContent as ViewDataContent<any>, viewDataQueryIdentifier)
+      fireDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: true, correlationId } as any);
       return;
     }
 
     const loadPromise = (async () => {
       try {
+        //TODO: replace with real data loading logic
+        // we've not had to do this yet as data has been loaded
+        // via ServiceActiivty calls so far
+        // but he manifests will provide ViewDataQueryIdentifier maps to Activities
+        // so the UI can just request by the ViewDataQueryIdentifier and not have to know
+        // the Service Activity names
         await new Promise(resolve => setTimeout(resolve, 100));
         const mockData = { id: viewDataQueryIdentifier.viewRootEntityId, type: viewDataQueryIdentifier.viewRootEntityId, view: viewDataQueryIdentifier.viewName, loadedAt: Date.now() };
         const viewDataContent: ViewDataContent<any> = {
@@ -180,7 +195,8 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
         }
         entityIndex.get(viewDataQueryIdentifier.viewRootEntityId)!.add(key);
 
-        fireDataEvent({ type: 'DataViewLoaded', viewDataContent, fromCache: false, correlationId } as any);
+        const data = fromViewData(viewDataContent, viewDataQueryIdentifier)
+        fireDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: false, correlationId } as any);
       } catch (error: any) {
         eventPubSubRef.current.publish({
           messageType: 'DataViewLoadFailed',

@@ -1,10 +1,6 @@
 import { createContext, useContext, useCallback, useState, type ReactNode } from 'react';
 import { MenuItem } from './uiEventTypes.js';
 
-export const MenuEvents = {
-  MENU_ITEM_CLICK: 'MenuItemClick',
-} as const;
-
 export type MenuDispatchRequest = {
   requestType: 'add' | 'remove' | 'enable' | 'disable' | 'hide' | 'unhide' | 'update';
   menuId: string;

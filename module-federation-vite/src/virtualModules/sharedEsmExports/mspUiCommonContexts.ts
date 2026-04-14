@@ -34,7 +34,6 @@ export function mspUiCommonContextsExportCode(): string {
     export const EventMessageTypeMapping = pick('EventMessageTypeMapping');
     export const MenuDispatchContext = pick('MenuDispatchContext');
     export const MenuDispatchProvider = pick('MenuDispatchProvider');
-    export const MenuEvents = pick('MenuEvents');
     export const PresentationDispatchContext = pick('PresentationDispatchContext');
     export const PresentationDispatchProvider = pick('PresentationDispatchProvider');
     export const UiContentContext = pick('UiContentContext');

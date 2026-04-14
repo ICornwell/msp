@@ -12,12 +12,13 @@ import { PresetNumberComponent } from './primatives/presets/PresetNumber.js';
 import { PresetMoneyComponent } from './primatives/presets/PresetMoney.js';
 import { PresetTextComponent } from './primatives/presets/PresetText.js';
 import { PresetDateComponent } from './primatives/presets/PresetDate.js';
+import { PresetLinkComponent } from './primatives/presets/PresetLink.js';
 
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
 
   // addComponent(ButtonComponent);
- 
+
   addComponent(ColumnsComponent);
   addComponent(LabelFrameComponent);
 
@@ -27,10 +28,11 @@ export default function EngineComponents() {
   addComponent(TableComponent);
 
   addComponent(PresetBooleanComponent);
-   addComponent(PresetNumberComponent);
+  addComponent(PresetNumberComponent);
   addComponent(PresetMoneyComponent);
   addComponent(PresetTextComponent);
   addComponent(PresetDateComponent);
+  addComponent(PresetLinkComponent);
   return null
 }
 

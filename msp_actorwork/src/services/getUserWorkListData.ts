@@ -26,7 +26,7 @@ const mockUserData: Record<string, ViewDataContent<UserWorkData[]>> = {
     viewRootId: 'ian@smallwalrus.com',
     content: [{
       __entityId: 'ian@smallwalrus.com',
-      id: 'ian@smallwalrus.com',
+      id: 'WORK-12345',
       actor_userName: 'Ian',
       work_workreference: 'WORK-12345',
       work_name: 'Example Work Item',
@@ -43,7 +43,7 @@ const mockUserData: Record<string, ViewDataContent<UserWorkData[]>> = {
     },
   {
       __entityId: 'ian@smallwalrus.com',
-      id: 'ian@smallwalrus.com',
+      id: 'WORK-12346',
       actor_userName: 'Ian',
       work_workreference: 'WORK-12346',
       work_name: 'Example Work Item',

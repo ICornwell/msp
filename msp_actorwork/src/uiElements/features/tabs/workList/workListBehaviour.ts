@@ -17,7 +17,7 @@ export const useUserWorkListBehaviour = () => {
       .whenEventSatisfies((event: any) => event.payload?.viewDataContent?.viewName === 'UserWorkList')
       .dispatch.toPresentation
         .openTab('UserWorkListTab',
-          {title: 'User Work List'},
+          {title: 'User Work List', closable: false},
           workListContent(),
           (event: any) => event.payload?.viewDataIdentifier
         )

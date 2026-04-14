@@ -1,5 +1,5 @@
 import React from 'react'
-
+import { v4 as uuidv4 } from 'uuid';
 import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementShareableProps, ReUiPlanElementSetMember } from '../UiPlan/ReUiPlan.js'; // Adjust the path './types' to the correct location of ReUiPlan
 import { ReProvider } from '../contexts/ReEngineContext.js';
 import ReComponentWrapper from './ReComponentWrapper.js';
@@ -142,6 +142,7 @@ export function ReEngine(props: ReEngineProps) {
 
           // Collect metadata about function properties
           const functionPropsMetaData: Array<{
+            hid: string,
             path: string,
             propertyKey: string | number | symbol,
             setter: (newValue: any) => void,
@@ -156,6 +157,7 @@ export function ReEngine(props: ReEngineProps) {
             proxySubId = subscribe({
               callback: (msg: RePubSubMsg) => {
                 functionPropsMetaData.push({
+                  hid: uuidv4(),
                   path: msg.path,
                   propertyKey: msg.propertyKey,
                   setter: msg.setter,
@@ -181,7 +183,7 @@ export function ReEngine(props: ReEngineProps) {
           for (const metaData of functionPropsMetaData) {
             // redraw if anything changes
 
-            const subscriptionHandler = createSubscriptionHandler(metaData.subscriptionHandler);
+            const subscriptionHandler = createSubscriptionHandler(metaData.subscriptionHandler, metaData.hid);
             subscriptionHandler.subscribeToPubSub({
               callback: (_msg: RePubSubMsg) => {
                 componentCallbackHandler.dataChangeCallback(_msg);

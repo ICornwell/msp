@@ -11,7 +11,7 @@ export type {ReUiPlanElementSetBuilder};
 
 // C = CNTX type, RT = return-to type
 // The generator will substitute the actual C when creating ExtensionOf
-export interface ElementSetContainerExtension<C extends CNTX, RT> extends ReExtensionBuilder<RT> {
+export interface ElementSetContainerExtension<C extends CNTX = CNTX, RT = any> extends ReExtensionBuilder<RT> {
   containingElementSet(): FluentSubBuilder<ReUiPlanElementSetBuilder<C, RT>>;
 };
 

@@ -14,6 +14,7 @@
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+import Link from '@mui/material/Link';
 import Tooltip from '@mui/material/Tooltip';
 import NoteIcon from '@mui/icons-material/StickyNote2Outlined';
 import FunctionsIcon from '@mui/icons-material/Functions';
@@ -22,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps.js';
 import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper.js';
 import { Notes } from '../../../renderEngine/data/uiDataProxy.js';
+import { useUiEventPublisher } from '../../../contexts/UiEventContext.js';
 import { 
   InputStrategy, 
   DataTypeHint, 
@@ -90,7 +92,8 @@ export default function UniversalInput(
   } = props;
 
   const onChange = events?.onChange;
-  
+  const { raiseUiEvent } = useUiEventPublisher();
+
   // Strategy resolution:
   // 1. Use pre-resolved strategy if provided (from ReEngine)
   // 2. Fall back to local resolution via registry
@@ -247,6 +250,33 @@ export default function UniversalInput(
       inputRef.current?.blur();
     }
   };
+
+  // ---- Click link render ----
+  // When strategy has a clickAction, render as a plain link rather than a TextField.
+  // This is the natural UX for readonly cells that navigate on click.
+  if (strategy.clickAction) {
+    const handleLinkClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      const ctx = createContext();
+      const event = strategy.clickAction!.getClickEvent(value, ctx);
+      if (event) {
+        raiseUiEvent({ ...event, timestamp: Date.now() });
+      }
+    };
+
+    return (
+      <Link
+        component="button"
+        variant="body2"
+        onClick={handleLinkClick}
+        underline="hover"
+        sx={{ cursor: 'pointer', textAlign: alignment }}
+        data-testid={testId}
+      >
+        {formattedValue}
+      </Link>
+    );
+  }
 
   // ---- Render ----
 

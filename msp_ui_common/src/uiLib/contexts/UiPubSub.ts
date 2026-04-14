@@ -4,6 +4,7 @@ export type UiSPubSub<MsgType = UiPubSubMsg> = {
   subscribe: (subscription: UiSubscription<MsgType>) => string;
   unsubscribe: (subscriberId: string) => void;
   publish: (msg: MsgType) => void;
+  active: boolean; // indicates if the PubSub instance is active (i.e. if the provider is mounted)
 }
 
 export type UiPubSubMsg = {
@@ -53,5 +54,6 @@ export default function <MsgType = UiPubSubMsg>(): UiSPubSub<MsgType> {
     subscribe,
     unsubscribe,
     publish,
+    active: true
   };
 }

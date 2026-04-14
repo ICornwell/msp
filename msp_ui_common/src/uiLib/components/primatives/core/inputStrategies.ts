@@ -77,6 +77,16 @@ export interface ParserStrategy<T = unknown> {
   isExpression?: (input: string) => boolean;
 }
 
+/**
+ * Click action — when present, the control renders as clickable and raises a UIEvent.
+ * The strategy returns the event shape; UniversalInput publishes it.
+ * This keeps the strategy layer free of the event bus.
+ */
+export interface ClickActionStrategy {
+  /** Return the UIEvent payload to publish, or undefined to suppress */
+  getClickEvent: (value: unknown, ctx: StrategyContext) => { messageType: string; payload: unknown } | undefined;
+}
+
 // ============================================================================
 // Combined Strategy (convenience type)
 // ============================================================================
@@ -86,6 +96,8 @@ export interface InputStrategy<T = unknown> {
   adornment?: AdornmentStrategy;
   formatter?: FormatterStrategy;
   parser?: ParserStrategy<T>;
+  /** When set, the control renders as a clickable link and raises a UIEvent on click */
+  clickAction?: ClickActionStrategy;
 }
 
 // ============================================================================

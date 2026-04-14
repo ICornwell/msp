@@ -20,7 +20,11 @@ export type PresentationCurrentTab = {
   setTabTitle?: (newTitle: string) => void; // Optional function to update the title of a tab
 }
 
-export type PresentationTabSet = Tab[];
+export type PresentationTabSet = {
+  tabs: Tab[];
+  closeTab: (tabId: string) => void;
+  activateTab: (tabId: string) => void; 
+};
 
 export type PresentationDispatchType = {
   dispatch: (request: PresentationDispatchRequest) => void;
@@ -33,7 +37,7 @@ export const PresentationDispatchContext = createContext<PresentationDispatchCon
   dispatch: () => { },
   bladeState: { open: false, content: undefined, viewDataIdentifier: undefined },
   currentTab: { tab: null, setTabTitle: undefined },
-  tabSet: [],
+  tabSet: { tabs: [], closeTab: () => {}, activateTab: () => {} },
 });
 
 export type TabContent = {
@@ -47,6 +51,7 @@ export type Tab = {
   icon?: any;
   isClosable: boolean;
   content: TabContent;
+  isActive?: boolean;
 }
 
 /**
@@ -74,17 +79,20 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           setBladeState({ open: false, content: undefined, viewDataIdentifier: undefined, title: undefined });
           break;
         case 'openTab':
-          if (tabs.find(tab => tab.id === request.target)) {
-            setCurrentTab(tabs.find(tab => tab.id === request.target) || null); // Switch to existing tab
+          const tabUId = request.params?.idSuffix ? `${request.target}-${request.params.idSuffix}` : request.target;
+          if (tabs.find(tab => tab.id === tabUId)) {
+            const existingTab = tabs.find(tab => tab.id === tabUId);
+            setAndActivateTab(existingTab); // Switch to existing tab
+
           } else {
             const newTab: Tab = {
-              id: request.target,
+              id: tabUId,
               title: request.params?.title || 'New Tab',
-              isClosable: true,
+              isClosable: request.params?.closable ?? true,
               content: { uiPlan: request.params?.content, viewDataIdentifier: request.params?.viewDataIdentifier },
             };
             setTabs(prevTabs => [...prevTabs, newTab]);
-            setCurrentTab(newTab);
+            setAndActivateTab(newTab);
           }
 
         // case 'closeTab':
@@ -109,12 +117,37 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
       currentTab: {tab: currentTab,
         setTabTitle: (newTitle: string) => setTabTitle(currentTab, newTitle)
       },
-      tabSet:tabs,
+      tabSet: {
+        tabs,
+        closeTab: (tabId: string) => {
+          setTabs(prevTabs => prevTabs.filter(tab => tab.id !== tabId));
+          if (currentTab?.id === tabId) {
+            setAndActivateTab(tabs[0] || null); // Activate another tab if the current one is closed
+          }
+        },
+        activateTab: (tabId: string) => {
+          const tabToActivate = tabs.find(tab => tab.id === tabId);
+          if (tabToActivate) {
+            setAndActivateTab(tabToActivate);
+          }
+        }
+      },
       
     }}>
       {children}
     </PresentationDispatchContext.Provider>
   );
+
+  function setAndActivateTab(existingTab: Tab | undefined) {
+    tabs.forEach(tab => {
+      if (tab && tab === existingTab) {
+        tab.isActive = true;
+      } else if (tab) {
+        tab.isActive = false;
+      }
+    });
+    setCurrentTab(existingTab || null);
+  }
 }
 
 /**
@@ -136,7 +169,12 @@ export function usePresentationTabSet(): PresentationTabSet {
   return tabSet;
 }
 
-export function usePresentationCurrentTab(): PresentationCurrentTab {
+export function usePresentationCurrentTab(onTabChange?: (tab?: Tab) => void): PresentationCurrentTab {
   const { currentTab } = useContext(PresentationDispatchContext);
+  const [currentTabState, setCurrentTabState] = useState(currentTab);
+  if (currentTabState?.tab?.id !== currentTab?.tab?.id) {
+    setCurrentTabState(currentTab);
+    onTabChange?.(currentTab?.tab ?? undefined);
+  }
   return currentTab;
 }

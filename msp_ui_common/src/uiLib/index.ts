@@ -11,10 +11,17 @@ export {
   PresetNumberComponent,
   PresetDateComponent,
   PresetBooleanComponent,
-  PresetMoneyComponent
-} from './presetComponets.js';
+  PresetMoneyComponent,
+  PresetLinkComponent
+} from './presetComponents.js';
 
-export { Table  } from './coreComponents.js';
+export { 
+  Table,
+  Columns,
+  LabelFrame
+} from './coreComponents.js';
+
+export * from './components/primatives/core/strategies/index.js';
 
 // Data cache hook
 export { useDataCache } from './hooks/useDataCache.js';
@@ -66,11 +73,12 @@ export type { ServiceDispatcherConfig } from './components/ServiceDispatcher.js'
 import { UserSessionEvents } from './contexts/UserSessionContext.js';
 import { DataCacheEvents } from './contexts/DataCacheContext.js';
 import { ActivityEvents } from './contexts/ActivityDispatchContext.js';
-import { MenuEvents } from './contexts/MenuDispatchContext.js';
+import { NavigationEvents } from './events/navigationEvents.js';
 
 export const eventTypes = {
   UserSession: UserSessionEvents,
   DataCache: DataCacheEvents,
   Activity: ActivityEvents,
-  Menu: MenuEvents,
+  Navigation: NavigationEvents,
+
 }

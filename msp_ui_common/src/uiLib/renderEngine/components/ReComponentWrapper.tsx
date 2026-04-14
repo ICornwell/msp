@@ -45,7 +45,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
     }
   }
 
-  const shadowsProps = { ...wrapperProps.options }
+  const shadowsProps = { ...wrapperProps.options, ...((wrapperProps.options as any).componentProps) } as Record<string, any>;
   if (wrapperProps.options?.propertyDescriptor) {
     for (const [key, val] of Object.entries(wrapperProps.options.propertyDescriptor)) {
       if (!(key in shadowsProps) || (shadowsProps as Record<string, any>)[key] === undefined) {

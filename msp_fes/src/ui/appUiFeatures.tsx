@@ -68,7 +68,9 @@ export function AppUiFeatures() {
           try {
             const module: any = await loadRemote(`${remote.remoteName}/${remote.moduleName}`);
             if (module?.default) {
-              loadedConfigs.push((module.default as () => behaviourConfig)());
+              const resolvedConfigs = module.default()
+              const configs = Array.isArray(resolvedConfigs) ? resolvedConfigs : [resolvedConfigs];
+              loadedConfigs.push(...configs.map((config: behaviourConfig) => config));
             }
           } catch (error) {
             console.error(`Error loading remote module ${remote.moduleName} @ ${remote.remoteEntry}:`, error);

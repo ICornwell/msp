@@ -12,3 +12,5 @@ export * from './containers/index.js';
 export * from './primatives/index.js';
 export * from './tables/index.js';
 export * from './trees/index.js';
+
+export * from './primatives/core/strategies/index.js';

@@ -35,16 +35,15 @@ export type ViewIdentifier = {
 export type ViewDataIdentifier = ViewIdentifier & {
   viewRootEntityId: string,
   viewRootEntityHistoricTimestamp?: string
+  recordId?: string; // Optional recordId for intra array lookup, if applicable
 }
 
-export type ViewDataQueryByIdIdentifier = ViewIdentifier & {
-  viewRootEntityId: string,
-  viewRootEntityHistoricTimestamp?: string
+export type ViewDataQueryByIdIdentifier = ViewDataIdentifier & {
+  // place holder for any additional properties specific to ID-based queries if needed in the future
 }
 
-export type ViewDataQueryByKeyIdentifier = ViewIdentifier & {
-  viewRootEntityId: string,
-  viewRootEntityHistoricTimestamp?: string
+export type ViewDataQueryByKeyIdentifier = ViewDataIdentifier & {
+  viewRootBusKey: string,
 }
 
 export type ViewDataQueryIdentifier = ViewDataQueryByIdIdentifier | ViewDataQueryByKeyIdentifier;
@@ -56,12 +55,24 @@ export type ViewDataContent<D = any> = ViewDataQueryByIdIdentifier & {
   content: D
 }
 
-export function isViewDataContent_Matching_ViewDataIndentifier(content?: ViewDataContent, identifier?: ViewDataQueryIdentifier): boolean {
+export function isViewDataContent_Matching_ViewDataIdentifier(content?: ViewDataContent, identifier?: ViewDataQueryIdentifier): boolean {
   if (!content && !identifier) return true;
   if (!content || !identifier) return false;
   return content.viewDomain === identifier.viewDomain
     && content.viewName === identifier.viewName
     && content.viewVersion === identifier.viewVersion
     && content.viewRootEntityId === identifier.viewRootEntityId
-    && content.viewRootEntityHistoricTimestamp === identifier.viewRootEntityHistoricTimestamp;
+    && content.viewRootEntityHistoricTimestamp === identifier.viewRootEntityHistoricTimestamp
+    && content.recordId === identifier.recordId;
+}
+
+export function viewDataIdentifier_Match(a?: ViewDataIdentifier, b?: ViewDataIdentifier): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return a.viewDomain === b.viewDomain
+    && a.viewName === b.viewName
+    && a.viewVersion === b.viewVersion
+    && a.viewRootEntityId === b.viewRootEntityId
+    && a.viewRootEntityHistoricTimestamp === b.viewRootEntityHistoricTimestamp
+    && a.recordId === b.recordId;
 }

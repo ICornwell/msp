@@ -1,5 +1,8 @@
 // UI Event Messages - published by UI components and subsystems
 
+import { eventTypes } from "../index.js";
+
+// TODO: move to ui_common as this is only for UI events
 export type UiEventMessage<T = any> = {
   messageType: string;
   payload: T;
@@ -16,7 +19,7 @@ export type UserChangedEvent = UiEventMessage<{
 
 export function createUserChangedEvent(userId: string, userName?: string, sessionId?: string): UserChangedEvent {
   return {
-    messageType: 'UserChanged',
+    messageType: eventTypes.UserSession.USER_LOGGED_IN,
     payload: { userId, userName, sessionId },
     timestamp: Date.now(),
   };
@@ -32,7 +35,7 @@ export type DataLoadedEvent<T = any> = UiEventMessage<{
 
 export function createDataLoadedEvent<T>(dataType: string, dataKey: string, data: T, fromCache = false): DataLoadedEvent<T> {
   return {
-    messageType: 'DataLoaded',
+    messageType: eventTypes.DataCache.DATA_LOADED,
     payload: { dataType, dataKey, data, fromCache },
     timestamp: Date.now(),
   };
@@ -47,7 +50,7 @@ export type MenuItemClickEvent = UiEventMessage<{
 
 export function createMenuItemClickEvent(menuId: string, label: string, context?: any): MenuItemClickEvent {
   return {
-    messageType: 'MenuItemClick',
+    messageType: eventTypes.Navigation.ITEM_CLICK,
     payload: { menuId, label, context },
     timestamp: Date.now(),
   };
@@ -60,10 +63,21 @@ export type InteractionEvent<T = any> = UiEventMessage<{
   data?: T;
 }>;
 
-export function createInteractionEvent<T>(interactionType: string, target?: string, data?: T): InteractionEvent<T> {
+
+
+// Link click event - raised by linkClick strategy in UniversalInput
+// Payload carries a named link identity and the data identifier to open
+export type LinkClickEvent = UiEventMessage<{
+  /** Logical name of the link — matched in Behaviour DSL .whenEventSatisfies() */
+  linkName: string;
+  /** Value that identifies the record to view — typically the cell's field value */
+  viewDataIdentifier: string;
+}>;
+
+export function createLinkClickEvent(linkName: string, viewDataIdentifier: string): LinkClickEvent {
   return {
-    messageType: 'Interaction',
-    payload: { interactionType, target, data },
+    messageType: eventTypes.Navigation.ITEM_CLICK,
+    payload: { linkName, viewDataIdentifier },
     timestamp: Date.now(),
   };
 }

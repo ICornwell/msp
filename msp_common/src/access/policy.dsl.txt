@@ -1,0 +1,23 @@
+function makePolicy() {
+    definePolicy('mypolicy')
+        .defineCondition('user-with-pricing-work')
+            .toHaveUserClaimSet({iss: 'http://user-auth/v1'}) // toHaveUserClaimSet validate sub=currentuserid & profile='exp-user-auth'
+                .withAttestation('aud').toBe('exp-called-activities')
+                .withAttestation('role').toInclude('Underwriting')
+            .endClaimSet
+            .toHaveWorkClaimSet({iss: 'http://work/v1'}) // toHaveWorkClaimSet validate sub=currentworkid & profile='user-work-participation'
+                .withAttestation('aud').toBe('exp-called-activities')
+                .withAttestation('workType').toBeOneOf(['uw.pricing', 'uw.adjustment')
+                .withAttestation('workLinkedEntities').toIncludeKey('uw.policy').memoValueAs('my_policy_ref')
+            .endClaimSet
+            .toHaveDateClaimSet({iss: 'http://uw-data/v1'}) // toHaveWorkClaimSet validate & profile='work-data-entity'
+                .withAttestation('aud').toBe('work-data')
+                .withAttestation('entityKey').toBeMemoValue('my_policy_ref')
+            .endClaimSet
+        .endCondition
+        .definePermission('allow-price-update')
+            .toSatisfyCondition('user-with-pricing-work')
+            .withinLimit.ofEntityFromMemoKey('my_policy_ref').findValue(d => d.pricing.adjustedPrice).lessThan(100000)
+        .endPermission
+    .endPolicy
+}

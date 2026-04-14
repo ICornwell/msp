@@ -21,7 +21,7 @@ export const useUserProfileBehaviour = () => {
         .add({
           id: 'user-profile-menu',
           label: 'See User Profile',
-          eventName: 'MENU',
+          eventName: eventTypes.Navigation.ITEM_CLICK,
           action: 'openUserProfile',
           menuTarget: 'profile',
           context: { viewDataIdentifier: {
@@ -32,7 +32,7 @@ export const useUserProfileBehaviour = () => {
           }
         } as any)
         .end()
-    .whenEventRaised('MenuItemClick')
+    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event: any) => event.payload?.menuId === 'user-profile-menu')
       .dispatch.toPresentation
         .openBlade('UserProfileBlade',

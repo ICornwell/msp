@@ -26,7 +26,7 @@ export type {
 
 export * from './comms/serviceRequest.js';
 
-export {isViewDataContent_Matching_ViewDataIndentifier} from './types/index.js';
+export {isViewDataContent_Matching_ViewDataIdentifier, viewDataIdentifier_Match} from './types/index.js';
 
 export type {UiRemoteRegistration} from './comms/ui/UiRemoteRegistration.js'
 
