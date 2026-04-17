@@ -24,6 +24,9 @@ import { TreeItemProvider } from '@mui/x-tree-view/TreeItemProvider';
 import { TreeItemDragAndDropOverlay } from '@mui/x-tree-view/TreeItemDragAndDropOverlay';
 import { useTreeItemModel } from '@mui/x-tree-view/hooks';
 import { TreeViewBaseItem } from '@mui/x-tree-view/models';
+import { useUiEventSubscriber } from '../../hooks/useUiEvents.js';
+import { eventTypes } from '../../index.js';
+
 
 type FileType = 'image' | 'pdf' | 'doc' | 'video' | 'folder' | 'pinned' | 'trash';
 
@@ -33,24 +36,23 @@ type ExtendedTreeItemProps = {
   label: string;
 };
 
+const DEFAULT_ITEMS: TreeViewBaseItem<ExtendedTreeItemProps>[] = [ { id: '3', label: 'Help', fileType: 'folder' }]
+
 const ITEMS: TreeViewBaseItem<ExtendedTreeItemProps>[] = [
   {
     id: '1',
-    label: 'Documents',
+    label: 'Work',
     children: [
       {
         id: '1.1',
-        label: 'Company',
+        label: 'Mine',
         children: [
-          { id: '1.1.1', label: 'Invoice', fileType: 'pdf' },
-          { id: '1.1.2', label: 'Meeting notes', fileType: 'doc' },
-          { id: '1.1.3', label: 'Tasks list', fileType: 'doc' },
-          { id: '1.1.4', label: 'Equipment', fileType: 'pdf' },
-          { id: '1.1.5', label: 'Video conference', fileType: 'video' },
+          { id: '1.1.1', label: 'WT-12345', fileType: 'pdf' },
+          { id: '1.1.2', label: 'WI-12346', fileType: 'doc' }
         ],
       },
-      { id: '1.2', label: 'Personal', fileType: 'folder' },
-      { id: '1.3', label: 'Group photo', fileType: 'image' },
+      { id: '1.2', label: 'Team', fileType: 'folder' },
+      { id: '1.3', label: 'External', fileType: 'image' },
     ],
   },
   {
@@ -58,14 +60,13 @@ const ITEMS: TreeViewBaseItem<ExtendedTreeItemProps>[] = [
     label: 'Bookmarked',
     fileType: 'pinned',
     children: [
-      { id: '2.1', label: 'Learning materials', fileType: 'folder' },
-      { id: '2.2', label: 'News', fileType: 'folder' },
-      { id: '2.3', label: 'Forums', fileType: 'folder' },
-      { id: '2.4', label: 'Travel documents', fileType: 'pdf' },
+      { id: '2.1', label: 'Case 1', fileType: 'folder' },
+      { id: '2.2', label: 'Case 2', fileType: 'folder' },
+      { id: '2.3', label: 'Case 3', fileType: 'folder' }
     ],
   },
-  { id: '3', label: 'History', fileType: 'folder' },
-  { id: '4', label: 'Trash', fileType: 'trash' },
+  { id: '3', label: 'Profile', fileType: 'folder' },
+  { id: '4', label: 'Help', fileType: 'trash' },
 ];
 
 function DotIcon() {
@@ -291,9 +292,24 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 });
 
 export default function NavigationTree() {
+  const [ items, setITems ] = React.useState<TreeViewBaseItem<ExtendedTreeItemProps>[]>(DEFAULT_ITEMS);
+  useUiEventSubscriber({
+    msgTypeFilter:(event) => [eventTypes.UserSession.USER_LOGGED_OUT, eventTypes.UserSession.USER_LOGGED_IN].includes(event.messageType),
+    callback: (event) => {
+      switch (event.messageType) {
+        case eventTypes.UserSession.USER_LOGGED_OUT:
+          setITems(DEFAULT_ITEMS);
+          break;
+         case eventTypes.UserSession.USER_LOGGED_IN:
+          setITems(ITEMS);
+          break;
+      }
+
+    },
+  });
   return (
     <RichTreeView
-      items={ITEMS}
+      items={items}
       defaultExpandedItems={['1', '1.1']}
       // --@--ts-expect-error - MUI tree type definition issue, component works correctly
       defaultSelectedItems="1.1"
