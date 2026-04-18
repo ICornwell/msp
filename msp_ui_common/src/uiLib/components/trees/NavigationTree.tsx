@@ -26,6 +26,7 @@ import { useTreeItemModel } from '@mui/x-tree-view/hooks';
 import { TreeViewBaseItem } from '@mui/x-tree-view/models';
 import { useUiEventSubscriber } from '../../hooks/useUiEvents.js';
 import { eventTypes } from '../../index.js';
+import { UiMsgUserSessionNames } from '../../contexts/eventTypes.js';
 
 
 type FileType = 'image' | 'pdf' | 'doc' | 'video' | 'folder' | 'pinned' | 'trash';
@@ -294,7 +295,7 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 export default function NavigationTree() {
   const [ items, setITems ] = React.useState<TreeViewBaseItem<ExtendedTreeItemProps>[]>(DEFAULT_ITEMS);
   useUiEventSubscriber({
-    msgTypeFilter:(event) => [eventTypes.UserSession.USER_LOGGED_OUT, eventTypes.UserSession.USER_LOGGED_IN].includes(event.messageType),
+    msgTypeFilter:(event) => [eventTypes.UserSession.USER_LOGGED_OUT, eventTypes.UserSession.USER_LOGGED_IN].includes(event.messageType as any as UiMsgUserSessionNames),
     callback: (event) => {
       switch (event.messageType) {
         case eventTypes.UserSession.USER_LOGGED_OUT:

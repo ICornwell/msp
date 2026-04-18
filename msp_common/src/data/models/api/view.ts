@@ -20,12 +20,15 @@ export interface View<VT extends Flatten<any> = any>  {
     targetDataStore?: string;
     name: string;
     version: string;
+    varaintName?: string;
     configSet: string;
     rootKey: string;
     rootElement: SubElement;
     domain?: versionedResourceId;  // Added when bound to product
     product?: versionedResourceId;  // Added when bound to product
     dataType?: DeepPartial<VT> 
+    viewDataIdentifier: versionedResourceId; // Serialisable reference to the viewDataIdentifier that will be used for this view's data at runtime
+
 }
 
 

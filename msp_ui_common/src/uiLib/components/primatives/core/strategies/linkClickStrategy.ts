@@ -25,7 +25,9 @@
  *     .end()
  */
 
-import { createLinkClickEvent } from '../../../../events/uiEvents.js';
+
+import { eventTypes } from '../../../../contexts/eventTypes.js';
+import { LinkClickEvent } from '../../../../events/uiEvents.js';
 import {
   InputStrategy,
   ClickActionStrategy,
@@ -70,6 +72,14 @@ export function linkClickStrategyFactory(options: LinkClickStrategyOptions): Inp
   };
 
   return { alignment, formatter, clickAction };
+}
+
+function createLinkClickEvent(linkName: string, viewDataIdentifier: string): LinkClickEvent {
+  return {
+    messageType: eventTypes.Navigation.ITEM_CLICK,
+    payload: { linkName, viewDataIdentifier },
+    timestamp: Date.now(),
+  };
 }
 
 // ============================================================================

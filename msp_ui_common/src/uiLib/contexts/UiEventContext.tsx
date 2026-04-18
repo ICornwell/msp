@@ -1,19 +1,20 @@
 import { useContext, createContext, useRef } from 'react';
 import PubSub, { UiSubscription, UiPubSubMsg } from './UiPubSub.js'
+import { UiEventMessage } from '../events/uiEvents.js';
 
-export type UiEventContextType = {
-  subscribe: (subscription:UiSubscription) => string;
+export type UiEventContextType<ET = any> = {
+  subscribe: (subscription:UiSubscription<UiEventMessage<ET>>) => string;
   unsubscribe: (subscriptionId: string) => void
   /** @internal use raiseUiEvent / useUiEventPublisher from leaf components and subsystems */
-  publish: (msg: any) => void
+  publish: (msg: UiEventMessage<ET>) => void
   active: boolean; // indicates if the context is active (i.e. if the provider is mounted)
 }
 
 // Create context
 export const UiEventContext = createContext<UiEventContextType>({
-  subscribe:  (_subscription: UiSubscription) => '',
+  subscribe:  (_subscription: UiSubscription<UiEventMessage>) => '',
   unsubscribe: (_subscriptionId: string) => {},
-  publish: (_msg: any) => { },
+  publish: (_msg: UiEventMessage) => {},
   active: false
 });
 
@@ -23,7 +24,7 @@ export const UiEventProvider = ({ uiEventEnricher, children }
   if (!uiEventEnricher) {
     uiEventEnricher = (msg: any) => msg; // default to identity function if no enricher provided
     }
-  const pubSubRef = useRef<UiEventContextType>(PubSub());
+  const pubSubRef = useRef<UiEventContextType>(PubSub<UiEventMessage<any>>());
 
   const outerContext = useUiEventContext();
   if (outerContext && outerContext.active) {
@@ -51,13 +52,13 @@ export const UiEventProvider = ({ uiEventEnricher, children }
 };
 
 // Custom hook to access the context — internal use only (Behaviour component)
-export const useUiEventContext: () => UiEventContextType = () => useContext(UiEventContext);
+export const useUiEventContext: <ET = any>() => UiEventContextType<ET> = () => useContext(UiEventContext);
 
 /**
  * Hook for leaf UI components and subsystems to publish UIEvents.
  * This is the only publish surface outside of the Behaviour component.
  */
-export function useUiEventPublisher(): { raiseUiEvent: (event: UiPubSubMsg) => void } {
-  const { publish } = useContext(UiEventContext);
-  return { raiseUiEvent: publish };
+export function useUiEventPublisher<ET extends UiPubSubMsg>(): { raiseUiEvent: (event: ET) => void } {
+  const { publish }: {publish: (msg: UiEventMessage<ET>) => void} = useContext(UiEventContext);
+  return { raiseUiEvent: publish } as { raiseUiEvent: (event: ET) => void };
 }

@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import { MenuItem as AppMenuItem } from '../contexts/uiEventTypes.js';
 import { useMenuDispatch } from '../contexts/MenuDispatchContext.js';
 import { useUiEventPublisher } from '../contexts/UiEventContext.js';
-import { NavigationEvents } from '../events/navigationEvents.js';
+import { NavigationEvents } from '../events/uiNavEventMsgTypes.js';
 
 interface MenuProps {
   nameTag?: string;
@@ -73,7 +73,7 @@ export const AppMenu: React.FC<MenuProps> = ({ anchorEl, open, onClose, menuTarg
       anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
     >
       {groups.map((group, gi) => (
-        <React.Fragment key={group[0].groupId ?? `__g${gi}`}>
+        <div key={group[0].groupId ?? `__g${gi}`}>
           {gi > 0 && <Divider />}
           {group.map(item => (
             <MuiMenuItem
@@ -89,7 +89,7 @@ export const AppMenu: React.FC<MenuProps> = ({ anchorEl, open, onClose, menuTarg
               {item.label}
             </MuiMenuItem>
           ))}
-        </React.Fragment>
+        </div>
       ))}
     </Menu>
   );

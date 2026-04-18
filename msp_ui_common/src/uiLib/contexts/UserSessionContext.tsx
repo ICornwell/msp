@@ -4,7 +4,12 @@ import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
 import { useUiEventPublisher } from './UiEventContext.js';
 
-export const UserSessionEvents = {
+export type UserSessionEventsType = {
+  USER_LOGGED_IN: 'USER_LOGGED_IN',
+  USER_LOGGED_OUT: 'USER_LOGGED_OUT'
+}
+
+export const UserSessionEvents: UserSessionEventsType = {
   USER_LOGGED_IN: 'USER_LOGGED_IN',
   USER_LOGGED_OUT: 'USER_LOGGED_OUT'
 }

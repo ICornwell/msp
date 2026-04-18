@@ -38,7 +38,7 @@ export function createPropertyBuilder<T,
    currentProperty?: Partial<SchemaProperty<T>>): PropertyBuilder<T, PK, SB, IS> {
   const property:Partial<SchemaProperty<T>> =  currentProperty ?? {
     name: name as string,
-    dictionaryId: { id: '', version: '1.0' },
+    dictionaryId: { name: '', version: '1.0' },
     infoType: "Text",
     defaultLabel: undefined
   };
@@ -48,7 +48,7 @@ export function createPropertyBuilder<T,
       return createPropertyBuilder<NewT, PK, SB, IS>(name, parentBuilder, property as Partial<SchemaProperty<NewT>>);
     },
     withDictionaryId: function (id: string, version: string): PropertyBuilder<T, PK, SB, IS> {
-      property.dictionaryId = { id, version };
+      property.dictionaryId = { name: id, version };
       return builder;
     },
 
@@ -77,7 +77,7 @@ export function createPropertyBuilder<T,
 export function createSchemaBuilder<D extends SchemaType, IS extends Schema<any, any> | undefined = undefined>(name: string): SchemaBuilder<D, IS> {
   let schema: Partial<Schema<D, any>> = {
     name: name,
-    vid: { id: '', version: '1.0' },
+    vid: { name: '', version: '1.0' },
     domain: undefined,
     product: undefined,
     inheritsFromSchema: undefined,
@@ -88,7 +88,7 @@ export function createSchemaBuilder<D extends SchemaType, IS extends Schema<any,
 
   const builder: SchemaBuilder<D, IS> = {
     withId: function (id: string, version: string): SchemaBuilder<D, IS> {
-      schema.vid = { id, version };
+      schema.vid = { name: id, version };
       return builder;
     },
 

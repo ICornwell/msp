@@ -1,11 +1,11 @@
 import React from 'react';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import { NavItem } from '../contexts/uiEventTypes.js'
+import { NavTreeItem } from '../contexts/uiEventTypes.js'
 import NavigationTree from './trees/NavigationTree.js';
 
 interface SidebarProps {
-  navItems: NavItem[];
+  navItems: NavTreeItem[];
   isCollapsed: boolean;
   activeTabId: string | null;
   onTabSelect: (tabId: string) => void;

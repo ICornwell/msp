@@ -1,0 +1,15 @@
+export const NavigationEvents = {
+  ITEM_CLICK: 'ITEM_CLICK',
+
+  ITEM_DOUBLE_CLICK: 'ITEM_DOUBLE_CLICK',
+
+  ITEM_CONTEXT_CLICK: 'ITEM_CONTEXT_CLICK',
+} as const;
+
+export type NavigationEventsType = {
+  ITEM_CLICK: 'ITEM_CLICK',
+
+  ITEM_DOUBLE_CLICK: 'ITEM_DOUBLE_CLICK',
+
+  ITEM_CONTEXT_CLICK: 'ITEM_CONTEXT_CLICK',
+} 

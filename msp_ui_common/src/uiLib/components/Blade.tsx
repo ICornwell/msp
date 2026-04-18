@@ -44,7 +44,7 @@ export const Blade: React.FC<BladeProps> = ({
 
   if (!bladeState.open && isOpen) {
     setIsOpen(false);
-    clearState
+    clearState();
   }
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export const Blade: React.FC<BladeProps> = ({
   function handleClose() {
     setIsOpen(false);
     clearState();
-    dispatch({ requestType: 'closeBlade', target: 'UserProfileBlade' });
+    dispatch({ requestType: 'closeBlade', target: 'UserProfileBlade', contextOwnerId: bladeState.contextOwnerId });
   }
 
 

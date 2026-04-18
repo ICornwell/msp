@@ -14,12 +14,12 @@ export const useUserWorkListBehaviour = () => {
         .end()
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-      .whenEventSatisfies((event: any) => event.payload?.viewDataContent?.viewName === 'UserWorkList')
+      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserWorkList' && !vid?.recordId)
       .dispatch.toPresentation
         .openTab('UserWorkListTab',
           {title: 'User Work List', closable: false},
           workListContent(),
-          (event: any) => event.payload?.viewDataIdentifier
+          ({viewDataIdentifier}) => viewDataIdentifier
         )
         .end()
     .build();

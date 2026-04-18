@@ -12,8 +12,10 @@ import {
   LocalEffectBuilder,
   ActivityCallDefinition,
   AlwaysBuilder,
+  BehaviourActionFnContext,
 } from './fluentBehaviour.js';
 import { BehaviourArg } from "./Behaviour.js";
+import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
 
 
 export function createBehaviour<DT = any>(): FluentBehaviour<DT> {
@@ -48,6 +50,7 @@ function makeFluentBehaviour<DT>(
         eventType: 'Always',
         eventCondition: () => true,
         dataCondition: () => true,
+        dataIdentifierCondition: () => true,
         actions: [],
         innerElements: []
       };
@@ -58,11 +61,12 @@ function makeFluentBehaviour<DT>(
       );
     },
 
-    whenEventRaised: <E extends string>(eventName: E) => {
+    whenEventRaised: <E extends UiMsgNames>(eventName: E) => {
       const element: behaviourElement<DT, E> = {
         eventType: eventName,
         eventCondition: () => true,
         dataCondition: () => true,
+        dataIdentifierCondition: () => true,
         actions: [],
         innerElements: []
       };
@@ -77,7 +81,7 @@ function makeFluentBehaviour<DT>(
   };
 }
 
-function makeAlwaysBuilder<DT, E, RT>(
+function makeAlwaysBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): AlwaysBuilder<DT, E, RT> {
@@ -90,7 +94,7 @@ function makeAlwaysBuilder<DT, E, RT>(
       toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder),
     },
 
-    localEffect: (effect: (event: E, data: any) => void): LocalEffectBuilder<DT, E, RT> => {
+    localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void): LocalEffectBuilder<DT, E, RT> => {
       const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
       element.actions.push(action);
       return { end: () => returnBuilder };
@@ -98,7 +102,7 @@ function makeAlwaysBuilder<DT, E, RT>(
   };
 }
 
-function makeEventHandlerBuilder<DT, E, RT>(
+function makeEventHandlerBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): EventHandlerBuilder<DT, E, RT> {
@@ -107,8 +111,11 @@ function makeEventHandlerBuilder<DT, E, RT>(
       element.dataCondition = condition;
       return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
     },
-
-    whenEventSatisfies: (condition: (event: E) => boolean) => {
+    whenDataIdentifierSatisfies: (condition: (dataIdentifier: ViewDataIdentifier) => boolean) => {
+      element.dataIdentifierCondition = condition;
+      return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
+    },
+    whenEventSatisfies: (condition: (event: EventTypesByMsgName<E>) => boolean) => {
       element.eventCondition = condition as any;
       return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
     },
@@ -117,7 +124,7 @@ function makeEventHandlerBuilder<DT, E, RT>(
   };
 }
 
-function makeActivityDispatchBuilder<DT, E, RT>(
+function makeActivityDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): ActivityDispatchBuilder<DT, E, RT> {
@@ -146,7 +153,7 @@ function makeActivityDispatchBuilder<DT, E, RT>(
   };
 }
 
-function makeMenuDispatchBuilder<DT, E, RT>(
+function makeMenuDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): MenuDispatchBuilder<DT, E, RT> {
@@ -169,7 +176,7 @@ function makeMenuDispatchBuilder<DT, E, RT>(
   };
 }
 
-function makeDataDispatchBuilder<DT, E, RT>(
+function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): DataDispatchBuilder<DT, E, RT> {
@@ -198,14 +205,14 @@ function makeDataDispatchBuilder<DT, E, RT>(
   };
 }
 
-function makePresentationDispatchBuilder<DT, E, RT>(
+function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT,
 ): PresentationDispatchBuilder<DT, E, RT> {
   const withAction = (
     requestType: 'openBlade' | 'closeBlade' | 'openTab' | 'closeTab' | 'navigate',
     target: string,
-    params?: any | ((event: E) => any),
+    params?: Object | ((event: EventTypesByMsgName<E>) => any),
     content?: any,
     viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>,
   ): PresentationDispatchBuilder<DT, E, RT> => {

@@ -1,9 +1,11 @@
 import { createContext, useContext, useCallback, useState, type ReactNode } from 'react';
 import { MenuItem } from './uiEventTypes.js';
+import { ContextOwnedItem } from './contextOwnedItem.js';
+import { v4 as uuidv4 } from 'uuid';
 
-export type MenuDispatchRequest = {
-  requestType: 'add' | 'remove' | 'enable' | 'disable' | 'hide' | 'unhide' | 'update';
-  menuId: string;
+export type MenuDispatchRequest = ContextOwnedItem & {
+  requestType: 'add' | 'remove' | 'enable' | 'disable' | 'hide' | 'unhide' | 'update' | 'clearContextOwner';
+  menuId?: string;
   label?: string;
   action?: string;
   enabled?: boolean;
@@ -29,10 +31,13 @@ export function MenuDispatchProvider({ children }: { children: ReactNode }) {
   const dispatch = useCallback((request: MenuDispatchRequest) => {
     setItems(prev => {
       switch (request.requestType) {
+        case 'clearContextOwner':
+          return prev.filter(i => i.contextOwnerId !== request.contextOwnerId);
         case 'add': {
           const newItem: MenuItem = {
-            id: request.menuId,
-            label: request.label ?? request.menuId,
+            contextOwnerId: request.contextOwnerId,
+            id: request.menuId ?? uuidv4(),
+            label: request.label ?? request.menuId ?? 'Unnamed Menu Item',
             eventName: 'MENU',
             action: request.action,
             disabled: request.enabled === false,
@@ -46,16 +51,21 @@ export function MenuDispatchProvider({ children }: { children: ReactNode }) {
             : [...prev, newItem];
         }
         case 'remove':
+          if (!request.menuId) return prev;
           return prev.filter(i => i.id !== request.menuId);
         case 'enable':
+          if (!request.menuId) return prev;
           return prev.map(i => i.id === request.menuId ? { ...i, disabled: false } : i);
         case 'disable':
+          if (!request.menuId) return prev;
           return prev.map(i => i.id === request.menuId ? { ...i, disabled: true } : i);
         case 'hide':
           return prev.map(i => i.id === request.menuId ? { ...i, hidden: true } : i);
         case 'unhide':
+          if (!request.menuId) return prev;
           return prev.map(i => i.id === request.menuId ? { ...i, hidden: false } : i);
         case 'update':
+          if (!request.menuId) return prev;
           return prev.map(i => i.id === request.menuId ? {
             ...i,
             ...(request.label !== undefined && { label: request.label }),

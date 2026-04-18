@@ -3900,6 +3900,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/clone-deep@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "@types/clone-deep@npm:4.0.4"
+  checksum: 10c0/bee76e8b2ecae3c6aa0152cc64dc41a99244bea0daa8324474ec9e9f640c1b7e02e06eac2aff067eb0668d95d04273a65666f7bb39986016e0bee9f9f612933c
+  languageName: node
+  linkType: hard
+
 "@types/compression@npm:^1":
   version: 1.8.1
   resolution: "@types/compression@npm:1.8.1"
@@ -5485,6 +5492,17 @@ __metadata:
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^7.0.0"
   checksum: 10c0/4bda0f09c340cbb6dfdc1ed508b3ca080f12992c18d68c6be4d9cf51756033d5266e61ec57529e610dacbf4da1c634423b0c1b11037709cc6b09045cbd815df5
+  languageName: node
+  linkType: hard
+
+"clone-deep@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "clone-deep@npm:4.0.1"
+  dependencies:
+    is-plain-object: "npm:^2.0.4"
+    kind-of: "npm:^6.0.2"
+    shallow-clone: "npm:^3.0.0"
+  checksum: 10c0/637753615aa24adf0f2d505947a1bb75e63964309034a1cf56ba4b1f30af155201edd38d26ffe26911adaae267a3c138b344a4947d39f5fc1b6d6108125aa758
   languageName: node
   linkType: hard
 
@@ -8173,6 +8191,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-plain-object@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "is-plain-object@npm:2.0.4"
+  dependencies:
+    isobject: "npm:^3.0.1"
+  checksum: 10c0/f050fdd5203d9c81e8c4df1b3ff461c4bc64e8b5ca383bcdde46131361d0a678e80bcf00b5257646f6c636197629644d53bd8e2375aea633de09a82d57e942f4
+  languageName: node
+  linkType: hard
+
 "is-potential-custom-element-name@npm:^1.0.1":
   version: 1.0.1
   resolution: "is-potential-custom-element-name@npm:1.0.1"
@@ -8328,6 +8355,13 @@ __metadata:
   version: 4.0.0
   resolution: "isexe@npm:4.0.0"
   checksum: 10c0/5884815115bceac452877659a9c7726382531592f43dc29e5d48b7c4100661aed54018cb90bd36cb2eaeba521092570769167acbb95c18d39afdccbcca06c5ce
+  languageName: node
+  linkType: hard
+
+"isobject@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "isobject@npm:3.0.1"
+  checksum: 10c0/03344f5064a82f099a0cd1a8a407f4c0d20b7b8485e8e816c39f249e9416b06c322e8dec5b842b6bb8a06de0af9cb48e7bc1b5352f0fadc2f0abac033db3d4db
   languageName: node
   linkType: hard
 
@@ -9061,6 +9095,13 @@ __metadata:
   dependencies:
     "@keyv/serialize": "npm:^1.1.1"
   checksum: 10c0/c3ea795b6e03593ca57c8f70928a69bad14c13389a7fb75649a115ff55615244b04d8902798d841c17f0bb4a8a8866c97133b543b93f151b440170bba09176db
+  languageName: node
+  linkType: hard
+
+"kind-of@npm:^6.0.2":
+  version: 6.0.3
+  resolution: "kind-of@npm:6.0.3"
+  checksum: 10c0/61cdff9623dabf3568b6445e93e31376bee1cdb93f8ba7033d86022c2a9b1791a1d9510e026e6465ebd701a6dd2f7b0808483ad8838341ac52f003f512e0b4c4
   languageName: node
   linkType: hard
 
@@ -10179,6 +10220,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.3.0"
     "@types/babel__core": "npm:^7.20.5"
+    "@types/clone-deep": "npm:^4.0.4"
     "@types/compression": "npm:^1"
     "@types/cookie-parser": "npm:^1"
     "@types/cors": "npm:^2"
@@ -10200,6 +10242,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.4.1"
     "@vitejs/plugin-react-swc": "npm:^4.2.2"
     asynchronous-local-storage: "npm:^1.0.2"
+    clone-deep: "npm:^4.0.1"
     cls-rtracer: "npm:^2.6.3"
     compression: "npm:^1.8.0"
     cookie-parser: "npm:^1.4.7"
@@ -10225,6 +10268,7 @@ __metadata:
     proxy-deep: "npm:^4.0.1"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
+    safe-clone-deep: "npm:^1.1.5"
     semver: "npm:^7.7.1"
     swagger-autogen: "npm:^2.23.7"
     swagger-jsdoc: "npm:^6.2.8"
@@ -12158,6 +12202,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"safe-clone-deep@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "safe-clone-deep@npm:1.1.5"
+  checksum: 10c0/b9f4bbb2ae0b4af221d68c47ad908ccf7e7efd5ccae4c1f5a1e218d48e04a0d9e38577d1c98d1948754cab0ac2e55e2f26a52540b68a83e7a0298abe55e0d380
+  languageName: node
+  linkType: hard
+
 "safe-identifier@npm:^0.4.2":
   version: 0.4.2
   resolution: "safe-identifier@npm:0.4.2"
@@ -12338,6 +12389,15 @@ __metadata:
   version: 1.2.0
   resolution: "setprototypeof@npm:1.2.0"
   checksum: 10c0/68733173026766fa0d9ecaeb07f0483f4c2dc70ca376b3b7c40b7cda909f94b0918f6c5ad5ce27a9160bdfb475efaa9d5e705a11d8eaae18f9835d20976028bc
+  languageName: node
+  linkType: hard
+
+"shallow-clone@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "shallow-clone@npm:3.0.1"
+  dependencies:
+    kind-of: "npm:^6.0.2"
+  checksum: 10c0/7bab09613a1b9f480c85a9823aebec533015579fa055ba6634aa56ba1f984380670eaf33b8217502931872aa1401c9fcadaa15f9f604d631536df475b05bcf1e
   languageName: node
   linkType: hard
 

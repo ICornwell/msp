@@ -34,9 +34,9 @@ export interface ProductBuilder {
 
 export function createProduct(): ProductBuilder {
   const product: Partial<Product> = {
-    id: { id: '', version: '1.0.0' },
+    id: { name: '', version: '1.0.0' },
     name: '',
-    domain: { id: 'prototype', version: '1.0' },
+    domain: { name: 'prototype', version: '1.0' },
     inheritsFrom: undefined,
     schemas: new Map(),
     views: []
@@ -55,7 +55,7 @@ export function createProduct(): ProductBuilder {
     },
 
     withId: function (id: string, version: string): ProductBuilder {
-      product.id = { id, version };
+      product.id = { name: id, version };
       return builder;
     },
 
@@ -100,7 +100,7 @@ export function createProduct(): ProductBuilder {
         product: product.id
       };
       
-      addedSchemas.set(boundSchema.vid.id, boundSchema);
+      addedSchemas.set(boundSchema.vid.name, boundSchema);
       return builder;
     },
 
@@ -115,7 +115,7 @@ export function createProduct(): ProductBuilder {
         product: product.id
       };
       
-      overriddenSchemas.set(boundSchema.vid.id, boundSchema);
+      overriddenSchemas.set(boundSchema.vid.name, boundSchema);
       return builder;
     },
 

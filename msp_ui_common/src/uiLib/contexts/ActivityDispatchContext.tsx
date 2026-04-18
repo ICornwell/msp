@@ -3,7 +3,16 @@ import { useUiEventPublisher } from './UiEventContext.js';
 import { useDataCacheContext } from './DataCacheContext.js';
 import type { ServiceRequestEnvelope, ServiceRequestResult } from 'msp_common';
 import type { ViewDataContent } from "msp_common";
-export const ActivityEvents = {
+import { UiActivityEvent } from '../events/uiEvents.js';
+
+export type ActivityEventsType = {
+  /** Raised when a data view arrives from a service call or is replayed from cache. */
+  ACTIVITY_SUCCEEDED:  'ACTIVITY_SUCCEEDED',
+  /** Raised when a cached data view is mutated via save(). */
+  ACTIVITY_FAILED: 'ACTIVITY_FAILED',
+}
+
+export const ActivityEvents: ActivityEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
   ACTIVITY_SUCCEEDED:  'ACTIVITY_SUCCEEDED',
   /** Raised when a cached data view is mutated via save(). */
@@ -46,7 +55,7 @@ export function ActivityDispatchProvider({
   children,
 }: ActivityDispatchProviderProps) {
 
-  const { raiseUiEvent } = useUiEventPublisher();
+  const { raiseUiEvent } = useUiEventPublisher<UiActivityEvent>();
   const dataCache = useDataCacheContext();
 
   const callActivity = useCallback(
@@ -109,8 +118,8 @@ export function ActivityDispatchProvider({
               namespace,
               activityName,
               version,
-              error: result.message || 'Unknown error',
-              details: result.error,
+              result: { error: result.message, 
+              details: result.error}
             },
             correlationId,
             timestamp: Date.now(),
@@ -125,7 +134,7 @@ export function ActivityDispatchProvider({
             namespace,
             activityName,
             version,
-            error: err.message || 'Network error',
+            result: { error: err.message || 'Network error' },
           },
           correlationId,
           timestamp: Date.now(),

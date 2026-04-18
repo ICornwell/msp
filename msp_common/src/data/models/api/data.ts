@@ -1,8 +1,10 @@
 import { JOIN, Flatten, TrueFalse, ReKey } from '../../fluent/builderUtils.js';
 
 export type versionedResourceId = {
-  id: string;
+  domain?: versionedResourceId;
+  name: string;
   version: string;
+  variantName?: string;
 };
 
 export type DataObject = {

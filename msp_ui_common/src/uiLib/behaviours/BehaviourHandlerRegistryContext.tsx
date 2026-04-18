@@ -1,12 +1,12 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { useActivityDispatch } from '../contexts/ActivityDispatchContext.js';
 import { useMenuDispatch } from '../contexts/MenuDispatchContext.js';
+import { useNavTreeDispatch } from '../contexts/NavTreeDispatchContext.js';
 import { usePresentationDispatch } from '../contexts/PresentationDispatchContext.js';
 import { useDataDispatch } from '../contexts/DataCacheContext.js';
 import type { RequestAction } from './behaviourConfig.js';
 import { useUserSession } from '../hooks/index.js';
 import { SessionInfo } from '../contexts/UserSessionContext.js';
-import { ViewDataIdentifier } from 'msp_common';
 
 /**
  * An ActionHandler receives a RequestAction (from the behaviour config) plus the
@@ -47,6 +47,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
   const { callActivity } = useActivityDispatch();
   const { dispatch: dispatchMenu } = useMenuDispatch();
   const { dispatch: dispatchPresentation } = usePresentationDispatch();
+  const { dispatch: dispatchNavTree } = useNavTreeDispatch();
   const { invalidate, save } = useDataDispatch();
 
   function objectFromMaybeFunction(maybeFn: any, data: any): Object {
@@ -106,6 +107,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             if (!requestType || !menuId) return;
 
             dispatchMenu({
+              contextOwnerId: action.contextOwnerId ?? 'global',
               requestType,
               menuId,
               label: menu.label,
@@ -115,6 +117,28 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
               groupId: menu.groupId,
               menuTarget: menu.menuTarget,
               context: menu.context ?? event?.payload?.data ?? event?.payload?.context,
+            });
+          },
+        ],
+         [
+          'NavTreeRequest',
+          (action, event) => {
+            const navItem = action.eventData?.navItem || {};
+            const requestType = action.eventData?.requestType;
+            const navItemId = navItem.id || navItem.navItemId;
+            if (!requestType || !navItemId) return;
+
+            dispatchNavTree({
+              contextOwnerId: action.contextOwnerId ?? 'global',
+              requestType,
+              navItemId,
+              label: navItem.label,
+              action: typeof navItem.action === 'string' ? navItem.action : undefined,
+              enabled: typeof navItem.disabled === 'boolean' ? !navItem.disabled : undefined,
+              hidden: typeof navItem.hidden === 'boolean' ? navItem.hidden : undefined,
+              groupId: navItem.groupId,
+              navItemTarget: navItem.navItemTarget,
+              context: navItem.context ?? event?.payload?.data ?? event?.payload?.context,
             });
           },
         ],
@@ -135,12 +159,12 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             })
 
             params.content = action.eventData?.content;
-            params.viewDataIdentifier =  event?.payload?.viewDataContent as ViewDataIdentifier 
+            params.viewDataIdentifier =  event?.viewDataIdentifier 
               || action.eventData?.viewDataIdentifier; // the event is the preferred source for viewDataIdentifier,
               //  as it allows it to be dynamic based on the triggering event
               //  and action.eventData.viewDataIdentifier is replaced later 
 
-            dispatchPresentation({ requestType, target, params });
+            dispatchPresentation({ requestType, target, params, contextOwnerId: action.contextOwnerId ?? 'global' });
           },
         ],
         [
@@ -161,7 +185,16 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             }
           },
         ],
-      ]),
+        ['clearContextOwner', (action) => {
+          const contextOwnerId = action.contextOwnerId;
+          if (!contextOwnerId) return;
+
+          dispatchMenu({ contextOwnerId, requestType: 'clearContextOwner' });
+          dispatchNavTree({ contextOwnerId, requestType: 'clearContextOwner' });
+          dispatchPresentation({ contextOwnerId, requestType: 'clearContextOwner' });
+        }],
+      ] as [string, ActionHandler][]),
+      
     [callActivity, dispatchMenu, dispatchPresentation, invalidate, save],
   );
 

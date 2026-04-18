@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { NavItem, EventState, UiContentChangeEvent, ContextItem } from './uiEventTypes.js';
+import { NavTreeItem, EventState, UiContentChangeEvent, ContextItem } from './uiEventTypes.js';
 
 const initialState: EventState = {
   navItems: [],
@@ -18,7 +18,7 @@ const eventReducer = (state: EventState, action: UiContentChangeEvent): EventSta
           }
           return {
             ...state,
-            navItems: [...state.navItems, action.payload as NavItem]
+            navItems: [...state.navItems, action.payload as NavTreeItem]
           };
         case 'REMOVE':
           return {

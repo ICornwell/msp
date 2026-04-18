@@ -63,31 +63,31 @@ export const productSchema = createSchema('product')
 
   const accountObject = domainObject('accountObject', accountSchema)
         .withId('acc-123', '1.0')
-        .forDomain({ id: 'sales', version: '1.0' })
+        .forDomain({ name: 'sales', version: '1.0' })
         .withIsEntity(true)
         .buildDomainObject();
 
          const personObject = domainObject('personObject', personSchema)
         .withId('person-123', '1.0')
-        .forDomain({ id: 'sales', version: '1.0' })
+        .forDomain({ name: 'sales', version: '1.0' })
         .withIsEntity(true)
         .buildDomainObject();
   
       const orderObject = domainObject('orderObject', orderSchema)
         .withId('order-123', '1.0')
-        .forDomain({ id: 'sales', version: '1.0' })
+        .forDomain({ name: 'sales', version: '1.0' })
         .withIsEntity(true)
         .buildDomainObject();
   
       const itemObject = domainObject('itemObject', orderItemSchema)
         .withId('item-123', '1.0')
-        .forDomain({ id: 'sales', version: '1.0' })
+        .forDomain({ name: 'sales', version: '1.0' })
         .withIsEntity(true)
         .buildDomainObject();
   
       const productObject = domainObject('productObject', productSchema)
         .withId('product-123', '1.0')
-        .forDomain({ id: 'sales', version: '1.0' })
+        .forDomain({ name: 'sales', version: '1.0' })
         .withIsEntity(true)
         .buildDomainObject();
   

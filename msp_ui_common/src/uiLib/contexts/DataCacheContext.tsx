@@ -9,7 +9,15 @@ import { v4 as uuid } from 'uuid';
  * UIEvent messageTypes raised by the DataCache subsystem.
  * Use these in .whenEventRaised(...) to match data events in Behaviours.
  */
-export const DataCacheEvents = {
+export type DataCacheEventsType = {
+  /** Raised when a data view arrives from a service call or is replayed from cache. */
+  DATA_LOADED:  'DATA_LOADED',
+  /** Raised when a cached data view is mutated via save(). */
+  DATA_CHANGED: 'DATA_CHANGED',
+}
+
+
+export const DataCacheEvents: DataCacheEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
   DATA_LOADED:  'DATA_LOADED',
   /** Raised when a cached data view is mutated via save(). */

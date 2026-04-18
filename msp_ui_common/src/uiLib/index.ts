@@ -70,15 +70,4 @@ export { useUserSession } from './hooks/useUserSession.js';
 export { ServiceDispatcher } from './components/ServiceDispatcher.js';
 export type { ServiceDispatcherConfig } from './components/ServiceDispatcher.js';
 
-import { UserSessionEvents } from './contexts/UserSessionContext.js';
-import { DataCacheEvents } from './contexts/DataCacheContext.js';
-import { ActivityEvents } from './contexts/ActivityDispatchContext.js';
-import { NavigationEvents } from './events/navigationEvents.js';
-
-export const eventTypes = {
-  UserSession: UserSessionEvents,
-  DataCache: DataCacheEvents,
-  Activity: ActivityEvents,
-  Navigation: NavigationEvents,
-
-}
+export { eventTypes } from './contexts/eventTypes.js';

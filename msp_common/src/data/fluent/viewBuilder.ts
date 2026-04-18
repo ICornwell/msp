@@ -1,5 +1,5 @@
 import { Flatten, MakeArray, JOIN, TrueFalse } from './builderUtils.js';
-import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO } from '../models/api/data.js';
+import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO, versionedResourceId } from '../models/api/data.js';
 import { View, ViewElement, SubElement } from '../models/api/view.js';
 
 
@@ -295,7 +295,7 @@ export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootD
       if (rootElementBuilder) {
         view.rootElement = getBuilder(rootElementBuilder).build();
       }
-
+      view.viewDataIdentifier = {name: view.name!, version: view.version!} as versionedResourceId; // In real implementation, would need to generate a proper identifier
       
       return view as View<any>;    },
   };

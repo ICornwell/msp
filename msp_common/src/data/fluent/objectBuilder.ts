@@ -33,7 +33,7 @@ export function createDomainObject<S extends Schema<any, any>, O extends string,
   schema: S): DomainObjectBuilder<O, S, RelsTo, RelsFrom> {
   let domainObj: DomainObject<O,S, RelsTo, RelsFrom> = {
     name: name,
-    vid: { id: '', version: '1.0' },
+    vid: {  name: '', version: '1.0' },
     domain: undefined,
     product: undefined,
     isEntity: undefined,
@@ -53,12 +53,13 @@ export function createDomainObject<S extends Schema<any, any>, O extends string,
 
   const builder: DomainObjectBuilder<O, S, RelsTo, RelsFrom> = {
     withId: function (id: string, version: string): DomainObjectBuilder<O, S, RelsTo, RelsFrom> {
-      domainObj.vid = { id, version };
+      domainObj.vid = { domain: domainObj.domain, name: id, version };
       return builder as unknown as DomainObjectBuilder<O, S, RelsTo, RelsFrom>;
     },
 
     forDomain: function (domain: versionedResourceId): DomainObjectBuilder<O, S, RelsTo, RelsFrom> {
       domainObj.domain = domain;
+      domainObj.vid.domain = domain;
       return builder as unknown as DomainObjectBuilder<O, S, RelsTo, RelsFrom>;
     },
 

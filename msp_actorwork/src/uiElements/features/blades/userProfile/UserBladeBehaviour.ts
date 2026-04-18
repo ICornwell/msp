@@ -16,7 +16,7 @@ export const useUserProfileBehaviour = () => {
         .end()
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-      .whenEventSatisfies((event: any) => event.payload?.viewDataContent?.viewName === 'UserProfile')
+      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
       .dispatch.toMenus
         .add({
           id: 'user-profile-menu',
@@ -33,12 +33,12 @@ export const useUserProfileBehaviour = () => {
         } as any)
         .end()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-      .whenEventSatisfies((event: any) => event.payload?.menuId === 'user-profile-menu')
+      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
       .dispatch.toPresentation
         .openBlade('UserProfileBlade',
           {title: 'User Profile'},
           UserInfoLayout(),
-          (event: any) => event.payload?.context?.viewDataIdentifier
+          ({viewDataIdentifier}) => viewDataIdentifier
         )
         .end()
     .build();

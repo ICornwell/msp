@@ -7,14 +7,13 @@ export const useUserWorkDetailBehaviour = () => {
     
     // Show tab when requested
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-      .whenEventSatisfies((event: any) => event.payload?.viewDataIdentifier?.viewName === 'UserWorkList'
-        && event.payload?.viewDataIdentifier.recordId)
+      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserWorkList' && !!vid?.recordId)
       .dispatch.toPresentation
         .openTab('UserDetailTab',
-          {title: (event: any) => `WD-${event.payload?.viewDataIdentifier.recordId}`,
-           idSuffix: (event: any) =>event.payload?.viewDataIdentifier.recordId, closable: true},
+          {title: ({viewDataIdentifier, event}) => `WD-${viewDataIdentifier?.recordId} ${event.payload}`,
+           idSuffix: ({viewDataIdentifier}) => viewDataIdentifier?.recordId, closable: true},
           workItemDetail(),
-          (event: any) => event.payload?.viewDataIdentifier
+          ({viewDataIdentifier}) => viewDataIdentifier
         )
         .end()
     .build();

@@ -1,45 +1,45 @@
 // UI Event Messages - published by UI components and subsystems
 
-import { eventTypes } from "../index.js";
+import { UiMsgNames } from "../contexts/eventTypes.js";
+
+//import { eventTypes } from "../contexts/index.js";
 
 // TODO: move to ui_common as this is only for UI events
 export type UiEventMessage<T = any> = {
-  messageType: string;
+  domain?: string
+  messageType: UiMsgNames;
   payload: T;
   correlationId?: string;
-  timestamp?: number;
+  timestamp: number;
 };
 
 // User/session change events
-export type UserChangedEvent = UiEventMessage<{
+export type UiUserSessionEvent = UiEventMessage<{
   userId: string;
   userName?: string;
   sessionId?: string;
 }>;
 
-export function createUserChangedEvent(userId: string, userName?: string, sessionId?: string): UserChangedEvent {
-  return {
-    messageType: eventTypes.UserSession.USER_LOGGED_IN,
-    payload: { userId, userName, sessionId },
-    timestamp: Date.now(),
-  };
-}
 
 // Data loaded events
-export type DataLoadedEvent<T = any> = UiEventMessage<{
-  dataType: string;
-  dataKey: string;
-  data: T;
+export type UiDataCacheEvent<T = any> = UiEventMessage<{
+  viewDataIdentifier: string;
+  content: T;
   fromCache?: boolean;
 }>;
 
-export function createDataLoadedEvent<T>(dataType: string, dataKey: string, data: T, fromCache = false): DataLoadedEvent<T> {
-  return {
-    messageType: eventTypes.DataCache.DATA_LOADED,
-    payload: { dataType, dataKey, data, fromCache },
-    timestamp: Date.now(),
-  };
-}
+export type UiNavigationEvent<T = any, C = any> = UiEventMessage<{
+  viewDataIdentifier: string;
+  viewDataContent: T;
+  context?: C;
+}>;
+
+export type UiActivityEvent<T = any> = UiEventMessage<{
+  namespace: string;
+  activityName: string;
+  version: string;
+  result: T;
+}>;
 
 // Menu/UI interaction events
 export type MenuItemClickEvent = UiEventMessage<{
@@ -48,13 +48,6 @@ export type MenuItemClickEvent = UiEventMessage<{
   context?: any;
 }>;
 
-export function createMenuItemClickEvent(menuId: string, label: string, context?: any): MenuItemClickEvent {
-  return {
-    messageType: eventTypes.Navigation.ITEM_CLICK,
-    payload: { menuId, label, context },
-    timestamp: Date.now(),
-  };
-}
 
 // Generic interaction event
 export type InteractionEvent<T = any> = UiEventMessage<{
@@ -74,10 +67,4 @@ export type LinkClickEvent = UiEventMessage<{
   viewDataIdentifier: string;
 }>;
 
-export function createLinkClickEvent(linkName: string, viewDataIdentifier: string): LinkClickEvent {
-  return {
-    messageType: eventTypes.Navigation.ITEM_CLICK,
-    payload: { linkName, viewDataIdentifier },
-    timestamp: Date.now(),
-  };
-}
+

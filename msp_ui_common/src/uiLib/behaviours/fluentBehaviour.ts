@@ -1,11 +1,22 @@
-import { ViewDataQueryIdentifier } from "msp_common";
+import { ViewDataIdentifier } from "msp_common";
 import { MenuItem } from "../contexts/uiEventTypes.js";
 import { ComponentWrapper } from "../renderEngine/components/ReComponentWrapper.js";
 import { behaviourConfig } from "./behaviourConfig.js";
 import { BehaviourArg } from "./Behaviour.js";
 import { SessionInfo } from "../contexts/index.js";
+import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
 
 // ── Activity (service call) subsystem ────────────────────────────────────────
+
+export type BehaviourActionFnContext<DT, E extends UiMsgNames> = {
+  event: EventTypesByMsgName<E>;
+  data: DT;
+  viewDataIdentifier?: ViewDataIdentifier & { content?: DT};
+};
+export type BehaviourActionParam<DT, E extends UiMsgNames> = string | number | boolean | Date
+ |undefined | ((context: BehaviourActionFnContext<DT, E>) => string | number | boolean | Date
+ |undefined);
+export type BehaviourActionParams<DT, E extends UiMsgNames> = Record<string, BehaviourActionParam<DT, E>> 
 
 export type ActivityCallDefinition<E = any> = {
   id: string;
@@ -38,34 +49,34 @@ export interface MenuDispatchBuilder<DT, E, RT> {
 
 // ── Presentation subsystem ────────────────────────────────────────────────────
 
-export interface PresentationDispatchBuilder<DT, E, RT> {
-  openBlade:  (target: string, params?: any | ((event: E) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataQueryIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
-  closeBlade: (target: string, params?: any | ((event: E) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  openTab:    (target: string, params?: any | ((event: E) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataQueryIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
-  closeTab:   (target: string, params?: any | ((event: E) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  navigate:   (target: string, params?: any | ((event: E) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+export interface PresentationDispatchBuilder<DT, E extends UiMsgNames, RT> {
+  openBlade:  (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  closeBlade: (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  openTab:    (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  closeTab:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  navigate:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
   end: () => RT;
 }
 
 // ── Data subsystem ────────────────────────────────────────────────────────────
 
-export interface DataDispatchBuilder<DT, E, RT> {
+export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
   /** Evict the identified data from the cache (marks it stale). */
-  invalidate: (dataId: ViewDataQueryIdentifier) => DataDispatchBuilder<DT, E, RT>;
+  invalidate: (dataId: ViewDataIdentifier) => DataDispatchBuilder<DT, E, RT>;
   /** Push a change via a transform function; data subsystem publishes DataChanged. */
-  save: (dataId: ViewDataQueryIdentifier, changeFn: (data: DT) => DT) => DataDispatchBuilder<DT, E, RT>;
+  save: (dataId: ViewDataIdentifier, changeFn: (data: DT) => DT) => DataDispatchBuilder<DT, E, RT>;
   end: () => RT;
 }
 
 // ── LocalEffect ───────────────────────────────────────────────────────────────
 
-export interface LocalEffectBuilder<_DT, _E, RT> {
+export interface LocalEffectBuilder<_DT, _E extends UiMsgNames, RT> {
   end: () => RT;
 }
 
 // ── Dispatch surface (Behaviour → subsystem) ──────────────────────────────────
 
-export interface DispatchSurface<DT, E, RT> {
+export interface DispatchSurface<DT, E extends UiMsgNames, RT> {
   /** Dispatch a call-to-action to the Activity (service gateway) subsystem. */
   toActivity:     ActivityDispatchBuilder<DT, E, RT>;
   /** Dispatch a call-to-action to the Menu subsystem. */
@@ -79,7 +90,7 @@ export interface DispatchSurface<DT, E, RT> {
 
 // ── AlwaysBuilder (dispatch only) ───────────────────────────────────────
 
-export interface AlwaysBuilder<DT, E, RT> {
+export interface AlwaysBuilder<DT, E extends UiMsgNames, RT> {
   /**
    * Dispatch a call-to-action to a subsystem.
    * Only Behaviours dispatch; the subsystem owns what happens next and
@@ -92,16 +103,17 @@ export interface AlwaysBuilder<DT, E, RT> {
    * Use this to update co-located React state (e.g. setBladeOpen, setUserData).
    * State-setter references from useState are stable and safe to close over.
    */
-  localEffect: (effect: (event: E, data: any) => void) => LocalEffectBuilder<DT, E, RT>;
+  localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void) => LocalEffectBuilder<DT, E, RT>;
 }
 
 // ── EventHandlerBuilder (guards + dispatch)─────────────────────────────────
 
-export interface EventHandlerBuilder<DT, E, RT> extends AlwaysBuilder<DT, E, RT> {
+export interface EventHandlerBuilder<DT, E extends UiMsgNames, RT> extends AlwaysBuilder<DT, E, RT> {
   /** Guard: only proceed if the current data snapshot satisfies this predicate. */
   whenDataSatisfies:  (condition: (data: DT) => boolean) => EventHandlerBuilder<DT, E, RT>;
+  whenDataIdentifierSatisfies:  (condition: (dataIdentifier: ViewDataIdentifier) => boolean) => EventHandlerBuilder<DT, E, RT>;
   /** Guard: only proceed if the triggering UIEvent satisfies this predicate. */
-  whenEventSatisfies: (condition: (event: E) => boolean) => EventHandlerBuilder<DT, E, RT>;
+  whenEventSatisfies: (condition: (event: EventTypesByMsgName<E>) => boolean) => EventHandlerBuilder<DT, E, RT>;
 
 }
 
@@ -112,6 +124,6 @@ export interface FluentBehaviour<DT> {
   withData: <D>(data: D) => FluentBehaviour<D>;
   whenStarted: () => AlwaysBuilder<DT, any, FluentBehaviour<DT>>;
   /** Declare a response rule triggered when a UIEvent of this type is raised. */
-  whenEventRaised: <E extends string>(eventName: E) => EventHandlerBuilder<DT, E, FluentBehaviour<DT>>;
+  whenEventRaised: <E extends UiMsgNames>(eventName: E) => EventHandlerBuilder<DT, E, FluentBehaviour<DT>>;
   build: () => behaviourConfig;
 }

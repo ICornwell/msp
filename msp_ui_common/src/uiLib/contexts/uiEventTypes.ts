@@ -1,27 +1,33 @@
 import React from 'react';
 import { Tab } from '../contexts/PresentationDispatchContext.js';
 
-export interface NavItem {
-  eventName: string;
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  tabId?: string;
-  bladeId?: string;
-  disabled?: boolean;
-}
-export interface NavItemSubItem {
-  containerNavItem: string;
-  eventName: string;
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  tabId?: string;
-  bladeId?: string;
-  disabled?: boolean;
+export interface ContextOwnedElement {
+  contextOwnerId: string;
 }
 
-export interface ContextItem {
+export interface EventState {
+  navItems: NavTreeItem[];
+  contextItems: ContextItem[];
+}
+
+export interface NavTreeItem extends ContextOwnedElement {
+  containerNavItem?: string;
+  eventName: string;
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  action?: string | (() => void);
+  tabId?: string;
+  bladeId?: string;
+  disabled?: boolean;
+  hidden?: boolean;
+  groupId?: string;
+  navItemTarget?: string;
+  context?: any;
+  children: NavTreeItem[];
+}
+
+export interface ContextItem extends ContextOwnedElement {
   id: string;
   eventName: string;
   uid: string;
@@ -31,7 +37,7 @@ export interface ContextItem {
   label: string;
   businessKey: string;
 }
-export interface ContextSubItem {
+export interface ContextSubItem extends ContextOwnedElement {
   id: string;
   uid: string;
   containerContextId: string;
@@ -41,7 +47,7 @@ export interface ContextSubItem {
   index?: number;
 }
 
-export interface ContextRelatedContext {
+export interface ContextRelatedContext extends ContextOwnedElement {
   id: string;
   uid: string;
   entityId: string;
@@ -63,7 +69,7 @@ export interface ContextRelatedContext {
 //   closable?: boolean;
 // }
 
-export interface MenuItem {
+export interface MenuItem extends ContextOwnedElement {
   id: string;
   isContainer?: boolean;
   containerMenuId?: string;
@@ -79,22 +85,13 @@ export interface MenuItem {
   context?: any;
 }
 
-export interface AppEvent {
-  type: string;
-  data: any;
-}
 
-export interface EventState {
-  navItems: NavItem[];
-  contextItems: ContextItem[];
-}
 
-export type EventMsg = NavItem | NavItemSubItem | ContextSubItem | ContextRelatedContext | MenuItem;
+export type EventMsg = NavTreeItem | ContextSubItem | ContextRelatedContext | MenuItem;
 
-export type UiContentChangeEventType = 'NAVIGATION_HOST' | 'CONTEXT_HOST';
 export type UiContentChangeAction = 'ADD' | 'REMOVE';
 
-export type UiContentChangeEventNavigationTarget = 'MENU' | 'SIDEBAR' | 'PROFILE' | 'CONTEXT_MENU' | 'QUICK_ACTIONS';
+export type UiContentChangeEventNavigationTarget = 'MENU' | 'NAVTREE' | 'PROFILE' | 'CONTEXT_MENU' | 'QUICK_ACTIONS';
 
 export type UiContentChangeEventContextTarget = 'TAB' | 'PAGE' | 'BLADE';
 
@@ -102,16 +99,16 @@ export type UiChangeEventName = UiContentChangeEventNavigationTarget | UiContent
 
 export const EventMessageTypeMapping: Record<UiChangeEventName, Partial<EventMsg>> = {
   'MENU': { eventName: 'MENU' } as Partial<MenuItem>,
-  'SIDEBAR': {eventName: 'SIDEBAR'} as Partial<NavItem>,
-  'PROFILE': { eventName: 'PROFILE' } as Partial<NavItem>,
-  'QUICK_ACTIONS': { eventName: 'QUICK_ACTIONS' } as Partial<NavItem>,
+  'NAVTREE': { eventName: 'NAVTREE' } as Partial<NavTreeItem>,
+  'PROFILE': { eventName: 'PROFILE' } as Partial<NavTreeItem>,
+  'QUICK_ACTIONS': { eventName: 'QUICK_ACTIONS' } as Partial<NavTreeItem>,
   'CONTEXT_MENU': { eventName: 'CONTEXT_MENU' } as Partial<ContextItem>,
   'TAB': { eventName: 'TAB' } as Partial<Tab>,
   'BLADE': { eventName: 'BLADE' } as Partial<Tab>,
   'PAGE': { eventName: 'PAGE' } as Partial<Tab>,
 }
 
-export type EventMsgForName<T extends UiChangeEventName> = 
+export type EventMsgForName<T extends UiChangeEventName> =
   typeof EventMessageTypeMapping[T] extends Partial<infer U> ? U : never;
 
 export type UiContentChangeEvent =
@@ -120,12 +117,12 @@ export type UiContentChangeEvent =
     action: UiContentChangeAction;
     payload: MenuItem
   }
-  |{
+  | {
     type: 'NAVIGATION_HOST';
     action: UiContentChangeAction;
     preferredTarget: UiContentChangeEventNavigationTarget | string
     fallbackTarget?: UiContentChangeEventNavigationTarget
-    payload: NavItem
+    payload: NavTreeItem
   }
   | {
     type: 'CONTEXT_HOST';
