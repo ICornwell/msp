@@ -178,7 +178,9 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           setTabs(prev => {
             const next = prev.filter(t => t.id !== tabId);
             if (currentTabRef.current?.id === tabId) {
-              setAndActivateTab(next[0] ?? null);
+              setTimeout(() => {
+                setAndActivateTab(next[0] ?? null);
+              }, 0);
             }
             return next;
           });
@@ -186,7 +188,11 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
         activateTab: (tabId: string) => {
           setTabs(prev => {
             const tab = prev.find(t => t.id === tabId);
-            if (tab) setAndActivateTab(tab);
+            if (tab) {
+              setTimeout(() => {
+                setAndActivateTab(tab);
+              }, 0);
+            }
             return prev;
           });
         }
