@@ -5,6 +5,9 @@ import { behaviourConfig } from "./behaviourConfig.js";
 import { BehaviourArg } from "./Behaviour.js";
 import { SessionInfo } from "../contexts/index.js";
 import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
+import type { BehaviourScopeLevel } from "./behaviourConfig.js";
+
+export type { BehaviourScopeLevel };
 
 // ── Activity (service call) subsystem ────────────────────────────────────────
 
@@ -34,7 +37,7 @@ export interface ActivityDispatchBuilder<DT, E, RT> {
   /** Dispatch an async activity call to the service layer. */
   callAsync: (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
   callSync:  (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
-  end: () => RT;
+  endActivity: () => RT;
 }
 
 // ── Menu subsystem ────────────────────────────────────────────────────────────
@@ -44,18 +47,43 @@ export interface MenuDispatchBuilder<DT, E, RT> {
   remove:  (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
   enable:  (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
   disable: (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
-  end: () => RT;
+  endMenus: () => RT;
 }
 
 // ── Presentation subsystem ────────────────────────────────────────────────────
 
+export type PageDefinition = {
+  id: string;
+  title: string;
+  content: any;
+  icon?: any;
+  scrollEligible?: boolean;
+  /** Activate this page when the tab opens. Defaults to the first page. */
+  activateOnOpen?: boolean;
+};
+
+/**
+ * Nested builder for declaring pages inside an openPagedTab call.
+ * Call .withPage() one or more times, then .endPages() to return to PresentationDispatchBuilder.
+ */
+export interface PagedTabBuilder<DT, E extends UiMsgNames, RT> {
+  withPage: (page: PageDefinition) => PagedTabBuilder<DT, E, RT>;
+  endPages: () => PresentationDispatchBuilder<DT, E, RT>;
+}
+
 export interface PresentationDispatchBuilder<DT, E extends UiMsgNames, RT> {
-  openBlade:  (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
-  closeBlade: (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  openTab:    (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
-  closeTab:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  navigate:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  end: () => RT;
+  openBlade:    (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  closeBlade:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  openTab:      (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  /** Open a tab with a named set of pages. Fluently add pages via the returned PagedTabBuilder. */
+  openPagedTab: (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PagedTabBuilder<DT, E, RT>;
+  closeTab:     (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  /** Add a page to an already-open tab. */
+  addTabPage:   (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => PresentationDispatchBuilder<DT, E, RT>;
+  /** Remove a page from an already-open tab by page id. */
+  closeTabPage: (tabTarget: string, pageId: string) => PresentationDispatchBuilder<DT, E, RT>;
+  navigate:     (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  endPresentation: () => RT;
 }
 
 // ── Data subsystem ────────────────────────────────────────────────────────────
@@ -65,18 +93,24 @@ export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
   invalidate: (dataId: ViewDataIdentifier) => DataDispatchBuilder<DT, E, RT>;
   /** Push a change via a transform function; data subsystem publishes DataChanged. */
   save: (dataId: ViewDataIdentifier, changeFn: (data: DT) => DT) => DataDispatchBuilder<DT, E, RT>;
-  end: () => RT;
+  endData: () => RT;
 }
 
 // ── LocalEffect ───────────────────────────────────────────────────────────────
 
 export interface LocalEffectBuilder<_DT, _E extends UiMsgNames, RT> {
-  end: () => RT;
+  endEffect: () => RT;
 }
 
 // ── Dispatch surface (Behaviour → subsystem) ──────────────────────────────────
 
 export interface DispatchSurface<DT, E extends UiMsgNames, RT> {
+  /**
+   * Override the outbound scope-tagging level for all dispatches made through
+   * this surface chain. Returns the same surface so dispatch calls can follow.
+   * If not called, inherits from FluentBehaviour.withScope(), defaulting to 'FEATURE'.
+   */
+  withScope: (level: BehaviourScopeLevel) => DispatchSurface<DT, E, RT>;
   /** Dispatch a call-to-action to the Activity (service gateway) subsystem. */
   toActivity:     ActivityDispatchBuilder<DT, E, RT>;
   /** Dispatch a call-to-action to the Menu subsystem. */
@@ -122,6 +156,15 @@ export interface EventHandlerBuilder<DT, E extends UiMsgNames, RT> extends Alway
 export interface FluentBehaviour<DT> {
   registerLocalComponent: (component: ComponentWrapper<any>) => FluentBehaviour<DT>;
   withData: <D>(data: D) => FluentBehaviour<D>;
+  /**
+   * Declare the scope level for this behaviour.
+   * - Sets the **inbound filter** level: conditions are only evaluated when the
+   *   triggering event's scope tag matches at this granularity.
+   * - Sets the **outbound tagging** default: dispatched events are tagged up to
+   *   this level of the behaviour's scopeId.
+   * Default if not declared: inbound = 'DOMAIN' (broadest), outbound = 'FEATURE' (finest).
+   */
+  withScope: (level: BehaviourScopeLevel) => FluentBehaviour<DT>;
   whenStarted: () => AlwaysBuilder<DT, any, FluentBehaviour<DT>>;
   /** Declare a response rule triggered when a UIEvent of this type is raised. */
   whenEventRaised: <E extends UiMsgNames>(eventName: E) => EventHandlerBuilder<DT, E, FluentBehaviour<DT>>;

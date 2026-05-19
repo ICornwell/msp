@@ -6,6 +6,10 @@ describe('ViewBuilder', () => {
   it('should build view matching the JSON structure for accounts-people-orders-items-products', () => {
     // Local reference copy of the expected JSON (updated for new structure)
     const expectedView: View = {
+      viewDataIdentifier: {
+        name: "account-people-orders-items-products",
+        version: "1.0"
+      },
       name: "account-people",
       version: "1.0",
       configSet: "main",
@@ -31,7 +35,7 @@ describe('ViewBuilder', () => {
             subElements:  [
            {
             domainObjectId: {
-              id: "address-123",
+              name: "address-123",
                version: "1.0",
              },
              isCollection: false,

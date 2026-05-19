@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { schema } from '../fluent/schemaBuilder.js';
-import { view } from '../fluent/viewBuilder.js';
+import { createSchema } from '../fluent/schemaBuilder.js';
+import { createView } from '../fluent/viewBuilder.js';
 import { product } from '../fluent/productBuilder.js';
 
 import { domainObject } from '../fluent/objectBuilder.js';
-import { relationsBuilder } from '../fluent/objectRelationsBuilder.js';
+import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Product Builder Integration', () => {
   it('should build a complete product with schemas and views', () => {
     // Define schemas
-    const personSchema = schema('personSchema')
+    const personSchema = createSchema('personSchema')
       .withId('person', '1.0')
       .withProperty('name')
         .withDictionaryId('dict-name', '1.0')
@@ -23,7 +23,7 @@ describe('Product Builder Integration', () => {
       .endProperty()
       .buildSchema();
 
-    const accountSchema = schema('accountSchema')
+    const accountSchema = createSchema('accountSchema')
       .withId('account', '1.0')
       .withProperty('accountNumber')
         .withDictionaryId('dict-account-num', '1.0')
@@ -40,12 +40,12 @@ describe('Product Builder Integration', () => {
       .withId('account-789', '1.0')
       .buildDomainObject();
 
-    const relObjs = relationsBuilder()
+    const relObjs = createRelations()
         .allowRelationFrom('belongsTo', accountObject, personObject, true)
         .buildRelatedObjects();
 
     // Build a view
-    const accountView = view('account-person-view')
+    const accountView = createView('account-person-view')
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relObjs.account, false)
@@ -60,7 +60,7 @@ describe('Product Builder Integration', () => {
     const myProduct = product()
       .withName('Account Management')
       .withId('account-mgmt', '1.0.0')
-      .withDomain({ id: 'banking', version: '1.0' })
+      .withDomain({ name: 'banking', version: '1.0' })
       .addView(accountView)
       .buildProduct();
 
@@ -78,7 +78,7 @@ describe('Product Builder Integration', () => {
 
   it('should support product version inheritance', () => {
     // Version 1.0
-    const personSchemaV1 = schema('personSchema')
+    const personSchemaV1 = createSchema('personSchema')
       .withId('person', '1.0')
       .withProperty('name')
         .withDictionaryId('dict-name', '1.0')
@@ -90,7 +90,7 @@ describe('Product Builder Integration', () => {
       .withId('person-001', '1.0')
       .buildDomainObject();
 
-    const viewV1 = view('person-view')
+    const viewV1 = createView('person-view')
       .withVersion('1.0')
       .withRootKey('id')
       .withRootElement(domainObjectV1, true)
@@ -105,7 +105,7 @@ describe('Product Builder Integration', () => {
       .buildProduct();
 
     // Version 1.1 - inherits from 1.0 and adds new schema
-    const addressSchema = schema('addressSchema')
+    const addressSchema = createSchema('addressSchema')
       .withId('address', '1.0')
       .withProperty('street')
         .withDictionaryId('dict-street', '1.0')
@@ -121,7 +121,7 @@ describe('Product Builder Integration', () => {
       .withId('address-001', '1.0')
       .buildDomainObject();
 
-    const addressView = view('address-view')
+    const addressView = createView('address-view')
       .withVersion('1.0')
       .withRootKey('id')
       .withRootElement(addressObject, true)
@@ -145,7 +145,7 @@ describe('Product Builder Integration', () => {
 
   it('should generate correct ViewObjectType', () => {
     // Define schemas
-    const orderSchema = schema('orderSchema')
+    const orderSchema = createSchema('orderSchema')
       .withId('order', '1.0')
       .withProperty('orderId')
         .forType<string>()
@@ -158,7 +158,7 @@ describe('Product Builder Integration', () => {
       .endProperty()
       .buildSchema();
 
-    const itemSchema = schema('itemSchema')
+    const itemSchema = createSchema('itemSchema')
       .withId('item', '1.0')
       .withProperty('itemName')
         .forType<string>()
@@ -180,11 +180,11 @@ describe('Product Builder Integration', () => {
       .withId('item-456', '1.0')
       .buildDomainObject();
 
-    const relObjs = relationsBuilder()
+    const relObjs = createRelations()
         .allowRelationFrom('hasItem', orderObject, itemObject, true)
         .buildRelatedObjects();
 
-    const orderViewBuilder = view('order-items-view')
+    const orderViewBuilder = createView('order-items-view')
       .withVersion('1.0')
       .withRootKey('orderId')
       .withRootElement(relObjs.order, false)

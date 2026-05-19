@@ -58,7 +58,7 @@ export const MainContent: React.FC<MainContentProps> = ({
   return (
     <Box sx={{
       flex: 1,
-      p: 0,
+      p: "4px",
       overflow: 'auto',
       backgroundColor: (theme) => {
         console.log(theme);

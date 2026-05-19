@@ -15,7 +15,7 @@ export const useUserWorkDetailBehaviour = () => {
           workItemDetail(),
           ({viewDataIdentifier}) => viewDataIdentifier
         )
-        .end()
+        .endPresentation()
     .build();
 
   return { config };

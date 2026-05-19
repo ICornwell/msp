@@ -15,7 +15,7 @@ export type LabelFrameProps = {
 const MainDiv = styled('div')(({ theme }) => ({
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
-    margin: theme.spacing(2, 0),
+    margin: theme.spacing(0.5, 0),
     backgroundColor: theme.palette.background.paper,
 }));
 

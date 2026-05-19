@@ -1,0 +1,343 @@
+mod common;
+
+use serde_json::json;
+use uuid::Uuid;
+
+use docgraph::{
+    db::GraphRepository,
+    error::Result,
+    model::{ GraphElements, UpdateMessage, Vertex },
+};
+
+#[tokio::test]
+async fn test_db_setup() -> Result<()> {
+    // Arrange
+    let pool = common::setup_test_db().await;
+    let repo = GraphRepository::new(pool.clone());
+
+    // Act
+    let result = repo.ensure_schema().await;
+
+    // Assert
+    assert!(result.is_ok());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_add_vertices_and_edges() -> Result<()> {
+    // Arrange
+    let pool = common::setup_test_db().await;
+    let repo = GraphRepository::new(pool.clone());
+
+    // Ensure schema
+    repo.ensure_schema().await?;
+
+    // Create test data
+    let (vertices, edges) = common::create_basic_test_graph();
+
+    // Create update message
+    let update_msg = UpdateMessage {
+        add: Some(GraphElements {
+            vertices: Some(vertices.clone()),
+            edges: Some(edges.clone()),
+        }),
+        update: None,
+        delete: None,
+    };
+
+    // Act
+    let result = repo.process_update(update_msg).await;
+
+    // Assert
+    assert!(result.is_ok());
+
+    // Verify data was inserted correctly
+    let client = pool.get().await?;
+
+    // Check vertices
+    for vertex in &vertices {
+        let row = client.query_one(
+            "SELECT * FROM docgraph.vertices WHERE id = $1",
+            &[&vertex.id]
+        ).await?;
+
+        assert_eq!(vertex.id, row.get::<_, String>("id").trim());
+        assert_eq!(vertex.label, row.get::<_, String>("__label").trim());
+    }
+
+    // Check edges
+    for edge in &edges {
+        let row = client.query_one(
+            "SELECT * FROM docgraph.edges WHERE id = $1",
+            &[&edge.id]
+        ).await?;
+
+        assert_eq!(edge.id, row.get::<_, String>("id").trim());
+        assert_eq!(edge.label, row.get::<_, String>("__label").trim());
+        assert_eq!(edge.from, row.get::<_, String>("from_id").trim());
+        assert_eq!(edge.to, row.get::<_, String>("to_id").trim());
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_vertex_update_creates_superseded_by_edge() -> Result<()> {
+    // Arrange
+    let pool = common::setup_test_db().await;
+    let repo = GraphRepository::new(pool.clone());
+
+    // Ensure schema
+    repo.ensure_schema().await?;
+
+    // Create initial vertex
+    let vertex = common::create_test_vertex("UpdateTest");
+
+    // Add the vertex
+    let add_msg = UpdateMessage {
+        add: Some(GraphElements {
+            vertices: Some(vec![vertex.clone()]),
+            edges: None,
+        }),
+        update: None,
+        delete: None,
+    };
+
+    repo.process_update(add_msg).await?;
+
+    // Create updated version
+    let original_id = vertex.id.clone();
+    let new_id = Uuid::now_v7().to_string();
+
+    let updated_vertex = Vertex {
+        id: new_id.clone(),
+        original_id: original_id.clone(),
+        entity_id: vertex.entity_id.clone(),
+        transaction_id: Uuid::now_v7().to_string(),
+        label: vertex.label.clone(),
+        view_type: vertex.view_type.clone(),
+        timestamp: chrono::Utc::now().timestamp(),
+        content: json!({"test": "updated"}),
+        tmp_id: String::new(),
+        view_managed_edges: Vec::new(),
+    };
+
+    // Update the vertex
+    let update_msg = UpdateMessage {
+        add: None,
+        update: Some(GraphElements {
+            vertices: Some(vec![updated_vertex.clone()]),
+            edges: None,
+        }),
+        delete: None,
+    };
+
+    // Act
+    let result = repo.process_update(update_msg).await;
+
+    // Assert
+    assert!(result.is_ok());
+
+    // Verify supersededBy edge was created
+    let client = pool.get().await?;
+
+    let row = client.query_one(
+        "SELECT * FROM docgraph.edges WHERE from_id = $1 AND __label = 'supersededBy'",
+        &[&original_id]
+    ).await?;
+
+    assert_eq!("supersededBy", row.get::<_, String>("__label").trim());
+    assert_eq!(original_id, row.get::<_, String>("from_id").trim());
+    assert_eq!(new_id, row.get::<_, String>("to_id").trim());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_query_returns_expected_graph() -> Result<()> {
+    // Arrange
+    let pool = common::setup_test_db().await;
+    let repo = GraphRepository::new(pool.clone());
+
+    // Ensure schema
+    repo.ensure_schema().await?;
+
+    // Create test data - person who placed an order containing a product
+    let person = common::create_test_vertex("Person");
+    let product = common::create_test_vertex("Product");
+    let order = common::create_test_vertex("Order");
+
+    let person_placed_order = common::create_test_edge(&person, &order, "placed");
+    let order_contains_product = common::create_test_edge(&order, &product, "contains");
+
+    // Add data
+    let add_msg = UpdateMessage {
+        add: Some(GraphElements {
+            vertices: Some(vec![person.clone(), product.clone(), order.clone()]),
+            edges: Some(vec![person_placed_order.clone(), order_contains_product.clone()]),
+        }),
+        update: None,
+        delete: None,
+    };
+
+    repo.process_update(add_msg).await?;
+
+    // Create query message
+    let query_msg = docgraph::model::QueryMessage {
+        version: "1.0".to_string(),
+        user: "test".to_string(),
+        query_date: "2023-10-15".to_string(),
+        view: "default".to_string(),
+        view_version: "1.0".to_string(),
+        root_query_key_property: "id".to_string(),
+        root_query_key_value: person.id.clone(),
+        root_query_key_types: "all".to_string(),
+        use_entity_id_as_key: false,
+        is_latest_only: true,
+        timestamp: 0,
+        query_type: "graph".to_string(),
+        query_objects: vec![
+            docgraph::model::QueryObject {
+                label: "Person".to_string(),
+                original_label: "Person".to_string(),
+                is_query_root: true,
+                query_object_id: "p".to_string(),
+                attributes: vec!["id".to_string()],
+            },
+            docgraph::model::QueryObject {
+                label: "Order".to_string(),
+                original_label: "Order".to_string(),
+                is_query_root: false,
+                query_object_id: "o".to_string(),
+                attributes: vec!["id".to_string()],
+            }
+        ],
+        query_relations: vec![docgraph::model::QueryRelation {
+            from_object: "p".to_string(),
+            to_object: "o".to_string(),
+            label: "placed".to_string(),
+            reverse: false,
+        }],
+    };
+
+    // Act
+    let response_data = repo.query(query_msg).await?.data;
+
+    if let Some(result) = response_data {
+        // Assert
+        assert!(result.has_vertices());
+        assert!(result.has_edges());
+
+        // Should have 2 vertices (person, order) and 1 edge (placed)
+        assert_eq!(2, result.vertex_count());
+        assert_eq!(1, result.edge_count());
+
+        // Vertices should include person and order
+        let vertices = result.vertices.unwrap();
+        let vertex_ids: Vec<String> = vertices
+            .iter()
+            .map(|v| v.id.clone())
+            .collect();
+
+        assert!(vertex_ids.contains(&person.id));
+        assert!(vertex_ids.contains(&order.id));
+
+        // Edges should include person_placed_order
+        let edges = result.edges.unwrap();
+        let edge_ids: Vec<String> = edges
+            .iter()
+            .map(|e| e.id.clone())
+            .collect();
+
+        assert!(edge_ids.contains(&person_placed_order.id));
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_delete_vertex_creates_superseded_by_edge() -> Result<()> {
+    // Arrange
+    let pool = common::setup_test_db().await;
+    let repo = GraphRepository::new(pool.clone());
+
+    // Ensure schema
+    repo.ensure_schema().await?;
+
+    // Create initial vertex
+    let vertex = common::create_test_vertex("DeleteTest");
+
+    // Add the vertex
+    let add_msg = UpdateMessage {
+        add: Some(GraphElements {
+            vertices: Some(vec![vertex.clone()]),
+            edges: None,
+        }),
+        update: None,
+        delete: None,
+    };
+
+    repo.process_update(add_msg).await?;
+
+    // Delete the vertex
+    let delete_msg = UpdateMessage {
+        add: None,
+        update: None,
+        delete: Some(GraphElements {
+            vertices: Some(vec![vertex.clone()]),
+            edges: None,
+        }),
+    };
+
+    // Act
+    let result = repo.process_update(delete_msg).await;
+
+    // Assert
+    assert!(result.is_ok());
+
+    // Verify supersededBy edge was created with "deleted" as to_id
+    let client = pool.get().await?;
+
+    let row = client.query_one(
+        "SELECT * FROM docgraph.edges WHERE from_id = $1 AND __label = 'supersededBy'",
+        &[&vertex.id]
+    ).await?;
+
+    assert_eq!("supersededBy", row.get::<_, String>("__label").trim());
+    assert_eq!(vertex.id, row.get::<_, String>("from_id").trim());
+    assert_eq!("deleted", row.get::<_, String>("to_id").trim());
+
+    // Verify that the vertex is no longer returned in queries
+    let query_msg = docgraph::model::QueryMessage {
+        version: "1.0".to_string(),
+        user: "test".to_string(),
+        query_date: "2023-10-15".to_string(),
+        view: "default".to_string(),
+        view_version: "1.0".to_string(),
+        root_query_key_property: "id".to_string(),
+        root_query_key_value: vertex.id.clone(),
+        root_query_key_types: "all".to_string(),
+        use_entity_id_as_key: false,
+        is_latest_only: true,
+        timestamp: 0,
+        query_type: "graph".to_string(),
+        query_objects: vec![docgraph::model::QueryObject {
+            label: "DeleteTest".to_string(),
+            original_label: "DeleteTest".to_string(),
+            is_query_root: true,
+            query_object_id: "v".to_string(),
+            attributes: vec!["id".to_string()],
+        }],
+        query_relations: vec![],
+    };
+
+    let query_result = repo.query(query_msg).await?.data;
+    if let Some(result_elements) = query_result {
+        assert_eq!(0, result_elements.vertex_count());
+    } else {
+        panic!("no response")
+    }
+
+    Ok(())
+}

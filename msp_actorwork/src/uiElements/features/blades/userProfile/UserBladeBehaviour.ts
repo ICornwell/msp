@@ -13,7 +13,7 @@ export const useUserProfileBehaviour = () => {
           action: 'actorwork/getUserProfileData/1.0.0',
           payloadFromSession: (sessionInfo: SessionInfo) => ({ userId: sessionInfo?.userId }),
         })
-        .end()
+        .endActivity()
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
       .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
@@ -31,7 +31,7 @@ export const useUserProfileBehaviour = () => {
             'viewRootEntityId': 'currentuser'}
           }
         } as any)
-        .end()
+        .endMenus()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
       .dispatch.toPresentation
@@ -40,7 +40,7 @@ export const useUserProfileBehaviour = () => {
           UserInfoLayout(),
           ({viewDataIdentifier}) => viewDataIdentifier
         )
-        .end()
+        .endPresentation()
     .build();
 
   return { config };

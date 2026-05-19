@@ -2,13 +2,29 @@ import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   spacing: 6,
+
+  mspCustom: {
+    sizing: {
+      heights: {
+        containerTitles: {
+          xs: 24,
+          sm: 28,
+          md: 32,
+          lg: 36,
+          xl: 40,
+        },
+      }
+    }
+  },
+
+
   palette: {
-    grey: {"700": "#4532f3ff", "300": "#1283f7ff"},
+    grey: { "700": "#4532f3ff", "300": "#1283f7ff" },
     primary: {
       dark: '#005a9e',
       main: '#0078d4',
       contrastText: '#2e359bff',
-      
+
     },
     secondary: {
       dark: '#1a5fb4',
@@ -80,7 +96,7 @@ const theme = createTheme({
       },
     },
     MuiFormControl: {
-      
+
       defaultProps: {
         margin: 'dense',
       },
@@ -174,11 +190,11 @@ const theme = createTheme({
         size: 'small',
       },
     },
-    MuiButtonBase:{
-      styleOverrides:{
-        root:{
-          "&.MuiCheckbox-root":{
-           justifyContent: 'start',
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          "&.MuiCheckbox-root": {
+            justifyContent: 'start',
           }
         }
       }

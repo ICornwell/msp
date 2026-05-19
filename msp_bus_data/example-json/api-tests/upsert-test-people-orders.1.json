@@ -1,0 +1,194 @@
+{
+    "view": {
+        "name": "account-people",
+        "version": "1.0",
+        "configSet": "main",
+        "rootKey": "accountNumber",
+        "rootElement": {
+            "object": "account",
+            "queryObjectId": "acc",
+            "isCollection": false,
+            "subElements": [
+                {
+                    "object": "person",
+                    "queryObjectId": "per",
+                    "isCollection": false,
+                    "relationFromParent": "belongsTo"
+                },
+                {
+                    "object": "order",
+                    "queryObjectId": "ord",
+                    "isCollection": true,
+                    "relationFromParent": "hasOrder",
+                    "subElements": [
+                        {
+                            "object": "orderItem",
+                            "queryObjectId": "itm",
+                            "isCollection": true,
+                            "relationFromParent": "hasItem",
+                            "subElements": [
+                                {
+                                    "object": "product",
+                                    "queryObjectId": "prd",
+                                    "isCollection": false,
+                                    "relationFromParent": "forProduct"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "data": {
+        "__entityId": "ex23",
+        "accountNumber": "acc-001",
+        "id": "ac001",
+        "__metaData": {
+            "__label": "account",
+            "__timeStamp": 2000,
+            "__transactionId": "tx12",
+            "__viewType": "account"
+        },
+        "openedDate": "2004-10-21T10:41:00Z",
+        "order": [
+            {
+                "__entityId": "ex23",
+                "id": "ord01",
+                "__metaData": {
+                    "__label": "order",
+                    "__timeStamp": 2000,
+                    "__transactionId": "tx12",
+                    "__viewType": "order"
+                },
+                "orderDate": "2004-10-21T15:00:00Z",
+                "orderItem": [
+                    {
+                        "__entityId": "ex23",
+                        "id": "orditem01",
+                        "__metaData": {
+                            "__label": "orderItem",
+                            "__timeStamp": 2000,
+                            "__transactionId": "tx12",
+                            "__viewType": "orderItem"
+                        },
+                        "product": {
+                            "__entityId": "p1",
+                            "id": "prod01",
+                            "__metaData": {
+                                "__label": "product",
+                                "__timeStamp": 500,
+                                "__transactionId": "tx01",
+                                "__viewType": "product"
+                            },
+                            "name": "rubber chicken",
+                            "sku": "rc-799-200/h"
+                        },
+                        "quantity": 2,
+                        "unitPrice": 20.99
+                    },
+                    {
+                        "__entityId": "ex23",
+                        "id": "orditem02",
+                        "__metaData": {
+                            "__label": "orderItem",
+                            "__timeStamp": 2000,
+                            "__transactionId": "tx12",
+                            "__viewType": "orderItem"
+                        },
+                        "product": {
+                            "__entityId": "p2",
+                            "id": "prod02",
+                            "__metaData": {
+                                "__label": "product",
+                                "__timeStamp": 500,
+                                "__transactionId": "tx01",
+                                "__viewType": "product"
+                            },
+                            "name": "tall hat",
+                            "sku": "th-1000-2/a"
+                        },
+                        "quantity": 6,
+                        "unitPrice": 7.5
+                    }
+                ],
+                "ref": "ord-001"
+            },
+            {
+                "__entityId": "ex23",
+                "id": "ord02",
+                "__metaData": {
+                    "__label": "order",
+                    "__timeStamp": 3000,
+                    "__transactionId": "tx22",
+                    "__viewType": "order"
+                },
+                "openedDate": "2004-10-28T10:00:00Z",
+                "orderItem": [
+                    {
+                        "__entityId": "ex23",
+                        "id": "orditem04",
+                        "__metaData": {
+                            "__label": "orderItem",
+                            "__timeStamp": 3000,
+                            "__transactionId": "tx22",
+                            "__viewType": "orderItem"
+                        },
+                        "product": {
+                            "__entityId": "p3",
+                            "id": "prod03",
+                            "__metaData": {
+                                "__label": "product",
+                                "__timeStamp": 500,
+                                "__transactionId": "tx01",
+                                "__viewType": "product"
+                            },
+                            "name": "novelty pencil",
+                            "sku": "np-9221-843/k"
+                        },
+                        "quantity": 4,
+                        "unitPrice": 3.99
+                    },
+                    {
+                        "__entityId": "ex23",
+                        "id": "orditem03",
+                        "__metaData": {
+                            "__label": "orderItem",
+                            "__timeStamp": 3000,
+                            "__transactionId": "tx22",
+                            "__viewType": "orderItem"
+                        },
+                        "product": {
+                            "__entityId": "p1",
+                            "id": "prod01",
+                            "__metaData": {
+                                "__label": "product",
+                                "__timeStamp": 500,
+                                "__transactionId": "tx01",
+                                "__viewType": "product"
+                            },
+                            "name": "rubber chicken",
+                            "sku": "rc-799-200/h"
+                        },
+                        "quantity": 7,
+                        "unitPrice": 20.99
+                    }
+                ],
+                "ref": "ord-002"
+            }
+        ],
+        "person": {
+            "__entityId": "ex83",
+            "age": 26,
+            "id": "px001",
+            "__metaData": {
+                "__label": "person",
+                "__timeStamp": 2000,
+                "__transactionId": "tx12",
+                "__viewType": "person"
+            },
+            "name": "bob"
+        },
+        "type": "premium"
+    }
+}

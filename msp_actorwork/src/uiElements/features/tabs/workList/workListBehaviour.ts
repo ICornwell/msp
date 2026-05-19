@@ -11,7 +11,7 @@ export const useUserWorkListBehaviour = () => {
           action: 'actorwork/getUserWorkListData/1.0.0',
           payloadFromSession: (sessionInfo) => ({ userId: sessionInfo?.userId }),
         })
-        .end()
+        .endActivity()
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
       .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserWorkList' && !vid?.recordId)
@@ -21,7 +21,7 @@ export const useUserWorkListBehaviour = () => {
           workListContent(),
           ({viewDataIdentifier}) => viewDataIdentifier
         )
-        .end()
+        .endPresentation()
     .build();
 
   return { config };

@@ -1,0 +1,19 @@
+{
+    "name": "account-people",
+    "version": "1.0",
+    "configSet": "main",
+    "rootKey": "accountNumber",
+    "rootElement": {
+        "object": "account",
+        "queryObjectId": "acc",
+        "isCollection": false,
+        "subElements": [
+            {
+                "object": "person",
+                "queryObjectId": "per",
+                "isCollection": false,
+                "relationFromParent": "belongsTo"
+            }
+        ]
+    }
+}

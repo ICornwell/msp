@@ -3,6 +3,7 @@ export * from './AppShell.js';
 export * from './Blade.js';
 export * from './CustomThemeProvider.js';
 export * from './MainContent.js';
+export * from './PageBar.js';
 export * from './ServiceDispatcher.js';
 export * from './Sidebar.js';
 export * from './TabStrip.js';

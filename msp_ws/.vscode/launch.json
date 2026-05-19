@@ -93,6 +93,53 @@
             "request": "launch",
             "type": "node-terminal",
             "cwd": "${workspaceFolder}/.."
+        },
+         {
+            "type": "lldb",
+            "request": "launch",
+            "name": "TechData Run 'docgraph'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=docgraph",
+                    "--package=docgraph",
+                    "--manifest-path=../msp_tech_data/Cargo.toml"
+                ],
+                "filter": {
+                    "name": "docgraph",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/../msp_tech_data"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "TechData Test 'docgraph'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=docgraph",
+                    "--package=docgraph",
+                    "--manifest-path=../msp_tech_data/Cargo.toml"
+                ],
+                "filter": {
+                    "name": "docgraph",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/../msp_tech_data"
+        },
+         {
+            "name": "BusData Run 'dgm_bus_intg'",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "cwd": "${workspaceFolder}/../msp_bus_data/src/dgm_bus_intg",
+            "program": "${workspaceFolder}/../msp_bus_data/src/dgm_bus_intg/service.go"
         }
     ]
 }

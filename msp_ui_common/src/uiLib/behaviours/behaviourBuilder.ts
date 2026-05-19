@@ -2,17 +2,21 @@ import { ViewDataIdentifier } from "msp_common";
 import { MenuItem } from "../contexts/uiEventTypes.js";
 import { ComponentWrapper } from "../renderEngine/components/ReComponentWrapper.js";
 import { behaviourConfig, behaviourElement, behaviourAction, LocalEffectAction } from './behaviourConfig.js';
+import type { BehaviourScopeLevel } from './behaviourConfig.js';
 import {
   FluentBehaviour,
   EventHandlerBuilder,
   ActivityDispatchBuilder,
   MenuDispatchBuilder,
   PresentationDispatchBuilder,
+  PagedTabBuilder,
+  PageDefinition,
   DataDispatchBuilder,
   LocalEffectBuilder,
   ActivityCallDefinition,
   AlwaysBuilder,
   BehaviourActionFnContext,
+  DispatchSurface,
 } from './fluentBehaviour.js';
 import { BehaviourArg } from "./Behaviour.js";
 import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
@@ -43,6 +47,12 @@ function makeFluentBehaviour<DT>(
 
     withData: <D>(_data: D) => {
       return makeFluentBehaviour<D>(config, buildConfig);
+    },
+
+    withScope: (level: BehaviourScopeLevel) => {
+      config.inboundScopeLevel = level;
+      config.outboundScopeLevel = level;
+      return makeFluentBehaviour<DT>(config, buildConfig);
     },
 
     whenStarted: () => {
@@ -81,23 +91,33 @@ function makeFluentBehaviour<DT>(
   };
 }
 
+function makeDispatchSurface<DT, E extends UiMsgNames, RT>(
+  element: behaviourElement<DT, E>,
+  returnBuilder: RT,
+  scopeLevel?: BehaviourScopeLevel
+): DispatchSurface<DT, E, RT> {
+  return {
+    withScope: (level: BehaviourScopeLevel) =>
+      makeDispatchSurface(element, returnBuilder, level),
+    toActivity:     makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+  };
+}
+
 function makeAlwaysBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): AlwaysBuilder<DT, E, RT> {
   return {
    
-    dispatch: {
-      toActivity:     makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder),
-      toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder),
-      toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder),
-      toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder),
-    },
+    dispatch: makeDispatchSurface(element, returnBuilder),
 
     localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void): LocalEffectBuilder<DT, E, RT> => {
       const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
       element.actions.push(action);
-      return { end: () => returnBuilder };
+      return { endEffect: () => returnBuilder };
     },
   };
 }
@@ -126,45 +146,50 @@ function makeEventHandlerBuilder<DT, E extends UiMsgNames, RT>(
 
 function makeActivityDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
-  returnBuilder: RT
+  returnBuilder: RT,
+  scopeLevel?: BehaviourScopeLevel
 ): ActivityDispatchBuilder<DT, E, RT> {
   return {
     callAsync: (activity: ActivityCallDefinition<E> | MenuItem) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'ServiceCallRequest',
         eventData: { requestType: 'async', activity } as any,
-        eventMsg: undefined as any
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
       };
       element.actions.push(action);
-      return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder);
+      return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
     callSync: (activity: ActivityCallDefinition<E> | MenuItem) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'ServiceCallRequest',
         eventData: { requestType: 'sync', activity } as any,
-        eventMsg: undefined as any
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
       };
       element.actions.push(action);
-      return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder);
+      return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
-    end: () => returnBuilder
+    endActivity: () => returnBuilder
   };
 }
 
 function makeMenuDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
-  returnBuilder: RT
+  returnBuilder: RT,
+  scopeLevel?: BehaviourScopeLevel
 ): MenuDispatchBuilder<DT, E, RT> {
   const withMenuAction = (requestType: string, menu: MenuItem): MenuDispatchBuilder<DT, E, RT> => {
     const action: behaviourAction<DT, E> = {
       eventType: 'MenuRequest',
       eventData: { requestType, menu } as any,
-      eventMsg: undefined as any
+      eventMsg: undefined as any,
+      outboundScopeLevel: scopeLevel,
     };
     element.actions.push(action);
-    return makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder);
+    return makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
   };
 
   return {
@@ -172,42 +197,71 @@ function makeMenuDispatchBuilder<DT, E extends UiMsgNames, RT>(
     remove:  (menu) => withMenuAction('remove', menu),
     enable:  (menu) => withMenuAction('enable', menu),
     disable: (menu) => withMenuAction('disable', menu),
-    end: () => returnBuilder
+    endMenus: () => returnBuilder
   };
 }
 
 function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
-  returnBuilder: RT
+  returnBuilder: RT,
+  scopeLevel?: BehaviourScopeLevel
 ): DataDispatchBuilder<DT, E, RT> {
   return {
     invalidate: (viewDataIdentifier: ViewDataIdentifier) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'DataRequest',
         eventData: { requestType: 'revert', viewDataIdentifier } as any,
-        eventMsg: undefined as any
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
       };
       element.actions.push(action);
-      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder);
+      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
     save: (viewDataIdentifier: ViewDataIdentifier, changeFn: (data: DT) => DT) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'DataRequest',
         eventData: { requestType: 'change', viewDataIdentifier, changeFn } as any,
-        eventMsg: undefined as any
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
       };
       element.actions.push(action);
-      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder);
+      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
-    end: () => returnBuilder
+    endData: () => returnBuilder
+  };
+}
+
+function makePagedTabBuilder<DT, E extends UiMsgNames, RT>(
+  element: behaviourElement<DT, E>,
+  returnBuilder: RT,
+  target: string,
+  baseParams: any,
+  pages: PageDefinition[],
+  scopeLevel?: BehaviourScopeLevel
+): PagedTabBuilder<DT, E, RT> {
+  const presentationBuilder = makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
+  return {
+    withPage: (page: PageDefinition) =>
+      makePagedTabBuilder(element, returnBuilder, target, baseParams, [...pages, page], scopeLevel),
+    endPages: () => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'PresentationRequest',
+        eventData: { requestType: 'openPagedTab', target, ...baseParams, pages } as any,
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
+      };
+      element.actions.push(action);
+      return presentationBuilder;
+    },
   };
 }
 
 function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
   returnBuilder: RT,
+  scopeLevel?: BehaviourScopeLevel
 ): PresentationDispatchBuilder<DT, E, RT> {
   const withAction = (
     requestType: 'openBlade' | 'closeBlade' | 'openTab' | 'closeTab' | 'navigate',
@@ -224,18 +278,41 @@ function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
       eventType: 'PresentationRequest',
       eventData: eventData as any,
       eventMsg: undefined as any,
+      outboundScopeLevel: scopeLevel,
     };
 
     element.actions.push(action);
-    return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder);
+    return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
   };
 
   return {
     openBlade:  (target, params, content, viewDataIdentifier) => withAction('openBlade', target, params, content, viewDataIdentifier),
     closeBlade: (target, params) => withAction('closeBlade', target, params),
     openTab:    (target, params, content, viewDataIdentifier) => withAction('openTab', target, params, content, viewDataIdentifier),
-    closeTab:   (target, params) => withAction('closeTab', target, params),
+    openPagedTab: (target, params?) =>
+      makePagedTabBuilder(element, returnBuilder, target, params ?? {}, [], scopeLevel),
+    closeTab:     (target, params) => withAction('closeTab', target, params),
+    addTabPage: (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'PresentationRequest',
+        eventData: { requestType: 'addTabPage', target: tabTarget, params: { ...page, pageId: page.id, activate: opts?.activate } } as any,
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
+      };
+      element.actions.push(action);
+      return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
+    },
+    closeTabPage: (tabTarget: string, pageId: string) => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'PresentationRequest',
+        eventData: { requestType: 'closeTabPage', target: tabTarget, params: { pageId } } as any,
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
+      };
+      element.actions.push(action);
+      return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
+    },
     navigate:   (target, params) => withAction('navigate', target, params),
-    end: () => returnBuilder,
+    endPresentation: () => returnBuilder,
   };
 }

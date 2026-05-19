@@ -11,6 +11,7 @@ import EngineComponents from './engineComponents.js';
 import { ReProvider } from '../renderEngine/contexts/ReEngineContext.js';
 import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext.js';
 import { ContextItem } from '../contexts/uiEventTypes.js';
+import { PageBar } from './index.js';
 
 const MainContainer = styled(Box)(({  }) => ({
   display: 'flex',
@@ -92,15 +93,10 @@ export const AppShell: React.FC = () => {
             />
 
             <MainContainer>
-              <TabStrip
-
-              />
-
-              <MainContent
-
-              />
+              <TabStrip/>
+              <PageBar/>
+              <MainContent/>
             </MainContainer>
-
             <Blade />
           </ContentContainer>
         </Box>

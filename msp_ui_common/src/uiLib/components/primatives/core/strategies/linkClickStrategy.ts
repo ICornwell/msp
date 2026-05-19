@@ -22,7 +22,7 @@
  *     .whenEventSatisfies(e => e.payload.linkName === 'work-item-detail')
  *     .dispatch.toPresentation
  *       .openTab('WorkItemDetailTab', e => ({ id: e.payload.viewDataIdentifier }))
- *     .end()
+ *     .endPresentation()
  */
 
 

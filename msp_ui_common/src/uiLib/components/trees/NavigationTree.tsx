@@ -6,12 +6,7 @@ import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 import ArticleIcon from '@mui/icons-material/Article';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import FolderRounded from '@mui/icons-material/FolderRounded';
-import ImageIcon from '@mui/icons-material/Image';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import VideoCameraBackIcon from '@mui/icons-material/VideoCameraBack';
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import { useTreeItem, UseTreeItemParameters } from '@mui/x-tree-view/useTreeItem';
 import {
@@ -24,51 +19,17 @@ import { TreeItemProvider } from '@mui/x-tree-view/TreeItemProvider';
 import { TreeItemDragAndDropOverlay } from '@mui/x-tree-view/TreeItemDragAndDropOverlay';
 import { useTreeItemModel } from '@mui/x-tree-view/hooks';
 import { TreeViewBaseItem } from '@mui/x-tree-view/models';
-import { useUiEventSubscriber } from '../../hooks/useUiEvents.js';
-import { eventTypes } from '../../index.js';
-import { UiMsgUserSessionNames } from '../../contexts/eventTypes.js';
+import { NavTreeItem } from '../../contexts/uiEventTypes.js';
+import { useNavTreeDispatch } from '../../contexts/NavTreeDispatchContext.js';
+import { useUiEventPublisher } from '../../contexts/UiEventContext.js';
+import { NavigationEvents } from '../../events/uiNavEventMsgTypes.js';
 
 
-type FileType = 'image' | 'pdf' | 'doc' | 'video' | 'folder' | 'pinned' | 'trash';
-
-type ExtendedTreeItemProps = {
-  fileType?: FileType;
+type NavTreeItemProps = {
   id: string;
   label: string;
+  icon?: React.ReactNode;
 };
-
-const DEFAULT_ITEMS: TreeViewBaseItem<ExtendedTreeItemProps>[] = [ { id: '3', label: 'Help', fileType: 'folder' }]
-
-const ITEMS: TreeViewBaseItem<ExtendedTreeItemProps>[] = [
-  {
-    id: '1',
-    label: 'Work',
-    children: [
-      {
-        id: '1.1',
-        label: 'Mine',
-        children: [
-          { id: '1.1.1', label: 'WT-12345', fileType: 'pdf' },
-          { id: '1.1.2', label: 'WI-12346', fileType: 'doc' }
-        ],
-      },
-      { id: '1.2', label: 'Team', fileType: 'folder' },
-      { id: '1.3', label: 'External', fileType: 'image' },
-    ],
-  },
-  {
-    id: '2',
-    label: 'Bookmarked',
-    fileType: 'pinned',
-    children: [
-      { id: '2.1', label: 'Case 1', fileType: 'folder' },
-      { id: '2.2', label: 'Case 2', fileType: 'folder' },
-      { id: '2.3', label: 'Case 3', fileType: 'folder' }
-    ],
-  },
-  { id: '3', label: 'Profile', fileType: 'folder' },
-  { id: '4', label: 'Help', fileType: 'trash' },
-];
 
 function DotIcon() {
   return (
@@ -184,12 +145,12 @@ const TreeItemLabelText = styled(Typography)({
 
 interface CustomLabelProps {
   children: React.ReactNode;
-  icon?: React.ElementType;
+  icon?: React.ReactNode;
   expandable?: boolean;
 }
 
 function CustomLabel({
-  icon: Icon,
+  icon,
   expandable,
   children,
   ...other
@@ -202,13 +163,14 @@ function CustomLabel({
         alignItems: 'center',
       }}
     >
-      {Icon && (
+      {icon && (
         <Box
-          component={Icon}
           className="labelIcon"
           color="inherit"
-          sx={{ mr: 1, fontSize: '1.2rem' }}
-        />
+          sx={{ mr: 1, fontSize: '1.2rem', display: 'inline-flex' }}
+        >
+          {icon}
+        </Box>
       )}
 
       <TreeItemLabelText variant="body2">{children}</TreeItemLabelText>
@@ -216,27 +178,6 @@ function CustomLabel({
     </TreeItemLabel>
   );
 }
-
-const getIconFromFileType = (fileType: FileType) => {
-  switch (fileType) {
-    case 'image':
-      return ImageIcon;
-    case 'pdf':
-      return PictureAsPdfIcon;
-    case 'doc':
-      return ArticleIcon;
-    case 'video':
-      return VideoCameraBackIcon;
-    case 'folder':
-      return FolderRounded;
-    case 'pinned':
-      return FolderOpenIcon;
-    case 'trash':
-      return DeleteIcon;
-    default:
-      return ArticleIcon;
-  }
-};
 
 interface CustomTreeItemProps
   extends
@@ -261,14 +202,9 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     status,
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref });
 
-  const item = useTreeItemModel<ExtendedTreeItemProps>(itemId)!;
+  const item = useTreeItemModel<NavTreeItemProps>(itemId)!;
 
-  let icon;
-  if (status.expandable) {
-    icon = FolderRounded;
-  } else if (item.fileType) {
-    icon = getIconFromFileType(item.fileType);
-  }
+  const icon: React.ReactNode = item.icon ?? (status.expandable ? <FolderRounded /> : <ArticleIcon />);
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
@@ -293,30 +229,57 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 });
 
 export default function NavigationTree() {
-  const [ items, setITems ] = React.useState<TreeViewBaseItem<ExtendedTreeItemProps>[]>(DEFAULT_ITEMS);
-  useUiEventSubscriber({
-    msgTypeFilter:(event) => [eventTypes.UserSession.USER_LOGGED_OUT, eventTypes.UserSession.USER_LOGGED_IN].includes(event.messageType as any as UiMsgUserSessionNames),
-    callback: (event) => {
-      switch (event.messageType) {
-        case eventTypes.UserSession.USER_LOGGED_OUT:
-          setITems(DEFAULT_ITEMS);
-          break;
-         case eventTypes.UserSession.USER_LOGGED_IN:
-          setITems(ITEMS);
-          break;
-      }
+  const { items } = useNavTreeDispatch();
+  const { raiseUiEvent } = useUiEventPublisher();
 
-    },
-  });
+  const treeItems = React.useMemo(() => mapNavItemsToTree(items), [items]);
+
+  const handleItemClick = (_event: React.MouseEvent, itemId: string) => {
+    const navItem = findNavItem(items, itemId);
+    if (!navItem) return;
+    raiseUiEvent({
+      messageType: NavigationEvents.ITEM_CLICK,
+      payload: {
+        navItemId: navItem.id,
+        label: navItem.label,
+        action: typeof navItem.action === 'string' ? navItem.action : undefined,
+        context: navItem.context,
+      },
+      timestamp: Date.now(),
+    });
+  };
+
+  if (treeItems.length === 0) return null;
+
   return (
     <RichTreeView
-      items={items}
-      defaultExpandedItems={['1', '1.1']}
-      // --@--ts-expect-error - MUI tree type definition issue, component works correctly
-      defaultSelectedItems="1.1"
+      items={treeItems}
       sx={{ height: 'fit-content', flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
       slots={{ item: CustomTreeItem }}
       itemChildrenIndentation={12}
+      onItemClick={handleItemClick}
     />
   );
+}
+
+function mapNavItemsToTree(navItems: NavTreeItem[]): TreeViewBaseItem<NavTreeItemProps>[] {
+  return navItems
+    .filter(i => !i.hidden)
+    .map(i => ({
+      id: i.id,
+      label: i.label,
+      icon: i.icon ?? undefined,
+      children: i.children?.length ? mapNavItemsToTree(i.children) : undefined,
+    }));
+}
+
+function findNavItem(items: NavTreeItem[], id: string): NavTreeItem | undefined {
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (item.children?.length) {
+      const found = findNavItem(item.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
 }

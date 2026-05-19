@@ -5,7 +5,7 @@ import { ReUiPlan } from '../renderEngine/UiPlan/ReUiPlan.js';
 import { ContextOwnedItem } from './contextOwnedItem.js';
 
 export type PresentationDispatchRequest = ContextOwnedItem & {
-  requestType: 'openBlade' | 'closeBlade' | 'openTab' | 'closeTab' | 'navigate' | 'showModal' | 'hideModal' | 'clearContextOwner';
+  requestType: 'openBlade' | 'closeBlade' | 'openTab' | 'closeTab' | 'openPagedTab' | 'addTabPage' | 'closeTabPage' | 'navigate' | 'showModal' | 'hideModal' | 'clearContextOwner';
   target?: string;
   params?: any;
 };
@@ -19,7 +19,9 @@ export type PresentationBladeState = ContextOwnedItem & {
 
 export type PresentationCurrentTab = {
   tab: Tab | null;
-  setTabTitle?: (newTitle: string) => void; // Optional function to update the title of a tab
+  currentPage?: TabPage;
+  setTabTitle?: (newTitle: string) => void;
+  activatePage?: (pageId: string) => void;
 }
 
 export type PresentationTabSet = {
@@ -41,13 +43,23 @@ export const PresentationDispatchContext = createContext<PresentationDispatchCon
     open: false, content: undefined,
     viewDataIdentifier: undefined, contextOwnerId: ''
   },
-  currentTab: { tab: null, setTabTitle: undefined },
+  currentTab: { tab: null, currentPage: undefined, setTabTitle: undefined, activatePage: undefined },
   tabSet: { tabs: [], closeTab: () => { }, activateTab: () => { } },
 });
 
 export type TabContent = {
   uiPlan: ReUiPlan;
   viewDataIdentifier?: ViewDataIdentifier;
+};
+
+export type TabPage = {
+  id: string;
+  title: string;
+  icon?: any;
+  content: TabContent;
+  isActive?: boolean;
+  /** When false the page cannot enter long-scroll mode regardless of user preference. */
+  scrollEligible?: boolean;
 };
 
 export type Tab = {
@@ -58,6 +70,8 @@ export type Tab = {
   content: TabContent;
   isActive?: boolean;
   contextOwnerId?: string;
+  /** Present → paged tab; absent → flat tab (today's default behaviour). */
+  pages?: TabPage[];
 }
 
 /**
@@ -77,11 +91,30 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [currentTab, setCurrentTab] = useState<Tab | null>(null);
   const currentTabRef = useRef<Tab | null>(null);
+  const [currentPage, setCurrentPage] = useState<TabPage | undefined>(undefined);
+
+  const activatePageInTab = useCallback((tab: Tab, pageId: string) => {
+    setTabs(prev => prev.map(t =>
+      t.id !== tab.id ? t : {
+        ...t,
+        pages: t.pages?.map(p => ({ ...p, isActive: p.id === pageId }))
+      }
+    ));
+    const page = tab.pages?.find(p => p.id === pageId);
+    setCurrentPage(page);
+  }, []);
 
   const setAndActivateTab = useCallback((tab: Tab | null) => {
     currentTabRef.current = tab;
     setTabs(prev => prev.map(t => ({ ...t, isActive: t.id === tab?.id })));
     setCurrentTab(tab);
+    // When activating a paged tab, restore the active page (first if none marked).
+    if (tab?.pages) {
+      const activePage = tab.pages.find(p => p.isActive) ?? tab.pages[0];
+      setCurrentPage(activePage);
+    } else {
+      setCurrentPage(undefined);
+    }
   }, []);
 
   const dispatch = useCallback((request: PresentationDispatchRequest) => {
@@ -103,6 +136,68 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           contextOwnerId: ''
         });
         break;
+      case 'openPagedTab': {
+        const tabUId = request.params?.idSuffix ? `${request.target}-${request.params.idSuffix}` : request.target;
+        const initialPages: TabPage[] = (request.params?.pages ?? []).map((p: TabPage, i: number) => ({
+          ...p,
+          isActive: i === 0,
+        }));
+        setTabs(prev => {
+          const existing = prev.find(t => t.id === tabUId);
+          if (existing) {
+            setAndActivateTab(existing);
+            return prev;
+          }
+          const newTab: Tab = {
+            id: tabUId ?? uuidv4(),
+            contextOwnerId: request.contextOwnerId,
+            title: request.params?.title || 'New Tab',
+            isClosable: request.params?.closable ?? true,
+            content: { uiPlan: request.params?.content, viewDataIdentifier: request.params?.viewDataIdentifier },
+            pages: initialPages,
+          };
+          setTimeout(() => setAndActivateTab(newTab), 0);
+          return [...prev, newTab];
+        });
+        break;
+      }
+      case 'addTabPage': {
+        const tabId = request.target;
+        const newPage: TabPage = {
+          id: request.params?.pageId,
+          title: request.params?.title ?? 'Page',
+          icon: request.params?.icon,
+          content: { uiPlan: request.params?.content, viewDataIdentifier: request.params?.viewDataIdentifier },
+          scrollEligible: request.params?.scrollEligible,
+          isActive: false,
+        };
+        setTabs(prev => prev.map(t => {
+          if (t.id !== tabId) return t;
+          const already = t.pages?.find(p => p.id === newPage.id);
+          if (already) return t;
+          return { ...t, pages: [...(t.pages ?? []), newPage] };
+        }));
+        if (request.params?.activate) {
+          const tab = currentTabRef.current?.id === tabId ? currentTabRef.current : null;
+          if (tab) activatePageInTab(tab, newPage.id);
+        }
+        break;
+      }
+      case 'closeTabPage': {
+        const tabId = request.target;
+        const pageId = request.params?.pageId;
+        setTabs(prev => prev.map(t => {
+          if (t.id !== tabId || !t.pages) return t;
+          const next = t.pages.filter(p => p.id !== pageId);
+          const wasActive = t.pages.find(p => p.id === pageId)?.isActive;
+          if (wasActive && next.length > 0) {
+            next[0] = { ...next[0], isActive: true };
+            if (currentTabRef.current?.id === tabId) setCurrentPage(next[0]);
+          }
+          return { ...t, pages: next };
+        }));
+        break;
+      }
       case 'openTab': {
         const tabUId = request.params?.idSuffix ? `${request.target}-${request.params.idSuffix}` : request.target;
         setTabs(prev => {
@@ -154,7 +249,7 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
         break;
       }
     }
-  }, [setAndActivateTab]);
+  }, [setAndActivateTab, activatePageInTab]);
 
   const setTabTitle = useCallback((tab: Tab | null, newTitle: string) => {
     if (!tab) return;
@@ -170,7 +265,11 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
       dispatch, bladeState,
       currentTab: {
         tab: currentTab,
-        setTabTitle: (newTitle: string) => setTabTitle(currentTab, newTitle)
+        currentPage,
+        setTabTitle: (newTitle: string) => setTabTitle(currentTab, newTitle),
+        activatePage: (pageId: string) => {
+          if (currentTabRef.current) activatePageInTab(currentTabRef.current, pageId);
+        },
       },
       tabSet: {
         tabs,

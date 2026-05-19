@@ -71,3 +71,6 @@ export { ServiceDispatcher } from './components/ServiceDispatcher.js';
 export type { ServiceDispatcherConfig } from './components/ServiceDispatcher.js';
 
 export { eventTypes } from './contexts/eventTypes.js';
+
+// MUI theme augmentation — importing this activates theme.mspCustom typings transitively
+export type { MspCustomThemeOptions, Sizing } from './ThemeExtensions.js';

@@ -17,7 +17,7 @@
   "scripts": {
     "build": "",
     "build:all": "yarn build:commons && yarn build:aftercommons",
-    "build:aftercommons": "yarn semaphores:build && yarn build:hubs && yarn build:modules",
+    "build:aftercommons": "yarn data:build && yarn semaphores:build && yarn build:hubs && yarn build:modules",
     "build:commons": "yarn common:build && yarn svr_common:build  && yarn ui_common:build  && yarn build:mf",
     "build:mf": "yarn mf:prebuild && yarn mf:build",
     "build:hubs": "yarn servicehub:build && yarn datahub:build && yarn fes:build",
@@ -71,7 +71,11 @@
     "datahub:test:ui": "yarn workspace msp_datahub run test:ui",
     "datahub:test:coverage": "yarn workspace msp_datahub run test:coverage",
     "mf:build": "yarn workspace @module-federation/vite run build",
-    "mf:prebuild": "yarn workspace @module-federation/vite run prebuild"
+    "mf:prebuild": "yarn workspace @module-federation/vite run prebuild",
+
+    "busdata:build": "echo \"building go project msp_bus_data\" && ./msp_bus_data/gobuild.sh",
+    "techdata:build": "echo \"building rust project msp_tech_data\" && ./msp_tech_data/rsbuild.sh",
+    "data:build": "yarn busdata:build & yarn techdata:build"
   },
   "dependencies": {
     "@types/node": "^25.3.5"

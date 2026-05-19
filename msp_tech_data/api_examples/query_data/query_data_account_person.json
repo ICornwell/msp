@@ -1,0 +1,49 @@
+{
+    
+    "version": "0.0.0",
+    "user": "test@testing.com",
+    "queryDate": "2024-06-25T21:17:00Z",
+    "view": "testView",
+    "viewVersion": "0.0.0",
+    "rootQueryKeyProperty": "accountNumber",
+    "rootQueryKeyValue": "xx12",
+    "rootQueryKeyTypes": "Text",
+    "useEntityIdAsKey": true,
+    "isLatestOnly": true,
+    "timeStamp": 0,
+    "queryType": "hierarchy",
+    "get": [
+        {
+            "object": {
+                "type": "account",
+                "originalType": "account",
+                "isQueryRoot": true,
+                "queryObjectId": "q0",
+                "content": [
+                    "name",
+                    "age"
+                ]
+            }
+        },
+        {
+            "object": {
+                "type": "person",
+                "originalType": "person",
+                "isQueryRoot": false,
+                "queryObjectId": "q1",
+                "content": [
+                    "accountNumber",
+                    "type"
+                ]
+            }
+        },
+        {
+            "relation": {
+                "from": "q0",
+                "to": "q1",
+                "type": "belongsTo",
+                "reverse": false
+            }
+        }
+    ]
+}

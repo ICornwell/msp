@@ -1,0 +1,48 @@
+# Build stage
+FROM rust:1.85-slim as builder
+
+WORKDIR /usr/src/app
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y libpq-dev pkg-config libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the Cargo manifests
+COPY Cargo.toml ./
+
+# Create a dummy source file to build dependencies
+RUN mkdir -p src && \
+    echo "fn main() {}" > src/main.rs
+
+# Build dependencies - this layer will be cached unless Cargo.toml changes
+RUN cargo build --release
+
+# Remove the dummy source file
+RUN rm -f src/main.rs
+
+# Copy the actual source code
+COPY . .
+
+# Build the application
+RUN cargo build --release
+
+# Runtime stage
+FROM debian:bullseye-slim
+
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y libpq5 ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the built binary from the builder stage
+COPY --from=builder /usr/src/app/target/release/docgraph /app/docgraph
+COPY --from=builder /usr/src/app/config /app/config
+
+# Set the entrypoint
+ENTRYPOINT ["/app/docgraph"]
+
+# Expose the API port
+EXPOSE 5100

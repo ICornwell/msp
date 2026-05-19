@@ -1,10 +1,10 @@
 import { GETRELSFORNAME, NameOfDomainObject, RelsFromDO, RelsToDO } from '../models/api/data.js';
-import { schema } from '../fluent/schemaBuilder.js';
+import { createSchema } from '../fluent/schemaBuilder.js';
 import { addDomainObjectRelationTo, domainObject } from '../fluent/objectBuilder.js';
-import { relationsBuilder } from '../fluent/objectRelationsBuilder.js';
+import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder', () => {
-  const accountSchema = schema('account')
+  const accountSchema = createSchema('account')
     .withId('account', '1.0')
     .withProperty('accountNumber')
       .forType<string>()
@@ -20,7 +20,7 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const personSchema = schema('person')
+  const personSchema = createSchema('person')
     .withId('person', '1.0')
     .withProperty('name').withDictionaryId('dict-account-number', '1.0')
       .forType<string>()
@@ -35,18 +35,18 @@ describe('Declarative View Builder', () => {
     
     const personObject_noRels = domainObject('personObject', personSchema)
       .withId('person-123', '1.0')
-      .forDomain({ id: 'banking', version: '1.0' })
+      .forDomain({ name: 'banking', version: '1.0' })
       .withIsEntity(true)
       .buildDomainObject();
 
     const accountObject_noRels = domainObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
-      .forDomain({ id: 'banking', version: '1.0' })
+      .forDomain({ name: 'banking', version: '1.0' })
       .withIsEntity(true)
       // .withRelationFrom('owner', personObject_noRels, true)
       .buildDomainObject();
 
-    const relatedObjs = relationsBuilder()
+    const relatedObjs = createRelations()
     .allowRelationFrom('owner', personObject_noRels, accountObject_noRels, true)
     .allowRelationFrom('admin', personObject_noRels, accountObject_noRels, true)
     .allowRelationTo('test', accountObject_noRels, personObject_noRels, true)
@@ -123,13 +123,13 @@ describe('Declarative View Builder', () => {
     
     const personObject = domainObject('personObject', personSchema)
       .withId('person-123', '1.0')
-      .forDomain({ id: 'banking', version: '1.0' })
+      .forDomain({ name: 'banking', version: '1.0' })
       .withIsEntity(true)
       .buildDomainObject();
 
     const accountObject = domainObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
-      .forDomain({ id: 'banking', version: '1.0' })
+      .forDomain({ name: 'banking', version: '1.0' })
       .withIsEntity(true)
       .withRelationTo('owner', personObject, true)
       .buildDomainObject();
@@ -145,13 +145,13 @@ describe('Declarative View Builder', () => {
     
     const personObject = domainObject('personObject', personSchema)
       .withId('person-123', '1.0')
-      .forDomain({ id: 'banking', version: '1.0' })
+      .forDomain({ name: 'banking', version: '1.0' })
       .withIsEntity(true)
       .buildDomainObject();
 
     const accountObject = domainObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
-      .forDomain({ id: 'banking', version: '1.0' })
+      .forDomain({ name: 'banking', version: '1.0' })
       .withIsEntity(true)
       .withRelationTo('owner', personObject, true)
       .buildDomainObject();

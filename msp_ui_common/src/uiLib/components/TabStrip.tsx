@@ -17,7 +17,7 @@ interface TabStripProps {
 
 // Styled directly on MuiTab so MUI class specificity works correctly
 const StyledMuiTab = styled(MuiTab)(({ theme }) => ({
-  minHeight: 38,
+  minHeight: theme.mspCustom?.sizing?.heights?.containerTitles?.sm,
   textTransform: 'none',
   fontWeight: 500,
   fontSize: theme.typography.fontSize,
@@ -44,6 +44,16 @@ const StyledMuiTab = styled(MuiTab)(({ theme }) => ({
     zIndex: 100,
   },
 }));
+
+const StyledTabBox = styled(Box)(({ theme }) => ({
+   borderBottom: 1,
+   borderColor: theme.palette.divider,
+   minHeight: theme.mspCustom?.sizing?.heights?.containerTitles?.sm 
+  }));
+
+const StyledTabs = styled(Tabs)(({ theme }) => ({
+   minHeight: theme.mspCustom?.sizing?.heights?.containerTitles?.sm 
+  }));
 
 // Composed tab — close affordance uses a span, not a button, to avoid button-in-button
 const StyledTab = (props: any) => {
@@ -126,9 +136,8 @@ export const TabStrip: React.FC<TabStripProps> = ({
   }
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider', minHeight: '38px' }}>
-      <Tabs
-        sx={{minHeight:'38px'}}
+    <StyledTabBox>
+      <StyledTabs
         value={activeTabId || false}
         onChange={handleTabChange}
         variant="scrollable"
@@ -147,7 +156,7 @@ export const TabStrip: React.FC<TabStripProps> = ({
             data-tab-id={tab.id}
           />
         ))}
-      </Tabs>
-    </Box>
+      </StyledTabs>
+    </StyledTabBox>
   );
 };

@@ -70,7 +70,12 @@ export function AppUiFeatures() {
             if (module?.default) {
               const resolvedConfigs = module.default()
               const configs = Array.isArray(resolvedConfigs) ? resolvedConfigs : [resolvedConfigs];
-              loadedConfigs.push(...configs.map((config: behaviourConfig) => config));
+              // Stamp the authoritative scope identity from service discovery onto every config
+              // returned by this remote. Module authors do not self-declare their identity.
+              loadedConfigs.push(...configs.map((config: behaviourConfig) => ({
+                ...config,
+                scopeId: remote.scope ?? config.scopeId,
+              })));
             }
           } catch (error) {
             console.error(`Error loading remote module ${remote.moduleName} @ ${remote.remoteEntry}:`, error);

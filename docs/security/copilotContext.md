@@ -1,5 +1,9 @@
 # Copilot Working Context — MSP Security Architecture
 
+> For the full domain model see [../domain/WORK_MODEL.md](../domain/WORK_MODEL.md).
+> For the full permission model see [../domain/PERMISSIONS.md](../domain/PERMISSIONS.md).
+> For the RGAM design paper see [RGAM.md](RGAM.md).
+
 Restore this context when working on any security, access control, policy,
 audit, or module admission aspect of the Mighty-Small-Platform.
 
@@ -68,7 +72,7 @@ All three must allow. Default answer is always DENY.
 
 ### Core domain entities
 
-**Actor** — human, service account, AI agent. Has type + attributes.
+**Actor** — one of five types: User (human), System (service account), Agent (AI/LLM with pre-prompt context), Team (organisational grouping), Organisation (legal corporate entity). Has type + attributes. See [../domain/WORK_MODEL.md](../domain/WORK_MODEL.md) for the full Actor type definitions.
 
 **Work** — unit of purposeful activity. Every data access is associated with
 a Work. Carries data classification attributes that constrain accessible data.

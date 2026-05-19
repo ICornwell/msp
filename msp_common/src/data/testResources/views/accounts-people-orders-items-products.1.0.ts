@@ -2,6 +2,7 @@ import { createView } from '../../fluent/viewBuilder.js';
 import { createSchema } from '../../fluent/schemaBuilder.js';
 import { createRelations } from '../../fluent/objectRelationsBuilder.js';
 import { domainObject } from '../../fluent/objectBuilder.js';
+import { View } from '../../../index.js';
 
 // Define schemas for each entity
 export const accountSchema = createSchema('account')
@@ -156,9 +157,22 @@ export const accountsPeopleOrdersItemsProductsViewContext = createView('account-
       .end()
     .end()
   .endView();
+
+  export const simplePersonViewContext = createView('person-view')
+  .withVersion('1.0')
+  .withConfigSet('main')
+  .withRootKey('name')
+  .withRootElement(relObjs.personObject, false)
+    .withSubElement('address', relObjs.addressObject, false)
+      .withRelation('hasAddress')
+      .end()
+    .end()
+  .endView();
+
     
 
-export const accountsPeopleOrdersItemsProductsView = accountsPeopleOrdersItemsProductsViewContext.build();
+export const accountsPeopleOrdersItemsProductsView = accountsPeopleOrdersItemsProductsViewContext.build() as View<any>;
+export const simplePersonView = simplePersonViewContext.build() as View<any>;
 
 // Type is now automatically extracted from the builder context!
 export type AccountsPeopleOrdersItemsProductsData = typeof accountsPeopleOrdersItemsProductsView.dataType;

@@ -1,0 +1,25 @@
+{
+  "name": "dgtests",
+  "version": "1.0.0",
+  "description": "DGAccess tests",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@types/semver": "^7.7.1",
+    "got": "^14.6.6",
+    "msp_common": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.17"
+  }
+}

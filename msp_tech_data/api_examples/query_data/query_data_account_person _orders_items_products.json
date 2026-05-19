@@ -1,0 +1,106 @@
+{
+    
+    "version": "0.0.0",
+    "user": "test@testing.com",
+    "queryDate": "2024-06-25T21:17:00Z",
+    "view": "testView",
+    "viewVersion": "0.0.0",
+    "rootQueryKeyProperty": "accountNumber",
+    "rootQueryKeyValue": "ac001",
+    "rootQueryKeyTypes": "Text",
+    "useEntityIdAsKey": true,
+    "isLatestOnly": true,
+    "timeStamp": 0,
+    "queryType": "hierarchy",
+    "get": [
+        {
+            "object": {
+                "type": "account",
+                "originalType": "account",
+                "isQueryRoot": true,
+                "queryObjectId": "q0",
+                "content": [
+                    "name",
+                    "age"
+                ]
+            }
+        },
+        {
+            "object": {
+                "type": "person",
+                "originalType": "person",
+                "isQueryRoot": false,
+                "queryObjectId": "q1",
+                "content": [
+                    "accountNumber",
+                    "type"
+                ]
+            }
+        },
+        {
+            "object": {
+                "type": "order",
+                "originalType": "order",
+                "isQueryRoot": false,
+                "queryObjectId": "q2",
+                "content": [
+                    
+                ]
+            }
+        },
+        {
+            "object": {
+                "type": "orderItem",
+                "originalType": "order",
+                "isQueryRoot": false,
+                "queryObjectId": "q3",
+                "content": [
+                    
+                ]
+            }
+        },
+        {
+            "object": {
+                "type": "product",
+                "originalType": "order",
+                "isQueryRoot": false,
+                "queryObjectId": "q4",
+                "content": [
+                    
+                ]
+            }
+        },
+        {
+            "relation": {
+                "from": "q0",
+                "to": "q1",
+                "type": "belongsTo",
+                "reverse": false
+            }
+        },
+        {
+            "relation": {
+                "from": "q0",
+                "to": "q2",
+                "type": "hasOrder",
+                "reverse": false
+            }
+        },
+        {
+            "relation": {
+                "from": "q2",
+                "to": "q3",
+                "type": "hasItem",
+                "reverse": false
+            }
+        },
+        {
+            "relation": {
+                "from": "q3",
+                "to": "q4",
+                "type": "forProduct",
+                "reverse": false
+            }
+        }
+    ]
+}
