@@ -8,10 +8,10 @@ The declarative view builder now provides **compile-time type safety** for confi
 
 ### 1. Type-Safe Sub-Element Names
 
-The `withSubElement` method now uses a generic constraint to ensure only valid child element names are accepted:
+The `withNamedSubElement` method now uses a generic constraint to ensure only valid child element names are accepted:
 
 ```typescript
-withSubElement: <K extends keyof ChildrenFromDef<CURRENT_DEF>>(
+withNamedSubElement: <K extends keyof ChildrenFromDef<CURRENT_DEF>>(
   name: K,
   config?: { queryObjectId?: string; relationFromParent?: string; }
 ) => ElementBuilder<...>
@@ -51,11 +51,11 @@ const view = view2<ROOT>('view-name')
   .withRootKey('id')
   .withRootElement('root', 'r', definition)
     // TypeScript knows valid children from 'definition'
-    .withSubElement('child1', { queryObjectId: 'c1' })
-      .withSubElement('grandchild', { queryObjectId: 'gc' })
+    .withNamedSubElement('child1', { queryObjectId: 'c1' })
+      .withNamedSubElement('grandchild', { queryObjectId: 'gc' })
       .endElement()  // back to child1
     .endElement()  // back to root
-    .withSubElement('child2', { queryObjectId: 'c2' })
+    .withNamedSubElement('child2', { queryObjectId: 'c2' })
     .endElement()  // back to root
   .endElement()  // back to view builder
   .buildView();
@@ -82,10 +82,10 @@ const viewDef = {
 // ✅ TypeScript enforces valid names
 view2('test')
   .withRootElement('account', 'acc', viewDef)
-    .withSubElement('person', ...)  // ✅ 'person' is valid
+    .withNamedSubElement('person', ...)  // ✅ 'person' is valid
     .endElement()
-    .withSubElement('order', ...)   // ✅ 'order' is valid
-      .withSubElement('item', ...)  // ✅ 'item' is valid (child of order)
+    .withNamedSubElement('order', ...)   // ✅ 'order' is valid
+      .withNamedSubElement('item', ...)  // ✅ 'item' is valid (child of order)
       .endElement()
     .endElement()
   .endElement()
@@ -96,11 +96,11 @@ view2('test')
 
 ```typescript
 // ❌ Error: Argument of type '"customer"' is not assignable to parameter of type '"person" | "order"'
-.withSubElement('customer', ...)  // 'customer' doesn't exist
+.withNamedSubElement('customer', ...)  // 'customer' doesn't exist
 
 // ❌ Error: Argument of type '"product"' is not assignable to parameter of type '"item"'
-.withSubElement('order', ...)
-  .withSubElement('product', ...)  // order only has 'item' as a child
+.withNamedSubElement('order', ...)
+  .withNamedSubElement('product', ...)  // order only has 'item' as a child
 ```
 
 ## Implementation Details
@@ -117,8 +117,8 @@ view2('test')
 ```
 ViewBuilder2<ROOT, RE>
   └─ withRootElement() → RootElementBuilder<ROOT, RE, DEF>
-       ├─ withSubElement('child1') → ElementBuilder<ROOT, RE, CHILD1_DEF, RootElementBuilder>
-       │    └─ withSubElement('grandchild') → ElementBuilder<ROOT, RE, GC_DEF, ElementBuilder<..., CHILD1_DEF, ...>>
+       ├─ withNamedSubElement('child1') → ElementBuilder<ROOT, RE, CHILD1_DEF, RootElementBuilder>
+       │    └─ withNamedSubElement('grandchild') → ElementBuilder<ROOT, RE, GC_DEF, ElementBuilder<..., CHILD1_DEF, ...>>
        │         └─ endElement() → returns ElementBuilder for child1
        ├─ endElement() → returns ViewBuilder2
        └─ buildView() → returns View<RE>

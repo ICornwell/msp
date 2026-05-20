@@ -1,54 +1,54 @@
 import { TrueFalse, stringifyObject } from '../fluent/builderUtils.js';
 import { DomainObject, DomainObjectRelation, Schema, SchemaPropertiesFor, RelsTypes, AddRel, versionedResourceId, DOWithNewToRels, DOWithNewFromRels, NameOfDomainObject, GETRELSFORNAME, DataOfSchema } from '../models/api/data.js';
 
-export type SchemaOfDomainObjectBuilder<DOB extends DomainValueObjectBuilder<any, any>> =
-  (DOB extends DomainValueObjectBuilder<any, infer S> ? S : never);
+export type SchemaOfDomainObjectBuilder<DOB extends DomainValueObjectBuilder<any, any, any>> =
+  (DOB extends DomainValueObjectBuilder<any, any, infer S> ? S : never);
 
 
-export interface ObjectBuilder<RT, O extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}> {
+export interface ObjectBuilder<RT, O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}> {
   withId: (id: string, version: string) => RT;
   forDomain: (domain: versionedResourceId) => RT;
   forProduct: (product: versionedResourceId) => RT;
   withDefaultPresentationLabel: (label: string) => RT;
   withDefaultDocPathName: (pathName: string) => RT;
   withDbStoreLabel: (dbStoreLabel: string) => RT;
-  withRelationTo: <N extends string, T extends DomainObject<any, any>>(
+  withRelationTo: <N extends string, T extends DomainObject<any, any, any>>(
     name: N,
     targetObject: T,
     cascadeDeletes: TrueFalse
   ) => RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>>;
-  withRelationFrom: <N extends string, T extends DomainObject<any, any>>(
+  withRelationFrom: <N extends string, T extends DomainObject<any, any, any>>(
     name: N,
     targetObject: T,
     cascadeDeletes: TrueFalse
   ) => RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
-  buildObject: () => DomainObject<O, S>;
+  buildObject: () => DomainObject<O, P, S>;
 }
 
-export interface DomainValueObjectBuilder<O extends string, S extends Schema<any, any>,
+export interface DomainValueObjectBuilder<O extends string, P extends string, S extends Schema<any, any>,
  RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>
-   extends ObjectBuilder<DomainValueObjectBuilder<O, S, RelsTo, RelsFrom>, O, S, RelsTo, RelsFrom> {
+   extends ObjectBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom> {
 }
 
-export interface DomainEntityObjectBuilder<O extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>
-   extends ObjectBuilder<DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>, O, S, RelsTo, RelsFrom> {
+export interface DomainEntityObjectBuilder<O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>
+   extends ObjectBuilder<DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom> {
 
-  withUniqueBusinessKey: (businessKey: string | string[] | ((data: DataOfSchema<S>) => string)) => DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>;
-  withAlternateKey?: (businessKey: string | string[] | ((data: DataOfSchema<S>) => string)) => DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>;
+  withUniqueBusinessKey: (businessKey: string | string[] | ((data: DataOfSchema<S>) => string)) => DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+  withAlternateKey?: (businessKey: string | string[] | ((data: DataOfSchema<S>) => string)) => DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
 
 }
 
-type RTWithNewRelsFrom<RT, NewRelsFrom extends RelsTypes> = RT extends ObjectBuilder<infer R, infer O,  infer S, infer RelsTo, any>
-  ? ObjectBuilder<R, O, S, RelsTo, NewRelsFrom>
+type RTWithNewRelsFrom<RT, NewRelsFrom extends RelsTypes> = RT extends ObjectBuilder<infer R, infer O, infer P, infer S, infer RelsTo, any>
+  ? ObjectBuilder<R, O, P, S, RelsTo, NewRelsFrom>
   : never;
 
-type RTWithNewRelsTo<RT, NewRelsTo extends RelsTypes> = RT extends ObjectBuilder<infer R, infer O,  infer S, any, infer RelsFrom>
-  ? ObjectBuilder<R, O, S, NewRelsTo, RelsFrom>
+type RTWithNewRelsTo<RT, NewRelsTo extends RelsTypes> = RT extends ObjectBuilder<infer R, infer O, infer P, infer S, any, infer RelsFrom>
+  ? ObjectBuilder<R, O, P, S, NewRelsTo, RelsFrom>
   : never;
 
-function createBaseBuilder<RT, O extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
-  domainObj: DomainObject<any, any>) {
- const builder: Partial<ObjectBuilder<RT, O, S, RelsTo, RelsFrom>> =  {
+function createBaseBuilder<RT, O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+  domainObj: DomainObject<any, any, any>) {
+ const builder: Partial<ObjectBuilder<RT, O, P, S, RelsTo, RelsFrom>> =  {
     withId: function (id: string, version: string): RT {
       domainObj.vid = { domain: domainObj.domain, name: id, version };
       return builder as unknown as RT;
@@ -57,6 +57,7 @@ function createBaseBuilder<RT, O extends string, S extends Schema<any, any>, Rel
     forDomain: function (domain: versionedResourceId): RT {
       domainObj.domain = domain;
       domainObj.vid.domain = domain;
+      if (!domainObj.defaultDocPathName) domainObj.defaultDocPathName = domain.name;
       return builder as unknown as RT;
     },
 
@@ -78,7 +79,7 @@ function createBaseBuilder<RT, O extends string, S extends Schema<any, any>, Rel
     },
 
    
-    withRelationTo<N extends string, TO extends DomainObject<any, any>>(name: N, targetObject: TO, cascadeDeletes: TrueFalse)
+    withRelationTo<N extends string, TO extends DomainObject<any, any, any>>(name: N, targetObject: TO, cascadeDeletes: TrueFalse)
       : RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>> {
       if (!domainObj.allowedRelationsTo) {
         domainObj.allowedRelationsTo = [];
@@ -88,7 +89,7 @@ function createBaseBuilder<RT, O extends string, S extends Schema<any, any>, Rel
       return builder as unknown as RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>>;
     },
 
-    withRelationFrom<N extends string, SO extends DomainObject<any, any>>(name: N, sourceObject: SO, cascadeDeletes: TrueFalse)
+    withRelationFrom<N extends string, SO extends DomainObject<any, any, any>>(name: N, sourceObject: SO, cascadeDeletes: TrueFalse)
       : RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>> {
       if (!domainObj.allowedRelationsFrom) {
         domainObj.allowedRelationsFrom = [];
@@ -97,7 +98,7 @@ function createBaseBuilder<RT, O extends string, S extends Schema<any, any>, Rel
       addDomainObjectRelationFrom(sourceObject, name, domainObj, cascadeDeletes);
       return builder as unknown as RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
     },
-    buildObject: () =>domainObj as DomainObject<O,S>
+    buildObject: () =>domainObj as DomainObject<O,P,S>
 
     
   };
@@ -105,10 +106,10 @@ function createBaseBuilder<RT, O extends string, S extends Schema<any, any>, Rel
   return builder;
 }
 
-function createObject<S extends Schema<any, any>, O extends string, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+function createObject<S extends Schema<any, any>, O extends string, P extends string, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
   name: O,
-  schema: S): DomainObject<O, S, RelsTo, RelsFrom> {
-  let domainObj: DomainObject<O,S, RelsTo, RelsFrom> = {
+  schema: S): DomainObject<O, P, S, RelsTo, RelsFrom> { // default path of domain object is the same as its name, but can be overridden with withDefaultDocPathName
+  let domainObj: DomainObject<O, P, S, RelsTo, RelsFrom> = {
     name: name,
     vid: {  name: '', version: '1.0' },
     domain: undefined,
@@ -131,54 +132,54 @@ function createObject<S extends Schema<any, any>, O extends string, RelsTo exten
 }
 
 
-export function createValueDomainObject<S extends Schema<any, any>, O extends string, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+export function createValueDomainObject<S extends Schema<any, any>, O extends string, P extends string, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
   name: O,
-  schema: S): DomainValueObjectBuilder<O, S, RelsTo, RelsFrom> {
+  schema: S): DomainValueObjectBuilder<O, P,S, RelsTo, RelsFrom> {
   
 
   const domainObj = createObject(name, schema);
   domainObj.isEntity = false;
-  const partialBuilder = createBaseBuilder<DomainValueObjectBuilder<O, S, RelsTo, RelsFrom>, O, S, RelsTo, RelsFrom>(domainObj);
+  const partialBuilder = createBaseBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>(domainObj);
 
-  const builder: DomainValueObjectBuilder<O, S, RelsTo, RelsFrom> = { 
+  const builder: DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom> = { 
     ...partialBuilder,
-    buildObject: domainObj as DomainObject<O,S>
-  } as unknown as DomainValueObjectBuilder<O, S, RelsTo, RelsFrom>;
+    buildObject: domainObj as DomainObject<O,P,S>
+  } as unknown as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>;
 
   return builder;
 }
 
-export function createEntityDomainObject<S extends Schema<any, any>, O extends string, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+export function createEntityDomainObject<S extends Schema<any, any>, O extends string, P extends string, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
   name: O,
-  schema: S): DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom> {
+  schema: S): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
   
 
   const domainObj = createObject(name, schema);
   domainObj.isEntity = true;
-  const partialBuilder = createBaseBuilder<DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>, O, S, RelsTo, RelsFrom>(domainObj);
+  const partialBuilder = createBaseBuilder<DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>(domainObj);
 
-  const builder: DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom> = {
+  const builder: DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> = {
      ...partialBuilder,
-       withUnqiueBusinessKey: function (uniqueBusinessKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom> {
+       withUnqiueBusinessKey: function (uniqueBusinessKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
           domainObj.businessKey = uniqueBusinessKey;
-          return builder as unknown as DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>;
+          return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
         },
-       withAlternateKey: function (alternateKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom> {
+       withAlternateKey: function (alternateKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
           domainObj.alternateKey = alternateKey;
-          return builder as unknown as DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>;
+          return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
         }
-    } as unknown as DomainEntityObjectBuilder<O, S, RelsTo, RelsFrom>;
+    } as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
 
   return builder;
 }
 
 // Convenience function to start building a schema
-export function createValueObject<S extends Schema<any, any>, N extends string>(name: N, schema: S): DomainValueObjectBuilder<N, S, RelsTypes, RelsTypes> {
-  return createValueDomainObject<S, N, RelsTypes, RelsTypes>(name, schema);
+export function createValueObject<S extends Schema<any, any>, N extends string, P extends string>(name: N, schema: S): DomainValueObjectBuilder<N, P, S, RelsTypes, RelsTypes> {
+  return createValueDomainObject<S, N, P, RelsTypes, RelsTypes>(name, schema);
 }
 
-export function createEntityObject<S extends Schema<any, any>, N extends string>(name: N, schema: S): DomainEntityObjectBuilder<N, S, RelsTypes, RelsTypes> {
-  return createEntityDomainObject<S, N, RelsTypes, RelsTypes>(name, schema);
+export function createEntityObject<S extends Schema<any, any>, N extends string, P extends string>(name: N, schema: S): DomainEntityObjectBuilder<N, P, S, RelsTypes, RelsTypes> {
+  return createEntityDomainObject<S, N, P, RelsTypes, RelsTypes>(name, schema);
 }
 
 export function addDomainObjectRelationFrom<SO extends DomainObject,

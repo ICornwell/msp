@@ -5,9 +5,10 @@ export type SubElement = ViewElement<DomainObject<any, any>>;
 
 /// ViewElement - defines an element within a View hierarchy, based on a Schema, extended with sub-elements
 export interface ViewElement<
-    DO extends DomainObject<any, any> = any>  {
+    DO extends DomainObject<any, any, any> = any>  {
     object: string;
     queryObjectId: string;
+    docPathName?: string; // The path name to use when this element is a child of another element, used for mapping to data structure
     domainObjectId: versionedResourceId;  // Serialisable reference to schema
     domainObject?: DO // Optional full schema reference
     relationFromParent?: string;

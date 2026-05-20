@@ -1,5 +1,5 @@
 import { Flatten, MakeArray, JOIN, TrueFalse } from './builderUtils.js';
-import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO, versionedResourceId } from '../models/api/data.js';
+import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO, versionedResourceId, PathOfDomainObject } from '../models/api/data.js';
 import { View, ViewElement, SubElement } from '../models/api/view.js';
 
 
@@ -25,6 +25,8 @@ type NEXC<B, D> = CNTX<B, D>
 
 // extracts builder type from context
 type BuilderOf<T> = T extends CNTX<infer B, any> ? B : any;
+
+type DomainObjectWithNewPath<DO extends DomainObject, P> = Omit<DO, 'defaultDocPathName'> & { defaultDocPathName: P };
 
 
 // Runtime helper to extract builder from context
@@ -80,11 +82,11 @@ export interface ViewElementBuilder<
 > {
   withRelation: (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>) =>
     CNTX<ViewElementBuilder<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>;
-
-  // Single withSubElement using object notation like test.ts deep() method
-  withSubElement: <SubEName extends string, NDO extends DomainObject<any, any>, IC extends TrueFalse>(
+  withDocPathName: <P extends string>(docPathName: P) => CNTX<ViewElementBuilder<DT, DomainObjectWithNewPath<DO, P>, PDO, EName, RT>, PropsOfDomainObject<DO>>;
+  // Single withNamedSubElement using object notation like test.ts deep() method
+  withNamedSubElement: <SubEName extends string, NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     name: SubEName,
-    schema: NDO,
+    nextDomainObject: NDO,
     isCollection: IC
   ) =>
     // return a deeper viewElementBuilder context, wrapping this one, wrapper the previous one
@@ -95,6 +97,21 @@ export interface ViewElementBuilder<
             ReType<RT, JOIN<DT, 
               CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>, EName>>,
                  JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>>
+      >,
+      MakeArray<PropsOfDomainObject<NDO>, IC>>
+
+  withSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
+    nextDomainObject: NDO,
+    isCollection: IC
+  ) =>
+    // return a deeper viewElementBuilder context, wrapping this one, wrapper the previous one
+    NEXC<
+      ViewElementBuilder<MakeArray<PropsOfDomainObject<NDO>, IC>, NDO, DO, PathOfDomainObject<NDO>,
+        CURC<
+          ViewElementBuilder<JOIN<DT, CreateObjProp<PathOfDomainObject<NDO>, PropsOfDomainObject<NDO>, IC>>, DO, PDO, EName,
+            ReType<RT, JOIN<DT, 
+              CreateObjProp<PathOfDomainObject<NDO>, PropsOfDomainObject<NDO>, IC>>, EName>>,
+                 JOIN<DT, CreateObjProp<PathOfDomainObject<NDO>, PropsOfDomainObject<NDO>, IC>>>
       >,
       MakeArray<PropsOfDomainObject<NDO>, IC>>
 
@@ -111,7 +128,7 @@ export interface ViewBuilder<RootDT = any> {
   withConfigSet: (configSet: string) => ViewBuilder<RootDT>;
   withRootKey: (rootKey: string) => ViewBuilder<RootDT>;
 
-  withRootElement: <NDO extends DomainObject<any, any>, IC extends TrueFalse>(domainObject: NDO, isCollection: IC) =>
+  withRootElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(domainObject: NDO, isCollection: IC) =>
     NEXC<
       ViewElementBuilder<
         MakeArray<PropsOfDomainObject<NDO>, IC>,
@@ -150,7 +167,8 @@ export function createViewElementBuilder<
 ): CNTX<ViewElementBuilder<DT, DO, PDO, EName, RT>, DT> {
 
   const element: Partial<ViewElement<any>> = {
-    object: elementName,
+    object: domainObject.name,
+    docPathName: elementName,
     queryObjectId: queryObjectId,
     isEntity: domainObject.isEntity ?? false,
     domainObjectId: domainObject.vid,
@@ -161,27 +179,21 @@ export function createViewElementBuilder<
 
   let subElementBuilders: Array<any> = [];
 
-  const builder: ViewElementBuilder<DT, DO, PDO, EName, RT> = {
-    withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
-      element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
-      return builderContext;
-    },
-
-    withSubElement: function <SubEName extends string, S extends DomainObject<any, any>, IC extends TrueFalse>(
+  function buildSubElement<SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerName: SubEName,
-      innerSchema: S,
+      innerDomainObject: DO,
       isCollection: IC
     ): any {
       // Extract element name and schema from wrapper object
-      const elementName = innerName as SubEName; // Placeholder since we don't have the wrapper object here
+      const elementName = innerName  as SubEName; // Placeholder since we don't have the wrapper object here
       //const schemaOrArray = SchemaOrArrayWrapper
       const isSubCollection = isCollection;
-      const actualSchema = innerSchema;
-      let actualQueryId = elementName as string;
+      const actualDomainObject = innerDomainObject;
+      let actualQueryId = innerDomainObject.name as string;
 
       let idx = 2
       while (queryIdsUsed.has(actualQueryId)) {
-        actualQueryId = `${elementName}_${idx}`;
+        actualQueryId = `${innerDomainObject.name}_${idx}`;
         idx++;
       }
 
@@ -190,14 +202,30 @@ export function createViewElementBuilder<
         builder as any,
         elementName,
         actualQueryId,
-        actualSchema,
+        actualDomainObject,
         isSubCollection,
         subElementBuilders,
         queryIdsUsed
       );
 
       return subElementBuilder;
+    }
+
+  const builder: ViewElementBuilder<DT, DO, PDO, EName, RT> = {
+    withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
+      element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      return builderContext;
     },
+    withDocPathName: function (docPathName: string): any {
+      element.docPathName = docPathName;
+      return builderContext;
+    },
+    withNamedSubElement: buildSubElement,
+
+    withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
+      innerDomainObject: DO,
+      isCollection: IC
+    ) => buildSubElement(innerDomainObject.defaultDocPathName, innerDomainObject, isCollection),
 
     end: function (): RT {
       return returnTo as RT;
@@ -258,7 +286,7 @@ export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootD
       return builder;
     },
 
-    withRootElement: function <RootEName extends string, S extends DomainObject<any, any>>(domainObject: S, isCollection: TrueFalse = false): any {
+    withRootElement: function <RootEName extends string, DO extends DomainObject<any, any, any>>(domainObject: DO, isCollection: TrueFalse = false): any {
       // Extract element name and schema from wrapper object like test.ts
       const elementName = domainObject.name as RootEName; // Placeholder since we don't have the wrapper object here";
 

@@ -118,14 +118,14 @@ describe('Declarative View Builder', () => {
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs.accountObject, false)  // Object notation with element name
-        .withSubElement("person", relatedObjs.personObject, false)  // Object notation
+        .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
           .withRelation('belongsTo')
           .end()
-        .withSubElement("order", relatedObjs.orderObject, true)  // Object notation
+        .withNamedSubElement("order", relatedObjs.orderObject, true)  // Object notation
           .withRelation('hasOrder')
-          .withSubElement("orderItem", relatedObjs.orderItemObject, true)  // Object notation
+          .withNamedSubElement("orderItem", relatedObjs.orderItemObject, true)  // Object notation
             .withRelation('withItem')
-              .withSubElement("product", relatedObjs.productObject, false)  // Object notation
+              .withNamedSubElement("product", relatedObjs.productObject, false)  // Object notation
                 .withRelation('forProduct')
                 .end()
             .end()
@@ -148,24 +148,24 @@ describe('Declarative View Builder', () => {
 
     // person is a single element
     const person = accView.rootElement.subElements![0] as any;
-    expect(person.object).toBe('person');
+    expect(person.object).toBe('personObject');
     expect(person.isCollection).toBe(false);
 
     // order is a collection
     const order = accView.rootElement.subElements![1] as any;
-    expect(order.object).toBe('order');
+    expect(order.object).toBe('orderObject');
     expect(order.isCollection).toBe(true);
     expect(order.subElements).toHaveLength(1);
 
     // orderItem is a collection nested in order
     const orderItem = order.subElements![0] as any;
-    expect(orderItem.object).toBe('orderItem');
+    expect(orderItem.object).toBe('orderItemObject');
     expect(orderItem.isCollection).toBe(true);
     expect(orderItem.subElements).toHaveLength(1);
 
     // product is a single element nested in orderItem
     const product = orderItem.subElements![0] as any;
-    expect(product.object).toBe('product');
+    expect(product.object).toBe('productObject');
     expect(product.isCollection).toBe(false);
 
     // Type extraction approach 1: Use ViewDataTypeFromDef directly on the definition
@@ -211,14 +211,14 @@ describe('Declarative View Builder', () => {
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs.accountObject, true)  // Object notation with element name
        
-          .withSubElement("person", relatedObjs.personObject, false)  // Object notation
+          .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
             .withRelation('belongsTo')
             .end()
-          .withSubElement("order", relatedObjs.orderObject, true)  // Object notation
+          .withNamedSubElement("order", relatedObjs.orderObject, true)  // Object notation
             .withRelation('hasOrder')
-            .withSubElement("orderItem", relatedObjs.orderItemObject, true)  // Object notation
+            .withNamedSubElement("orderItem", relatedObjs.orderItemObject, true)  // Object notation
               .withRelation('withItem')
-               .withSubElement("product", relatedObjs.productObject, false)  // Object notation
+               .withNamedSubElement("product", relatedObjs.productObject, false)  // Object notation
                  .withRelation('forProduct')
                  .end()
               .end()
@@ -253,14 +253,14 @@ describe('Declarative View Builder', () => {
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs.accountObject, true)  // Object notation with element name
-          .withSubElement("person", relatedObjs.personObject, false)  // Object notation
+          .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
             .withRelation('belongsTo')
             .end()
-          .withSubElement("order", relatedObjs.orderObject, true)  // Object notation
+          .withNamedSubElement("order", relatedObjs.orderObject, true)  // Object notation
             .withRelation('hasOrder')
-            .withSubElement("orderItem", relatedObjs.orderItemObject, true)  // Object notation
+            .withNamedSubElement("orderItem", relatedObjs.orderItemObject, true)  // Object notation
               .withRelation('withItem')
-               .withSubElement("person", relatedObjs.personObject, false)  // Object notation
+               .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
                  .withRelation('fromSellingPerson')
                  .end()
               .end()
@@ -299,8 +299,8 @@ describe('Declarative View Builder', () => {
     expect(testData[0]?.person?.name).toBe("John Doe");
     expect(testData[0]?.order?.[0]?.orderItem?.[0]?.person?.name).toBe("Jane Seller");
 
-    expect(accView.rootElement.subElements![0].queryObjectId).toBe('person')
-    expect(accView.rootElement.subElements![1].subElements![0].subElements![0].queryObjectId).toBe('person_2');
+    expect(accView.rootElement.subElements![0].queryObjectId).toBe('personObject')
+    expect(accView.rootElement.subElements![1].subElements![0].subElements![0].queryObjectId).toBe('personObject_2');
   });
 
    it('should  allow schema inheritance', () => {
@@ -347,7 +347,7 @@ describe('Declarative View Builder', () => {
       .withVersion('1.0')
       .withRootKey('accountNumber')
       .withRootElement(relatedObjs2.accountObject2, true)  // Object notation with element name
-          .withSubElement("person", relatedObjs2.personObject2, false)  // Object notation
+          .withNamedSubElement("person", relatedObjs2.personObject2, false)  // Object notation
             .withRelation('belongsTo')
             .end()
           .end()
@@ -427,7 +427,7 @@ describe('Declarative View Builder', () => {
       .withConfigSet('main')
       .withRootKey('userId')
       .withRootElement(userObject, false)
-      .withSubElement('posts', postObject, true)
+      .withNamedSubElement('posts', postObject, true)
         .end()  // end root element configuration
       .end()
       .endView()
@@ -529,11 +529,11 @@ describe('Declarative View Builder', () => {
       .withRootKey('accountNumber')
       .withRootElement(relObjs.accountObject, false)  // Using element name and queryObjectId
       // Now configure specific sub-elements using nested pattern
-        .withSubElement('order', relObjs.orderObject, true)
+        .withSubElement(relObjs.orderObject, true)
           .withRelation('hasOrder')
-          .withSubElement('item', relObjs.itemObject, true)
+          .withSubElement(relObjs.itemObject, true)
             .withRelation('hasItem')
-              .withSubElement('product', relObjs.productObject, true)
+              .withSubElement(relObjs.productObject, true)
               .withRelation('orderedProduct')
               .end()  // end product, back to item
             .end()  // end item, back to order
@@ -547,18 +547,18 @@ describe('Declarative View Builder', () => {
     expect(aoView.rootElement.queryObjectId).toBe('root');
 
     const order = aoView.rootElement.subElements![0] as any;
-    expect(order.object).toBe('order');
-    expect(order.queryObjectId).toBe('order');
+    expect(order.object).toBe('orderObject');
+    expect(order.queryObjectId).toBe('orderObject');
     expect(order.relationFromParent).toBe('hasOrder');
 
     const item = order.subElements![0] as any;
-    expect(item.object).toBe('item');
-    expect(item.queryObjectId).toBe('item');
+    expect(item.object).toBe('itemObject');
+    expect(item.queryObjectId).toBe('itemObject');
     expect(item.relationFromParent).toBe('hasItem');
 
     const product = item.subElements![0] as any;
-    expect(product.object).toBe('product');
-    expect(product.queryObjectId).toBe('product');
+    expect(product.object).toBe('productObject');
+    expect(product.queryObjectId).toBe('productObject');
     expect(product.relationFromParent).toBe('orderedProduct');
   });
 });

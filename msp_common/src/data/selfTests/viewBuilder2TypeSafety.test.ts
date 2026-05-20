@@ -77,16 +77,16 @@ describe('Declarative View Builder - Type Safety', () => {
       .withRootElement(relsObjs.account, false)
         // TypeScript knows the valid children are: 'person' and 'order'
         // Try to configure 'person' - this should work
-        .withSubElement('person', relsObjs.person, false)
+        .withNamedSubElement('person', relsObjs.person, false)
           .withRelation('hasPerson')
         
         .end()  // person has no children, go back to root
         // Now configure 'order'
-        .withSubElement('order', relsObjs.order, true)
+        .withNamedSubElement('order', relsObjs.order, true)
           .withRelation('hasOrder')
 
           // TypeScript knows 'order' has one valid child: 'item'
-          .withSubElement('item', relsObjs.item, false)
+          .withNamedSubElement('item', relsObjs.item, false)
           .end()  // back to order
         .end()  // back to root
       .end()  // back to view
@@ -174,9 +174,9 @@ describe('Declarative View Builder - Type Safety', () => {
       .withConfigSet('main')
       .withRootKey('id1')
       .withRootElement(level1Object, false)
-        .withSubElement('l2', level2Object,  false)
-          .withSubElement('l3', level3Object, false)
-            .withSubElement('l4', level4Object  ,false)
+        .withNamedSubElement('l2', level2Object,  false)
+          .withNamedSubElement('l3', level3Object, false)
+            .withNamedSubElement('l4', level4Object  ,false)
             .end()
           .end()
         .end()
@@ -186,10 +186,10 @@ describe('Declarative View Builder - Type Safety', () => {
 
     expect(testview.name).toBe('deep-view');
     const l2 = testview.rootElement.subElements![0] as any;
-    expect(l2.queryObjectId).toBe('l2');
+    expect(l2.queryObjectId).toBe('level2');
     const l3 = l2.subElements![0] as any;
-    expect(l3.queryObjectId).toBe('l3');
+    expect(l3.queryObjectId).toBe('level3');
     const l4 = l3.subElements![0] as any;
-    expect(l4.queryObjectId).toBe('l4');
+    expect(l4.queryObjectId).toBe('level4');
   });
 });

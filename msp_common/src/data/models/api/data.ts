@@ -41,13 +41,18 @@ export type PropsOfSchema<T extends Schema<any, any>> =
 
 export type PropsOfDomainObject<T extends DomainObject | DomainObject[]> =
   T extends Array<infer AT>
-  ? AT extends DomainObject<any, infer S, any, any> ? PropsOfSchema<S> : never
-  : T extends DomainObject<any, infer S, any, any> ? PropsOfSchema<S> : never;
+  ? AT extends DomainObject<any, any, infer S, any, any> ? PropsOfSchema<S> : never
+  : T extends DomainObject<any, any, infer S, any, any> ? PropsOfSchema<S> : never;
 
 export type NameOfDomainObject<T extends DomainObject> =
   T extends Array<infer AT>
-  ? AT extends DomainObject<infer N, any, any, any> ? (N extends string ? N : 'nonstring') : 'noname'
-  : T extends DomainObject<infer N, any, any, any> ? (N extends string ? N : 'nonstring') : 'noname';
+  ? AT extends DomainObject<infer N, any, any, any, any> ? (N extends string ? N : 'nonstring') : 'noname'
+  : T extends DomainObject<infer N, any, any, any, any> ? (N extends string ? N : 'nonstring') : 'noname';
+
+export type PathOfDomainObject<T extends DomainObject> =
+  T extends Array<infer AT>
+  ? AT extends DomainObject<any, infer P, any, any, any> ? (P extends string ? P : NameOfDomainObject<T>) : NameOfDomainObject<T>
+  : T extends DomainObject<any, infer P, any, any, any> ? (P extends string ? P : NameOfDomainObject<T>) : NameOfDomainObject<T>;
 
 export type UNARRAY<T> = T extends Array<infer AT> ? AT : T;
 
@@ -84,19 +89,20 @@ export type DomainObjectRelation<RN extends string, TDO> = {
 }
 
 export type SchemaOfDomainObject<DO extends DomainObject> =
-  (DO extends DomainObject<any, infer S, any, any> ? S : never);
+  DO extends DomainObject<any, any, infer S, any, any> ? S : never;
 
 export type RelsTypes = {};
 
 type RelsFromNames<DO extends DomainObject> =
-  DO extends DomainObject<any, any, any, infer RF> ? { [rk in keyof RF]: (RF[rk] extends never ? never : RF[rk]) } : never;
+  DO extends DomainObject<any, any, any, any, infer RF> ? { [rk in keyof RF]: (RF[rk] extends never ? never : RF[rk]) } : never;
 
 type RelsToNames<DO extends DomainObject> =
-  DO extends DomainObject<any, any, infer RT, any> ? { [rk in keyof RT]: (RT[rk] extends never ? never : RT[rk]) } : never;
+  DO extends DomainObject<any, any, any, infer RT, any> ? { [rk in keyof RT]: (RT[rk] extends never ? never : RT[rk]) } : never;
 
 export type DOWithNewToRels<DO extends DomainObject, N extends string, O extends string> =
   DomainObject<
     NameOfDomainObject<DO>,
+    PathOfDomainObject<DO>,
     SchemaOfDomainObject<DO>,
     AddRel<O extends string ? O : never, N, RelsToNames<DO>>,
     RelsFromNames<DO> // extends RelsTypes ? DO['allowedRelationsFromNames'] : RelsTypes
@@ -105,6 +111,7 @@ export type DOWithNewToRels<DO extends DomainObject, N extends string, O extends
 export type DOWithNewFromRels<DO extends DomainObject, N extends string, O extends string> =
   DomainObject<
     NameOfDomainObject<DO>,
+    PathOfDomainObject<DO>,
     SchemaOfDomainObject<DO>,
     RelsToNames<DO>, // extends RelsTypes ? DO['allowedRelationsToNames']  : RelsTypes,
     AddRel<O extends string ? O : never, N, RelsFromNames<DO>>
@@ -127,7 +134,7 @@ export type RelsOf<O extends string, RT extends RelsTypes> =
 
 export type GETRELSFORNAME<T, N extends string> = T extends { [k in N]: infer R } ? R : never;
 
-export type DomainObject<N extends string = string, S extends Schema<any, any> = any, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}> = {
+export type DomainObject<N extends string = string, P extends string = N, S extends Schema<any, any> = any, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}> = {
   vid: versionedResourceId;
   name: N
   domain?: versionedResourceId;  // Optional until bound to product
@@ -136,7 +143,7 @@ export type DomainObject<N extends string = string, S extends Schema<any, any> =
   schemaId?: versionedResourceId;
   isEntity?: TrueFalse;
   defaultPresentationLabel?: string;
-  defaultDocPathName?: string;
+  defaultDocPathName?: P;
   businessKey?: string | string[] | ((data: any) => string);
   alternateKey?: string | string[] | ((data: any) => string);
   storeWithDBLabel?: string;
@@ -144,14 +151,14 @@ export type DomainObject<N extends string = string, S extends Schema<any, any> =
   allowedRelationsFrom: DomainObjectRelation<string, any>[];
   _allowedRelationsToNames: RelsTo;
   _allowedRelationsFromNames: RelsFrom;
-  relationsTo: <ToDO extends DomainObject<any, any, any, any>>(domainObject: ToDO) => GETRELSFORNAME<RelsTo, NameOfDomainObject<ToDO>>;
-  relationsFrom: <FromDO extends DomainObject<any, any, any, any>>(domainObject: FromDO) => GETRELSFORNAME<RelsFrom, NameOfDomainObject<FromDO>>;
+  relationsTo: <ToDO extends DomainObject<any, any, any, any, any>>(domainObject: ToDO) => GETRELSFORNAME<RelsTo, NameOfDomainObject<ToDO>>;
+  relationsFrom: <FromDO extends DomainObject<any, any, any, any, any>>(domainObject: FromDO) => GETRELSFORNAME<RelsFrom, NameOfDomainObject<FromDO>>;
   schemaProperties: SchemaPropertiesFor<S>;
   serialise: () => string;
 }
 
-export type RelsFromDO<DO extends DomainObject> = DO extends DomainObject<any, any, any, infer RF> ? RF : never;
-export type RelsToDO<DO extends DomainObject> = DO extends DomainObject<any, any, infer RT, any> ? RT : never;
+export type RelsFromDO<DO extends DomainObject> = DO extends DomainObject<any, any, any, any, infer RF> ? RF : never;
+export type RelsToDO<DO extends DomainObject> = DO extends DomainObject<any, any, any, infer RT, any> ? RT : never;
 
 export type PropertiesOf<T extends Schema<any, any>> =
   InheritedPropertiesOf<T> & (T extends Schema<infer D, any> ? Partial<D> : never);

@@ -16,7 +16,7 @@ Successfully implemented a complete fluent builder system for Products, Schemas,
 - Updated to support schema references
 - Split into `ViewElement` (single) and `ViewElementCollection` (array)
 - Type-safe context stack with CNTX<ROOT, PARENT, CURRENT>
-- Methods: `withSubElement`, `withSubElementCollection`, `withRelation`
+- Methods: `withNamedSubElement`, `withNamedSubElementCollection`, `withRelation`
 
 ### 3. **Product Builder** (`src/fluent/productBuilder.ts`)
 - Delta-based building with full snapshot output
@@ -70,10 +70,10 @@ const accountView = view('account-view')
   .withVersion('1.0')
   .withRootKey('accountNumber')
   .withRootElement('account', 'acc', accountSchema)
-    .withSubElement('person', 'per', personSchema)
+    .withNamedSubElement('person', 'per', personSchema)
       .withRelation('belongsTo')
     .endElement
-    .withSubElementCollection('order', 'ord', orderSchema)
+    .withNamedSubElementCollection('order', 'ord', orderSchema)
       .withRelation('hasOrder')
     .endElement
   .endElement

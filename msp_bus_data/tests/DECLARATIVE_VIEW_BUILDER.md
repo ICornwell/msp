@@ -9,8 +9,8 @@ A new declarative approach to defining view structures that solves the type infe
 The original builder pattern used imperative method chaining:
 ```typescript
 .withRootElement('account', 'acc', accountSchema)
-  .withSubElement('person', 'per', personSchema).endElement
-  .withSubElementCollection('order', 'ord', orderSchema).endElement
+  .withNamedSubElement('person', 'per', personSchema).endElement
+  .withNamedSubElementCollection('order', 'ord', orderSchema).endElement
 ```
 
 This approach had fundamental TypeScript limitations:
@@ -79,10 +79,10 @@ Currently has limitations due to tuple-to-object conversion complexity.
 ### Old (Imperative)
 ```typescript
 .withRootElement('account', 'acc', accountSchema)
-  .withSubElement('person', 'per', personSchema)
+  .withNamedSubElement('person', 'per', personSchema)
     .withRelation('belongsTo')
   .endElement
-  .withSubElementCollection('order', 'ord', orderSchema)
+  .withNamedSubElementCollection('order', 'ord', orderSchema)
     // ... many more lines
   .endElement
 .endElement

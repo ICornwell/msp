@@ -33,7 +33,7 @@ const schema = z.object({ /* runtime + types, but bundle cost */ });
 TypeScript can infer **literal types** (not just general types) for generic parameters:
 
 ```typescript
-withSubElement<SubEName extends string, IC extends TrueFalse>(
+withNamedSubElement<SubEName extends string, IC extends TrueFalse>(
   name: SubEName,          // Infers as "person", not string
   schema: Schema<any>,
   isCollection: IC         // Infers as false, not boolean
@@ -42,7 +42,7 @@ withSubElement<SubEName extends string, IC extends TrueFalse>(
 
 When called:
 ```typescript
-.withSubElement("person", personSchema, false)
+.withNamedSubElement("person", personSchema, false)
 ```
 
 TypeScript infers:
@@ -140,7 +140,7 @@ export interface ViewElementBuilder<
 > {
   withRelation: (relation: string) => CNTX<ViewElementBuilder<DT, EName, RT>, DT>;
   
-  withSubElement: <
+  withNamedSubElement: <
     SubEName extends string, 
     S extends Schema<any, any>, 
     IC extends TrueFalse
@@ -174,10 +174,10 @@ export interface ViewElementBuilder<
 ```typescript
 const view = view4('test')
   .withRootElement(accountSchema, false)
-    .withSubElement("person", personSchema, false)
+    .withNamedSubElement("person", personSchema, false)
       .withRelation('belongsTo')
     .end()
-    .withSubElement("order", orderSchema, true)
+    .withNamedSubElement("order", orderSchema, true)
     .end()
   .end();
 
@@ -217,7 +217,7 @@ function createViewElementBuilder<DT, EName, RT>(
   };
 
   const builder: ViewElementBuilder<DT, EName, RT> = {
-    withSubElement: function<...>(name, schema, isCollection) {
+    withNamedSubElement: function<...>(name, schema, isCollection) {
       // Recursively create child builder
       return createViewElementBuilder(...);
     },
@@ -290,12 +290,12 @@ const viewContext = view4('account-orders')
   .withVersion('1.0')
   .withRootKey('accountNumber')
   .withRootElement(accountSchema, false)
-    .withSubElement("person", personSchema, false)
+    .withNamedSubElement("person", personSchema, false)
       .withRelation('belongsTo')
     .end()
-    .withSubElement("order", orderSchema, true)
+    .withNamedSubElement("order", orderSchema, true)
       .withRelation('hasOrder')
-      .withSubElement("orderItem", orderItemSchema, true)
+      .withNamedSubElement("orderItem", orderItemSchema, true)
         .withRelation('hasItem')
       .end()
     .end()
@@ -364,7 +364,7 @@ const data: ViewData = {
 type MakeOptional<T, Req extends TrueFalse> = 
   Req extends true ? T : Partial<T>;
 
-withSubElement<..., Req extends TrueFalse>(
+withNamedSubElement<..., Req extends TrueFalse>(
   name: SubEName,
   schema: S,
   isCollection: IC,
@@ -408,10 +408,10 @@ The order of generic parameters matters for type inference:
 
 ```typescript
 // Good: Infers name literal first, then uses it
-withSubElement<SubEName extends string, S, IC>(name: SubEName, ...)
+withNamedSubElement<SubEName extends string, S, IC>(name: SubEName, ...)
 
 // Bad: Can't use SubEName before it's defined
-withSubElement<S, IC, SubEName extends string>(name: SubEName, ...)
+withNamedSubElement<S, IC, SubEName extends string>(name: SubEName, ...)
 ```
 
 ### 3. Runtime vs Compile-Time
