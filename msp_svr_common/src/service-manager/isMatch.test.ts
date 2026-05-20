@@ -408,7 +408,7 @@ describe('bestVersionMatch', () => {
     const results4 = bestVersionMatch(candidates, '1.8.0', nameExtractor, versionExtractor, rangeExtractor);
 
     expect(results4).toHaveLength(1);
-    expect(results4[0].id).toBe('a5'); // Only a1 and a4 are valid, a4 has higher version
+    expect(results4[0].id).toBe('a4'); // Only a1 and a4 are valid, a4 has higher version
   });
 
   it('should handle multiple services where only some have matching ranges', () => {

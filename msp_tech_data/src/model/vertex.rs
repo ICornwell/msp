@@ -31,7 +31,7 @@ pub struct Vertex {
     #[oai(rename = "__label")]
     pub label: String,
 
-    #[serde(rename = "-__isEntity")]
+    #[serde(rename = "__isEntity")]
     #[oai(rename = "__isEntity")]
     pub is_entity: bool,
     

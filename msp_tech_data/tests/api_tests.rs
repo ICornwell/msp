@@ -6,6 +6,7 @@ use poem::{ Route, test::TestClient };
 use poem_openapi::OpenApiService;
 use serde_json::{ json, Value };
 
+
 use docgraph::{
     api::{ AppState, graph::GraphApi },
     error::Result,
@@ -89,7 +90,7 @@ async fn test_api_ensure_db() -> Result<()> {
     // Get the body as bytes
     resp.assert_status_is_ok();
 
-    resp.assert_json(json!({"message": "Operation completed successfully", "success": true})).await;
+    resp.assert_json(json!({"entity_ids": Value::Null,"message": "Operation completed successfully", "success": true, "update_message": Value::Null})).await;
 
     Ok(())
 }
@@ -205,7 +206,7 @@ async fn test_api_query_graph() -> Result<()> {
         "view": "default",
         "viewVersion": "1.0",
         "rootQueryKeyProperty": "id",
-        "rootQueryKeyValue": person.id,
+        "rootQueryKeyValue": person.entity_id,
         "rootQueryKeyTypes": "all",
         "useEntityIdAsKey": false,
         "isLatestOnly": true,
