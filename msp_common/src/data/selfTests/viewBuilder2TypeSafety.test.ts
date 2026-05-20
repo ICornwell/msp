@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { createView } from '../fluent/viewBuilder.js';
 import { createSchema } from '../fluent/schemaBuilder.js';
-import { domainObject } from '../fluent/objectBuilder.js';
-import { relationsBuilder } from '../fluent/objectRelationsBuilder.js';
+import { createEntityObject, createValueObject } from '../fluent/objectBuilder.js';
+import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder - Type Safety', () => {
   it('should provide type-safe sub-element names', () => {
@@ -47,22 +47,22 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const accountObject = domainObject('account', accountSchema)
+    const accountObject = createValueObject('account', accountSchema)
       .withId('account-123', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const personObject = domainObject('person', personSchema)
+    const personObject = createValueObject('person', personSchema)
       .withId('person-456', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const orderObject = domainObject('order', orderSchema)
+    const orderObject = createValueObject('order', orderSchema)
       .withId('order-789', '1.0')
-      .buildDomainObject();
-    const itemObject = domainObject('item', itemSchema)
+      .buildObject();
+    const itemObject = createValueObject('item', itemSchema)
       .withId('item-101', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const relsObjs = relationsBuilder()
+    const relsObjs = createRelations()
         .allowRelationFrom('hasPerson', accountObject, personObject, true)
         .allowRelationFrom('hasOrder', accountObject, orderObject, true)
         .allowRelationFrom('hasItem', orderObject, itemObject, true)
@@ -153,21 +153,21 @@ describe('Declarative View Builder - Type Safety', () => {
         .endProperty()
       .buildSchema();
 
-    const level1Object = domainObject('level1', level1Schema)
+    const level1Object = createValueObject('level1', level1Schema)
       .withId('l1-123', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const level2Object = domainObject('level2', level2Schema)
+    const level2Object = createValueObject('level2', level2Schema)
       .withId('l2-123', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const level3Object = domainObject('level3', level3Schema)
+    const level3Object = createValueObject('level3', level3Schema)
       .withId('l3-123', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const level4Object = domainObject('level4', level4Schema)
+    const level4Object = createValueObject('level4', level4Schema)
       .withId('l4-123', '1.0')
-      .buildDomainObject(); 
+      .buildObject(); 
 
     const testview = createView('deep-view')
       .withVersion('1.0')

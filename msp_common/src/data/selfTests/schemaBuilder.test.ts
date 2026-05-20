@@ -20,11 +20,11 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
     expect(accountSchema.name).toBe('account');
-    expect(accountSchema.vid).toEqual({ id: 'account', version: '1.0' });
+    expect(accountSchema.vid).toEqual({ name: 'account', version: '1.0' });
     expect(accountSchema.properties).toHaveProperty('accountNumber');
 
     expect(accountSchema.properties['accountNumber']).toEqual({
-      dictionaryId: { id: 'dict-account-number', version: '1.0' },
+      dictionaryId: { name: 'dict-account-number', version: '1.0' },
       infoType: 'Text',
       defaultLabel: 'Account Number',
       name: 'accountNumber'
@@ -62,14 +62,14 @@ describe('Declarative View Builder', () => {
     expect(personSchema1.properties).not.toHaveProperty('age');
 
     expect(personSchema2.properties['age']).toEqual({
-      dictionaryId: { id: 'dict-age', version: '1.2' },
+      dictionaryId: { name: 'dict-age', version: '1.2' },
       infoType: 'Integer',
       defaultLabel: 'Age',
       name: 'age'
     });
 
     expect(personSchema1.properties['name']).toEqual({
-      dictionaryId: { id: 'dict-account-number', version: '1.0' },
+      dictionaryId: { name: 'dict-account-number', version: '1.0' },
       infoType: 'Text',
       defaultLabel: 'Name',
       name: 'name'

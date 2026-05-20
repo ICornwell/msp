@@ -3,7 +3,7 @@ import { createSchema } from '../fluent/schemaBuilder.js';
 import { createView } from '../fluent/viewBuilder.js';
 import { product } from '../fluent/productBuilder.js';
 
-import { domainObject } from '../fluent/objectBuilder.js';
+import { createValueObject } from '../fluent/objectBuilder.js';
 import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Product Builder Integration', () => {
@@ -32,13 +32,13 @@ describe('Product Builder Integration', () => {
       .endProperty()
       .buildSchema();
 
-    const personObject = domainObject('person', personSchema)
+    const personObject = createValueObject('person', personSchema)
       .withId('person-789', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const accountObject = domainObject('account', accountSchema)
+    const accountObject = createValueObject('account', accountSchema)
       .withId('account-789', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
     const relObjs = createRelations()
         .allowRelationFrom('belongsTo', accountObject, personObject, true)
@@ -66,14 +66,14 @@ describe('Product Builder Integration', () => {
 
     // Assertions
     expect(myProduct.name).toBe('Account Management');
-    expect(myProduct.id).toEqual({ id: 'account-mgmt', version: '1.0.0' });
-    expect(myProduct.domain).toEqual({ id: 'banking', version: '1.0' });
+    expect(myProduct.id).toEqual({name: 'account-mgmt', version: '1.0.0' });
+    expect(myProduct.domain).toEqual({ name: 'banking', version: '1.0' });
     expect(myProduct.views).toHaveLength(1);
     expect(myProduct.views[0].name).toBe('account-person-view');
     
     // Check that view is bound to product
-    expect(myProduct.views[0].domain).toEqual({ id: 'banking', version: '1.0' });
-    expect(myProduct.views[0].product).toEqual({ id: 'account-mgmt', version: '1.0.0' });
+    expect(myProduct.views[0].domain).toEqual({ name: 'banking', version: '1.0' });
+    expect(myProduct.views[0].product).toEqual({ name: 'account-mgmt', version: '1.0.0' });
   });
 
   it('should support product version inheritance', () => {
@@ -86,9 +86,9 @@ describe('Product Builder Integration', () => {
       .endProperty()
       .buildSchema();
 
-    const domainObjectV1 = domainObject('person', personSchemaV1)
+    const domainObjectV1 = createValueObject('person', personSchemaV1)
       .withId('person-001', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
     const viewV1 = createView('person-view')
       .withVersion('1.0')
@@ -117,9 +117,9 @@ describe('Product Builder Integration', () => {
       .endProperty()
       .buildSchema();
 
-    const addressObject = domainObject('address', addressSchema)
+    const addressObject = createValueObject('address', addressSchema)
       .withId('address-001', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
     const addressView = createView('address-view')
       .withVersion('1.0')
@@ -140,7 +140,7 @@ describe('Product Builder Integration', () => {
     expect(productV1_1.views).toHaveLength(2); // Inherited + new
     expect(productV1_1.views[0].name).toBe('person-view'); // Inherited
     expect(productV1_1.views[1].name).toBe('address-view'); // New
-    expect(productV1_1.inheritsFrom).toEqual({ id: 'person-mgmt', version: '1.0.0' });
+    expect(productV1_1.inheritsFrom).toEqual({ name: 'person-mgmt', version: '1.0.0' });
   });
 
   it('should generate correct ViewObjectType', () => {
@@ -172,13 +172,13 @@ describe('Product Builder Integration', () => {
       .endProperty()
       .buildSchema();
 
-    const orderObject = domainObject('order', orderSchema)
+    const orderObject = createValueObject('order', orderSchema)
       .withId('order-123', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
-    const itemObject = domainObject('item', itemSchema)
+    const itemObject = createValueObject('item', itemSchema)
       .withId('item-456', '1.0')
-      .buildDomainObject();
+      .buildObject();
 
     const relObjs = createRelations()
         .allowRelationFrom('hasItem', orderObject, itemObject, true)

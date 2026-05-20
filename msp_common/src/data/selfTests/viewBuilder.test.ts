@@ -7,7 +7,7 @@ describe('ViewBuilder', () => {
     // Local reference copy of the expected JSON (updated for new structure)
     const expectedView: View = {
       viewDataIdentifier: {
-        name: "account-people-orders-items-products",
+        name: "account-people",
         version: "1.0"
       },
       name: "account-people",
@@ -21,20 +21,21 @@ describe('ViewBuilder', () => {
         object: "accountObject",
         queryObjectId: "root",
         relationFromParent: undefined,
-        domainObjectId: accountSchema.vid,
+        domainObjectId: { domain: { name: "sales", version: "1.0"}, ...accountSchema.vid},
         isCollection: false,
         isEntity: true,
         subElements: [
           {
             object: "person",
             queryObjectId: "person",
-            domainObjectId: personSchema.vid,
+            domainObjectId: { domain: { name: "sales", version: "1.0"}, ...personSchema.vid},
             isCollection: false,
             isEntity: true,
             relationFromParent: "belongsTo",
             subElements:  [
            {
             domainObjectId: {
+              domain: { name: "sales", version: "1.0"},
               name: "address-123",
                version: "1.0",
              },
@@ -50,7 +51,7 @@ describe('ViewBuilder', () => {
           {
             object: "order",
             queryObjectId: "order",
-            domainObjectId: orderSchema.vid,
+            domainObjectId: { domain: { name: "sales", version: "1.0"}, ...orderSchema.vid},
             isCollection: true,
             isEntity: false,
             relationFromParent: "hasOrder",
@@ -58,7 +59,7 @@ describe('ViewBuilder', () => {
               {
                 object: "orderItem",
                 queryObjectId: "orderItem",
-                domainObjectId: orderItemSchema.vid,
+                domainObjectId: { domain: { name: "sales", version: "1.0"}, ...orderItemSchema.vid},
                 isCollection: true,
                 isEntity: false,
                 relationFromParent: "hasItem",
@@ -66,7 +67,7 @@ describe('ViewBuilder', () => {
                   {
                     object: "product",
                     queryObjectId: "product",
-                    domainObjectId: productSchema.vid,
+                    domainObjectId: { domain: { name: "sales", version: "1.0"}, ...productSchema.vid},
                     isCollection: false,
                     isEntity: true,
                     relationFromParent: "orderedProduct",

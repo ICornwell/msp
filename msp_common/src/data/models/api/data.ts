@@ -135,6 +135,11 @@ export type DomainObject<N extends string = string, S extends Schema<any, any> =
   schema?: S;
   schemaId?: versionedResourceId;
   isEntity?: TrueFalse;
+  defaultPresentationLabel?: string;
+  defaultDocPathName?: string;
+  businessKey?: string | string[] | ((data: any) => string);
+  alternateKey?: string | string[] | ((data: any) => string);
+  storeWithDBLabel?: string;
   allowedRelationsTo: DomainObjectRelation<string, any>[];
   allowedRelationsFrom: DomainObjectRelation<string, any>[];
   _allowedRelationsToNames: RelsTo;

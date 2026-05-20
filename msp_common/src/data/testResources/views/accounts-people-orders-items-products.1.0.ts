@@ -1,7 +1,7 @@
 import { createView } from '../../fluent/viewBuilder.js';
 import { createSchema } from '../../fluent/schemaBuilder.js';
 import { createRelations } from '../../fluent/objectRelationsBuilder.js';
-import { domainObject } from '../../fluent/objectBuilder.js';
+import { createValueObject, createEntityObject } from '../../fluent/objectBuilder.js';
 import { View } from '../../../index.js';
 
 // Define schemas for each entity
@@ -89,41 +89,36 @@ export const productSchema = createSchema('product')
     .endProperty()
   .buildSchema();
 
-   const accountObject = domainObject('accountObject', accountSchema)
+   const accountObject = createEntityObject('accountObject', accountSchema)
           .withId('acc-123', '1.0')
           .forDomain({ name: 'sales', version: '1.0' })
-          .withIsEntity(true)
-          .buildDomainObject();
+          .buildObject();
   
-   const personObject = domainObject('personObject', personSchema)
+   const personObject = createEntityObject('personObject', personSchema)
           .withId('person-123', '1.0')
           .forDomain({ name: 'sales', version: '1.0' })
-          .withIsEntity(true)
-          .buildDomainObject();
+          .buildObject();
 
-    const addressObject = domainObject('addressObject', addressSchema)
+    const addressObject = createValueObject('addressObject', addressSchema)
           .withId('address-123', '1.0')
           .forDomain({ name: 'sales', version: '1.0' })
-          .withIsEntity(false)
-          .buildDomainObject();
+          .buildObject();
     
-    const orderObject = domainObject('orderObject', orderSchema)
+    const orderObject = createValueObject('orderObject', orderSchema)
           .withId('order-123', '1.0')
           .forDomain({ name: 'sales', version: '1.0' })
-          .withIsEntity(false)
-          .buildDomainObject();
+          .buildObject();
     
-    const itemObject = domainObject('itemObject', orderItemSchema)
+    const itemObject = createValueObject('itemObject', orderItemSchema)
           .withId('item-123', '1.0')
           .forDomain({ name: 'sales', version: '1.0' })
-          .withIsEntity(false)
-          .buildDomainObject();
+          .buildObject();
     
-    const productObject = domainObject('productObject', productSchema)
+    const productObject = createEntityObject('productObject', productSchema)
           .withId('product-123', '1.0')
           .forDomain({ name: 'sales', version: '1.0' })
-          .withIsEntity(true)
-          .buildDomainObject();
+
+          .buildObject();
     
     const relObjs = createRelations()
         .allowRelationFrom('hasOrder', accountObject, orderObject, true)

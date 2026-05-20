@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { createView } from '../fluent/viewBuilder.js';
 import { createSchema } from '../fluent/schemaBuilder.js';
 
-import { domainObject } from '../fluent/objectBuilder.js';
+import { createValueObject, createEntityObject } from '../fluent/objectBuilder.js';
 import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder', () => {
@@ -69,35 +69,35 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
-  const accountObject = domainObject('accountObject', accountSchema)
+  const accountObject = createEntityObject('accountObject', accountSchema)
     .withId('acc-123', '1.0')
     .forDomain({ name: 'banking', version: '1.0' })
-    .withIsEntity(true)
-    .buildDomainObject();
+  
+    .buildObject();
 
-  const personObject = domainObject('personObject', personSchema)
+  const personObject = createEntityObject('personObject', personSchema)
     .withId('person-123', '1.0')
     .forDomain({ name: 'banking', version: '1.0' })
-    .withIsEntity(true)
-    .buildDomainObject();
+  
+    .buildObject();
 
-  const orderObject = domainObject('orderObject', orderSchema)
+  const orderObject = createEntityObject('orderObject', orderSchema)
     .withId('order-123', '1.0')
     .forDomain({ name: 'banking', version: '1.0' })
-    .withIsEntity(true)
-    .buildDomainObject();
+  
+    .buildObject();
 
-  const orderItemObject = domainObject('orderItemObject', orderItemSchema)
+  const orderItemObject = createEntityObject('orderItemObject', orderItemSchema)
     .withId('orderItem-123', '1.0')
     .forDomain({ name: 'banking', version: '1.0' })
-    .withIsEntity(true)
-    .buildDomainObject();
 
-  const productObject = domainObject('productObject', productSchema)
+    .buildObject();
+
+  const productObject = createEntityObject('productObject', productSchema)
     .withId('product-123', '1.0')
     .forDomain({ name: 'banking', version: '1.0' })
-    .withIsEntity(true)
-    .buildDomainObject();
+
+    .buildObject();
 
   const relatedObjs = createRelations()
     .allowRelationFrom('belongsTo', accountObject, personObject, false)
@@ -326,17 +326,15 @@ describe('Declarative View Builder', () => {
           .endProperty()
         .buildSchema();
 
-     const accountObject2 = domainObject('accountObject2', accountSchema2)
+     const accountObject2 = createEntityObject('accountObject2', accountSchema2)
       .withId('acc-456', '2.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
       
-    const personObject2 = domainObject('personObject2', personSchema2)
+    const personObject2 = createEntityObject('personObject2', personSchema2)
       .withId('person-456', '2.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
     const relatedObjs2 = createRelations()
     .allowRelationFrom('belongsTo', accountObject2, personObject2, false)
@@ -414,17 +412,15 @@ describe('Declarative View Builder', () => {
         .endProperty()
       .buildSchema();
 
-    const userObject = domainObject('userObject', userSchema)
+    const userObject = createEntityObject('userObject', userSchema)
       .withId('user-123', '1.0')
       .forDomain({ name: 'social', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
       
-    const postObject = domainObject('postObject', postSchema)
+    const postObject = createEntityObject('postObject', postSchema)
       .withId('post-123', '1.0')
       .forDomain({ name: 'social', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
     const upviewBuilder = createView('user-posts')
       .withVersion('1.0')
@@ -500,29 +496,25 @@ describe('Declarative View Builder', () => {
         .endProperty()
       .buildSchema();
 
-    const accountObject = domainObject('accountObject', accountSchema)
+    const accountObject = createEntityObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
       .forDomain({ name: 'sales', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
-    const orderObject = domainObject('orderObject', orderSchema)
+    const orderObject = createEntityObject('orderObject', orderSchema)
       .withId('order-123', '1.0')
       .forDomain({ name: 'sales', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
-    const itemObject = domainObject('itemObject', itemSchema)
+    const itemObject = createEntityObject('itemObject', itemSchema)
       .withId('item-123', '1.0')
       .forDomain({ name: 'sales', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
-    const productObject = domainObject('productObject', productSchema)
+    const productObject = createEntityObject('productObject', productSchema)
       .withId('product-123', '1.0')
       .forDomain({ name: 'sales', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
     const relObjs = createRelations()
     .allowRelationFrom('hasOrder', accountObject, orderObject, true)

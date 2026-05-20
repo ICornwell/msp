@@ -1,6 +1,6 @@
 import { GETRELSFORNAME, NameOfDomainObject, RelsFromDO, RelsToDO } from '../models/api/data.js';
 import { createSchema } from '../fluent/schemaBuilder.js';
-import { addDomainObjectRelationTo, domainObject } from '../fluent/objectBuilder.js';
+import { addDomainObjectRelationTo, createValueObject, createEntityObject } from '../fluent/objectBuilder.js';
 import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder', () => {
@@ -33,18 +33,17 @@ describe('Declarative View Builder', () => {
 
   it('should build related objects', () => {
     
-    const personObject_noRels = domainObject('personObject', personSchema)
+    const personObject_noRels = createEntityObject('personObject', personSchema)
       .withId('person-123', '1.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
-    const accountObject_noRels = domainObject('accountObject', accountSchema)
+    const accountObject_noRels = createEntityObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
+    
       // .withRelationFrom('owner', personObject_noRels, true)
-      .buildDomainObject();
+      .buildObject();
 
     const relatedObjs = createRelations()
     .allowRelationFrom('owner', personObject_noRels, accountObject_noRels, true)
@@ -95,8 +94,8 @@ describe('Declarative View Builder', () => {
 
 
     expect(accountObject.name).toBe('accountObject');
-    expect(accountObject.vid).toEqual({ id: 'acc-123', version: '1.0' });
-    expect(accountObject.domain).toEqual({ id: 'banking', version: '1.0' });
+    expect(accountObject.vid).toEqual({domain: {"name": "banking","version": "1.0"}, name: 'acc-123', version: '1.0' });
+    expect(accountObject.domain).toEqual({ name: 'banking', version: '1.0' });
     expect(accountObject.isEntity).toBe(true);
     expect(accountObject.allowedRelationsTo).toHaveLength(3);
     expect(accountObject.allowedRelationsTo[0].name).toBe('owner');
@@ -107,8 +106,8 @@ describe('Declarative View Builder', () => {
     expect(accountObject.allowedRelationsFrom[0].relatedObject).toBe(personObject);
 
     expect(personObject.name).toBe('personObject');
-    expect(personObject.vid).toEqual({ id: 'person-123', version: '1.0' });
-    expect(personObject.domain).toEqual({ id: 'banking', version: '1.0' });
+    expect(personObject.vid).toEqual({domain: {"name": "banking","version": "1.0"}, name: 'person-123', version: '1.0' });
+    expect(personObject.domain).toEqual({ name: 'banking', version: '1.0' });
     expect(personObject.isEntity).toBe(true);
     expect(personObject.allowedRelationsTo).toHaveLength(1);
     expect(personObject.allowedRelationsTo[0].name).toBe('hasAccount');
@@ -121,18 +120,16 @@ describe('Declarative View Builder', () => {
 
    it('should serialise without circular references', () => {
     
-    const personObject = domainObject('personObject', personSchema)
+    const personObject = createEntityObject('personObject', personSchema)
       .withId('person-123', '1.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
-    const accountObject = domainObject('accountObject', accountSchema)
+    const accountObject = createEntityObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
       .withRelationTo('owner', personObject, true)
-      .buildDomainObject();
+      .buildObject();
 
     addDomainObjectRelationTo(personObject, 'hasAccount', accountObject, false);
     const accountJson = accountObject.serialise();
@@ -143,18 +140,16 @@ describe('Declarative View Builder', () => {
 
    it('should expose valid relations', () => {
     
-    const personObject = domainObject('personObject', personSchema)
+    const personObject = createEntityObject('personObject', personSchema)
       .withId('person-123', '1.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
-      .buildDomainObject();
+      .buildObject();
 
-    const accountObject = domainObject('accountObject', accountSchema)
+    const accountObject = createEntityObject('accountObject', accountSchema)
       .withId('acc-123', '1.0')
       .forDomain({ name: 'banking', version: '1.0' })
-      .withIsEntity(true)
       .withRelationTo('owner', personObject, true)
-      .buildDomainObject();
+      .buildObject();
 
     addDomainObjectRelationTo(personObject, 'hasAccount', accountObject, false);
     const accountJson = accountObject.serialise();
