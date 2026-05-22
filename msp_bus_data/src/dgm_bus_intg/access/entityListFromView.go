@@ -37,7 +37,7 @@ func recurseGetEntityListFromView(doc interface{},
 		}
 		if !isPrimative(member) && member != nil {
 			for _, child := range element.SubElements {
-				path := child.DocumentName
+				path := child.DocPathName
 				if path == "" {
 					path = child.Object
 				}

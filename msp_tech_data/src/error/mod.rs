@@ -25,6 +25,9 @@ pub enum DocGraphError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    #[error("Duplicate Key error: {0}")]
+    DuplicateKey(String),
+
     #[error("Internal server error: {0}")]
     Internal(String),
 }
@@ -34,6 +37,7 @@ impl DocGraphError {
         match self {
             DocGraphError::NotFound(_) => StatusCode::NOT_FOUND,
             DocGraphError::Validation(_) => StatusCode::BAD_REQUEST,
+            DocGraphError::DuplicateKey(_) => StatusCode::CONFLICT,
             DocGraphError::Database(_) | DocGraphError::Pool(_) | DocGraphError::Serialization(_) | 
             DocGraphError::Config(_) | DocGraphError::Io(_) | DocGraphError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }

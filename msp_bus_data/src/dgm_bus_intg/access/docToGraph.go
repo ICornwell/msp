@@ -81,8 +81,8 @@ func upsertViewData(view apiMessages.ViewQuery,
 	element := view.RootElement
 	upsertRequest := apiMessages.UpsertRequest{}
 
-	if element.DocumentName == "" {
-		element.DocumentName = element.Object
+	if element.DocPathName == "" {
+		element.DocPathName = element.Object
 	}
 	recursiveUpsertViewData(element, nil, newData, nil, nil, currentData, nil, "", rawData, diffs, view.RootKey, transactionId, &upsertRequest)
 
@@ -111,11 +111,11 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 
 	subNames := map[string]bool{}
 	for i, v := range viewElement.SubElements {
-		if v.DocumentName == "" {
-			viewElement.SubElements[i].DocumentName = v.Object
+		if v.DocPathName == "" {
+			viewElement.SubElements[i].DocPathName = v.Object
 		}
 
-		subNames[viewElement.SubElements[i].DocumentName] = true
+		subNames[viewElement.SubElements[i].DocPathName] = true
 	}
 
 	strippedContent := map[string]interface{}{}
@@ -139,10 +139,10 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 		idString := id.(string)
 
 		if diffs.IsNewObject(idString) {
-			businessKey := ""
+			primaryBusinessKey := ""
 			//parentViewElement will be nil if this is the root object
-			if parentViewElement == nil {
-				businessKey = strippedContent[rootKeyName].(string)
+			if parentViewElement == nil && viewElement.IsEntity && rootKeyName != "" {
+				primaryBusinessKey = strippedContent[rootKeyName].(string)
 			}
 
 			if viewElement.IsEntity || currentEntityId == "" {
@@ -156,7 +156,7 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 				QueryObjectId: viewElement.QueryObjectId,
 				Content:       strippedContent,
 				AlternateKey:  "",
-				BusinessKey:   businessKey,
+				BusinessKey:   primaryBusinessKey,
 				TmpId:         jsonDoc.FromContent[string](newData, "__tmpId"),
 				EntityId:      currentEntityId,
 			})
@@ -189,8 +189,8 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 			})
 		}
 		for _, v := range viewElement.SubElements {
-			newObj := newData[v.DocumentName]
-			currObj := currentData[v.DocumentName]
+			newObj := newData[v.DocPathName]
+			currObj := currentData[v.DocPathName]
 			if newObj != nil { // can be nil when data has been removed/deleted
 				t := reflect.TypeOf(newObj).Kind()
 

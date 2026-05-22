@@ -4,8 +4,7 @@ use uuid::Uuid;
 use tracing::{ debug, info };
 
 use crate::{
-    error::{ DocGraphError, Result },
-    model::{ QueryMessage, QueryResponse, UpdateMessage },
+    db::check_business_key_conflicts, error::{ DocGraphError, Result }, model::{ QueryMessage, QueryResponse, UpdateMessage }
 };
 
 use super::query::read_data;
@@ -87,7 +86,29 @@ impl GraphRepository {
         // Get a client for the transaction
         let mut client = self.get_client().await?;
 
-        // Start a transaction
+        // check for duplicated business keys before making any changes
+        let mut vertices_to_check = Vec::new();
+        if let Some(add) = &message.add {
+            if let Some(vertices) = &add.vertices {
+                vertices_to_check.extend(vertices.iter().cloned());
+            }
+        }
+        if let Some(update) = &message.update {
+            if let Some(vertices) = &update.vertices {
+                vertices_to_check.extend(vertices.iter().cloned());
+            }
+        }
+        let conflicts = check_business_key_conflicts(&mut client, &vertices_to_check).await?;
+        if !conflicts.is_empty() {
+            let conflict_info: Vec<String> = conflicts                .iter()
+                .map(|v| format!("Conflict on business key '{}' for vertex with original ID '{}'", v.business_key, v.original_id))
+                .collect();
+            let error_message = format!("Business key conflicts detected: {}", conflict_info.join("; "));
+            debug!("{}", error_message);
+            return Err(DocGraphError::Validation(error_message));
+        }
+
+                // Start a transaction
         let tx = client.transaction().await.map_err(DocGraphError::Database)?;
         debug!("Started database transaction for update");
 

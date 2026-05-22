@@ -10,6 +10,8 @@ use crate::{
     },
 };
 
+use super::maps::{edge_from_row, vertex_from_row};
+
 pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<QueryResponse> {
     let start = query_message
         .query_objects
@@ -52,20 +54,7 @@ pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<Qu
             let edges: Vec<Edge> = result
                 .iter()
                 .filter_map(|row| match row.get::<usize, &str>(0) {
-                    "e" => Some(Edge {
-                        id: row.get::<usize, String>(1).trim_end().to_string(),
-                        // original id uses idx: 2
-                        entity_id: row.get::<usize, String>(3).trim_end().to_string(),
-                        transaction_id: row.get::<usize, String>(4).trim_end().to_string(),
-                        label: row.get::<usize, String>(5).trim_end().to_string(),
-                        view_type: row.get::<usize, String>(7).trim_end().to_string(),
-                        from: row.get::<usize, String>(12).trim_end().to_string(),
-                        to: row.get::<usize, String>(13).trim_end().to_string(),
-                        from_entity_id: row.get::<usize, String>(12).trim_end().to_string(),
-                        to_entity_id: row.get::<usize, String>(13).trim_end().to_string(),
-                        timestamp: row.get(8),
-                        content: row.get(11),
-                    }),
+                    "e" => Some(edge_from_row(row)),
                     _ => None,
                 })
                 .collect();
@@ -73,21 +62,7 @@ pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<Qu
             let vertices: Vec<Vertex> = result
                 .iter()
                 .filter_map(|row| match row.get::<usize, &str>(0) {
-                    "v" => Some(Vertex {
-                        id: row.get::<usize, String>(1).trim_end().to_string(),
-                        original_id: row.get::<usize, String>(2).trim_end().to_string(),
-                        entity_id: row.get::<usize, String>(3).trim_end().to_string(),
-                        transaction_id: row.get::<usize, String>(4).trim_end().to_string(),
-                        label: row.get::<usize, String>(5).trim_end().to_string(),
-                        is_entity: row.get::<usize, bool>(6),
-                        view_type: row.get::<usize, String>(7).trim_end().to_string(),
-                        timestamp: row.get(8),
-                        tmp_id: "".to_string(),      // used for inbound updates only
-                        business_key: row.get::<usize, String>(9).trim_end().to_string(),
-                        alternate_key: row.get::<usize, String>(10).trim_end().to_string(),
-                        content: row.get(11),
-                        view_managed_edges: Vec::new(),
-                    }),
+                    "v" => Some(vertex_from_row(row)),
                     _ => None,
                 })
                 .collect();
@@ -120,6 +95,10 @@ fn build_sql_for_query_object(
     let base_idx = idx;
     for relation in relations {
         if relation.is_relation_from_id(&current_object.query_object_id) {
+            // this is possibly going to get very, very slow when number of edges for a lable grows - we need to tie the edge to the current object id 
+            // unless Postgres has some super optimisation for EXISTS with a primary key lookup - which it might
+            // or we switch to an inner join (CTE to edges) instead of exists or use IN with a subquery of the current object ids from the previous step
+            // however postgres does have some excellet query planners, so we'll test with volume before trying to optimise this
             current_sql.push(format!(
                 r#"{} AS (SELECT 'e' AS otype, e1.id, 'na' as __originalId, e1.__entityId, e1.__transactionid, e1.__label, FALSE as __isEntity, e1.__viewtype, e1.__timestamp, 'na' AS __businessKey, 'na' AS __alternateKey, e1.content, e1.from_id, e1.to_id
                 FROM edges e1 WHERE e1.__label = '{}' AND EXISTS (SELECT 1 FROM {} v WHERE v.id = e1.from_id)
@@ -132,6 +111,7 @@ fn build_sql_for_query_object(
 
             if let Some(object) = objects.iter().find(|v| v.is_object_with_id(&relation.to_object))
             {
+                // this is possiblygoing to get very, very slow when number of edges for a lable grows - we need to tie the edge to the current object id
                 current_sql.push(format!(
                     r#"{} AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
                     FROM vertices v2 WHERE __label = '{}' AND EXISTS (SELECT 1 FROM {} e WHERE e.to_id = v2.id) AND NOT EXISTS (SELECT 1 FROM edges e WHERE e.from_id = v2.id AND e.__label = 'supersededBy')

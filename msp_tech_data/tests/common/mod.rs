@@ -60,7 +60,7 @@ pub fn create_test_vertex(label: &str) -> Vertex {
         original_id: "".to_string(),
         tmp_id: "".to_string(),
         view_managed_edges: Vec::new(),
-        business_key: "a".to_string(),
+        business_key: format!("bk_{}", Uuid::now_v7().to_string()),
         alternate_key: "".to_string(),
         is_entity: true,
     }

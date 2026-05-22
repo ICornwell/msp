@@ -135,7 +135,7 @@ impl QueryResponse {
 
     pub fn has_edges(&self) -> bool {
         match &self.data {
-            Some(query_repsonse) => query_repsonse.has_edges(),
+            Some(query_response) => query_response.has_edges(),
             None => false,
         }
     }

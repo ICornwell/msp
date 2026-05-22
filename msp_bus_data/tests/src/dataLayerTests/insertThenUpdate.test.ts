@@ -5,14 +5,15 @@ import { testData, accountsPeopleOrdersItemsProductsView,
    } from '../../../../msp_common/dist/data/testResources/views/accounts-people-orders-items-products.1.0.js';
 // import { view } from '@/fluent/viewBuilder.js';
 import { WriteData, ReadData } from './integratedTestsSdk.js';
+import { v7 as uuid } from 'uuid';
 
 describe('Insert then update test', () => {
   const debugTimeOut: number = 600000
   it('should insert a new record and then update it successfully', async () => {
     const v = accountsPeopleOrdersItemsProductsView;
     console.log('Using view:', v.name, 'version:', v.version);
-
-    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, testData)
+    const initialData = testData()
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
     const eid = r1.entityId
     const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
@@ -31,7 +32,8 @@ describe('Insert then update test', () => {
     const v = accountsPeopleOrdersItemsProductsView;
     console.log('Using view:', v.name, 'version:', v.version);
 
-    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, testData)
+    const initialData = testData()
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
     const eid = r1.entityId
     const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
@@ -48,7 +50,8 @@ describe('Insert then update test', () => {
     console.log('Using view:', v.name, 'version:', v.version);
 
     // Step 1: Insert initial record
-    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, testData)
+    const initialData = testData()
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
     const eid = r1.entityId
     const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
@@ -86,7 +89,7 @@ describe('Insert then update test', () => {
 
     // Step 1: Insert initial record with multiple order items
     const initialData: AccountsPeopleOrdersItemsProductsData = {
-      accountNumber: "ACC-99999",
+      accountNumber: `ACC-99999-${uuid()}`,
       person: {
         name: "Jane Smith",
         address: {
@@ -152,7 +155,8 @@ describe('Insert then update test', () => {
     console.log('Using view:', v.name, 'version:', v.version);
 
     // Step 1: Insert initial record
-    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, testData)
+    const initialData = testData()
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
     const eid = r1.entityId
     const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
@@ -184,7 +188,8 @@ describe('Insert then update test', () => {
     const v = accountsPeopleOrdersItemsProductsView;
     console.log('Using view:', v.name, 'version:', v.version);
     // Step 1: Insert initial record
-    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, testData)
+    const initialData = testData()
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
     const eid = r1.entityId
     const readBackData = (await ReadData(accountsPeopleOrdersItemsProductsView, eid)) as AccountsPeopleOrdersItemsProductsData
 
@@ -218,14 +223,16 @@ describe('Insert then update test', () => {
     console.log('Using view:', v.name, 'version:', v.version);
 
     // Step 1: Insert initial record
-    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, testData)
+    const initialData = testData()
+    const updatedAccountNumber = `ACC-UPDATE-TEST-${uuid()}`
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
     const eid = r1.entityId
     const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
     // Step 2: Change multiple properties at different levels simultaneously
     if (readBackData) {
       // Change root level property
-      readBackData.accountNumber = "ACC-UPDATED";
+      readBackData.accountNumber = updatedAccountNumber;
 
       // Change person properties
       if (readBackData.person) {
@@ -259,7 +266,7 @@ describe('Insert then update test', () => {
     const readBackData2 = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
     // Verify all changes were applied
-    expect(readBackData2?.accountNumber).toBe("ACC-UPDATED");
+    expect(readBackData2?.accountNumber).toBe(updatedAccountNumber);
     expect(readBackData2?.person?.name).toBe("Jane Updated");
     expect(readBackData2?.person?.address?.street).toBe("789 New St");
     expect(readBackData2?.person?.address?.postalCode).toBe("99999");
@@ -274,10 +281,10 @@ describe('Insert then update test', () => {
   it('should remove  items', async () => {
     const v = accountsPeopleOrdersItemsProductsView;
     console.log('Using view:', v.name, 'version:', v.version);
-
+    const intitalAccountNumber = `ACC-REMOVE-TEST-${uuid()}`
     // Step 1: Insert initial record with two order items
     const initialData: AccountsPeopleOrdersItemsProductsData = {
-      accountNumber: "ACC-COMBO-TEST",
+      accountNumber: intitalAccountNumber,
       person: {
         name: "Bob Johnson",
         address: {
@@ -344,10 +351,10 @@ describe('Insert then update test', () => {
   it('should add and remove order items in a single update', async () => {
     const v = accountsPeopleOrdersItemsProductsView;
     console.log('Using view:', v.name, 'version:', v.version);
-
+    const intitalAccountNumber = `ACC-COMBO-TEST-${uuid()}`
     // Step 1: Insert initial record with two order items
     const initialData: AccountsPeopleOrdersItemsProductsData = {
-      accountNumber: "ACC-COMBO-TEST",
+      accountNumber: intitalAccountNumber,
       person: {
         name: "Bob Johnson",
         address: {
@@ -423,12 +430,14 @@ describe('Insert then update test', () => {
   it('should delink, not delete Entities', async () => {
     const v = accountsPeopleOrdersItemsProductsView;
     console.log('Using view:', v.name, 'version:', v.version);
-
+    const intitalAccountNumber = `ACC-DELINK-TEST-${uuid()}`
+    const intitalpersonEmail = `bob.johnson-${uuid()}@example.com`
     // Step 1: Insert initial record with two order items
     const initialData: AccountsPeopleOrdersItemsProductsData = {
-      accountNumber: "ACC-COMBO-TEST",
+      accountNumber: intitalAccountNumber,
       person: {
         name: "Bob Johnson",
+        email: intitalpersonEmail,
         address: {
           street: "321 Pine Rd",
           postalCode: "11111"

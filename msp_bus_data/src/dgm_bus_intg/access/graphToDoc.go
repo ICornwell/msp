@@ -63,14 +63,14 @@ func recursiveGraphToDoc(viewSpec apiMessages.ViewElement, graphObjects jsonDoc.
 					if subElement.IsCollection {
 						objColl = append(objColl, childElement)
 					} else {
-						outDoc[subElement.Object] = childElement
+						outDoc[subElement.DocPathName] = childElement
 					}
 				}
 			}
 		}
 		// add the array type part if relevant
 		if subElement.IsCollection {
-			outDoc[subElement.Object] = objColl
+			outDoc[subElement.DocPathName] = objColl
 		}
 	}
 

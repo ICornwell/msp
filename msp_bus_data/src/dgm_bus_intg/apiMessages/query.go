@@ -11,7 +11,7 @@ type ViewQuery struct {
 
 type ViewElement struct {
 	Object             string        `json:"object"`
-	DocumentName       string        `json:"documentName,omitempty"`
+	DocPathName       string         `json:"docPathName,omitempty"`
 	QueryObjectId      string        `json:"queryObjectId"`
 	RelationFromParent string        `json:"relationFromParent"`
 	RelationToParent   string        `json:"relationToParent,omitempty"`
