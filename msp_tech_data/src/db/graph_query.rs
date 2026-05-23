@@ -1,6 +1,4 @@
-use deadpool_postgres::Client;
 use tokio_postgres::types::ToSql;
-
 
 use crate::{
     error::{DocGraphError, Result},
@@ -11,8 +9,10 @@ use crate::{
 };
 
 use super::maps::{edge_from_row, vertex_from_row};
+use super::DbClientManager;
 
-pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<QueryResponse> {
+pub async fn read_data(db: &DbClientManager, query_message: QueryMessage) -> Result<QueryResponse> {
+    let client = db.get_client().await?;
     let start = query_message
         .query_objects
         .iter()
@@ -20,10 +20,13 @@ pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<Qu
 
     let response = match start {
         Some(query_object) => {
+            let query_timestamp = query_message.timestamp;
             let current_sql = vec![format!(
                 r#"WITH S1 AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
-                FROM vertices v1 WHERE __entityid = $1 AND __isentity = true AND NOT EXISTS (SELECT 1 FROM edges e WHERE e.from_id = v1.id AND e.__label = 'supersededBy')
+                FROM vertices v1 WHERE __entityid = $1::varchar AND __isentity = true AND {}
                 )"#
+                ,
+                latest_vertex_filter("v1", query_timestamp)
             )];
 
             let (final_idx, final_sql) = build_sql_for_query_object(
@@ -31,6 +34,7 @@ pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<Qu
                 &query_message.query_objects,
                 &query_message.query_relations,
                 current_sql,
+                query_timestamp,
                 2,
             );
 
@@ -41,15 +45,9 @@ pub async fn read_data(client: Client, query_message: QueryMessage) -> Result<Qu
                 cte_sql = format!("{}UNION\nSELECT * FROM S{}\n", cte_sql, i);
             }
 
-            // debug write of the sql for sql debugging!
-            // error!("got sql:\n{}\n", cte_sql);
-
             let query_key = query_message.root_query_key_value.clone();
-            let params: &[&(dyn ToSql + Sync)] = &[&query_key];
-            let result: Vec<tokio_postgres::Row> = client
-                .query(&cte_sql, params)
-                .await
-                .map_err(DocGraphError::Database)?;
+            let params: &[&(dyn ToSql + Sync)] = &[&query_key, &query_timestamp];
+            let result: Vec<tokio_postgres::Row> = client.query(&cte_sql, params).await?;
 
             let edges: Vec<Edge> = result
                 .iter()
@@ -90,15 +88,12 @@ fn build_sql_for_query_object(
     objects: &[QueryObject],
     relations: &[QueryRelation],
     mut current_sql: Vec<String>,
+    query_timestamp: i64,
     mut idx: i32,
 ) -> (i32, Vec<String>) {
     let base_idx = idx;
     for relation in relations {
         if relation.is_relation_from_id(&current_object.query_object_id) {
-            // this is possibly going to get very, very slow when number of edges for a lable grows - we need to tie the edge to the current object id 
-            // unless Postgres has some super optimisation for EXISTS with a primary key lookup - which it might
-            // or we switch to an inner join (CTE to edges) instead of exists or use IN with a subquery of the current object ids from the previous step
-            // however postgres does have some excellet query planners, so we'll test with volume before trying to optimise this
             current_sql.push(format!(
                 r#"{} AS (SELECT 'e' AS otype, e1.id, 'na' as __originalId, e1.__entityId, e1.__transactionid, e1.__label, FALSE as __isEntity, e1.__viewtype, e1.__timestamp, 'na' AS __businessKey, 'na' AS __alternateKey, e1.content, e1.from_id, e1.to_id
                 FROM edges e1 WHERE e1.__label = '{}' AND EXISTS (SELECT 1 FROM {} v WHERE v.id = e1.from_id)
@@ -111,14 +106,14 @@ fn build_sql_for_query_object(
 
             if let Some(object) = objects.iter().find(|v| v.is_object_with_id(&relation.to_object))
             {
-                // this is possiblygoing to get very, very slow when number of edges for a lable grows - we need to tie the edge to the current object id
                 current_sql.push(format!(
                     r#"{} AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
-                    FROM vertices v2 WHERE __label = '{}' AND EXISTS (SELECT 1 FROM {} e WHERE e.to_id = v2.id) AND NOT EXISTS (SELECT 1 FROM edges e WHERE e.from_id = v2.id AND e.__label = 'supersededBy')
+                    FROM vertices v2 WHERE __label = '{}' AND EXISTS (SELECT 1 FROM {} e WHERE e.to_id = v2.id) AND {}
                     )"#,
                     format!("S{}", idx),
                     object.label,
-                    format!("S{}", idx - 1)
+                format!("S{}", idx - 1),
+                latest_vertex_filter("v2", query_timestamp)
                 ));
                 idx += 1;
 
@@ -127,6 +122,7 @@ fn build_sql_for_query_object(
                     objects,
                     relations,
                     current_sql,
+                    query_timestamp,
                     idx,
                 );
                 idx = new_idx;
@@ -136,4 +132,18 @@ fn build_sql_for_query_object(
     }
 
     (idx, current_sql)
+}
+
+fn latest_vertex_filter(alias: &str, query_timestamp: i64) -> String {
+    if query_timestamp > 0 {
+        format!(
+            r#"({alias}.__timestamp <= $2::bigint AND NOT EXISTS (SELECT 1 FROM vertices newer WHERE newer.__originalId = {alias}.__originalId AND newer.__timestamp > {alias}.__timestamp AND newer.__timestamp <= $2::bigint))"#,
+            alias = alias,
+        )
+    } else {
+        format!(
+            r#"NOT EXISTS (SELECT 1 FROM edges e WHERE e.from_id = {alias}.id AND e.__label = 'supersededBy')"#,
+            alias = alias
+        )
+    }
 }

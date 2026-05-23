@@ -1,10 +1,10 @@
-use deadpool_postgres::Pool;
+use crate::db::DbClientManager;
 
 pub mod graph;
 
 // Application state shared across handlers
 pub struct AppState {
-    pub db_pool: Pool,
+    pub db: DbClientManager,
 }
 
 // Module for API response handlers
@@ -14,7 +14,6 @@ pub mod handlers {
     
     use crate::{
         api::AppState,
-        db::GraphRepository,
         error::DocGraphError,
     };
     
@@ -22,8 +21,7 @@ pub mod handlers {
     #[handler]
     pub async fn health_check(state: Data<&Arc<AppState>>) -> Result<String> {
         // Check database connectivity
-        let repo = GraphRepository::new(state.db_pool.clone());
-        let _ = repo.get_client().await.map_err(|e| {
+        let _ = state.db.get_client().await.map_err(|e| {
             poem::Error::from(DocGraphError::Internal(format!("Database health check failed: {}", e)))
         })?;
         

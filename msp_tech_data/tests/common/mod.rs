@@ -1,7 +1,11 @@
-use deadpool_postgres::{Config, Pool, Runtime};
+#![allow(dead_code)]
+// dead code allowed because these are helper functions for tests that may not be used in every test file
+use deadpool_postgres::{Config, Runtime};
 use serde_json::json;
 use std::sync::Once;
 use uuid::Uuid;
+
+pub mod fixtures;
 
 // Instead of trying to import docgraph, use the crate keyword
 // which refers to the crate being tested
@@ -83,12 +87,6 @@ pub fn create_test_edge(from: &Vertex, to: &Vertex, label: &str) -> Edge {
 }
 
 pub fn create_basic_test_graph() -> (Vec<Vertex>, Vec<Edge>) {
-    let vertex1 = create_test_vertex("Person");
-    let vertex2 = create_test_vertex("Product");
-    let vertex3 = create_test_vertex("Order");
-    
-    let edge1 = create_test_edge(&vertex1, &vertex3, "placed");
-    let edge2 = create_test_edge(&vertex3, &vertex2, "contains");
-    
-    (vec![vertex1, vertex2, vertex3], vec![edge1, edge2])
+    let fixture = fixtures::commerce_fixture("basic");
+    (fixture.vertices(), fixture.edges.clone())
 }

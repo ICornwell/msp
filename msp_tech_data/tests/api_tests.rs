@@ -9,6 +9,7 @@ use serde_json::{ json, Value };
 
 use docgraph::{
     api::{ AppState, graph::GraphApi },
+    db::DbClientManager,
     error::Result,
     model::{ GraphElements, UpdateMessage },
 };
@@ -20,7 +21,7 @@ async fn test_api_hello_endpoint() -> Result<()> {
 
     // Create app state
     let state = Arc::new(AppState {
-        db_pool: pool.clone(),
+        db: DbClientManager::from_pool(pool.clone()),
     });
 
     // Create API instance
@@ -47,7 +48,7 @@ async fn test_api_with_name_parameter() -> Result<()> {
 
     // Create app state
     let state = Arc::new(AppState {
-        db_pool: pool.clone(),
+        db: DbClientManager::from_pool(pool.clone()),
     });
 
     // Create API instance
@@ -74,7 +75,7 @@ async fn test_api_ensure_db() -> Result<()> {
 
     // Create app state
     let state = Arc::new(AppState {
-        db_pool: pool.clone(),
+        db: DbClientManager::from_pool(pool.clone()),
     });
 
     // Create API instance
@@ -102,7 +103,7 @@ async fn test_api_update_graph() -> Result<()> {
 
     // Create app state
     let state = Arc::new(AppState {
-        db_pool: pool.clone(),
+        db: DbClientManager::from_pool(pool.clone()),
     });
 
     // Create API instance
@@ -137,9 +138,7 @@ async fn test_api_update_graph() -> Result<()> {
         .body_json(&update_msg)
         .send().await;
 
-    let a = resp.json().await;
-
-    let b = a.value();
+    let _a = resp.json().await;
     // Assert
     //  resp.assert_status_is_ok();
     //  resp.assert_json(json!({"success": true})).await;
@@ -154,7 +153,7 @@ async fn test_api_query_graph() -> Result<()> {
 
     // Create app state
     let state = Arc::new(AppState {
-        db_pool: pool.clone(),
+        db: DbClientManager::from_pool(pool.clone()),
     });
 
     // Create API instance
@@ -180,7 +179,6 @@ async fn test_api_query_graph() -> Result<()> {
         delete: None,
     };
 
-    let json_body = serde_json::to_string(&update_msg).unwrap();
     let update_resp = client
         .put("/api/graph/update")
         .header("Content-Type", "application/json")

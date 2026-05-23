@@ -3,12 +3,11 @@ use std::sync::Arc;
 use poem::web::Data;
 use poem_openapi::payload::PlainText;
 use poem_openapi::{ApiResponse, Object, OpenApi, Tags, param::Query, payload::Json};
-use uuid::{Uuid};
 
 use crate::util::generate_ids;
 use crate::{
     api::AppState,
-    db::{GraphRepository, get_or_create_transaction, commit_transaction, rollback_transaction},
+    db::{commit_transaction, get_or_create_transaction, graph_setup, process_update, rollback_transaction, read_data},
     error::DocGraphError,
     model::{QueryMessage, QueryResponse, UpdateMessage, TransactionResponse, TransactionSuccessResponse},
 };
@@ -128,11 +127,6 @@ impl GraphApi {
         Self { state: Data(state) }
     }
 
-    /// Helper to get the graph repository
-    fn repo(&self) -> GraphRepository {
-        GraphRepository::new(self.state.db_pool.clone())
-    }
-
     /// Convert DocGraphError to an appropriate API response for UpdateResponse
     fn handle_update_error(err: DocGraphError) -> Result<UpdateSuccessResponse, ApiErrorResponse<UpdateResponse>> {
         match err {
@@ -190,10 +184,7 @@ impl GraphApi {
         &self,
         body: Json<QueryMessage>,
     ) -> Result<QuerySuccessResponse, ApiErrorResponse<QueryResponse>> {
-        let repo = self.repo();
-
-        // Execute the query
-        match repo.query(body.0).await {
+        match read_data(&self.state.db, body.0).await {
             Ok(graph_elements) => Ok(QuerySuccessResponse::Ok(Json(graph_elements))),
             Err(err) => Self::handle_query_error(err),
         }
@@ -204,32 +195,30 @@ impl GraphApi {
     async fn update_graph(
         &self,
         body: Json<UpdateMessage>,
-        calltype_param: Query<Option<String>>,
-        tid_param: Query<Option<String>>,
+        calltype: Query<Option<String>>,
+        tid: Query<Option<String>>,
     ) -> Result<UpdateSuccessResponse, ApiErrorResponse<UpdateResponse>> {
-        let repo = self.repo();
-
         // not yet supported.
-        let call_type = match calltype_param.0 {
+        let call_type = match calltype.0 {
             Some(rtype) => match rtype.as_str() {
                 "validate" => "validate",
                 "execute" | _ => "execute",
             },
             None => "execute",
         };
-
-        let tid = match tid_param.0 {
+        let timestamp = chrono::Utc::now().timestamp();
+        let tid = match tid.0.clone() {
             Some(t) => t,
-            None => Uuid::now_v7().to_string(),
+            None => "".to_string()
         };
 
-        let timestamp = chrono::Utc::now().timestamp();
+        
         let (update_message, key_id_pairs) = generate_ids(&body.0, &tid, timestamp);
 
         
 
         // Process the update operation
-        match repo.process_update(update_message, tid, timestamp).await {
+        match process_update(&self.state.db, update_message, tid.clone(), timestamp).await {
             Ok(_) => {
                 if call_type == "validate" {
                     Ok(UpdateSuccessResponse::Ok(Json(UpdateResponse::validation(
@@ -246,12 +235,8 @@ impl GraphApi {
     /// Transaction management endpoints (begin, commit, rollback)
     
     #[oai(path = "/transaction", method = "get")]
-    async fn get_transaction(&self, transaction_id: Query<String>, timestamp: Query<String>) -> Result<TransactionSuccessResponse, ApiErrorResponse<TransactionResponse>> {
-        let repo = self.repo();
-        let client = repo.get_client().await.map_err(|err| ApiErrorResponse::InternalServerError(Json(
-            TransactionResponse::error(&format!("Internal server error: {}", err)),
-        )))?;
-         match get_or_create_transaction(&client, &transaction_id.0, &timestamp.0).await {
+        async fn get_transaction(&self, transaction_id: Query<String>, timestamp: Query<i64>) -> Result<TransactionSuccessResponse, ApiErrorResponse<TransactionResponse>> {
+            match get_or_create_transaction(&self.state.db, &transaction_id.0, timestamp.0).await {
                 Ok(transaction_response) => Ok(TransactionSuccessResponse::Ok(Json(transaction_response))),
                 Err(err) => Self::handle_transaction_error(err)
 
@@ -259,24 +244,16 @@ impl GraphApi {
     }
 
     #[oai(path = "/transaction", method = "post")]
-    async fn commit_transaction(&self, transaction_id: Query<String>, timestamp: Query<String>) -> Result<TransactionSuccessResponse, ApiErrorResponse<TransactionResponse>> {
-        let repo = self.repo();
-        let client = repo.get_client().await.map_err(|err| ApiErrorResponse::InternalServerError(Json(
-            TransactionResponse::error(&format!("Internal server error: {}", err)),
-        )))?;
-         match commit_transaction(client, &transaction_id.0, &timestamp.0).await {
+        async fn commit_transaction(&self, transaction_id: Query<String>, timestamp: Query<i64>) -> Result<TransactionSuccessResponse, ApiErrorResponse<TransactionResponse>> {
+            match commit_transaction(&self.state.db, &transaction_id.0, timestamp.0).await {
                 Ok(transaction_response) => Ok(TransactionSuccessResponse::Ok(Json(transaction_response))),
                 Err(err) => Self::handle_transaction_error(err)
         }
     }
 
     #[oai(path = "/transaction", method = "delete")]
-    async fn rollback_transaction(&self, transaction_id: Query<String>, timestamp: Query<String>) -> Result<TransactionSuccessResponse, ApiErrorResponse<TransactionResponse>> {
-        let repo = self.repo();
-        let client = repo.get_client().await.map_err(|err| ApiErrorResponse::InternalServerError(Json(
-            TransactionResponse::error(&format!("Internal server error: {}", err)),
-        )))?;
-         match rollback_transaction(client, &transaction_id.0, &timestamp.0).await {
+        async fn rollback_transaction(&self, transaction_id: Query<String>, timestamp: Query<i64>) -> Result<TransactionSuccessResponse, ApiErrorResponse<TransactionResponse>> {
+            match rollback_transaction(&self.state.db, &transaction_id.0, timestamp.0).await {
                 Ok(transaction_response) => Ok(TransactionSuccessResponse::Ok(Json(transaction_response))),
                 Err(err) => Self::handle_transaction_error(err)
 
@@ -286,10 +263,7 @@ impl GraphApi {
     /// Ensure the database schema exists
     #[oai(path = "/db", method = "post")]
     async fn ensure_db(&self) -> Result<UpdateSuccessResponse, ApiErrorResponse<UpdateResponse>> {
-        let repo = self.repo();
-
-        // Ensure database schema is set up
-        match repo.ensure_schema().await {
+        match graph_setup::ensure_schema(&self.state.db).await {
             Ok(_) => Ok(UpdateSuccessResponse::Ok(Json(UpdateResponse::success(None)))),
             Err(err) => Self::handle_update_error(err),
         }

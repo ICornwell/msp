@@ -1,7 +1,5 @@
 use std::{sync::Arc, time::Duration};
 
-// use config::Config;
-use deadpool_postgres::{Config as PgConfig, Pool, Runtime};
 use docgraph::{api::{self, graph::GraphApi}, config::AppConfig, db};
 use poem::{listener::TcpListener, middleware::Tracing, EndpointExt, Route, Server};
 use poem_openapi::OpenApiService;
@@ -21,16 +19,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = AppConfig::load()?;
     tracing::info!("Configuration loaded successfully");
     
-    // Set up database connection pool
-    let pool = create_pg_pool(&config)?;
-    tracing::info!("Database connection pool established");
+    // Set up database client manager and connection pool
+    let db = db::DbClientManager::from_config(&config)?;
+    tracing::info!("Database client manager established");
     
     // Initialize database (ensure tables exist)
-    db::setup::ensure_db_setup(&pool).await?;
+    db::graph_setup::ensure_db_setup(&db).await?;
     tracing::info!("Database schema initialized");
     
     // Create shared application state
-    let app_state = Arc::new(api::AppState { db_pool: pool });
+    let app_state = Arc::new(api::AppState { db });
     
     // Create API service
     let graph_api = GraphApi::new(app_state.clone());
@@ -61,18 +59,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }, Some(Duration::from_secs(60))).await?;
     
     Ok(())
-}
-
-fn create_pg_pool(config: &AppConfig) -> Result<Pool, Box<dyn std::error::Error>> {
-    let pg_config = PgConfig {
-        host: Some(config.database.host.clone()),
-        dbname: Some(config.database.name.clone()),
-        user: Some(config.database.user.clone()),
-        password: Some(config.database.password.clone()),
-        application_name: Some("docgraph".to_string()),
-    //    max_connections: Some(config.database.pool_size),
-        ..Default::default()
-    };
-    
-    Ok(pg_config.create_pool(Some(Runtime::Tokio1), tokio_postgres::NoTls)?)
 }

@@ -1,19 +1,19 @@
 use std::collections::HashMap;
 
-use deadpool_postgres::Client;
 use tokio_postgres::types::ToSql;
 
 use crate::{
-    error::{DocGraphError, Result},
+    error::Result,
     model::Vertex,
 };
 
+use super::DbClient;
 use super::maps::vertex_from_row;
 
 /// Find active DB vertices that share a business_key with any of the provided vertices
 /// but belong to a different entity (different __originalId).
 pub async fn check_business_key_conflicts(
-    client: &mut Client,
+    client: &DbClient,
     vertices: &[Vertex],
 ) -> Result<Vec<Vertex>> {
     let business_keys: Vec<String> = vertices
@@ -40,10 +40,7 @@ pub async fn check_business_key_conflicts(
     "#;
 
     let params: &[&(dyn ToSql + Sync)] = &[&business_keys];
-    let rows = client
-        .query(sql, params)
-        .await
-        .map_err(DocGraphError::Database)?;
+    let rows = client.query(sql, params).await?;
 
     // Build map of business_key -> original_ids from the input so we can exclude them
     let mut input_originals: HashMap<&str, Vec<&str>> = HashMap::new();
