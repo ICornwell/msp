@@ -183,8 +183,15 @@ impl GraphApi {
     async fn query_graph(
         &self,
         body: Json<QueryMessage>,
+        #[oai(name = "read-uncommitted")] read_uncommitted: Query<Option<bool>>,
     ) -> Result<QuerySuccessResponse, ApiErrorResponse<QueryResponse>> {
-        match read_data(&self.state.db, body.0).await {
+        match read_data(
+            &self.state.db,
+            body.0,
+            read_uncommitted.0.unwrap_or(false),
+        )
+        .await
+        {
             Ok(graph_elements) => Ok(QuerySuccessResponse::Ok(Json(graph_elements))),
             Err(err) => Self::handle_query_error(err),
         }

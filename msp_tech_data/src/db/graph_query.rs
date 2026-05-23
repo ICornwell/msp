@@ -11,7 +11,58 @@ use crate::{
 use super::maps::{edge_from_row, vertex_from_row};
 use super::DbClientManager;
 
-pub async fn read_data(db: &DbClientManager, query_message: QueryMessage) -> Result<QueryResponse> {
+pub async fn read_data(
+    db: &DbClientManager,
+    query_message: QueryMessage,
+    read_uncommitted: bool,
+) -> Result<QueryResponse> {
+    let mut effective_timestamp = query_message.timestamp;
+
+    loop {
+        let response = read_data_internal(db, &query_message, effective_timestamp).await?;
+
+        if read_uncommitted {
+            return Ok(response);
+        }
+
+        let max_transaction_id = response
+            .data
+            .as_ref()
+            .and_then(|g| g.vertices.as_ref())
+            .and_then(|vertices| {
+                vertices
+                    .iter()
+                    .filter(|v| !v.transaction_id.is_empty())
+                    .map(|v| v.transaction_id.clone())
+                    .max()
+            });
+
+        let Some(transaction_id) = max_transaction_id else {
+            return Ok(response);
+        };
+
+        let Some(transaction_state) = get_transaction_state(db, &transaction_id).await? else {
+            return Ok(response);
+        };
+
+        if transaction_state.is_committed {
+            return Ok(response);
+        }
+
+        let fallback_timestamp = transaction_state.timestamp.saturating_sub(1);
+        if fallback_timestamp <= 0 || fallback_timestamp >= effective_timestamp {
+            return Ok(response);
+        }
+
+        effective_timestamp = fallback_timestamp;
+    }
+}
+
+async fn read_data_internal(
+    db: &DbClientManager,
+    query_message: &QueryMessage,
+    query_timestamp: i64,
+) -> Result<QueryResponse> {
     let client = db.get_client().await?;
     let start = query_message
         .query_objects
@@ -20,7 +71,6 @@ pub async fn read_data(db: &DbClientManager, query_message: QueryMessage) -> Res
 
     let response = match start {
         Some(query_object) => {
-            let query_timestamp = query_message.timestamp;
             let current_sql = vec![format!(
                 r#"WITH S1 AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
                 FROM vertices v1 WHERE __entityid = $1::varchar AND __isentity = true AND {}
@@ -81,6 +131,43 @@ pub async fn read_data(db: &DbClientManager, query_message: QueryMessage) -> Res
     }
     .map_err(|err| DocGraphError::Validation(err.to_string()))?;
     Ok(response)
+}
+
+struct TransactionState {
+    timestamp: i64,
+    is_committed: bool,
+}
+
+async fn get_transaction_state(
+    db: &DbClientManager,
+    transaction_id: &str,
+) -> Result<Option<TransactionState>> {
+    let client = db.get_client().await?;
+    let vertex_sql = r#"
+        SELECT __timestamp
+        FROM docgraph.vertices
+        WHERE id = $1 AND __label = '__transaction'
+        ORDER BY __timestamp DESC
+        LIMIT 1
+    "#;
+    let rows = client.query(vertex_sql, &[&transaction_id]).await?;
+    if rows.is_empty() {
+        return Ok(None);
+    }
+
+    let timestamp: i64 = rows[0].get("__timestamp");
+    let commit_sql = r#"
+        SELECT 1
+        FROM docgraph.edges
+        WHERE from_id = $1 AND __label IN ('__committed', 'committed')
+        LIMIT 1
+    "#;
+    let commit_rows = client.query(commit_sql, &[&transaction_id]).await?;
+
+    Ok(Some(TransactionState {
+        timestamp,
+        is_committed: !commit_rows.is_empty(),
+    }))
 }
 
 fn build_sql_for_query_object(

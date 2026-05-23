@@ -6,6 +6,13 @@ export interface ClientCredentialsConfig {
   authority?: string; // defaults to Azure AD
 }
 
+export interface JWTValidationConfig {
+  trustedIssuers: string[];
+  audience?: string | string[];
+  clockTolerance?: number; // in seconds
+  maxTokenAge?: number; // in seconds
+}
+
 export type ServicePayload = {
   [key: string]: any;
 };

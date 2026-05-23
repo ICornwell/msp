@@ -35,7 +35,7 @@ func recurseGetEntityListFromView(doc interface{},
 			}
 			addIsEntityMetadata(member.(map[string]interface{}))
 		}
-		if !isPrimative(member) && member != nil {
+		if !isPrimative(member) {
 			for _, child := range element.SubElements {
 				path := child.DocPathName
 				if path == "" {

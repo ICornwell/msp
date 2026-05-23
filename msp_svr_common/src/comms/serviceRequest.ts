@@ -1,5 +1,6 @@
 import type { ServiceActivityResult } from '../service-manager/serviceActivitySet.js';
 import { getConfig } from '../configuredCommon.js';
+import { authenticatedPut } from '../als/outboundRequests.js';
 
 export type ServiceRequestEnvelope<TPayload = any> = {
 	namespace: string;
@@ -61,16 +62,15 @@ export async function serviceRequest<TPayload = any, TResult = any>(
 		? setTimeout(() => controller.abort(), timeoutMs)
 		: undefined;
 
+	const config = getConfig();
+
+	if (!config.clientCredentials) {
+		throw new Error('Client credentials are required for service requests. Please configure ClientCredentialsConfig in your Config.');
+	}
+
 	try {
-		const response = await fetch(url, {
-			method: 'PUT',
-			headers: {
-				'content-type': 'application/json',
-				...(options?.headers ?? {}),
-			},
-			body: JSON.stringify(request),
-			signal: controller.signal,
-		});
+		const response = await authenticatedPut(config.clientCredentials, url, request)
+
 
 		let body: any = undefined;
 		try {

@@ -146,7 +146,10 @@ apiRoutes.use((req, _res, next) => {
 });
 
 // API routes will be registered here
-app.use('/api/v1', apiRoutes);
+app.use('/api/v1', (req, _res, next) => {
+  console.log(`Incoming request to API route: ${req.method} ${req.originalUrl}`);
+  next();
+}, apiRoutes);
 
 // UI/Module Federation routes
 app.use('/ui/v1', uiRoutes);

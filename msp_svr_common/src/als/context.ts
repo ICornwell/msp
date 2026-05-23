@@ -1,8 +1,7 @@
 // AsyncLocalStorage context management for request-scoped data storage
 import { AsyncLocalStorage } from 'async_hooks';
 
-export interface RequestContext {
-  // ID Token claims (from UI authentication)
+export type IdToken={
   idToken?: string;
   idTokenClaims?: {
     sub?: string; // Subject (user ID)
@@ -12,8 +11,9 @@ export interface RequestContext {
     roles?: string[];
     [key: string]: any;
   };
-  
-  // Access Token claims (service-to-service)
+}
+
+export type AccessToken={
   accessToken?: string;
   accessTokenClaims?: {
     sub?: string;
@@ -24,11 +24,28 @@ export interface RequestContext {
     scp?: string; // Scopes
     [key: string]: any;
   };
+}
+
+export type WorkToken={
+  workToken?: string;
+  workTokenClaims?: {
+    sub?: string;
+    // TODO: Define expected claims for work tokens
+    [key: string]: any;
+  };
+}
+
+export interface RequestContext extends IdToken, AccessToken {
+  
   
   // Request metadata
   requestId?: string;
   correlationId?: string;
   timestamp?: number;
+
+  work: WorkToken[];
+
+  transactionToken?: string
   
   // Custom context data
   customClaims?: Record<string, any>;

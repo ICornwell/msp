@@ -10,6 +10,9 @@
 			"path": "msp_svr_common"
 		},
 		{
+			"path": "msp_data_common"
+		},
+		{
 			"path": "msp_ui_common"
 		},
 		{

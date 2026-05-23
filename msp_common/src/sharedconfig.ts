@@ -1,4 +1,4 @@
-import { ClientCredentialsConfig } from './types/index.js';
+import { ClientCredentialsConfig, JWTValidationConfig } from './types/index.js';
 import { Ports } from './ports.js';
 
 export type ProductConfig = {
@@ -22,6 +22,7 @@ export type Config = {
     getHostUrl: (service: string) => string,
     getMFHostUrl: (service: string) => string,
     clientCredentials?: ClientCredentialsConfig 
+    jwtValidation?: JWTValidationConfig
 
 }
 

@@ -11,7 +11,7 @@ export {
 // export {SharedConfig} from './sharedconfig.js';
 // export type {Config, ProductConfig} from './sharedconfig.js';
 
-export { ClientCredentialsConfig } from './types/index.js';
+export { ClientCredentialsConfig, JWTValidationConfig } from './types/index.js';
 
 export type {
   ServicePayload,

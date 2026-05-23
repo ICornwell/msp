@@ -24,3 +24,5 @@ distUiLib
 *.njsproj
 *.sln
 *.sw?
+
+**/.env

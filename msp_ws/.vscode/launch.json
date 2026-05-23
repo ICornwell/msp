@@ -15,6 +15,14 @@
                 "Attach to Chrome",
             ],
             "stopAll": true
+        },
+        {
+            "name": "MSP Data",
+            "configurations": [
+                "BusData Run 'dgm_bus_intg'",
+                "TechData Run 'docgraph'",
+            ],
+            "stopAll": true
         }
     ],
     "configurations": [
@@ -88,11 +96,17 @@
             ]
         },
         {
-            "command": "yarn fes:start",
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["fes:start"],
             "name": "Run Front End",
             "request": "launch",
-            "type": "node-terminal",
-            "cwd": "${workspaceFolder}/.."
+            "type": "node",
+            "cwd": "${workspaceFolder}/..",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/../msp_fes/distApi/**/*.js"
+            ]
+
         },
          {
             "type": "lldb",

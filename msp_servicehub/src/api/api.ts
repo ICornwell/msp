@@ -14,8 +14,11 @@ import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import winston from 'winston';
 
+import { mspAuthMiddleware } from 'msp_svr_common';
+
 import apiRoutes from './routes.js'; // Import your API routes
 import uiRoutes from './uiRoutes.js'; // Import UI/MF routes
+import { Config } from './config.js';
 
 // Load environment variables
 config();
@@ -120,6 +123,8 @@ app.use(morgan('combined', {
   } 
 }));
 
+
+app.use(mspAuthMiddleware(Config))
 // Serve static files
 // app.use(express.static(join(__dirname, 'public')));
 
@@ -130,6 +135,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+
 
 // API routes will be registered here
 app.use('/api/v1', apiRoutes);

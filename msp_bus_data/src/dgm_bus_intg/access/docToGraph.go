@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"reflect"
 	"slices"
 )
@@ -16,7 +17,7 @@ func RunUpsert(uq apiMessages.UpsertQuery, key string, callType string, transact
 	data, _ := jsonDoc.AddTmpIdToJSON(uq.Data)
 
 	// load the current state
-	currentDocData, rawData, err := RunQuery(view, key, true)
+	currentDocData, rawData, err := RunQuery(view, key, true, "", false)
 
 	if err != nil {
 		return apiMessages.UpsertResponse{}, err
@@ -41,7 +42,12 @@ func RunUpsert(uq apiMessages.UpsertQuery, key string, callType string, transact
 		}, nil
 	}
 
-	responseBody, err := outbound.OutBoundRequest("graph/update", request)
+	responseBody, err := outbound.OutBoundRequestWithOptions(
+		http.MethodPut,
+		outbound.OutBoundRequestType_Update,
+		request,
+		map[string]string{"tid": transactionId},
+	)
 
 	if err != nil {
 		return apiMessages.UpsertResponse{

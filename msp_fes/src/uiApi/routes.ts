@@ -11,6 +11,7 @@ const getServiceHubUrl = () => getConfig().serviceHubApiUrl || 'http://localhost
 // Standard service execution endpoint - proxy to servicehub
 router.put('/service/run', async (req, res) => {
   try {
+    console.log('Received request to /service/run');
     const serviceHubUrl = getServiceHubUrl();
     const response = await fetch(`${serviceHubUrl}/api/v1/service/run`, {
       method: 'PUT',
@@ -39,12 +40,15 @@ router.put('/service/run', async (req, res) => {
 });
 
 function extractForwardHeaders(req: express.Request): Record<string, string> {
+  console.log('Extracting headers from request');
   const headers: Record<string, string> = {};
   const forwardHeaders = ['authorization', 'x-correlation-id', 'x-request-id', 'user-agent'];
   
   for (const header of forwardHeaders) {
+    console.log(`Checking for header: ${header}`);
     const value = req.headers[header];
     if (value) {
+      console.log(`Forwarding header: ${header}=${value}`);
       headers[header] = Array.isArray(value) ? value[0] : value;
     }
   }

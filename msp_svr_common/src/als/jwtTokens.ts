@@ -1,13 +1,8 @@
 // JWT Token validation and verification using jose
 import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
 import { setRequestContext } from './context.js';
+import { JWTValidationConfig } from 'msp_common';
 
-export interface JWTValidationConfig {
-  trustedIssuers: string[];
-  audience?: string | string[];
-  clockTolerance?: number; // in seconds
-  maxTokenAge?: number; // in seconds
-}
 
 export interface ValidatedToken {
   payload: JWTPayload;
@@ -158,6 +153,14 @@ export async function validateAndStoreIdToken(
   token: string,
   config: JWTValidationConfig
 ): Promise<void> {
+  // Special handling for guest token - skip validation and set minimal context
+  if (token === "!GuestToken!") {
+    setRequestContext({
+      idToken: token,
+      idTokenClaims: { sub: 'guest', name: 'Guest User', roles: ['guest'] },
+    });
+    return;
+  }
   const validated = await validateIdToken(token, config);
   
   setRequestContext({

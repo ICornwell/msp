@@ -1,4 +1,4 @@
-import { ClientCredentialsConfig } from 'msp_common';
+import { ClientCredentialsConfig, JWTValidationConfig } from 'msp_common';
 import { Ports } from './ports.js';
 
 export type ProductConfig = {
@@ -21,7 +21,8 @@ export type Config = {
     uiBffUrl: string,
     getHostUrl: (service: string) => string,
     getMFHostUrl: (service: string) => string,
-    clientCredentials?: ClientCredentialsConfig 
+    clientCredentials?: ClientCredentialsConfig,
+    jwtValidation?: JWTValidationConfig
 
 }
 

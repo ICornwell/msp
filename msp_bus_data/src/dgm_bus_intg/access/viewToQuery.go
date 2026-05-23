@@ -4,15 +4,29 @@ import (
 	"dgm_bus_intg/apiMessages"
 	"dgm_bus_intg/jsonDoc"
 	"dgm_bus_intg/outbound"
+	"dgm_bus_intg/utils"
 	"encoding/json"
+	"net/http"
 	"time"
 )
 
-func RunQuery(vq apiMessages.ViewQuery, key string, includeMetaData bool) (jsonDoc.JsonDoc, jsonDoc.JsonDoc, error) {
+func RunQuery(vq apiMessages.ViewQuery, key string, includeMetaData bool, transactionToken string, readUncommitted bool) (jsonDoc.JsonDoc, jsonDoc.JsonDoc, error) {
 	// should come from config, of course
 	dgq := ViewToQuery(vq, key)
+	queryParams := map[string]string{}
 
-	responseBody, err := outbound.OutBoundRequest("graph/query", dgq)
+	if transactionToken != "" {
+		payload, err := utils.ParseTransactionToken(transactionToken)
+		if err != nil {
+			return nil, nil, err
+		}
+		dgq.Timestamp = payload.Timestamp
+		if readUncommitted {
+			queryParams["read-uncommitted"] = "true"
+		}
+	}
+
+	responseBody, err := outbound.OutBoundRequestWithOptions(http.MethodPut, outbound.OutBoundRequestType_Query, dgq, queryParams)
 	if err != nil {
 		return nil, nil, err
 	}

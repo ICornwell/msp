@@ -10,6 +10,9 @@ export {
   serviceManager
 } from './service-manager/serviceManager.js';
 
+export { startMspServer } from './app/server.js';
+export { mspAuthMiddleware } from './als/authMiddleware.js';
+
 export {
   isMatch,
   bestVersionMatch,
