@@ -1,6 +1,6 @@
 
 import { httpRequest } from "msp_svr_common"
-import Config from "../../api/config.js"
+import { getConfig } from "msp_svr_common"
 import { InformationManifestSection } from "msp_svr_common"
 
 
@@ -17,7 +17,7 @@ const informationList: InformationManifestSection[] = [
 
 function registerFeature(feature: InformationManifestSection) {
   informationList.push(feature)
-  const responsePromise =  httpRequest.post(`${Config.uiBffUrl}/api/v1/discovery/registerInformation`, feature)
+  const responsePromise =  httpRequest.post(`${getConfig().uiBffUrl}/api/v1/discovery/registerInformation`, feature)
   return responsePromise;
 }
 

@@ -183,7 +183,7 @@
         ,
           "@azure/msal-common": {
             name: "@azure/msal-common",
-            version: "15.15.0",
+            version: "16.6.2",
             scope: ["default"],
             loaded: false,
             from: "actorwork",

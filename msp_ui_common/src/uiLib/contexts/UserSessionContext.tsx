@@ -19,10 +19,7 @@ const viteEnv = (import.meta as any).env ?? {};
 
 const msalConfig = {
   auth: {
-    // clientId: '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',
-    // authority: 'https://login.microsoftonline.com/027f47db-adad-450a-8118-4bd5b6feef63',
-    // redirectUri: 'http://localhost:3000', // Your redirect URI
-    // postLogoutRedirectUri: 'http://localhost:3000', // Your post logout redirect URI
+
     clientId: viteEnv.VITE_clientId,
     authority: viteEnv.VITE_authority,
     redirectUri: viteEnv.VITE_redirectUri,

@@ -1,7 +1,7 @@
 import { default as express } from "express";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { getConfig } from "msp_common";
+import { getConfig } from "msp_svr_common";
 
 const router = express.Router();
 

@@ -11,17 +11,12 @@ import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 
-import { config } from 'dotenv';
 import winston from 'winston';
 
 import { mspAuthMiddleware } from 'msp_svr_common';
 
 import apiRoutes from './routes.js'; // Import your API routes
 import uiRoutes from './uiRoutes.js'; // Import UI/MF routes
-import { Config } from './config.js';
-
-// Load environment variables
-config();
 
 // Initialize Winston logger
 const logger = winston.createLogger({
@@ -124,7 +119,7 @@ app.use(morgan('combined', {
 }));
 
 
-app.use(mspAuthMiddleware(Config))
+app.use(mspAuthMiddleware())
 // Serve static files
 // app.use(express.static(join(__dirname, 'public')));
 

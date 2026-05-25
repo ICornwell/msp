@@ -2,8 +2,8 @@ export type { UiFeatureManifestSection, InformationManifestSection,
   ApiFeatureManifestSection, ActivityFeatureManifestSection, ServiceManifestSection,
   ManifestCommon, Manifest } from './manifests/index.js';
 
-export { makeManifest } from './manifests/manifestBuilder.js';
-export type { ManifestBuilder } from './manifests/manifestBuilder.js';
+export * from './manifests/index.js';
+//export type { ManifestBuilder } from './manifests/manifestBuilder.js';
 
 // Re-export service manager utilities
 export {
@@ -20,6 +20,10 @@ export {
   type Matcher
 } from './service-manager/isMatch.js';
 
+export {  type ServiceRequestEnvelope,
+  type ServiceRequestOptions,
+  type ServiceRequestResult, ServiceActivityResult} from 'msp_common'
+
 export {
   CreateResultBuilder,
   defaultResult,
@@ -29,7 +33,6 @@ export {
   type ServiceActivityList,
   type ActivitySet,
   type ServiceActivity,
-  type ServiceActivityResult,
   type ServiceActivityResultBuilder
 } from './service-manager/serviceActivitySet.js';
 
@@ -44,10 +47,9 @@ export type {
 export {
   serviceRequest,
   runServiceActivity,
-  type ServiceRequestEnvelope,
-  type ServiceRequestOptions,
-  type ServiceRequestResult,
 } from './comms/serviceRequest.js';
+
+
 
 export {Ports} from './ports.js';
 

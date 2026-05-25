@@ -4,6 +4,7 @@ export interface ClientCredentialsConfig {
   tenantId: string;
   scope: string; // e.g., "api://target-service/.default"
   authority?: string; // defaults to Azure AD
+  authLibrary?: 'msal' | 'generic'; // Optional property to specify which auth library to use
 }
 
 export interface JWTValidationConfig {

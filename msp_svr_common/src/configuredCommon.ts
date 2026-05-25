@@ -20,11 +20,11 @@ export const manifest = {
 }
 
 export const httpRequest = {
-  get: async (url: string): Promise<any> => { authenticatedGet(getConfig().clientCredentials!, url) },
-  post: async (url: string, body?: any): Promise<any> => { authenticatedPost(getConfig().clientCredentials!, url, body) },
-  put: async (url: string, body?: any): Promise<any> => { authenticatedPut(getConfig().clientCredentials!, url, body) },
-  patch: async (url: string, body?: any): Promise<any> => { authenticatedPatch(getConfig().clientCredentials!, url, body) },
-  delete: async (url: string): Promise<any> => { authenticatedDelete(getConfig().clientCredentials!, url) },
+  get: async (url: string): Promise<any> => { authenticatedGet(url) },
+  post: async (url: string, body?: any): Promise<any> => { authenticatedPost(url, body) },
+  put: async (url: string, body?: any): Promise<any> => { authenticatedPut(url, body) },
+  patch: async (url: string, body?: any): Promise<any> => { authenticatedPatch(url, body) },
+  delete: async (url: string): Promise<any> => { authenticatedDelete(url) },
 }
 
 export default  {manifest, httpRequest, setConfig, getConfig};

@@ -63,10 +63,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/msal-browser@npm:^5.11.0":
+  version: 5.11.0
+  resolution: "@azure/msal-browser@npm:5.11.0"
+  dependencies:
+    "@azure/msal-common": "npm:16.6.2"
+  checksum: 10c0/a45d8d380b6daa6931cae7f5dc42635aad0398dcb33848be97cb085a5918ca80401f37eb9deb24524d6b42638e9caa702c18fb63fef3e2683936c4531ebdb679
+  languageName: node
+  linkType: hard
+
 "@azure/msal-common@npm:15.15.0":
   version: 15.15.0
   resolution: "@azure/msal-common@npm:15.15.0"
   checksum: 10c0/1b2cae4950dff473c957afc725ceba4f0e00486eb110671f25af0ec40a5c905ebe56ea688e9651cb8ff28e9d1025f817faed7245c5103070be439daa33a01b86
+  languageName: node
+  linkType: hard
+
+"@azure/msal-common@npm:16.6.2":
+  version: 16.6.2
+  resolution: "@azure/msal-common@npm:16.6.2"
+  checksum: 10c0/d6a6377873f86e0530fedabad95eede89ed80fa1ede1650e2ff834cd7e1d9c4028028758db81697abdeffb0b92473174b3cdab8a839cf404acaf891f8b79d43f
+  languageName: node
+  linkType: hard
+
+"@azure/msal-node@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "@azure/msal-node@npm:5.2.2"
+  dependencies:
+    "@azure/msal-common": "npm:16.6.2"
+    jsonwebtoken: "npm:^9.0.0"
+  checksum: 10c0/afd1cc8115288967667f06ce75c10d2b52881f7b476e35fdd780f282091e9fe0ba9c493c98cc0c50308f4da45bce9e1292d1dc5d26a53e12da60db3768dda8d2
   languageName: node
   linkType: hard
 
@@ -77,6 +103,16 @@ __metadata:
     "@azure/msal-browser": ^4.29.0
     react: ^16.8.0 || ^17 || ^18 || ^19.2.1
   checksum: 10c0/540f11e1fcf80e190bcc9506e6b7b945c97da302c91553c5e694a84c46de1f555235ffbfffb54e85914e724c9ad6281047397bacdca4806449ea082f97c1bd7c
+  languageName: node
+  linkType: hard
+
+"@azure/msal-react@npm:^5.4.2":
+  version: 5.4.2
+  resolution: "@azure/msal-react@npm:5.4.2"
+  peerDependencies:
+    "@azure/msal-browser": ^5.11.0
+    react: ^16.8.0 || ^17 || ^18 || ^19.2.1
+  checksum: 10c0/0df7ead53ba14815032a233bdd2533d87e5b1343ba4af9d5619536398fdb8ae57039665059acc8f8ff76f794b6ff0787daa963c02826208013404cd1f03537f0
   languageName: node
   linkType: hard
 
@@ -6329,6 +6365,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^17.4.2":
+  version: 17.4.2
+  resolution: "dotenv@npm:17.4.2"
+  checksum: 10c0/164f8e77a646c8446867d5b588d26ea6005c8ea7c5eb41cf926f6113d23f2191355f6e0cfd95ea9bab98394a5b0a3f1e51a8399711b666fe55cc7b0bd745f942
+  languageName: node
+  linkType: hard
+
 "dunder-proto@npm:^1.0.0, dunder-proto@npm:^1.0.1":
   version: 1.0.1
   resolution: "dunder-proto@npm:1.0.1"
@@ -9050,7 +9093,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.2":
+"jsonwebtoken@npm:^9.0.0, jsonwebtoken@npm:^9.0.2":
   version: 9.0.3
   resolution: "jsonwebtoken@npm:9.0.3"
   dependencies:
@@ -9832,7 +9875,7 @@ __metadata:
     cookie-parser: "npm:^1.4.7"
     cors: "npm:^2.8.5"
     date-fns: "npm:^4.1.0"
-    dotenv: "npm:^16.5.0"
+    dotenv: "npm:^17.4.2"
     express: "npm:^5.2.1"
     express-fileupload: "npm:^1.5.2"
     express-rate-limit: "npm:^7.5.0"
@@ -9945,8 +9988,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "msp_fes@workspace:msp_fes"
   dependencies:
-    "@azure/msal-browser": "npm:^4.11.0"
-    "@azure/msal-react": "npm:^3.0.10"
+    "@azure/msal-browser": "npm:^5.11.0"
+    "@azure/msal-react": "npm:^5.4.2"
     "@babel/core": "npm:^7.27.1"
     "@babel/plugin-proposal-decorators": "npm:^7.27.1"
     "@babel/plugin-transform-class-properties": "npm:^7.27.1"
@@ -10149,6 +10192,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "msp_svr_common@workspace:msp_svr_common"
   dependencies:
+    "@azure/msal-node": "npm:^5.2.2"
     "@types/compression": "npm:^1"
     "@types/cookie-parser": "npm:^1"
     "@types/cors": "npm:^2"

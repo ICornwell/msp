@@ -20,8 +20,8 @@
     "prebuild": "npm run generate:extension-types"
   },
   "dependencies": {
-    "@azure/msal-browser": "^4.11.0",
-    "@azure/msal-react": "^3.0.10",
+    "@azure/msal-browser": "^5.11.0",
+    "@azure/msal-react": "^5.4.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@module-federation/runtime": "^0.18.3",

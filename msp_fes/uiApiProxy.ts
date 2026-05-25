@@ -10,7 +10,6 @@ import fetch from 'node-fetch';
 import { pipeline } from 'node:stream/promises';
 
 import { Ports } from 'msp_svr_common'
-import { Config } from './src/config.js';
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const reservedMfRoutePrefixes = ['@', '.'];

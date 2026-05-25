@@ -62,7 +62,6 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 		const creds = getConfig().clientCredentials;
 		if (!creds) throw new Error('Client credentials are required for authenticated requests');
 		const insertResponse = await authenticatedPut(
-			creds,
 			url,
 			body,
 			{ headers: { ...options?.headers }}
@@ -108,7 +107,6 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		const creds = getConfig().clientCredentials;
 		if (!creds) throw new Error('Client credentials are required for authenticated requests');
 		const queryResponse = await authenticatedPut(
-			creds,
 			url,
 			view,
 			{ headers: { ...options?.headers }}

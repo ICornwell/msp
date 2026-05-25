@@ -8,21 +8,32 @@ const thisProduct = {
     variantName: 'default',
     version: '1.0.0'
 };
-const clientCredentials = {
-    clientId: process.env['UI_API_CLIENT_ID'] || '76202d65-88a6-4d3e-8bf6-b67ecb0fe78c',
-    // clientDev: process.env['UI_API_CLIENT_DEVKEY'] || '',
-    clientSecret: process.env['UI_API_CLIENT_SECRET'] || '',
-    tenantId: process.env['AUTH_TOKEN_URL'] || '027f47db-adad-450a-8118-4bd5b6feef63',
-    scope: process.env['UI_API_CLIENT_SCOPES'] || 'api://76202d65-88a6-4d3e-8bf6-b67ecb0fe78c/.default',
-    authority: process.env['AUTH_AUTHORITY_HOST'] || ''
-};
-const config = {
-    ...SharedConfig,
-    product: thisProduct,
-    clientCredentials,
-    serviceHubApiUrl: SharedConfig?.getHostUrl?.('serviceHub') || 'http://localhost:4001',
-    myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4003',
-    myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name) || 'http://localhost:3003'
-};
-export const Config = config;
+function resolveClientCredentials() {
+    return {
+        clientId: process.env['MSP_core_clientId'] || '',
+        clientSecret: process.env['MSP_core_clientSecret'] || '',
+        tenantId: process.env['MSP_tenantId'] || '',
+        scope: process.env['MSP_core_clientScopes'] || '',
+        authority: process.env['MSP_authority'] || ''
+    };
+}
+export function resolveConfig() {
+    const clientCredentials = resolveClientCredentials();
+    return {
+        ...SharedConfig,
+        product: thisProduct,
+        clientCredentials,
+        serviceHubApiUrl: SharedConfig?.getHostUrl?.('serviceHub') || 'http://localhost:4001',
+        myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4003',
+        myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name) || 'http://localhost:3003',
+        jwtValidation: {
+            trustedIssuers: process.env['MSP_core_issuers']
+                ? process.env['MSP_core_issuers'].split(',')
+                : [],
+            audience: process.env['MSP_aud'],
+            clockTolerance: 300,
+            maxTokenAge: 3600
+        }
+    };
+}
 //# sourceMappingURL=config.js.map

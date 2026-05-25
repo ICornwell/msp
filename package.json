@@ -73,14 +73,14 @@
     "datahub:test:coverage": "yarn workspace msp_datahub run test:coverage",
     "mf:build": "yarn workspace @module-federation/vite run build",
     "mf:prebuild": "yarn workspace @module-federation/vite run prebuild",
-
     "busdata:build": "echo \"building go project msp_bus_data\" && ./msp_bus_data/gobuild.sh",
     "techdata:build": "echo \"building rust project msp_tech_data\" && ./msp_tech_data/rsbuild.sh",
     "busdata:clean": "echo \"cleaning go project msp_bus_data\" && ./msp_bus_data/goclean.sh",
     "techdata:clean": "echo \"cleaning rust project msp_tech_data\" && ./msp_tech_data/rsclean.sh",
     "busdata:start": "echo \"starting go project msp_bus_data\" && ./msp_bus_data/gostart.sh",
     "techdata:start": "echo \"starting rust project msp_tech_data\" && ./msp_tech_data/rsstart.sh",
-    "data:build": "yarn busdata:build & yarn techdata:build"
+    "data:build": "yarn busdata:build & yarn techdata:build",
+    "setenvs": "echo \"setting environment variables\" && ./msp_common/scripts/setenvs.sh"
   },
   "dependencies": {
     "@types/node": "^25.3.5"

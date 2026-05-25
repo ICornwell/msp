@@ -14,12 +14,17 @@ import cookieParser from 'cookie-parser';
 import { config } from 'dotenv';
 import winston from 'winston';
 
+import { setConfig } from 'msp_svr_common';
+
 import apiRoutes from './routes.js'; // Import your API routes
 import uiRoutes from './uiRoutes.js'; // Import UI/MF routes
+import { resolveConfig } from './config.js'; // Import your config resolver
 
 
 // Load environment variables
 config();
+setConfig(resolveConfig());
+
 
 // Initialize Winston logger
 const logger = winston.createLogger({

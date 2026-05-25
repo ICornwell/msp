@@ -9,12 +9,10 @@ import { config } from 'dotenv';
 
 import { setConfig, Ports } from 'msp_svr_common';
 import { registerForBff } from './register.js';
-import Config from './config.js';
-
-setConfig(Config);
-
+import { resolveConfig} from './config.js';
 // Load environment variables
 config();
+setConfig(resolveConfig());
 
 /**
  * Get port from environment and store in Express.

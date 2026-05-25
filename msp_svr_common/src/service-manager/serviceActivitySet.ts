@@ -1,4 +1,5 @@
 import { isMatch, bestVersionMatch, Matcher } from "./isMatch.js";
+import { ServiceActivityResult } from "msp_common";
 
 export type ServiceActivityExec = (payload: any, serviceResult: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
 
@@ -11,18 +12,6 @@ export type ServiceActivity = {
     matchingVersionRange: string
     context: Matcher
     funcs: ServiceActivityExec | ServiceActivityExec[];
-}
-
-export type ServiceActivityResult = {
-    activityName: string;
-    namespace: string;
-    version: string;
-    updatedPayload?: any;
-    success: boolean;
-    message?: string;
-    error?: any;
-    logs?: string[];
-    result?: any;
 }
 
 export type ServiceActivityResultBuilder = {

@@ -1,4 +1,5 @@
-import type { ActivitySet, ServiceActivity, ServiceActivityResult } from './serviceActivitySet.js';
+import type { ServiceActivityResult } from "msp_common";
+import type { ActivitySet, ServiceActivity } from './serviceActivitySet.js';
 //import { isMatch } from './isMatch.js';
 import { CreateResultBuilder, defaultResult, activitySet } from './serviceActivitySet.js';
 

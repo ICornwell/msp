@@ -1,8 +1,8 @@
-import type { ServiceActivityResult } from '../service-manager/serviceActivitySet.js';
 import { getConfig } from '../configuredCommon.js';
 import { authenticatedPut } from '../als/outboundRequests.js';
+import type {ServiceRequestEnvelope, ServiceRequestOptions, ServiceRequestResult} from 'msp_common';
 
-export type ServiceRequestEnvelope<TPayload = any> = {
+/* export type ServiceRequestEnvelope<TPayload = any> = {
 	namespace: string;
 	activityName: string;
 	version: string;
@@ -20,7 +20,7 @@ export type ServiceRequestOptions = {
 
 export type ServiceRequestResult<TResult = any> = ServiceActivityResult & {
 	result?: TResult;
-};
+}; */
 
 const defaultEndpointPath = '/api/v1/service/run';
 
@@ -69,7 +69,7 @@ export async function serviceRequest<TPayload = any, TResult = any>(
 	}
 
 	try {
-		const response = await authenticatedPut(config.clientCredentials, url, request)
+		const response = await authenticatedPut(url, request)
 
 
 		let body: any = undefined;

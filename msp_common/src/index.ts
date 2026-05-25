@@ -6,10 +6,9 @@ export {
   type Dependencies
 } from './sharedDeps.js';
 
-// export {Ports} from './ports.js';
 
-// export {SharedConfig} from './sharedconfig.js';
-// export type {Config, ProductConfig} from './sharedconfig.js';
+export * from './manifests/manifests.js'
+export * from './comms/serviceRequest.js'
 
 export { ClientCredentialsConfig, JWTValidationConfig } from './types/index.js';
 
@@ -24,14 +23,9 @@ export type {
   ViewDataContent,
 } from './types/index.js';
 
-export * from './comms/serviceRequest.js';
-
 export {isViewDataContent_Matching_ViewDataIdentifier, viewDataIdentifier_Match} from './types/index.js';
 
 export type { UiRemoteRegistration, ScopeItem } from './comms/ui/UiRemoteRegistration.js'
-
-export * from './configuredCommon.js'
-
 
 export * from './data/fluent/index.js';
 export * from './data/models/fluxor/fluxorData.js'

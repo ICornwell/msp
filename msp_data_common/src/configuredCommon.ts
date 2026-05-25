@@ -1,8 +1,8 @@
 import { Config } from "./sharedconfig";
-import { makeManifest } from "./manifests/manifestBuilder.js";
-import { authenticatedGet, authenticatedDelete, authenticatedPatch, authenticatedPost, authenticatedPut } from "./als/index.js";
-import { Manifest } from "./manifests/index.js";
-import { registerManifest } from "./manifests/registration.js";
+import { makeManifest } from "msp_svr_common";
+import { authenticatedGet, authenticatedDelete, authenticatedPatch, authenticatedPost, authenticatedPut } from "msp_svr_common";
+import { Manifest } from "msp_svr_common";
+import { registerManifest } from "msp_svr_common";
 
 let cachedConfig: Partial<Config> = {}
 
@@ -20,11 +20,11 @@ export const manifest = {
 }
 
 export const httpRequest = {
-  get: async (url: string): Promise<any> => { authenticatedGet(getConfig().clientCredentials!, url) },
-  post: async (url: string, body?: any): Promise<any> => { authenticatedPost(getConfig().clientCredentials!, url, body) },
-  put: async (url: string, body?: any): Promise<any> => { authenticatedPut(getConfig().clientCredentials!, url, body) },
-  patch: async (url: string, body?: any): Promise<any> => { authenticatedPatch(getConfig().clientCredentials!, url, body) },
-  delete: async (url: string): Promise<any> => { authenticatedDelete(getConfig().clientCredentials!, url) },
+  get: async (url: string): Promise<any> => { authenticatedGet( url) },
+  post: async (url: string, body?: any): Promise<any> => { authenticatedPost(url, body) },
+  put: async (url: string, body?: any): Promise<any> => { authenticatedPut(url, body) },
+  patch: async (url: string, body?: any): Promise<any> => { authenticatedPatch(url, body) },
+  delete: async (url: string): Promise<any> => { authenticatedDelete(url) },
 }
 
 export default  {manifest, httpRequest, setConfig, getConfig};
