@@ -12,6 +12,8 @@ pub async fn ensure_schema(db: &DbClientManager) -> Result<()> {
     let client = db.get_client().await?;
     debug!("Creating database schema if it doesn't exist");
 
+    // DDL is intentionally idempotent so startup/deploy code can call it repeatedly
+    // across environments without requiring migration state checks.
     client
         .batch_execute(
             r#"
@@ -31,6 +33,8 @@ pub async fn ensure_schema(db: &DbClientManager) -> Result<()> {
                     content JSONB NOT NULL
                 );
 
+                -- These indexes match common graph access paths (label/type lookups,
+                -- identity/version traversals, and edge fan-in/fan-out joins).
                 CREATE INDEX IF NOT EXISTS idx_vertices_label ON docgraph.vertices(__label);
                 CREATE INDEX IF NOT EXISTS idx_vertices_original_id ON docgraph.vertices(__originalId);
                 CREATE INDEX IF NOT EXISTS idx_vertices_entity_id ON docgraph.vertices(__entityId);

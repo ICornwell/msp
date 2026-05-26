@@ -20,7 +20,7 @@ func getTransactionToken(c *gin.Context) string {
 	if token != "" {
 		return token
 	}
-	return strings.TrimSpace(c.Query("token"))
+	return strings.TrimSpace(c.Query("transaction_token"))
 }
 
 func renderTransactionResult(result apiMessages.TransactionResult) gin.H {
@@ -96,10 +96,11 @@ func addDocGraphRoutes(rg *gin.RouterGroup) {
 			return
 		}
 
-		if callType != "preview" && transactionToken == "" {
+		// we handle this be creating a transaction
+		/* if callType != "preview" && transactionToken == "" {
 			c.JSON(http.StatusBadRequest, "failed with error: transaction token is required")
 			return
-		}
+		} */
 
 		transactionId := ""
 		if transactionToken != "" {
@@ -112,7 +113,7 @@ func addDocGraphRoutes(rg *gin.RouterGroup) {
 			transactionId = resolved.TransactionId
 		}
 
-		response, error := access.RunUpsert(obj, c.Param("key"), callType, transactionId)
+		response, error := access.RunUpsert(obj, c.Param("key"), callType, transactionId, transactionToken)
 		if error != nil {
 			c.JSON(http.StatusBadRequest, fmt.Sprintf("failed with error: %s", error.Error()))
 			return

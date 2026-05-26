@@ -213,7 +213,7 @@ impl GraphApi {
             },
             None => "execute",
         };
-        let timestamp = chrono::Utc::now().timestamp();
+        let timestamp = chrono::Utc::now().timestamp_micros();
         let tid = match tid.0.clone() {
             Some(t) => t,
             None => "".to_string()

@@ -17,7 +17,7 @@ func RunUpsertInNewTransaction(
 		return apiMessages.UpsertResponse{}, apiMessages.TransactionResult{}, err
 	}
 
-	upsertResponse, upsertErr := RunUpsert(uq, key, callType, beginResult.TransactionId)
+	upsertResponse, upsertErr := RunUpsert(uq, key, callType, beginResult.TransactionId, beginResult.Token)
 	if upsertErr != nil {
 		_, rollbackErr := RollbackTransaction(apiMessages.TransactionCommand{
 			Token: beginResult.Token,

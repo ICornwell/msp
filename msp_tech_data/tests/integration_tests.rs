@@ -4,8 +4,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use deadpool_postgres::Pool;
+use poem::listener::TcpListener;
 use poem::middleware::Tracing;
-use poem::{EndpointExt, Route, Server, listener::TcpListener};
+use poem::{EndpointExt, Route, Server};
 use poem_openapi::OpenApiService;
 use serde_json::json;
 use tokio::task::JoinHandle;
@@ -88,10 +89,23 @@ impl GraphApiClient {
             .expect("Failed to begin transaction");
         assert!(response.status().is_success());
     }
+
+    async fn rollback(&self, transaction_id: &str, timestamp: i64) {
+        let response = self
+            .client
+            .delete(format!(
+                "{}/api/graph/transaction?transaction_id={}&timestamp={}",
+                self.base_url, transaction_id, timestamp
+            ))
+            .send()
+            .await
+            .expect("Failed to rollback transaction");
+        assert!(response.status().is_success());
+    }
 }
 
 // Test helper to start a real server for integration testing
-async fn start_test_server(pool: Pool) -> (SocketAddr, JoinHandle<()>) {
+async fn start_test_server(pool: Pool, bind_addr: String) -> (SocketAddr, JoinHandle<()>) {
     // Create app state
     let state = Arc::new(AppState {
         db: DbClientManager::from_pool(pool.clone()),
@@ -103,10 +117,9 @@ async fn start_test_server(pool: Pool) -> (SocketAddr, JoinHandle<()>) {
     let api_service = OpenApiService::new(api, "Test API", "1.0");
     let app = Route::new().nest("/api", api_service).with(Tracing);
 
-    // Find an available port
-    let bind_addr = "127.0.0.1:3900";
-    let listener = TcpListener::bind(bind_addr);
-    let addr: SocketAddr = bind_addr.parse().unwrap();
+    // Use a caller-provided port so concurrently running tests don't collide.
+    let listener = TcpListener::bind(bind_addr.clone());
+    let addr: SocketAddr = bind_addr.parse().expect("Invalid test bind address");
 
     // Start the server in the background
     let server_handle = tokio::spawn(async move {
@@ -146,7 +159,7 @@ async fn test_full_lifecycle() -> Result<()> {
     graph_setup::ensure_schema(&db).await?;
 
     // Start a test server
-    let (addr, server_handle) = start_test_server(pool.clone()).await;
+    let (addr, server_handle) = start_test_server(pool.clone(), "127.0.0.1:3900".to_string()).await;
     let base_url = format!("http://{}", addr);
 
     let api = GraphApiClient::new(&base_url);
@@ -310,7 +323,7 @@ async fn test_query_snapshot_at_timestamp() -> Result<()> {
     let db = DbClientManager::from_pool(pool.clone());
     graph_setup::ensure_schema(&db).await?;
 
-    let (addr, server_handle) = start_test_server(pool.clone()).await;
+    let (addr, server_handle) = start_test_server(pool.clone(), "127.0.0.1:3901".to_string()).await;
     let base_url = format!("http://{}", addr);
     let api = GraphApiClient::new(&base_url);
     let scenario = common::fixtures::snapshot_history_scenario();
@@ -351,7 +364,7 @@ async fn test_query_read_committed_fallback_when_latest_uncommitted() -> Result<
     let db = DbClientManager::from_pool(pool.clone());
     graph_setup::ensure_schema(&db).await?;
 
-    let (addr, server_handle) = start_test_server(pool.clone()).await;
+    let (addr, server_handle) = start_test_server(pool.clone(), "127.0.0.1:3902".to_string()).await;
     let base_url = format!("http://{}", addr);
     let api = GraphApiClient::new(&base_url);
     let scenario = common::fixtures::read_committed_fallback_scenario();
@@ -381,6 +394,167 @@ async fn test_query_read_committed_fallback_when_latest_uncommitted() -> Result<
     assert_eq!(1, json_response["data"]["vertices"].as_array().unwrap().len());
     assert_eq!(scenario.expected_read_committed_price(),
          json_response["data"]["vertices"][0]["content"]["unitPrice"]);
+
+    server_handle.abort();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_rollback_preserves_transaction_audit_markers() -> Result<()> {
+    let pool = common::setup_test_db().await;
+    let db = DbClientManager::from_pool(pool.clone());
+    graph_setup::ensure_schema(&db).await?;
+
+    let (addr, server_handle) = start_test_server(pool.clone(), "127.0.0.1:3903".to_string()).await;
+    let base_url = format!("http://{}", addr);
+    let api = GraphApiClient::new(&base_url);
+
+    let transaction_id = Uuid::now_v7().to_string();
+    let timestamp = 1_710_200_000;
+
+    api.begin(&transaction_id, timestamp).await;
+
+    let add_msg = json!({
+        "add": {
+            "vertices": [
+                {
+                    "__tmpId": format!("product-{}", Uuid::now_v7()),
+                    "__label": "product",
+                    "__viewType": "default",
+                    "__isEntity": true,
+                    "__timeStamp": 0,
+                    "content": { "name": "Rollback Audit Product" }
+                }
+            ]
+        }
+    });
+
+    let update_response = api
+        .update_with_tid(&add_msg, &transaction_id, "Failed to send rollback-seed update")
+        .await;
+    assert!(update_response.status().is_success());
+
+    api.rollback(&transaction_id, timestamp).await;
+
+    let client = pool.get().await?;
+
+    let vertex_rows = client
+        .query(
+            r#"
+            SELECT id, __label
+            FROM docgraph.vertices
+            WHERE __transactionid = $1
+            ORDER BY id
+            "#,
+            &[&transaction_id],
+        )
+        .await?;
+    assert_eq!(1, vertex_rows.len());
+    assert_eq!(transaction_id, vertex_rows[0].get::<_, String>("id"));
+    assert_eq!("__transaction", vertex_rows[0].get::<_, String>("__label"));
+
+    let edge_rows = client
+        .query(
+            r#"
+            SELECT id, __label, from_id, to_id
+            FROM docgraph.edges
+            WHERE __transactionid = $1
+            ORDER BY id
+            "#,
+            &[&transaction_id],
+        )
+        .await?;
+    assert_eq!(1, edge_rows.len());
+    assert_eq!(transaction_id, edge_rows[0].get::<_, String>("id"));
+    assert_eq!("__rolledBack", edge_rows[0].get::<_, String>("__label"));
+    assert_eq!(transaction_id, edge_rows[0].get::<_, String>("from_id"));
+    assert_eq!(transaction_id, edge_rows[0].get::<_, String>("to_id"));
+
+    server_handle.abort();
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_rollback_removes_staged_domain_rows() -> Result<()> {
+    let pool = common::setup_test_db().await;
+    let db = DbClientManager::from_pool(pool.clone());
+    graph_setup::ensure_schema(&db).await?;
+
+    let (addr, server_handle) = start_test_server(pool.clone(), "127.0.0.1:3904".to_string()).await;
+    let base_url = format!("http://{}", addr);
+    let api = GraphApiClient::new(&base_url);
+
+    let transaction_id = Uuid::now_v7().to_string();
+    let timestamp = 1_710_300_000;
+    let staged_business_key = format!("rollback-staged-bk-{}", Uuid::now_v7());
+
+    api.begin(&transaction_id, timestamp).await;
+
+    let add_msg = json!({
+        "add": {
+            "vertices": [
+                {
+                    "__tmpId": format!("product-{}", Uuid::now_v7()),
+                    "__label": "product",
+                    "__viewType": "default",
+                    "__isEntity": true,
+                    "__businessKey": staged_business_key,
+                    "__timeStamp": 0,
+                    "content": { "name": "Rollback Removal Product" }
+                }
+            ]
+        }
+    });
+
+    let update_response = api
+        .update_with_tid(&add_msg, &transaction_id, "Failed to send rollback-removal update")
+        .await;
+    assert!(update_response.status().is_success());
+
+    api.rollback(&transaction_id, timestamp).await;
+
+    let client = pool.get().await?;
+
+    let staged_vertices_count: i64 = client
+        .query_one(
+            r#"
+            SELECT COUNT(*)::BIGINT AS count
+            FROM docgraph.vertices
+            WHERE __transactionid = $1
+              AND id <> $1
+            "#,
+            &[&transaction_id],
+        )
+        .await?
+        .get("count");
+    assert_eq!(0, staged_vertices_count);
+
+    let staged_edges_count: i64 = client
+        .query_one(
+            r#"
+            SELECT COUNT(*)::BIGINT AS count
+            FROM docgraph.edges
+            WHERE __transactionid = $1
+              AND id <> $1
+            "#,
+            &[&transaction_id],
+        )
+        .await?
+        .get("count");
+    assert_eq!(0, staged_edges_count);
+
+    let staged_business_key_count: i64 = client
+        .query_one(
+            r#"
+            SELECT COUNT(*)::BIGINT AS count
+            FROM docgraph.vertices
+            WHERE __businessKey = $1
+            "#,
+            &[&staged_business_key],
+        )
+        .await?
+        .get("count");
+    assert_eq!(0, staged_business_key_count);
 
     server_handle.abort();
     Ok(())

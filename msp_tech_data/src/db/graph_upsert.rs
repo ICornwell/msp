@@ -17,6 +17,8 @@ pub async fn process_update(
     transaction_id: String,
     timestamp: i64,
 ) -> Result<()> {
+    // Empty transaction id means caller wants this function to own the full unit-of-work
+    // lifecycle (create -> apply update -> commit/rollback).
     let auto_managed_transaction = transaction_id.trim().is_empty();
     let effective_transaction_id = if auto_managed_transaction {
         Uuid::now_v7().to_string()
@@ -25,6 +27,8 @@ pub async fn process_update(
     };
     let transaction_response =
         get_or_create_transaction(db, &effective_transaction_id, timestamp).await?;
+    // Use the transaction vertex timestamp when present so all rows written in
+    // this unit of work share a consistent transaction start time.
     let effective_timestamp = transaction_response
         .timestamp
         .parse::<i64>()
@@ -33,6 +37,8 @@ pub async fn process_update(
     let update_result: Result<()> = async {
     let mut client = db.get_client().await?;
 
+        // Business-key validation happens before writes so we can fail fast with a specific
+        // conflict error instead of surfacing a lower-level DB failure mid-transaction.
         let mut vertices_to_check = Vec::new();
         if let Some(add) = &message.add {
             if let Some(vertices) = &add.vertices {
@@ -93,6 +99,8 @@ pub async fn process_update(
                     .await?;
 
                     let tx_edge_id = Uuid::now_v7().to_string();
+                    // Every inserted version is linked to the transaction vertex so later
+                    // graph queries can reconstruct what this transaction introduced.
                     tx.execute(
                         r#"
                         INSERT INTO docgraph.edges (
@@ -201,6 +209,8 @@ pub async fn process_update(
 
                     if !vertex.original_id.is_empty() {
                         let edge_id = Uuid::now_v7().to_string();
+                        // Versioning strategy is append-only: old version points to new version
+                        // via supersededBy, rather than updating/deleting historical rows.
                         debug!(
                             "Adding supersededBy edge from {} to {}",
                             updated_vertex.original_id,
@@ -232,6 +242,10 @@ pub async fn process_update(
 
                     if !updated_vertex.original_id.is_empty() {
                         debug!("Copying forward edges for updated vertex {}", updated_vertex.id);
+                        // Copy inbound relationships from prior version to new version while:
+                        // - avoiding duplicates (NOT EXISTS),
+                        // - excluding explicitly managed edges (id NOT IN),
+                        // - and skipping version-link edges (supersededBy).
                         tx.query(
                             r#"
                             INSERT INTO docgraph.edges (id, __entityId, __transactionId, __label, __viewType,
@@ -260,6 +274,8 @@ pub async fn process_update(
                         )
                         .await?;
 
+                        // Mirror the same copy-forward rule for outbound relationships so the
+                        // replacement vertex remains connected on both sides of the graph.
                         tx.query(
                             r#"
                             INSERT INTO docgraph.edges (id, __entityId, __transactionId, __label, __viewType,
@@ -361,12 +377,15 @@ pub async fn process_update(
     match update_result {
         Ok(()) => {
             if auto_managed_transaction {
+                // Auto-managed mode finalizes the transaction only after all graph writes succeed.
                 commit_transaction(db, &effective_transaction_id, effective_timestamp).await?;
             }
             Ok(())
         }
         Err(err) => {
             if auto_managed_transaction {
+                // Best-effort rollback attempts to remove rows staged under this
+                // auto-managed transaction before returning the original error.
                 let _ = rollback_transaction(db, &effective_transaction_id, effective_timestamp).await;
             }
             Err(err)

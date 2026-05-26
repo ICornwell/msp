@@ -56,7 +56,7 @@ func ViewToQuery(vq apiMessages.ViewQuery, key string) apiMessages.DgQuery {
 		RootQueryKeyValue:    key,
 		IsLatestOnly:         true,
 		UseEntityIdAsKey:     true,
-		Timestamp:            time.Now().UTC().UnixMicro(),
+		Timestamp:            vq.Timestamp,
 		QueryType:            "Hierarchy",
 		RootQueryKeyTypes:    "string",
 	}

@@ -54,6 +54,12 @@ async fn get_transaction_with_client(
     transaction_id: &str,
     _timestamp: i64,
 ) -> Result<Option<TransactionResponse>> {
+    // Timestamp is intentionally ignored here: transaction state is keyed by
+    // transaction id and represented by graph markers, not by snapshot-time reads.
+    // We read the transaction as a small graph snapshot:
+    // - TV fetches the transaction vertex itself.
+    // - TE fetches edges that originate from that vertex (including commit/rollback markers).
+    // Unioning both lets us derive state from one round trip and one consistent row shape.
     let sql = format!(
         r#"WITH TV AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
                 FROM vertices v1 WHERE __entityid = $1 AND id = $1 ),
@@ -131,6 +137,8 @@ async fn commit_transaction_with_client(
         ));
     }
 
+    // A commit is represented as a transaction-scoped edge marker instead of mutating prior rows.
+    // This preserves append-only history and lets read paths detect committed state by marker lookup.
     let sql = r#"INSERT INTO edges (id, __entityId, __transactionid, __label, __viewtype, __timestamp, from_id, to_id, from_entityId, to_entityId, content)
      VALUES ($1, $1, $1, '__committed', 'transaction_edge', $2, $1, $1, $1, $1, $3)"#;
     let params: &[&(dyn ToSql + Sync)] = &[
@@ -168,6 +176,10 @@ async fn rollback_transaction_with_client(
         ));
     }
 
+    // Rollback is handled in one DB transaction to avoid partial cleanup if a
+    // statement fails mid-way.
+    // We keep the transaction vertex and rollback marker edge for audit/debug
+    // visibility, while removing other rows staged under this transaction id.
     let sql = r#"INSERT INTO edges (id, __entityId, __transactionid, __label, __viewtype, __timestamp, from_id, to_id, from_entityId, to_entityId, content)
      VALUES ($1, $1, $1, '__rolledBack', 'transaction_edge', $2, $1, $1, $1, $1, $3)"#;
     let params: &[&(dyn ToSql + Sync)] = &[
@@ -176,13 +188,19 @@ async fn rollback_transaction_with_client(
         &Json("rolledBack"),
     ];
 
-    let cleanup_sql = r#"DELETE FROM edges WHERE __transactionid = $1; DELETE FROM vertices WHERE __transactionid = $1"#;
-    let cleanup_params: &[&(dyn ToSql + Sync)] = &[&transaction_id];
+    // Preserve the transaction vertex itself (id == transaction id).
+    let cleanup_vertices_sql = r#"DELETE FROM vertices WHERE __transactionid = $1 AND id <> $1"#;
+    let cleanup_vertices_params: &[&(dyn ToSql + Sync)] = &[&transaction_id];
+
+    // Preserve the rollback marker edge (id/from_id/to_id all equal transaction id).
+    let cleanup_edges_sql = r#"DELETE FROM edges WHERE __transactionid = $1 AND id <> $1"#;
+    let cleanup_edges_params: &[&(dyn ToSql + Sync)] = &[&transaction_id];
 
     let tx = client.begin_transaction().await?;
     debug!("Started database transaction for update");
     tx.execute(sql, params).await?;
-    tx.execute(cleanup_sql, cleanup_params).await?;
+    tx.execute(cleanup_vertices_sql, cleanup_vertices_params).await?;
+    tx.execute(cleanup_edges_sql, cleanup_edges_params).await?;
     tx.commit().await?;
     info!("Update transaction committed successfully");
 

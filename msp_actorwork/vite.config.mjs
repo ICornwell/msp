@@ -74,7 +74,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
-      'uiApi',
+      'activitElements',
       // All federated shared deps must be EXCLUDED on a pure remote.
       // Including them in .vite/deps causes Vite's importAnalysis to
       // rewrite 'react' (etc.) directly to the remote's .vite/deps URL,

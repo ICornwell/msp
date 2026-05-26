@@ -48,7 +48,7 @@ impl Edge {
     /// Create a new edge with auto-generated IDs
     pub fn new(label: String, view_type: String, from: String, to: String, content: Value) -> Self {
         let id = Uuid::now_v7().to_string();
-        let now = Utc::now().timestamp();
+        let now = Utc::now().timestamp_micros();
         
         Self {
             id: id.clone(),
@@ -68,7 +68,7 @@ impl Edge {
     /// Create a supersededBy edge linking an old vertex to its new version
     pub fn create_superseded_by(from_vertex_id: &str, to_vertex_id: &str, entity_id: &str, view_type: &str) -> Self {
         let id = Uuid::now_v7().to_string();
-        let now = Utc::now().timestamp();
+        let now = Utc::now().timestamp_micros();
         
         Self {
             id,

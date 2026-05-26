@@ -6,6 +6,7 @@ type ViewQuery struct {
 	User        string      `json:"user"`
 	ConfigSet   string      `json:"configSet"`
 	RootKey     string      `json:"rootKey"`
+	Timestamp   int64       `json:"timestamp,omitempty"`
 	RootElement ViewElement `json:"rootElement"`
 }
 

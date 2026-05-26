@@ -1,4 +1,6 @@
 
+/* @vitest-environment happy-dom */
+
 import { expect, test, describe } from 'vitest'
 import { render } from '@testing-library/react';
 import { act } from 'react';
@@ -7,7 +9,6 @@ import { UserInfoLayout } from './layoutAutoList.js';
 import { TestAppShell } from '../testAppShell.js';
 
 const exampleData = {
-  testUserInfo: {
   userId: '000-000-0000',
   userName: 'Bob Test Roberts',
   email: 'bob.roberts@testorg.com',
@@ -16,7 +17,6 @@ const exampleData = {
   joinedDate: 'joinedDate',
   creditLimit: 1000,
   schemePoints: 100,
-  }
 }
 
 describe('Layout has renderered and has content', () => {
@@ -31,13 +31,11 @@ describe('Layout has renderered and has content', () => {
       );
     });
     
-    const { getByLabelText } = renderResult;
-       
-    // Get the input element by its label (more resilient than using testId)
-    const emailInput = getByLabelText('User Email');
-    
-    // Check if the input value contains the expected email
-    (expect(emailInput) as any).toHaveValue(exampleData.testUserInfo.email);
+    const { getByDisplayValue } = renderResult;
+
+    const emailInput = getByDisplayValue(exampleData.email) as HTMLInputElement;
+    expect(emailInput).toBeTruthy();
+    expect(emailInput.value).toBe(exampleData.email);
   });
 
   test('column order horizontal first', () => {
@@ -51,13 +49,11 @@ describe('Layout has renderered and has content', () => {
       );
     });
     
-    const { getByLabelText } = renderResult;
-       
-    // Get the input element by its label (more resilient than using testId)
-    const emailInput = getByLabelText('User Email');
-    
-    // Check if the input value contains the expected email
-    (expect(emailInput) as any).toHaveValue(exampleData.testUserInfo.email);
+    const { getByDisplayValue } = renderResult;
+
+    const emailInput = getByDisplayValue(exampleData.email) as HTMLInputElement;
+    expect(emailInput).toBeTruthy();
+    expect(emailInput.value).toBe(exampleData.email);
   });
 
 

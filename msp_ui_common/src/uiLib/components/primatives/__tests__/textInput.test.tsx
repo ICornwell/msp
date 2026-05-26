@@ -1,7 +1,9 @@
+/* @vitest-environment happy-dom */
+
 // import React from 'react';
 import { render, screen } from '../../../test-utils.js';
 import TextInput from '../presets/PresetText.js';
-import { vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 // Create a simplified mock version of the TextInput for testing
 vi.mock('../presets/PresetText', () => {
@@ -31,9 +33,11 @@ describe('TextInput', () => {
     // Find label and input elements
     const labelElement = screen.getByText('Test Label');
     const inputElement = screen.getByTestId('mock-input');
-    
-    (expect(labelElement) as any).toBeInTheDocument();
-    (expect(inputElement) as any).toBeInTheDocument();
+
+    expect(labelElement).toBeTruthy();
+    expect(inputElement).toBeTruthy();
+    expect(document.body.contains(labelElement)).toBe(true);
+    expect(document.body.contains(inputElement)).toBe(true);
   });
 
   test('applies disabled state correctly', () => {
@@ -41,9 +45,9 @@ describe('TextInput', () => {
     
     // Find the input element
     const inputElement = screen.getByTestId('mock-input');
-    
-    // Check it's disabled
-    (expect(inputElement) as any).toBeDisabled();
+
+    // Check it's disabled without jest-dom matcher dependency
+    expect((inputElement as HTMLInputElement).disabled).toBe(true);
   });
 
   test('handles error state correctly', () => {
@@ -58,7 +62,11 @@ describe('TextInput', () => {
     );
     
     // Check for error state and message
-    (expect(screen.getByText('This is an error message')) as any).toBeInTheDocument();
-    (expect(screen.getByTestId('error-indicator')) as any).toBeInTheDocument();
+    const helperText = screen.getByText('This is an error message');
+    const errorIndicator = screen.getByTestId('error-indicator');
+    expect(helperText).toBeTruthy();
+    expect(errorIndicator).toBeTruthy();
+    expect(document.body.contains(helperText)).toBe(true);
+    expect(document.body.contains(errorIndicator)).toBe(true);
   });
 });

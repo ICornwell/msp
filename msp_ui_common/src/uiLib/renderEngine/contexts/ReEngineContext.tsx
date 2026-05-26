@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, createElement, useContext, ReactNode } from 'react';
 
 const ReContext = createContext({
   rules: {} as Record<string, any>,
@@ -18,12 +18,14 @@ interface ReProviderProps {
 }
 
 function ReProvider({ children }: ReProviderProps) {
-  return (
-    <ReContext.Provider value={{
-      rules: {}
-     }}>
-      {children}
-    </ReContext.Provider>
+  return createElement(
+    ReContext.Provider,
+    {
+      value: {
+        rules: {}
+      }
+    },
+    children
   );
 }
 export { useReContext, ReProvider };

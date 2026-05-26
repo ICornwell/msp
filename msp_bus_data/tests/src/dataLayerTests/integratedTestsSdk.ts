@@ -1,13 +1,16 @@
 import { View } from 'msp_common';
 import got from 'got'
 
-export async function WriteData(view: View, data: any) {
+const BASE = 'http://localhost:5000/v1/doc';
+
+export async function WriteData(view: View, data: any, transactionToken?: string) {
     const id = data?.__entityId ?? '__noid__'
-    const insertResponse = await got.put(`http://localhost:5000/v1/doc/upsert/${id}`, {
+    const insertResponse = await got.put(`${BASE}/upsert/${id}`, {
       json: {
         view: view,
         data: data
       },
+      headers: transactionToken ? { 'X-Transaction-Token': transactionToken } : {},
       retry: { limit: 0 }, // Disable retries to get immediate feedback on failures
       responseType: 'json'
     });
@@ -25,10 +28,14 @@ export async function WriteData(view: View, data: any) {
     return result;
 }
 
-export async function ReadData(view: View, id: string) {
-    const readResponse = await got.put(`http://localhost:5000/v1/doc/query/${id}`, 
+export async function ReadData(view: View, id: string, transactionToken?: string) {
+    const url = transactionToken
+      ? `${BASE}/query/${id}?read-uncommitted=true`
+      : `${BASE}/query/${id}`;
+    const readResponse = await got.put(url,
       {
         json: view,
+        headers: transactionToken ? { 'X-Transaction-Token': transactionToken } : {},
         responseType: 'json',
         retry: { limit: 0 }
       }
@@ -36,4 +43,31 @@ export async function ReadData(view: View, id: string) {
 
     expect(readResponse.statusCode).toBe(200);
     return readResponse.body;
+}
+
+export async function BeginTransaction(): Promise<{ token: string; transactionId: string }> {
+    const response = await got.post(`${BASE}/transaction/begin`, {
+      responseType: 'json',
+      retry: { limit: 0 }
+    });
+    expect(response.statusCode).toBe(200);
+    return response.body as { token: string; transactionId: string };
+}
+
+export async function CommitTransaction(token: string): Promise<void> {
+    const response = await got.post(`${BASE}/transaction/commit`, {
+      json: { token },
+      responseType: 'json',
+      retry: { limit: 0 }
+    });
+    expect(response.statusCode).toBe(200);
+}
+
+export async function RollbackTransaction(token: string): Promise<void> {
+    const response = await got.post(`${BASE}/transaction/rollback`, {
+      json: { token },
+      responseType: 'json',
+      retry: { limit: 0 }
+    });
+    expect(response.statusCode).toBe(200);
 }

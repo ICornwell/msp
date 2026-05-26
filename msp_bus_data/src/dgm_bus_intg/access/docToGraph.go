@@ -12,12 +12,12 @@ import (
 	"slices"
 )
 
-func RunUpsert(uq apiMessages.UpsertQuery, key string, callType string, transactionId string) (apiMessages.UpsertResponse, error) {
+func RunUpsert(uq apiMessages.UpsertQuery, key string, callType string, transactionId string, transactionToken string) (apiMessages.UpsertResponse, error) {
 	view := uq.View
 	data, _ := jsonDoc.AddTmpIdToJSON(uq.Data)
 
 	// load the current state
-	currentDocData, rawData, err := RunQuery(view, key, true, "", false)
+	currentDocData, rawData, err := RunQuery(view, key, true, transactionToken, transactionToken != "")
 
 	if err != nil {
 		return apiMessages.UpsertResponse{}, err

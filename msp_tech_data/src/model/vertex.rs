@@ -62,7 +62,7 @@ impl Vertex {
     /// Create a new vertex with auto-generated IDs
     pub fn new(label: String, view_type: String, content: Value) -> Self {
         let id = Uuid::now_v7().to_string();
-        let now = Utc::now().timestamp();
+        let now = Utc::now().timestamp_micros();
         
         Self {
             id: id.clone(),
@@ -96,7 +96,7 @@ impl Vertex {
     /// Create a new version of this vertex for updates
     pub fn create_new_version(&self, content: Value) -> Self {
         let new_id = Uuid::now_v7().to_string();
-        let now = Utc::now().timestamp();
+        let now = Utc::now().timestamp_micros();
         
         Self {
             id: new_id,

@@ -15,7 +15,13 @@
     "outDir": "./distUiLib",
   //  "declarationDir": "./dist/types",
   
-    "types": ["react", "react-dom", "vitest/globals", "./src/uiLib/types/vite"],
+    "types": [
+      "react",
+      "react-dom",
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "./src/uiLib/types/vite"
+    ],
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

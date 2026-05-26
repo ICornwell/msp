@@ -13,7 +13,7 @@ import (
 
 func BeginTransaction() (apiMessages.TransactionResult, error) {
 	transactionId := utils.GenerateId()
-	timestamp := time.Now().UTC().Unix()
+	timestamp := time.Now().UTC().UnixMicro()
 	result, err := requestTransactionRepo(http.MethodGet, transactionId, timestamp)
 	if err != nil {
 		return apiMessages.TransactionResult{}, err
