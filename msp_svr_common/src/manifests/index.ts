@@ -1,6 +1,7 @@
 export * from './manifest.js';
 export * from './registration.js';
 export * from './manifestBuilder.js';
+export * from './typeVariantsBuilder.js';
 
 export type {
   Manifest,
@@ -9,7 +10,24 @@ export type {
   UiFeatureManifestSection,
   ApiFeatureManifestSection,
   ActivityFeatureManifestSection,
+  DataFeatureManifestSection,
   InformationManifestSection,
-  WorkManifestSection
+  WorkManifestSection,
+  TypeVariantsManifestBlock,
+  ActorCoreType,
+  WorkCoreType,
+  ActorTypeVariantManifestSection,
+  WorkTypeVariantManifestSection,
+  LinkPrototypeEndpointManifestSection,
+  LinkTypeVariantManifestSection,
 } from './manifest.js';
+
+export type {
+  ManifestBuildResult,
+  ManifestBuilder,
+  ManifestServiceBuilder,
+  ManifestUiFeatureBuilder,
+  ManifestApiFeatureBuilder,
+  ManifestActivityFeatureBuilder,
+} from './manifestBuilder.js';
 

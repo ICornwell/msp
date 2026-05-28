@@ -38,6 +38,9 @@
 		},
 		{
 			"path": "msp_tech_data"
+		},
+		{
+			"path": "msp_aws"
 		}
 	],
 	"settings": {

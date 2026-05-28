@@ -3,6 +3,23 @@
     "tasks": [
         {
             "type": "shell",
+            "command": "echo 'watch common packages'",
+            "dependsOn": [
+                "watch msp_common",
+                "watch msp_svr_common",
+                "watch msp_data_common",
+                "watch msp_ui_common"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "label": "watch common packages"
+        },
+        {
+            "type": "shell",
             "command": "yarn build:bff",
             "options": {
                 "cwd": "${workspaceFolder}/../msp_fes"
@@ -30,6 +47,70 @@
                 "isDefault": true
             },
             "label": "build servicehub"
+        },
+        {
+            "type": "shell",
+            "command": "yarn build:watch",
+            "options": {
+                "cwd": "${workspaceFolder}/../msp_common"
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "watch msp_common"
+        },
+        {
+            "type": "shell",
+            "command": "yarn build:watch",
+            "options": {
+                "cwd": "${workspaceFolder}/../msp_svr_common"
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "watch msp_svr_common"
+        },
+        {
+            "type": "shell",
+            "command": "yarn build:watch",
+            "options": {
+                "cwd": "${workspaceFolder}/../msp_data_common"
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "watch msp_data_common"
+        },
+        {
+            "type": "shell",
+            "command": "yarn build:watch",
+            "options": {
+                "cwd": "${workspaceFolder}/../msp_ui_common"
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "isBackground": true,
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "watch msp_ui_common"
         }
     ]
 }

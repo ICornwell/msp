@@ -7,7 +7,22 @@ import { getConfig } from "msp_svr_common";
 const dataHubManifest = makeManifest(getConfig())
   .withAllowedContexts(['*'])
   .addService('datahub_service1')
-    
+    .addActivityFeature('readDataView', '1.0.0', 'default')
+        .withAllowedContexts(['*'])
+        .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
+        .endActivityFeature
+      .addActivityFeature('writeDataView', '1.0.0', 'default')
+        .withAllowedContexts(['AUTH'])
+        .forProducts([{
+          domain: '*',
+          name: '*',
+          version: '*'
+        }])
+        .endActivityFeature
     .endService
 .build()
 

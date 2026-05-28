@@ -7,7 +7,7 @@ const discoveryActivitySet: ActivitySet = activitySet()
 
 discoveryActivitySet.use({
     namespace: 'datahub_dgm',
-    activityName: 'readData',
+    activityName: 'readDataView',
     version: '1.0.0',
     matchingVersionRange: '*',
     context: '*',
@@ -18,8 +18,8 @@ discoveryActivitySet.use({
 });
 
 discoveryActivitySet.use({
-     namespace: 'datahub_dgm',
-    activityName: 'writeData',
+    namespace: 'datahub_dgm',
+    activityName: 'writeDataView',
     version: '1.0.0',
     matchingVersionRange: '*',
     context: '*',

@@ -1,6 +1,10 @@
-export type { UiFeatureManifestSection, InformationManifestSection,
+export type { UiFeatureManifestSection, DataFeatureManifestSection, InformationManifestSection,
   ApiFeatureManifestSection, ActivityFeatureManifestSection, ServiceManifestSection,
-  ManifestCommon, Manifest } from './manifests/index.js';
+  ManifestCommon, Manifest, TypeVariantsManifestBlock, ActorCoreType, WorkCoreType,
+  ActorTypeVariantManifestSection, WorkTypeVariantManifestSection,
+  LinkPrototypeEndpointManifestSection, LinkTypeVariantManifestSection,
+  ManifestBuilder, ManifestServiceBuilder, ManifestUiFeatureBuilder,
+  ManifestApiFeatureBuilder, ManifestActivityFeatureBuilder } from './manifests/index.js';
 
 export * from './manifests/index.js';
 //export type { ManifestBuilder } from './manifests/manifestBuilder.js';

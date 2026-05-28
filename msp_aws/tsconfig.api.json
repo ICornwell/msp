@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "skipLibCheck": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./distApi",
+    "esModuleInterop": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": false,
+    "experimentalDecorators": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": false
+  },
+  "include": [
+    "src/activityElements/**/*.ts",
+    "src/manifest/**/*.ts",
+    "src/apiElements/**/*.ts"
+  ]
+}
