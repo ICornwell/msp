@@ -41,6 +41,9 @@
 		},
 		{
 			"path": "msp_aws"
+		},
+		{
+			"path": "msp_security"
 		}
 	],
 	"settings": {

@@ -7,6 +7,7 @@
     "msp_svr_common",
     "msp_data_common",
     "msp_semaphores",
+    "msp_security",
     "msp_ui_common",
     "msp_fes",
     "msp_servicehub",

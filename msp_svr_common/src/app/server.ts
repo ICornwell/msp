@@ -42,5 +42,5 @@ export function startMspServer(
     });
   });
 
-  return server
+  return {server, app}
 }
