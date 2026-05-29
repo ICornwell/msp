@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { setConfig, startMspServer } from 'msp_svr_common';
+import { SERVICE_TYPE, setConfig, startMspServer } from 'msp_svr_common';
 
 import { createAwsManifest } from '../manifest/manifest.js';
 import { resolveConfig } from './config.js';
@@ -12,7 +12,7 @@ config();
 console.log('\n🚀 Security API server starting...');
 const Config = resolveConfig();
 setConfig(Config);
-const {app} = startMspServer(Config, createAwsManifest(Config), getServiceActivities());
+const {app} = startMspServer(Config, createAwsManifest(Config), SERVICE_TYPE.SERVICE, getServiceActivities());
 
 const discoveryProvider = getDiscoveryProvider(Config);
 const discoveryRouter = getDiscoveryRouter(discoveryProvider);
