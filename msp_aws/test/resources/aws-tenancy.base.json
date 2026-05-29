@@ -1,0 +1,13 @@
+{
+  "scenarioId": "aws-tenancy-base",
+  "connectionProfile": {
+    "id": "dev-local",
+    "providerType": "aws-profile",
+    "region": "eu-west-2",
+    "accountHint": "dev"
+  },
+  "expected": {
+    "accountId": "123456789012",
+    "issuer": "arn:aws:iam::123456789012:role/msp-discovery-role"
+  }
+}

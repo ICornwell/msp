@@ -87,10 +87,10 @@ export const productSchema = createSchema('product')
         .buildObject();
   
       const relObjs = createRelations()
-      .allowRelationFrom('hasOrder', accountObject, orderObject, true)
-      .allowRelationFrom('belongsTo', accountObject, personObject, true)
-      .allowRelationFrom('hasItem', orderObject, itemObject, true)
-      .allowRelationFrom('orderedProduct', itemObject, productObject, false)
+      .allowRelationFromTo('hasOrder', accountObject, orderObject, true)
+      .allowRelationFromTo('belongsTo', accountObject, personObject, true)
+      .allowRelationFromTo('hasItem', orderObject, itemObject, true)
+      .allowRelationFromTo('orderedProduct', itemObject, productObject, false)
       .buildRelatedObjects();
 
 // Build view with fluent syntax

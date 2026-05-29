@@ -1,9 +1,10 @@
 import { default as express } from "express";
-import { ActivitySet, ServiceActivity, serviceManager } from "msp_svr_common";
+import { ActivitySet, DataRequestEnvelope, ServiceActivity, serviceManager } from "msp_svr_common";
+import { SERVICE_TYPE } from "./server";
 
 
 
-export function getRoutes(serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
+export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
 
   const router = express.Router();
 
@@ -20,6 +21,7 @@ export function getRoutes(serviceActivities: ActivitySet | ServiceActivity[] | S
   const services = serviceManager();
   services.use(serviceActivities);
 
+
   router.get("/health", (_req, res) => {
     res.status(200).json({
       status: "ok",
@@ -27,34 +29,67 @@ export function getRoutes(serviceActivities: ActivitySet | ServiceActivity[] | S
     });
   });
 
-  router.put('/service/run', async (req, res) => {
-    const request = req.body as ServiceRequestEnvelope;
+  if (serviceType === 'service') {
+    router.put('/service/run', async (req, res) => {
+      const request = req.body as ServiceRequestEnvelope;
 
-    if (!request?.namespace || !request?.activityName || !request?.version) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid service request: namespace, activityName and version are required.'
-      });
-      return;
-    }
+      if (!request?.namespace || !request?.activityName || !request?.version) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid service request: namespace, activityName and version are required.'
+        });
+        return;
+      }
 
-    try {
-      const result = await services.runAllMatches(
-        request.namespace,
-        request.activityName,
-        request.version,
-        request.payload,
-      );
+      try {
+        const result = await services.runAllMatches(
+          request.namespace,
+          request.activityName,
+          request.version,
+          request.payload,
+        );
 
-      res.status(200).json(result);
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: 'Service execution failed.',
-        error: error?.message ?? String(error),
-      });
-    }
-  });
+        res.status(200).json(result);
+      } catch (error: any) {
+        res.status(500).json({
+          success: false,
+          message: 'Service execution failed.',
+          error: error?.message ?? String(error),
+        });
+      }
+    });
+  }
+
+  if (serviceType === 'data') {
+    router.put('/data', async (req, res) => {
+      const request = req.body as DataRequestEnvelope;
+
+      if (!request?.namespace || !request?.activityName || !request?.version) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid data service request: namespace, activityName and version are required.'
+        });
+        return;
+      }
+
+      try {
+        const result = await services.runAllMatches(
+          request.namespace,
+          request.activityName,
+          request.version,
+          request.payload,
+        );
+
+        res.status(200).json(result);
+      } catch (error: any) {
+        res.status(500).json({
+          success: false,
+          message: 'Data service execution failed.',
+          error: error?.message ?? String(error),
+        });
+      }
+    });
+  }
   return router;
 }
 

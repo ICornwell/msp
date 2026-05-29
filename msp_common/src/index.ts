@@ -9,6 +9,7 @@ export {
 
 export * from './manifests/manifests.js'
 export * from './comms/serviceRequest.js'
+export * from './comms/dataRequest.js'
 
 export { ClientCredentialsConfig, JWTValidationConfig } from './types/index.js';
 

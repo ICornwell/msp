@@ -1,24 +1,41 @@
-import { createDomainObject, createRelations } from "msp_common";
+import { createRelations, createEntityObject } from "msp_common";
 import { workSchema } from "./workSchemas";
-import { participationSchema } from "./participationSchemas";
-import { userActorObject } from "../userActors/userActorObjectsAndRelations";
+import { linkSchema } from "./linkSchemas";
+import { userActorObject, systemActorObject, groupActorObject } from "../actors/userActorObjectsAndRelations";
+import { create } from "node:domain";
 
-export const workObject = createDomainObject('work', workSchema)
+export const workObject = createEntityObject('work', workSchema)
           .withId('work', '1.0')
-          .forDomain({ id: 'actorWork', version: '1.0' })
-          .withIsEntity(true)
-          .buildDomainObject();
+          .forDomain({ name: 'actorWork', version: '1.0' })
+          .buildObject();
 
-export const participationObject = createDomainObject('participation', participationSchema)
-          .withId('participation', '1.0')
-          .forDomain({ id: 'actorWork', version: '1.0' })
-          .withIsEntity(true)
-          .buildDomainObject();
+export const actorWorkLinkObject = createEntityObject('actorWorkLink', linkSchema)
+          .withId('actorWorkLink', '1.0')
+          .forDomain({ name: 'actorWork', version: '1.0' })
+          .buildObject();
+
+export const actorActorLinkObject = createEntityObject('actorActorLink', linkSchema)
+          .withId('actorActorLink', '1.0')
+          .forDomain({ name: 'actorWork', version: '1.0' })
+          .buildObject();
+
+export const workWorkLinkObject = createEntityObject('workWorkLink', linkSchema)
+          .withId('workWorkLink', '1.0')
+          .forDomain({ name: 'actorWork', version: '1.0' })
+          .buildObject();
 
 export const relatedObjects = createRelations()
-  .allowRelationFrom('forWork', participationObject, workObject, false)
-  .allowRelationFrom('hasParticipation', userActorObject, participationObject, true)
-  .allowRelationTo('hasParticipation', participationObject, workObject, true)
-  .allowRelationTo('withActor', userActorObject, participationObject, false)
+  .allowRelationFromTo('isPartOf', workObject, workWorkLinkObject, false)
+  .allowRelationFromTo('hasUserWork', userActorObject, actorWorkLinkObject, true)
+  .allowRelationFromTo('hasSystemWork', systemActorObject, actorWorkLinkObject, true)
+  .allowRelationFromTo('hasGroupWork', groupActorObject, actorWorkLinkObject, true)
+  .allowRelationFromTo('withLinkedActorWork', actorWorkLinkObject, workObject, true)
+  .allowRelationFromTo('withLinkedUserActor', actorWorkLinkObject, userActorObject, false)
+  .allowRelationFromTo('withLinkedSystemActor', actorWorkLinkObject, systemActorObject, false)
+  .allowRelationFromTo('withLinkedGroupActor', actorWorkLinkObject, groupActorObject, false)
+  .allowRelationFromTo('withLinkedOtherWork', workWorkLinkObject, workObject, false)
   .buildRelatedObjects();
 
+
+
+relatedObjects.actorWorkLink._allowedRelationsToNames

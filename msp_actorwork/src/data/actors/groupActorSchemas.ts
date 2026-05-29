@@ -1,0 +1,23 @@
+import {createSchema} from 'msp_common'
+
+export const groupActorSchema = createSchema('groupActor')
+  .withId('groupActor', '1.0')
+  .withProperty('name')
+    .forType<string>()
+    .withDictionaryId('workActor-actors-groupName', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Group Name')
+    .endProperty()
+  .withProperty('uniqueGroupName')
+    .forType<string>()
+    .withDictionaryId('workActor-actors-groupUuid', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Group UUID')
+    .endProperty()
+  .withProperty('purpose')
+    .forType<string>()
+    .withDictionaryId('workActor-actors-groupPurpose', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Purpose')
+    .endProperty()
+  .buildSchema();

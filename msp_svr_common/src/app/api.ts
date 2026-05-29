@@ -8,9 +8,10 @@ import cookieParser from 'cookie-parser';
 import { getRoutes } from './routes.js';
 import { ActivitySet, Config, ServiceActivity } from '../index.js';
 import { mspAuthMiddleware } from '../als/authMiddleware.js';
+import { SERVICE_TYPE } from './server.js';
 
 // Express 5 natively supports async route handlers.
-export function createApp(config: Partial<Config>, serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
+export function createApp(config: Partial<Config>, serviceType: SERVICE_TYPE, serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
   const app: Express = express();
 
   /* // CORS configuration
@@ -38,7 +39,7 @@ export function createApp(config: Partial<Config>, serviceActivities: ActivitySe
   app.use(mspAuthMiddleware(config))
 
   // Mount API routes
-  app.use('/api/v1', getRoutes(serviceActivities));
+  app.use('/api/v1', getRoutes(serviceType, serviceActivities));
 
   // Health check endpoint
   app.get('/health', (_req, res) => {

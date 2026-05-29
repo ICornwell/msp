@@ -1,6 +1,6 @@
 import { createProduct } from "./productBuilder.js";
 import { createSchema } from "./schemaBuilder.js";
-import { createValueDomainObject } from "./objectBuilder.js"
+import { createValueObject, createEntityObject } from "./objectBuilder.js"
 import { createView } from "./viewBuilder.js";
 import { createRelations } from "./objectRelationsBuilder.js";
 import type { ProductBuilder } from "./productBuilder.js";
@@ -18,7 +18,8 @@ import type {View, ViewElement} from "../models/api/view.js";
 export {
   createProduct,
   createSchema,
-  createValueDomainObject as createDomainObject,
+  createValueObject,
+  createEntityObject,
   createRelations,
   createView
 }

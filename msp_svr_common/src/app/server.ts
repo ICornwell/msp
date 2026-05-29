@@ -3,16 +3,20 @@ import { createApp } from './api.js';
 
 import { registerWithRetry } from './manifestRegistration.js';
 import { ActivitySet, Manifest, Config, Ports, ServiceActivity } from 'msp_svr_common';
+export type SERVICE = 'service';
+export type DATA = 'data';
+export enum SERVICE_TYPE { SERVICE = 'service', DATA = 'data' }
 
 export function startMspServer(
   config: Partial<Config>,
   manifest: Partial<Manifest>,
+  serviceType: SERVICE_TYPE = SERVICE_TYPE.SERVICE,
   serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
 
-  const PORT = Ports.core.actorWorkMainService;
+  const PORT: string = (Ports.modules as any)[config.product?.name!]?.[serviceType] ;
 
   // Start the server
-  const app = createApp(config, serviceActivities);
+  const app = createApp(config, serviceType, serviceActivities);
   const server = app.listen(PORT, () => {
     console.log(`\n🚀Service API server running on ${config.myUrl}`);
     console.log(`   - Health check: ${config.myUrl}/health`);

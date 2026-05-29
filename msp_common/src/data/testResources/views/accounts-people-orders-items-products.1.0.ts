@@ -123,11 +123,11 @@ const productObject = createEntityObject('productObject', productSchema)
   .buildObject();
 
 const relObjs = createRelations()
-  .allowRelationFrom('hasOrder', accountObject, orderObject, true)
-  .allowRelationFrom('belongsTo', accountObject, personObject, true)
-  .allowRelationFrom('hasItem', orderObject, itemObject, true)
-  .allowRelationFrom('orderedProduct', itemObject, productObject, false)
-  .allowRelationFrom('hasAddress', personObject, addressObject, false)
+  .allowRelationFromTo('hasOrder', accountObject, orderObject, true)
+  .allowRelationFromTo('belongsTo', accountObject, personObject, true)
+  .allowRelationFromTo('hasItem', orderObject, itemObject, true)
+  .allowRelationFromTo('orderedProduct', itemObject, productObject, false)
+  .allowRelationFromTo('hasAddress', personObject, addressObject, false)
   .buildRelatedObjects();
 
 

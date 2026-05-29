@@ -7,6 +7,13 @@ const ports = {
         dataHub:  process.env.SERVICEHUB_INTERNAL_PORT || 4002,
         actorWorkMainService:  process.env.ACTORWORK_INTERNAL_PORT || 4003,
         MF_actorWorkMainService:  process.env.ACTORWORK_MF_INTERNAL_PORT || 3003
+    },
+    modules: {
+        aws: {
+            services: 4011,
+            data: 5011,
+            ui: 3011
+        }
     }
 }
 

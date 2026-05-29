@@ -38,7 +38,10 @@ export default defineConfig({
     sourcemap: true,
     minify: false,
     rollupOptions: {
-      external: (id) => id.startsWith('activityElements/') || id.startsWith('distApi/'),
+      external: (id) =>
+        id.startsWith('serviceActivityElements/') ||
+        id.startsWith('dataActivityElements/') ||
+        id.startsWith('distApi/'),
     },
   },
   esbuild: {
@@ -65,7 +68,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
-      'activityElements',
+      'serviceActivityElements',
+      'dataActivityElements',
       ...Object.keys(mfShared),
     ],
     include: [

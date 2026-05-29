@@ -1,0 +1,23 @@
+import {createSchema} from 'msp_common'
+
+export const systemActorSchema = createSchema('systemActor')
+  .withId('systemActor', '1.0')
+  .withProperty('name')
+    .forType<string>()
+    .withDictionaryId('workActor-actors-system', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('System Name')
+    .endProperty()
+  .withProperty('email')
+    .forType<string>()
+    .withDictionaryId('workActor-actors-systemUuid', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('system UUID')
+    .endProperty()
+  .withProperty('systemPurpose')
+    .forType<string>()
+    .withDictionaryId('workActor-actors-systemPurpose', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('System Purpose')
+    .endProperty()
+  .buildSchema();

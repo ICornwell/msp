@@ -1,19 +1,19 @@
-import { createDomainObject, createRelations } from 'msp_common';
+import { createEntityObject, createRelations } from 'msp_common';
 
 import { ecrRepositorySchema, eksClusterSchema } from './awsResourceSchemas.js';
 
-export const eksClusterObject = createDomainObject('eksCluster', eksClusterSchema)
+export const eksClusterObject = createEntityObject('eksCluster', eksClusterSchema)
   .withId('eksCluster', '1.0')
-  .forDomain({ id: 'aws', version: '1.0' })
-  .withIsEntity(true)
-  .buildDomainObject();
+  .forDomain({ name: 'aws', version: '1.0' })
 
-export const ecrRepositoryObject = createDomainObject('ecrRepository', ecrRepositorySchema)
+  .buildObject();
+
+export const ecrRepositoryObject = createEntityObject('ecrRepository', ecrRepositorySchema)
   .withId('ecrRepository', '1.0')
-  .forDomain({ id: 'aws', version: '1.0' })
-  .withIsEntity(true)
-  .buildDomainObject();
+  .forDomain({ name: 'aws', version: '1.0' })
+
+  .buildObject();
 
 export const relatedAwsResourceObjects = createRelations()
-  .allowRelationTo('deploysImageFrom', eksClusterObject, ecrRepositoryObject, true)
+  .allowRelationToFrom('deploysImageFrom', eksClusterObject, ecrRepositoryObject, true)
   .buildRelatedObjects();

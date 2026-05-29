@@ -14,7 +14,7 @@ export {
   serviceManager
 } from './service-manager/serviceManager.js';
 
-export { startMspServer } from './app/server.js';
+export { startMspServer, SERVICE_TYPE } from './app/server.js';
 export { mspAuthMiddleware } from './als/authMiddleware.js';
 
 export {
@@ -27,6 +27,10 @@ export {
 export {  type ServiceRequestEnvelope,
   type ServiceRequestOptions,
   type ServiceRequestResult, ServiceActivityResult} from 'msp_common'
+
+export {  type DataRequestEnvelope, DataViewQueryEnvelope, DataViewUpsertEnvelope,
+  type DataRequestOptions,
+  type DataRequestResult, DataActivityResult} from 'msp_common'
 
 export {
   CreateResultBuilder,

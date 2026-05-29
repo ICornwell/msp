@@ -1,4 +1,4 @@
-import { View } from 'msp_common';
+import { DataRequestEnvelope, DataRequestResult, DataViewUpsertEnvelope, DataViewQueryEnvelope, View } from 'msp_common';
 import { authenticatedPut } from '../als/outboundRequests.js';
 import { getConfig } from '../configuredCommon.js';
 
@@ -9,7 +9,7 @@ export type DataRequestOptions = {
 	headers?: Record<string, string>;
 };
 
-const defaultEndpointPath = '/v1/doc/';
+const defaultEndpointPath = '/api/v1/data/';
 
 function trimTrailingSlash(value: string): string {
 	return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -44,7 +44,7 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 	const baseUrl = resolveBaseUrl(options?.baseUrl);
 	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
 
-	const url = resolveUrl(routeUrl, `/upsert/${id}`);
+	const url = resolveUrl(routeUrl, `/_view_upsert/${id}`);
 
 	const controller = new AbortController();
 	const timeoutMs = options?.timeoutMs;
@@ -52,9 +52,11 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 		? setTimeout(() => controller.abort(), timeoutMs)
 		: undefined;
 
-	const body = {
-		view,
-		data,
+	const body: DataViewUpsertEnvelope = {
+		payload: {
+			view,
+			data,
+		},
 	};
   
 
@@ -103,12 +105,19 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		? setTimeout(() => controller.abort(), timeoutMs)
 		: undefined;
 
+	const body: DataViewQueryEnvelope = {
+		payload: {
+			view,
+			id,
+		},
+	};
+
 	try {
 		const creds = getConfig().clientCredentials;
 		if (!creds) throw new Error('Client credentials are required for authenticated requests');
 		const queryResponse = await authenticatedPut(
 			url,
-			view,
+			body,
 			{ headers: { ...options?.headers }}
 		);
 			
@@ -129,5 +138,64 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 	}
 	
 }
+
+export async function DataRequest<TPayload = any, TResult = any>(
+	request: DataRequestEnvelope<TPayload>,
+	options?: DataRequestOptions,
+): Promise<DataRequestResult<TResult>> {
+	const baseUrl = resolveBaseUrl(options?.baseUrl);
+	const url = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
+
+	const controller = new AbortController();
+	const timeoutMs = options?.timeoutMs;
+	const timeoutHandle = (timeoutMs && timeoutMs > 0)
+		? setTimeout(() => controller.abort(), timeoutMs)
+		: undefined;
+
+	const config = getConfig();
+
+	if (!config.clientCredentials) {
+		throw new Error('Client credentials are required for service requests. Please configure ClientCredentialsConfig in your Config.');
+	}
+
+	try {
+		const response = await authenticatedPut(url, request)
+
+
+		let body: any = undefined;
+		try {
+			body = await response.json();
+		} catch {
+			body = undefined;
+		}
+
+		if (!response.ok) {
+			throw new Error(`Data request failed (${response.status}): ${response.statusText}`);
+		}
+
+		return body as DataRequestResult<TResult>;
+	} finally {
+		if (timeoutHandle) {
+			clearTimeout(timeoutHandle);
+		}
+	}
+}
+
+export async function runDataActivity<TPayload = any, TResult = any>(
+	namespace: string,
+	activityName: string,
+	version: string,
+	payload: TPayload,
+	options?: DataRequestOptions,
+): Promise<DataRequestResult<TResult>> {
+	return DataRequest<TPayload, TResult>({
+		namespace,
+		activityName,
+		version,
+		payload,
+	}, options);
+}
+
+
 
 

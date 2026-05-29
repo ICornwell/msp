@@ -2,21 +2,15 @@ import { default as express } from "express";
 import { serviceManager } from "msp_svr_common";
 import { discoveryActivitySet } from "./activities/discovery.js";
 import { discoveryActivitySet as dgmActivitySet } from "./activities/dgmAccess.js";
+import { DataRequestEnvelope, DataViewQueryEnvelope, DataViewUpsertEnvelope } from "msp_svr_common";
 
 const router = express.Router();
 
-type ServiceRequestEnvelope = {
-  namespace: string;
-  activityName: string;
-  version: string;
-  payload: any;
-  context?: string;
-  correlationId?: string;
-};
 
-const services = serviceManager();
-services.use(discoveryActivitySet);
-services.use(dgmActivitySet);
+
+const dataServices = serviceManager();
+dataServices.use(discoveryActivitySet);
+dataServices.use(dgmActivitySet);
 
 router.get("/test", (_req, res) => {
   res.status(200).json({
@@ -24,8 +18,8 @@ router.get("/test", (_req, res) => {
   });
 });
 
-router.put('/service/run', async (req, res) => {
-  const request = req.body as ServiceRequestEnvelope;
+router.put('/data', async (req, res) => {
+  const request = req.body as DataRequestEnvelope;
 
   if (!request?.namespace || !request?.activityName || !request?.version) {
     res.status(400).json({
@@ -36,7 +30,7 @@ router.put('/service/run', async (req, res) => {
   }
 
   try {
-    const result = await services.runAllMatches(
+    const result = await dataServices.runAllMatches(
       request.namespace,
       request.activityName,
       request.version,
@@ -48,6 +42,63 @@ router.put('/service/run', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Service execution failed.',
+      error: error?.message ?? String(error),
+    });
+  }
+});
+
+router.put('/_view_upsert', async (req, res) => {
+  const request = req.body as DataViewUpsertEnvelope;
+
+  if (!request?.payload?.view || !request?.payload?.data) {
+    res.status(400).json({
+      success: false,
+      message: 'Invalid data upsert request: view and data are required.'
+    });
+    return;
+  }
+  try {
+    const result = await dataServices.runAllMatches(
+      'datahub_dgm',
+      'writeDataView',
+      '1.0.0',
+      request.payload,
+    );
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Service execution failed.',
+      error: error?.message ?? String(error),
+    });
+  }
+});
+
+router.put('/_view_query', async (req, res) => {
+  const request = req.body as DataViewQueryEnvelope;
+
+  if (!request?.payload?.view ) {
+    res.status(400).json({
+      success: false,
+      message: 'Invalid data query request: view is required.'
+    });
+    return;
+  }
+
+  try {
+    const result = await dataServices.runAllMatches(
+      'datahub_dgm',
+      'readDataView',
+      '1.0.0',
+      request.payload,
+    );
+
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Data query execution failed.',
       error: error?.message ?? String(error),
     });
   }

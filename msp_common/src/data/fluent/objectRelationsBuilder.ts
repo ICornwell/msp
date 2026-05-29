@@ -23,13 +23,13 @@ type AddToRO<RO, DO extends DomainObject> =
 
 export interface RelationsBuilder<RO> {
 
-  allowRelationTo: <S extends DomainObject, N extends string, T extends DomainObject>(
+  allowRelationToFrom: <S extends DomainObject, N extends string, T extends DomainObject>(
     name: N,
     targetObject: T,
     sourceObject: S,
     cascadeDeletes: TrueFalse
   ) => RelationsBuilder<UpdateRO<RO, DOWithNewFromRels<S,N,NameOfDomainObject<T>>, DOWithNewToRels<T,N,NameOfDomainObject<S>>>>;
-  allowRelationFrom: <S extends DomainObject, N extends string, T extends DomainObject>(
+  allowRelationFromTo: <S extends DomainObject, N extends string, T extends DomainObject>(
     name: N,
     sourceObject: S,
     targetObject: T,
@@ -42,13 +42,13 @@ export interface RelationsBuilder<RO> {
 function createRelationsBuilder<RO>(currentObjects: RO) {
 
   const builder: RelationsBuilder<RO> = {
-    allowRelationTo: function <T extends DomainObject, N extends string, S extends DomainObject>(
+    allowRelationToFrom: function <T extends DomainObject, N extends string, S extends DomainObject>(
       name: N,
       targetObject: T,
       sourceObject: S,
       cascadeDeletes: TrueFalse
     ): RelationsBuilder<UpdateRO<RO, DOWithNewFromRels<S,N,NameOfDomainObject<T>>, DOWithNewToRels<T,N,NameOfDomainObject<S>>>> {
-      return this.allowRelationFrom(name, sourceObject, targetObject, cascadeDeletes);
+      return this.allowRelationFromTo(name, sourceObject, targetObject, cascadeDeletes);
     /*
       // Note: the source and target are reversed <T,N,S> here because we're adding a relation from the perspective of the target object
       const { target, source } = addDomainObjectRelationTo<S,N,T>(targetObject, name, sourceObject, cascadeDeletes);
@@ -60,7 +60,7 @@ function createRelationsBuilder<RO>(currentObjects: RO) {
       return createRelationsBuilder<UpdateRO<RO, typeof source, typeof target>>(newObjects); */
     },
 
-    allowRelationFrom: function <S extends DomainObject, N extends string, T extends DomainObject>(
+    allowRelationFromTo: function <S extends DomainObject, N extends string, T extends DomainObject>(
       name: N,
       sourceObject: S,
       targetObject: T,
