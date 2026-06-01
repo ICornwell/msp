@@ -14,6 +14,7 @@ export declare type ManifestCommon<N extends string = string, VR extends string 
   description?: string,
   serverUrl?: string,
   serverMFUrl?: string,
+  serverDataUrl?: string,
   namespace?: string,
   typeVariants?: TypeVariantsScopeFromBlock<any>
 }
@@ -22,6 +23,8 @@ export declare type Manifest<N extends string = string, VR extends string = stri
   description?: string;
   author?: string;
   serverUrl: string; // e.g., URL or file path
+  serverMFUrl: string;
+  serverDataUrl: string;
   services?: ServiceManifestSection[]
 }
 
@@ -64,7 +67,7 @@ export declare type ApiFeatureManifestSection<N extends string = string, VR exte
 }
 
 export declare type DataFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> = ManifestCommon<N, VR, VN> & {
- 
+ remotePath: string;
 }
 
 // Deprecated alias kept for transition.
@@ -166,37 +169,11 @@ export declare type ManifestTypeVariants<
   Link: TLink;
 };
 
-const getTmpObj=  [{
-        name,
-        extendsType: 'user' as ActorCoreType,
-        namespace: 'aws',
-        linkType: 'contributesTo',
-        shortName: 'Cluster scan',
-        longName: 'EKS cluster scan contributes to inventory case',
-        description: 'Prototype linking one execution step to its broader AWS inventory outcome.',
-        purpose: 'Keep execution trace tied to business-visible work.',
-        featurePermissions: ['aws.inventory.execute'],
-        dataEntitlements: ['aws.eks.read'],
-        objectives: ['Collect cluster data', 'Support case outcome'],
-        declaredByFeatures: ['AwsResourcesFeature'],
-        allowedContexts: ['AUTH'],
-        from: { kind: 'workVariant', variantName: 'awsListEksClustersTask', namespace: 'aws' },
-        to: { kind: 'workVariant', variantName: 'awsInventoryCase', namespace: 'aws' },
-        staticAttributes: {
-          executionKind: 'inventory',
-          targetResourceKind: 'eksCluster',
-        },
-        lifecycleActivities: {
-          onCreate: ['aws/prepareInventoryExecution/1.0.0'],
-          onRemove: ['aws/revokeInventoryExecution/1.0.0'],
-        },
-      } as ActorTypeVariantManifestSection<'test', '1.0.0', 'default'>];
 
-type TMP =typeof getTmpObj
 export declare type EmptyManifestTypeVariants = ManifestTypeVariants<{}, {}, {}>;
 
 export declare type TypeVariantsScopeFromBlock<TBlock extends TypeVariantsManifestBlock> = ManifestTypeVariants<
-  NamedRecordFromArray<(TBlock['actorTypeVariants']) extends readonly ActorTypeVariantManifestSection[] ? TBlock['actorTypeVariants'] : TMP>,
+  NamedRecordFromArray<(TBlock['actorTypeVariants']) extends readonly ActorTypeVariantManifestSection[] ? TBlock['actorTypeVariants'] : []>,
   NamedRecordFromArray<(TBlock['workTypeVariants']) extends readonly WorkTypeVariantManifestSection[] ? TBlock['workTypeVariants'] : []>,
   NamedRecordFromArray<(TBlock['linkTypeVariants']) extends readonly LinkTypeVariantManifestSection[] ? TBlock['linkTypeVariants'] : []>
 >;
@@ -240,11 +217,13 @@ export declare type TypedServiceManifestSection<
   TUiFeatures extends Record<string, UiFeatureManifestSection<any, any, any>> = any,
   TApiFeatures extends Record<string, ApiFeatureManifestSection<any, any, any>> = any,
   TActivityFeatures extends Record<string, ActivityFeatureManifestSection<any, any, any>> = any,
+  TDataFeatures extends Record<string, DataFeatureManifestSection<any, any, any>> = any,
 > = ServiceManifestSection<Name, Version, VariantName> & {
   TypeVariants: TVariants;
   UiFeatures: TUiFeatures;
   ApiFeatures: TApiFeatures;
   ActivityFeatures: TActivityFeatures;
+  DataFeatures: TDataFeatures;
 };
 
 export declare type TypedManifest<

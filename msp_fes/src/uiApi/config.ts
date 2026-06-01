@@ -27,6 +27,7 @@ export function resolveConfig(): Partial<Config> {
         serviceHubApiUrl: SharedConfig?.getHostUrl?.('serviceHub') || 'http://localhost:4001',
         myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4003',
         myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name) || 'http://localhost:3003',
+        myPort: SharedConfig?.getPort?.(thisProduct.name)?.toString() || '4003',
         jwtValidation: {
             trustedIssuers: process.env['MSP_core_issuers']
                 ? process.env['MSP_core_issuers'].split(',')

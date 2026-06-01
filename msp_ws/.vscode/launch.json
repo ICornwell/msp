@@ -9,6 +9,8 @@
             "configurations": [
                 "Run Service Hub",
                 "Run Data Hub",
+                "Run Security",
+                "Run Semaphores",
                 "Run Actor-Work",
                 "Run Front End",
                 "Launch Chrome",
@@ -21,6 +23,23 @@
             "configurations": [
                 "BusData Run 'dgm_bus_intg'",
                 "TechData Run 'docgraph'",
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "MSP Front & Back & Data",
+            "configurations": [
+                "BusData Run 'dgm_bus_intg'",
+                "TechData Run 'docgraph'",
+                "Run Service Hub",
+                "Run Data Hub",
+                "Run Security",
+                "Run Semaphores",
+                "Run Actor-Work",
+                "Run AWS",
+                "Run Front End",
+                "Launch Chrome",
+                "Attach to Chrome",
             ],
             "stopAll": true
         }
@@ -95,10 +114,49 @@
                 "${workspaceFolder}/../msp_actorwork/distApi/**/*.js"
             ]
         },
+         {
+             
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["aws:start"],
+            "name": "Run AWS",
+            "request": "launch",
+            "type": "node",
+            "cwd": "${workspaceFolder}/..",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/../msp_aws/distApi/**/*.js"
+            ]
+        },
         {
             "runtimeExecutable": "yarn",
             "runtimeArgs": ["fes:start"],
             "name": "Run Front End",
+            "request": "launch",
+            "type": "node",
+            "cwd": "${workspaceFolder}/..",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/../msp_fes/distApi/**/*.js"
+            ]
+
+        },
+        {
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["security:start"],
+            "name": "Run Security",
+            "request": "launch",
+            "type": "node",
+            "cwd": "${workspaceFolder}/..",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/../msp_fes/distApi/**/*.js"
+            ]
+
+        },
+        {
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["semaphores:start"],
+            "name": "Run Semaphores",
             "request": "launch",
             "type": "node",
             "cwd": "${workspaceFolder}/..",

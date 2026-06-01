@@ -7,172 +7,132 @@ import type {
 import { makeTypeVariants } from 'msp_svr_common';
 
 
-const awsTypeVariants = makeTypeVariants('1.0.0') // version and variantName here will apply to all, unless overridden at the variant level
+const securityTypeVariants = makeTypeVariants('1.0.0') // version and variantName here will apply to all, unless overridden at the variant level
   .withActorTypeVariantSet()  // version and variantName here will apply to all actor variants, unless overridden at the variant level
-    .withActorTypeVariant('awsOperator') // version and variantName here will apply to this variant
+    .withActorTypeVariant('securityOperator') // version and variantName here will apply to this variant
       .withProperties(
         {
-          namespace: 'aws',
+          namespace: 'security',
           extendsType: 'user',
-          shortName: 'AWS operator',
-          longName: 'AWS platform operator',
-          description: 'Human operator who requests, reviews, and acts on AWS work.',
-          purpose: 'Operate AWS resources through governed platform activities.',
-          featurePermissions: ['aws.inventory.request', 'aws.inventory.review'],
-          dataEntitlements: ['aws.account.read', 'aws.region.read'],
+          shortName: 'Security operator',
+          longName: 'Security platform operator',
+          description: 'Human operator who requests, reviews, and acts on Security work.',
+          purpose: 'Operate Security resources through governed platform activities.',
+          featurePermissions: ['security.inventory.request', 'security.inventory.review'],
+          dataEntitlements: ['security.account.read', 'security.region.read'],
           objectives: ['Request inventory', 'Review inventory results'],
-          declaredByFeatures: ['AwsResourcesFeature'],
+          declaredByFeatures: ['SecurityResourcesFeature'],
           allowedContexts: ['AUTH'],
         })
-    .withActorTypeVariant('awsSecurityReviewer')
+    .withActorTypeVariant('securitySecurityReviewer')
       .withProperties(
         {
-          namespace: 'aws',
+          namespace: 'security',
           extendsType: 'user',
           shortName: 'Security reviewer',
-          longName: 'AWS security reviewer',
-          description: 'Approves or rejects scoped access for AWS operational work.',
-          purpose: 'Ensure AWS access remains purposeful and least-privileged.',
-          featurePermissions: ['aws.inventory.approve'],
-          dataEntitlements: ['aws.account.read', 'aws.region.read', 'aws.access.review'],
+          longName: 'Security security reviewer',
+          description: 'Approves or rejects scoped access for Security operational work.',
+          purpose: 'Ensure Security access remains purposeful and least-privileged.',
+          featurePermissions: ['security.inventory.approve'],
+          dataEntitlements: ['security.account.read', 'security.region.read', 'security.access.review'],
           objectives: ['Approve access scope', 'Close access review'],
-          declaredByFeatures: ['AwsResourcesFeature'],
+          declaredByFeatures: ['SecurityResourcesFeature'],
           allowedContexts: ['AUTH'],
         })
     .endActorTypeVariantSet
   .withWorkTypeVariantSet() // version and variantName here will apply to all work variants, unless overridden at the variant level
-    .withWorkTypeVariant('awsAccountResource') // version and variantName here will apply to this variant
+    .withWorkTypeVariant('securityAccountResource') // version and variantName here will apply to this variant
       .withProperties(
         {
-          namespace: 'aws',
+          namespace: 'security',
           extendsType: 'resource',
-          shortName: 'AWS account',
-          longName: 'AWS account resource',
-          description: 'Long-lived record describing an AWS account boundary.',
-          purpose: 'Represent the enduring account boundary used for AWS work.',
-          dataEntitlements: ['aws.account.read'],
+          shortName: 'Security account',
+          longName: 'Security account resource',
+          description: 'Long-lived record describing an Security account boundary.',
+          purpose: 'Represent the enduring account boundary used for Security work.',
+          dataEntitlements: ['security.account.read'],
           objectives: ['Identify account scope', 'Anchor operational work'],
-          declaredByFeatures: ['AwsResourcesFeature'],
+          declaredByFeatures: ['SecurityResourcesFeature'],
           allowedContexts: ['AUTH'],
         })
-    .withWorkTypeVariant('awsAccountResource', '1.0.0')
+    .withWorkTypeVariant('securityAccountResource', '1.0.0')
       .withProperties(
         {
-          namespace: 'aws',
+          namespace: 'security',
           extendsType: 'case',
           shortName: 'Inventory case',
-          longName: 'AWS inventory case',
+          longName: 'Security inventory case',
           description: 'Long-running case coordinating discovery, review, and follow-up.',
-          purpose: 'Track AWS discovery work to a relatable operational outcome.',
-          featurePermissions: ['aws.inventory.request', 'aws.inventory.review'],
-          dataEntitlements: ['aws.account.read', 'aws.region.read'],
+          purpose: 'Track Security discovery work to a relatable operational outcome.',
+          featurePermissions: ['security.inventory.request', 'security.inventory.review'],
+          dataEntitlements: ['security.account.read', 'security.region.read'],
           objectives: ['Coordinate discovery work', 'Collect approvals', 'Review findings'],
-          declaredByFeatures: ['AwsResourcesFeature'],
+          declaredByFeatures: ['SecurityResourcesFeature'],
           allowedContexts: ['AUTH'],
         })
-    .withWorkTypeVariant('awsInventoryStepGroup', '1.0.0')
+    .withWorkTypeVariant('securityInventoryStepGroup', '1.0.0')
       .withProperties(
         {
-          namespace: 'aws',
+          namespace: 'security',
           extendsType: 'taskGroup',
           shortName: 'Inventory step group',
-          longName: 'AWS inventory task group',
+          longName: 'Security inventory task group',
           description: 'Groups sequential approval and execution steps for one inventory run.',
           purpose: 'Organize the single-concurrent flow around one inventory attempt.',
-          featurePermissions: ['aws.inventory.request', 'aws.inventory.approve'],
+          featurePermissions: ['security.inventory.request', 'security.inventory.approve'],
           objectives: ['Sequence approvals', 'Sequence execution'],
-          declaredByFeatures: ['AwsResourcesFeature'],
+          declaredByFeatures: ['SecurityResourcesFeature'],
           allowedContexts: ['AUTH'],
         })
-    .withWorkTypeVariant('awsListEKSClusters', '1.0.0')
-      .withProperties(
-        {
-          namespace: 'aws',
-          extendsType: 'task',
-          shortName: 'List EKS clusters',
-          longName: 'AWS list EKS clusters task',
-          description: 'Short-running execution task for EKS cluster inventory.',
-          purpose: 'Execute one read-only AWS inventory step.',
-          featurePermissions: ['aws.inventory.execute'],
-          dataEntitlements: ['aws.eks.read'],
-          objectives: ['Call EKS APIs', 'Normalize results', 'Attach audit trace'],
-          declaredByFeatures: ['AwsResourcesFeature'],
-          allowedContexts: ['AUTH'],
-        },
-      )
+   
     .endWorkTypeVariantSet
   .withLinkTypeVariantSet() // version and variantName here will apply to all link variants, unless overridden at the variant level
-    .withLinkTypeVariant('awsOperatorCreatesInventoryCase', '1.0.0') // version and variantName here will apply to this variant
+    .withLinkTypeVariant('securityOperatorCreatesInventoryCase', '1.0.0') // version and variantName here will apply to this variant
     .withProperties(
       {
-        namespace: 'aws',
+        namespace: 'security',
         linkType: 'creates',
         shortName: 'Request inventory',
-        longName: 'AWS operator requests inventory case',
-        description: 'Prototype for opening AWS inventory work from an operator context.',
-        purpose: 'Start a relatable AWS inventory outcome with explicit requester intent.',
-        featurePermissions: ['aws.inventory.request'],
-        dataEntitlements: ['aws.account.read', 'aws.region.read'],
+        longName: 'Security operator requests inventory case',
+        description: 'Prototype for opening Security inventory work from an operator context.',
+        purpose: 'Start a relatable Security inventory outcome with explicit requester intent.',
+        featurePermissions: ['security.inventory.request'],
+        dataEntitlements: ['security.account.read', 'security.region.read'],
         objectives: ['Create inventory case'],
-        declaredByFeatures: ['AwsResourcesFeature'],
+        declaredByFeatures: ['SecurityResourcesFeature'],
         allowedContexts: ['AUTH'],
-        from: { kind: 'actorVariant', variantName: 'awsOperator', namespace: 'aws' },
-        to: { kind: 'workVariant', variantName: 'awsInventoryCase', namespace: 'aws' },
+        from: { kind: 'actorVariant', variantName: 'securityOperator', namespace: 'security' },
+        to: { kind: 'workVariant', variantName: 'securityInventoryCase', namespace: 'security' },
         staticAttributes: {
           stage: 'requested',
-          businessOutcome: 'understand AWS estate',
+          businessOutcome: 'understand Security estate',
         }
       }
     )
-    .withLinkTypeVariant('awsSecurityReviewerClosesAccessReview', '1.0.0')
+    .withLinkTypeVariant('securitySecurityReviewerClosesAccessReview', '1.0.0')
     .withProperties(
       {
-        namespace: 'aws',
+        namespace: 'security',
         linkType: 'closes',
         shortName: 'Approve scope',
-        longName: 'AWS security reviewer closes access review',
-        description: 'Prototype for finalizing an AWS access review step.',
+        longName: 'Security security reviewer closes access review',
+        description: 'Prototype for finalizing an Security access review step.',
         purpose: 'Close scoped approval work before execution proceeds.',
-        featurePermissions: ['aws.inventory.approve'],
-        dataEntitlements: ['aws.access.review'],
+        featurePermissions: ['security.inventory.approve'],
+        dataEntitlements: ['security.access.review'],
         objectives: ['Complete access review'],
-        declaredByFeatures: ['AwsResourcesFeature'],
+        declaredByFeatures: ['SecurityResourcesFeature'],
         allowedContexts: ['AUTH'],
-        from: { kind: 'actorVariant', variantName: 'awsSecurityReviewer', namespace: 'aws' },
-        to: { kind: 'workVariant', variantName: 'awsInventoryTaskGroup', namespace: 'aws' },
+        from: { kind: 'actorVariant', variantName: 'securitySecurityReviewer', namespace: 'security' },
+        to: { kind: 'workVariant', variantName: 'securityInventoryTaskGroup', namespace: 'security' },
         staticAttributes: {
           reviewDecision: 'approved',
         },
         lifecycleActivities: {
-          onCreate: ['aws/reviewInventoryExecution/1.0.0'],
+          onCreate: ['security/reviewInventoryExecution/1.0.0'],
         }
       })
-    .withLinkTypeVariant('awsListEksClustersTaskContributesToInventoryCase', '1.0.0')
-    .withProperties(
-      {
-        namespace: 'aws',
-        linkType: 'contributesTo',
-        shortName: 'Cluster scan',
-        longName: 'EKS cluster scan contributes to inventory case',
-        description: 'Prototype linking one execution step to its broader AWS inventory outcome.',
-        purpose: 'Keep execution trace tied to business-visible work.',
-        featurePermissions: ['aws.inventory.execute'],
-        dataEntitlements: ['aws.eks.read'],
-        objectives: ['Collect cluster data', 'Support case outcome'],
-        declaredByFeatures: ['AwsResourcesFeature'],
-        allowedContexts: ['AUTH'],
-        from: { kind: 'workVariant', variantName: 'awsListEksClustersTask', namespace: 'aws' },
-        to: { kind: 'workVariant', variantName: 'awsInventoryCase', namespace: 'aws' },
-        staticAttributes: {
-          executionKind: 'inventory',
-          targetResourceKind: 'eksCluster',
-        },
-        lifecycleActivities: {
-          onCreate: ['aws/prepareInventoryExecution/1.0.0'],
-          onRemove: ['aws/revokeInventoryExecution/1.0.0'],
-        },
-      }
-    )
+    
     .endLinkTypeVariantSet
   .endTypeVariants;
 
@@ -180,9 +140,9 @@ const awsTypeVariants = makeTypeVariants('1.0.0') // version and variantName her
 
 
 
-export function withAwsActorWorkModel<
+export function withSecurityActorWorkModel<
   TManifest extends TypedManifest,
   TService extends TypedServiceManifestSection,
 >(builder: ManifestServiceBuilder<TManifest, TService>) {
-  return builder.withTypeVariants(awsTypeVariants);
+  return builder.withTypeVariants(securityTypeVariants);
 }

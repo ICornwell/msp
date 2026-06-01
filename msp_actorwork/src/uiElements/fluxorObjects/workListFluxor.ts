@@ -1,11 +1,11 @@
 import type { FluxorData } from 'msp_common'
-import { participationSchema } from "../../data/work/participationSchemas.js";
-import { userActorSchema } from "../../data/userActors/userActorSchemas.js";
+import { linkSchema } from "../../data/work/linkSchemas.js";
+import { userActorSchema } from "../../data/actors/userActorSchemas.js";
 import { workSchema } from "../../data/work/workSchemas.js";
 import { PrefixedDataOfSchema } from 'msp_common';
 
 export type UserWorkListProps = PrefixedDataOfSchema< undefined, 'actor',typeof userActorSchema> 
-    & PrefixedDataOfSchema< undefined, 'participation', typeof participationSchema>
+    & PrefixedDataOfSchema< undefined, 'link', typeof linkSchema>
     & PrefixedDataOfSchema< undefined, 'work', typeof workSchema>
 
 
@@ -19,10 +19,10 @@ export const userWorkListFluxorData: FluxorData<Partial<UserWorkListProps>> = {
     work_deadline: { dictionaryName: 'workActor-work-deadline', attributeName: 'deadline', label: 'Deadline' },
     work_type: { dictionaryName: 'workActor-work-type', attributeName: 'type', label: 'Type' },
     work_description: { dictionaryName: 'workActor-work-description', attributeName: 'description', label: 'Description' },
-    participation_name: { dictionaryName: 'workActor-participation-name', attributeName: 'name', label: 'Participation Name' },
-    participation_type: { dictionaryName: 'workActor-participation-type', attributeName: 'type', label: 'Participation Type' },
-    participation_description: { dictionaryName: 'workActor-participation-description', attributeName: 'description', label: 'Participation Description' },
-    participation_createdOn: { dictionaryName: 'workActor-participation-createdOn', attributeName: 'createdOn', label: 'Participation Created On' },
-    participation_slaDueDate: { dictionaryName: 'workActor-participation-slaDueDate', attributeName: 'slaDueDate', label: 'Participation SLA Due Date' },
-    participation_deadline: { dictionaryName: 'workActor-participation-deadline', attributeName: 'deadline', label: 'Participation Deadline' },
+    link_name: { dictionaryName: 'workActor-link-name', attributeName: 'name', label: 'Link Name' },
+    link_type: { dictionaryName: 'workActor-link-type', attributeName: 'type', label: 'Link Type' },
+    link_description: { dictionaryName: 'workActor-link-description', attributeName: 'description', label: 'Link Description' },
+    link_createdOn: { dictionaryName: 'workActor-link-createdOn', attributeName: 'createdOn', label: 'Link Created On' },
+    link_slaDueDate: { dictionaryName: 'workActor-link-slaDueDate', attributeName: 'slaDueDate', label: 'Link SLA Due Date' },
+    link_deadline: { dictionaryName: 'workActor-link-deadline', attributeName: 'deadline', label: 'Link Deadline' },
 }

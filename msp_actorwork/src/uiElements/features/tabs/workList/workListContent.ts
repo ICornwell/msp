@@ -26,18 +26,18 @@ export function workListContent() {
         .column(s => s.work_type)
         
         // Column group: User's participation info
-        .columnGroup('participation', 'Participation')
-          .column(s => s.participation_type).withHeader('Make')
-          .column(s => s.participation_name).withHeader('Model')
-          .column(s => s.participation_slaDueDate).withHeader('SLA').withRenderer
+        .columnGroup('link', 'Link')
+          .column(s => s.link_type).withHeader('Make')
+          .column(s => s.link_name).withHeader('Model')
+          .column(s => s.link_slaDueDate).withHeader('SLA').withRenderer
             .fromComponentElement(PresetDateComponent)
             .withDisplayMode('readonly')
-            .withValueBinding((context) => context.localData.participation_slaDueDate)
+            .withValueBinding((context) => context.localData.link_slaDueDate)
             .endElement
-          .column(s => s.participation_deadline).withHeader('Deadline').withRenderer
+          .column(s => s.link_deadline).withHeader('Deadline').withRenderer
             .fromComponentElement(PresetDateComponent)
             .withDisplayMode('readonly')
-            .withValueBinding((context) => context.localData.participation_deadline)
+            .withValueBinding((context) => context.localData.link_deadline)
             .endElement
         .endGroup
         

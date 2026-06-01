@@ -1,5 +1,5 @@
 import type { FluxorData } from 'msp_ui_common/uiLib'
-import { userActorSchema } from "../../data/userActors/userActorSchemas.js";
+import { userActorSchema } from "../../data/actors/userActorSchemas.js";
 import type { DataOfSchema } from 'msp_common';
 
 type props = DataOfSchema<typeof userActorSchema>

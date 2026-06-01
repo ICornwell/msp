@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createSemaphoreRouter } from './routes/semaphores.js';
 import { InMemorySemaphoreProvider } from '../providers/inMemory/InMemorySemaphoreProvider.js';
-import {Ports} from 'msp_svr_common'
+import {Ports} from 'msp_common'
 const app = express();
 
 app.use(express.json({ limit: '5mb' }));
@@ -16,7 +16,7 @@ const provider = new InMemorySemaphoreProvider({
 
 app.use('/api/v1/semaphores', createSemaphoreRouter(provider));
 
-const port = Number(process.env['MSP_SEMAPHORE_PORT'] ?? Ports.core.semaphores);
+const port = Number(process.env['MSP_SEMAPHORE_PORT'] ?? Ports.core.msp_semaphores);
 app.listen(port, () => {
   console.log(`[msp_semaphores] listening on :${port} epoch=${provider.getIssuerEpoch()}`);
 });

@@ -3,7 +3,7 @@ import { Manifest, Config, serviceRequest } from 'msp_svr_common';
 
 export async function registerManifest(config: Partial<Config>, manifest: Partial<Manifest>): Promise<boolean> {
   try {
-    console.log(`Registering actorwork manifest with servicehub at ${config.serviceHubApiUrl}...`);
+    console.log(`Registering ${config.product?.domain}-${config.product?.name} manifest with servicehub at ${config.serviceHubApiUrl}...`);
 
 
     const result = await serviceRequest(
@@ -45,6 +45,6 @@ export async function registerWithRetry(config: Partial<Config>, manifest: Parti
     }
   }
 
-  console.log('✓ Actorwork successfully registered with servicehub');
+  console.log(`✓ ${config.product?.domain}-${config.product?.name} successfully registered with servicehub`);
 }
 

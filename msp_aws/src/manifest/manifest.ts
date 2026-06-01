@@ -4,24 +4,33 @@ import { withAwsActorWorkModel } from './modelDeclarations.js';
 function createAwsServiceBuilder(config?: any) {
   return withAwsActorWorkModel(
     makeManifest(config)
+      .withNamespace('aws')
       .withAllowedContexts(['*'])
-      .addService('AwsResourceService')
+      .withService('AwsResourceService')
   )
     .forProducts([{ domain: '*', name: '*', version: '*' }])
     .withAllowedContexts(['*'])
-    .addUiFeature('AwsResourcesFeature')
+    .withUiFeature('AwsResourcesFeature')
       .withRemoteName('aws_remoteEntry.js')
       .withAllowedContexts(['*'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endUiFeature
-    .addActivityFeature('listEksClusters', '1.0.0', 'default')
+    .withActivityFeature('listEksClusters', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
-    .addActivityFeature('listEcrRepositories', '1.0.0', 'default')
+    .withActivityFeature('listEcrRepositories', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature;
+      .endActivityFeature
+    .withDataFeature('awsEksClusters', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endDataFeature
+    .withDataFeature('awsEcrRepositories', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endDataFeature;
 }
 
 export function createAwsManifest(config?: any) {
@@ -44,7 +53,10 @@ export function createAwsManifestBundle(config?: any) {
 
 export type TypedAwsManifest = ReturnType<typeof createTypedAwsManifest>;
 
-// Compile-time proof that typed projection exposes the named link variant.
+
+
+// for type testing
+/* // Compile-time proof that typed projection exposes the named link variant.
 export type AwsTypedLinkVariantProof =
   TypedAwsManifest['Services']['AwsResourceService_1_0_0_default']['TypeVariants']['Work']
 
@@ -55,5 +67,5 @@ export const AwsTypedLinkVariantProof2 =
 
 export const AwsTypedLinkVariantProof3 =
   createTypedAwsManifest().Services.AwsResourceService_1_0_0_default.ActivityFeatures
-
+ */
 

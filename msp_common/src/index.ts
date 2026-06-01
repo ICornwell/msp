@@ -7,7 +7,6 @@ export {
 } from './sharedDeps.js';
 
 
-export * from './manifests/manifests.js'
 export * from './comms/serviceRequest.js'
 export * from './comms/dataRequest.js'
 
@@ -26,10 +25,12 @@ export type {
 
 export {isViewDataContent_Matching_ViewDataIdentifier, viewDataIdentifier_Match} from './types/index.js';
 
-export type { UiRemoteRegistration, ScopeItem } from './comms/ui/UiRemoteRegistration.js'
+export type { UiRemoteRegistration, UiRemoteIdentity, ScopeItem } from './comms/ui/UiRemoteRegistration.js'
 
 export * from './data/fluent/index.js';
 export * from './data/models/fluxor/fluxorData.js'
 
 // Re-export UI message types
 export * from './messages/index.js';
+
+export {Ports} from './ports.js';

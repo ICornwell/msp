@@ -25,3 +25,5 @@ export type UiRemoteRegistration = {
     feature?: ScopeItem;
   };
 };
+
+export type UiRemoteIdentity = Omit<UiRemoteRegistration, 'remoteEntry'>;

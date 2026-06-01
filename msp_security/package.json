@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "clear_mf_cache": "rm -rf node_modules/.vite && rm -rf node_modules/__mf__virtual",
-    "start": "node ./distApi/activityElements/server.js --inspect & vite",
-    "start:server": "node ./distApi/activityElements/server.js",
+    "start": "node ./distApi/serviceActivityElements/server.js --inspect & vite",
+    "start:server": "node ./distApi/serviceActivityElements/server.js",
     "dev": "vite",
     "build": "yarn clear_mf_cache && tsc -b && vite build",
     "build:server": "tsc -b",

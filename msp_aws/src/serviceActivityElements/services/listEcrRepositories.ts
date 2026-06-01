@@ -10,6 +10,10 @@ export type EcrRepositoryData = {
   region: string;
   imageTagMutability: string;
   scanOnPush: boolean;
+  aws_type?: string;
+  aws_name?: string;
+  aws_region?: string;
+  aws_status?: string;
 } & Partial<DataObject>;
 
 const mockRepositories: ViewDataContent<EcrRepositoryData>[] = [
@@ -28,6 +32,10 @@ const mockRepositories: ViewDataContent<EcrRepositoryData>[] = [
       region: 'eu-west-2',
       imageTagMutability: 'IMMUTABLE',
       scanOnPush: true,
+      aws_type: 'ECR Repository',
+      aws_name: 'actorwork/dev',
+      aws_region: 'eu-west-2',
+      aws_status: 'IMMUTABLE (scan-on-push)',
     },
   },
 ];

@@ -5,8 +5,9 @@ import svgr from 'vite-plugin-svgr';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sharedDeps } from 'msp_common';
+import { Ports } from 'msp_common';
 
-const mfPort = parseInt(process.env['VITE_PORT'] || '3005', 10);
+const mfPort = parseInt(process.env['VITE_PORT'], 10) || Ports.modules['aws-awsMainService-1.0.0-default'].ui;
 const mfShared = sharedDeps;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

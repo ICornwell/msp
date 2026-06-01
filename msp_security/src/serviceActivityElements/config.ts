@@ -2,8 +2,8 @@ import { SharedConfig, Config, ProductConfig } from 'msp_svr_common';
 import { ClientCredentialsConfig } from 'msp_common';
 
 const thisProduct: ProductConfig = {
-  domain: 'aws',
-  name: 'awsMainService',
+  domain: 'core',
+  name: 'msp_security',
   variantName: 'default',
   version: '1.0.0',
 };
@@ -27,6 +27,8 @@ export function resolveConfig(): Partial<Config> {
     serviceHubApiUrl: SharedConfig?.getHostUrl?.('serviceHub') || 'http://localhost:4001',
     myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4005',
     myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name) || 'http://localhost:3005',
+    myDataUrl: SharedConfig?.getDataHostUrl?.(thisProduct.name) || 'http://localhost:5005',
+    myPort: SharedConfig?.getPort?.(thisProduct.name)?.toString() || '4005',
     jwtValidation: {
       trustedIssuers: process.env['MSP_core_issuers']
         ? process.env['MSP_core_issuers'].split(',')

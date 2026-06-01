@@ -101,6 +101,7 @@ export async function makeAuthenticatedRequest(
     const response = await fetch(requestOptions.url, fetchOptions);
     return response;
   } catch (error) {
+    console.error(`Error making authenticated request ${requestOptions.method} for ${requestOptions.url}:`, error);
     throw new Error(`Outbound request failed: ${error}`);
   }
 }

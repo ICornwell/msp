@@ -59,7 +59,7 @@ export {
 
 
 
-export {Ports} from './ports.js';
+export {Ports} from 'msp_common'
 
 export {SharedConfig} from './sharedconfig.js';
 export type {Config, ProductConfig} from './sharedconfig.js';

@@ -25,5 +25,5 @@
 
 
   },
-  "include": ["src/activityElements/**/*.ts", "./src/manifest/**/*.ts"]
+  "include": ["src/serviceActivityElements/**/*.ts", "./src/manifest/**/*.ts"]
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, memo } from 'react';
 import { loadRemote, registerRemotes } from '@module-federation/runtime';
 import { Remote } from "@module-federation/runtime/types";
-import type { UiFeatureManifestSection } from "msp_common";
+import type { UiFeatureManifestSection } from "msp_svr_common";
 import { getAvailableFeatures } from "msp_ui_common/uiLib/comms";
 import { useUserSession } from "msp_ui_common/uiLib/hooks";
 import { UiRemoteRegistration } from 'msp_common';

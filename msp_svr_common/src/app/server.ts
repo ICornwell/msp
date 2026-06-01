@@ -1,8 +1,8 @@
-// Actorwork API Server
+// Common API Server
 import { createApp } from './api.js';
 
 import { registerWithRetry } from './manifestRegistration.js';
-import { ActivitySet, Manifest, Config, Ports, ServiceActivity } from 'msp_svr_common';
+import { ActivitySet, Manifest, Config, ServiceActivity } from 'msp_svr_common';
 export type SERVICE = 'service';
 export type DATA = 'data';
 export enum SERVICE_TYPE { SERVICE = 'service', DATA = 'data' }
@@ -13,7 +13,7 @@ export function startMspServer(
   serviceType: SERVICE_TYPE = SERVICE_TYPE.SERVICE,
   serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
 
-  const PORT: string = (Ports.modules as any)[config.product?.name!]?.[serviceType] ;
+  const PORT = config.myPort || 443
 
   // Start the server
   const app = createApp(config, serviceType, serviceActivities);
@@ -25,7 +25,7 @@ export function startMspServer(
 
     // Register with servicehub in the background (with retry)
     registerWithRetry(config, manifest).then(() => {
-      console.log('Actorwork is fully operational and registered with servicehub');
+      console.log(`✓ ${config.product?.domain}-${config.product?.name} is fully operational and registered with servicehub`);
     });
   });
 

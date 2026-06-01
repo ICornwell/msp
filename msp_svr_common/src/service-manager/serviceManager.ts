@@ -8,13 +8,13 @@ export function serviceManager() {
     const activitySets: ActivitySet[] = [activities] 
     return {
         use: function (serviceActivity: ServiceActivity | ServiceActivity[] | ActivitySet): void {
-            if ('handle' in serviceActivity) {
+            if ('isEmpty' in serviceActivity && !serviceActivity.isEmpty()) {
                 activitySets.push(serviceActivity);
                 return;
             }
 
             // make single activity into an array so we can handle both cases the same way
-            const activityArray = Array.isArray(serviceActivity) ? serviceActivity : [serviceActivity];
+            const activityArray: ServiceActivity[] = Array.isArray(serviceActivity) ? serviceActivity as ServiceActivity[] : [serviceActivity as ServiceActivity];
             for (const serviceActivity of activityArray)
                 activities.use(serviceActivity);
         },

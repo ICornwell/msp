@@ -101,6 +101,7 @@ export function addServiceActivityToSet(set: ServiceActivity[], activity: Servic
 }
 
 export type ActivitySet = {
+    isEmpty: () => boolean;
     use: (serviceActivity: ServiceActivity) => void;
     useBefore: (serviceActivity: ServiceActivity) => void;
     useAfter: (serviceActivity: ServiceActivity) => void;
@@ -128,11 +129,15 @@ export function activitySet(): ActivitySet {
         addServiceActivityToSet(activities, serviceActivity);
     }
 
+    function isEmpty() {
+        return activities.length === 0;
+    }
+
     async function handle(namespace: string, activityName: string, version: string,
         payload: any, resultBuilder?: ServiceActivityResultBuilder): Promise<ServiceActivityResultBuilder> {
         const rb = (!resultBuilder) ? CreateResultBuilder() : resultBuilder;
 
-        async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder) {
+        async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder, runBeforeAndAfter = true) {
             const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
                 && isMatch(activityName, handler.activityName));
 
@@ -150,21 +155,32 @@ export function activitySet(): ActivitySet {
             for (const activity of bestVersionActivities) {
                 for (const func of Array.isArray(activity.funcs) ? activity.funcs : [activity.funcs]) {
                     console.log(`Running activity ${activity.namespace}:${activity.activityName} v${activity.version} for request version ${version}`);
+                    
+                    if (runBeforeAndAfter && (middlewareBefore?.length ?? 0) !== 0) {
+                        await runAllMatches(middlewareBefore, rb, false);
+                    }
+                    
                     await func(payload, resultBuilder);
                     if (resultBuilder.currentResult().updatedPayload) {
                         payload = resultBuilder.currentResult().updatedPayload;
                     }
+
+                    if (runBeforeAndAfter && (middlewareAfter?.length ?? 0) !== 0) {
+                        await runAllMatches(middlewareAfter, rb, false);
+                    }
+
                 }
             }
         }
-        await runAllMatches(middlewareBefore, rb);
+        
         await runAllMatches(activities, rb);
-        await runAllMatches(middlewareAfter, rb);
+        
 
         return rb;
     }
 
     return {
+        isEmpty,
         use,
         useBefore,
         useAfter,

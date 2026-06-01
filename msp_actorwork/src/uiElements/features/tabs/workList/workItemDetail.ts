@@ -64,32 +64,32 @@ export function workItemDetail() {
 
               .showingItem.fromComponentElement(PresetTextComponent)
                 .withLabel('Name')
-                .withValueBinding((ctx) => ctx.localData.participation_name)
+                .withValueBinding((ctx) => ctx.localData.link_name)
               .endElement
 
               .showingItem.fromComponentElement(PresetTextComponent)
                 .withLabel('Type')
-                .withValueBinding((ctx) => ctx.localData.participation_type)
+                .withValueBinding((ctx) => ctx.localData.link_type)
               .endElement
 
               .showingItem.fromComponentElement(PresetTextComponent)
                 .withLabel('Description')
-                .withValueBinding((ctx) => ctx.localData.participation_description)
+                .withValueBinding((ctx) => ctx.localData.link_description)
               .endElement
 
               .showingItem.fromComponentElement(PresetDateComponent)
                 .withLabel('Created On')
-                .withValueBinding((ctx) => ctx.localData.participation_createdOn)
+                .withValueBinding((ctx) => ctx.localData.link_createdOn)
               .endElement
 
               .showingItem.fromComponentElement(PresetDateComponent)
                 .withLabel('SLA Due')
-                .withValueBinding((ctx) => ctx.localData.participation_slaDueDate)
+                .withValueBinding((ctx) => ctx.localData.link_slaDueDate)
               .endElement
 
               .showingItem.fromComponentElement(PresetDateComponent)
                 .withLabel('Deadline')
-                .withValueBinding((ctx) => ctx.localData.participation_deadline)
+                .withValueBinding((ctx) => ctx.localData.link_deadline)
               .endElement
 
             .end()

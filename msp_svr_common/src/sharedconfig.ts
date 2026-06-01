@@ -1,5 +1,5 @@
 import { ClientCredentialsConfig, JWTValidationConfig } from 'msp_common';
-import { Ports } from './ports.js';
+import { Ports } from 'msp_common';
 
 export type ProductConfig = {
     domain: string,
@@ -12,15 +12,19 @@ export type ProductConfig = {
 
 export type Config = {
     product: ProductConfig,
+    myPort: string,
     myUrl: string,
     myMFUrl: string,
+    myDataUrl: string,
     serviceHubApiUrl: string,
     serviceHubMfUrl: string,
     semaphoresUrl: string,
     uiWebUrl: string,
     uiBffUrl: string,
-    getHostUrl: (service: string) => string,
-    getMFHostUrl: (service: string) => string,
+    getHostUrl: (service: string, domain?: string, version?: string, variantName?: string) => string,
+    getMFHostUrl: (service: string, domain?: string, version?: string, variantName?: string) => string,
+    getDataHostUrl: (service: string, domain?: string, version?: string, variantName?: string) => string,
+    getPort: (service: string, domain?: string, version?: string, variantName?: string) => number,
     clientCredentials?: ClientCredentialsConfig,
     jwtValidation?: JWTValidationConfig
 
@@ -29,29 +33,94 @@ export type Config = {
 const sharedconfig: Partial<Config> = {
     serviceHubApiUrl: HostName('serviceHub'),
     serviceHubMfUrl: HostName('serviceHub'),
-    semaphoresUrl: HostName('semaphores'),
+    semaphoresUrl: HostName('msp_semaphores'),
     uiWebUrl: HostName('uiWeb'),
     uiBffUrl: HostName('uiBff'),
 
     getHostUrl: HostName,
-    getMFHostUrl: MFHostName
+    getMFHostUrl: MFHostName,
+    getDataHostUrl: DataHostName,
+    getPort: Port
 }
-export function HostName(service: string): string {
-    const host = process.env[`${service.toUpperCase()}_HOST`];
+
+function makeName(service: string, domain?: string, version?: string, variantName?: string) {
+    return `${domain ? domain + '-' : ''}${service}${version ? '-' + version : ''}${variantName ? '-' + variantName : ''}`;
+}
+
+function Port(service: string, domain: string = '', version: string = '1.0.0', variantName: string = 'default'): number {
+    if (process.env[`${service.toUpperCase()}_HOST`]) {
+        // when hostnames are in env vars, the system is out
+        // of the local development environment and we should assume standard ports
+        // and use of https
+        return 443;
+     }
+    
+    if ((Ports.core as any)?.[service] && (domain === '' || domain === 'core')) {
+        return (Ports.core as any)[service];
+    }
+    
+    const moduleName = makeName(service, domain, version, variantName);
+    if ((Ports.modules as any)?.[moduleName]) {
+        return (Ports.modules as any)[moduleName].services;
+    }
+    throw new Error(`No port found for service ${moduleName}. Please add to Ports configuration.`);
+}
+
+export function HostName(service: string, domain: string = '', version: string = '1.0.0', variantName: string = 'default'): string {
+    let host = process.env[`${service.toUpperCase()}_HOST`];
     if (host) {
         return `https://${host}:443`;
     }
 
-    return `http://localhost:${(Ports.core as any)?.[service]}`;
+    if ((Ports.core as any)?.[service] && (domain === '' || domain === 'core')) {
+        host = `http://localhost:${(Ports.core as any)[service]}`;
+        return host;
+    }
+    
+    const moduleName = makeName(service, domain, version, variantName);
+    if ((Ports.modules as any)?.[moduleName]) {
+        host = `http://localhost:${(Ports.modules as any)[moduleName].services}`;
+        return host;
+    }
+    throw new Error(`No host found for service ${moduleName}. Please set environment variable ${service.toUpperCase()}_HOST or add to Ports configuration.`);
 }
 
-export function MFHostName(service: string): string {
-    const host = process.env[`${service.toUpperCase()}_MF_HOST`];
+export function MFHostName(service: string, domain: string = '', version: string = '1.0.0', variantName: string = 'default'): string {
+    let host = process.env[`${service.toUpperCase()}_MF_HOST`];
     if (host) {
         return `https://${host}:443`;
     }
 
-    return `http://localhost:${(Ports.core as any)?.[`MF_${service}`]}`;
+    if ((Ports.core as any)?.[service] && (domain === '' || domain === 'core')) {
+        host = `http://localhost:${(Ports.core as any)[`MF_${service}`]}`;
+        return host;
+    }
+
+    const moduleName = makeName(service, domain, version, variantName);
+    if ((Ports.modules as any)?.[moduleName]) {
+        host = `http://localhost:${(Ports.modules as any)[moduleName].ui}`;
+        return host;
+    }
+    throw new Error(`No host found for ui service ${moduleName}. Please set environment variable ${service.toUpperCase()}_MF_HOST or add to Ports configuration.`);
+}
+
+export function DataHostName(service: string, domain: string = '', version: string = '1.0.0', variantName: string = 'default'): string {
+    let host = process.env[`${service.toUpperCase()}_DATA_HOST`];
+    if (host) {
+        return `https://${host}:443`;
+    }
+
+    if ((Ports.core as any)?.[service] && (domain === '' || domain === 'core')) {
+        host = `http://localhost:${(Ports.core as any)[`DATA_${service}`]}`;
+        return host;
+    }
+
+    const moduleName = makeName(service, domain, version, variantName);
+    if ((Ports.modules as any)?.[moduleName]) {
+        host = `http://localhost:${(Ports.modules as any)[moduleName].data}`;
+        return host;
+    }
+    throw new Error(`No host found for data service ${moduleName}. Please set environment variable ${service.toUpperCase()}_DATA_HOST or add to Ports configuration.`);
 }
 
 export const SharedConfig = sharedconfig

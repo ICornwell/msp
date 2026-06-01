@@ -5,8 +5,8 @@ import { federation } from '@module-federation/vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 import mix from 'vite-plugin-mix'  // temporarily disabled for BFF isolation test
-import { Ports } from 'msp_svr_common'
-import { sharedDeps } from 'msp_common'
+
+import { Ports, sharedDeps } from 'msp_common'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

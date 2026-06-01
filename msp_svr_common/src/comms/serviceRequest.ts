@@ -84,6 +84,11 @@ export async function serviceRequest<TPayload = any, TResult = any>(
 		}
 
 		return body as ServiceRequestResult<TResult>;
+	} catch (error: any) {
+		if (error.name === 'AbortError') {
+			throw new Error(`Service request timed out after ${timeoutMs} ms`);
+		}
+		throw error;
 	} finally {
 		if (timeoutHandle) {
 			clearTimeout(timeoutHandle);

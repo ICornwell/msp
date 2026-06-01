@@ -11,6 +11,10 @@ export type EksClusterData = {
   status: string;
   version: string;
   endpoint: string;
+  aws_type?: string;
+  aws_name?: string;
+  aws_region?: string;
+  aws_status?: string;
 } & Partial<DataObject>;
 
 const mockClusters: ViewDataContent<EksClusterData>[] = [
@@ -30,6 +34,10 @@ const mockClusters: ViewDataContent<EksClusterData>[] = [
       status: 'ACTIVE',
       version: '1.31',
       endpoint: 'https://example.eks.amazonaws.com',
+      aws_type: 'EKS Cluster',
+      aws_name: 'msp-dev-eks',
+      aws_region: 'eu-west-2',
+      aws_status: 'ACTIVE',
     },
   },
 ];

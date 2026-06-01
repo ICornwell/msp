@@ -2,9 +2,9 @@ import { makeManifest } from 'msp_svr_common';
 
 export function createActorworkManifest(config?: any) {
   const manifest = makeManifest(config)
-  
+    .withNamespace('actorwork')
     .withAllowedContexts(['*'])
-    .addService('ActorWork-UserService')
+    .withService('ActorWork-UserService')
       
       .forProducts([{
           domain: '*',
@@ -12,7 +12,7 @@ export function createActorworkManifest(config?: any) {
           version: '*'
         }])
       .withAllowedContexts(['*'])
-      .addUiFeature('UserProfileFeature')
+      .withUiFeature('UserProfileFeature')
         .withRemoteName('actorwork_remoteEntry.js')
         .withAllowedContexts(['*'])
         .forProducts([{
@@ -21,7 +21,7 @@ export function createActorworkManifest(config?: any) {
           version: '*'
         }])
         .endUiFeature
-      .addUiFeature('UserWorkListFeature')
+      .withUiFeature('UserWorkListFeature')
         .withRemoteName('actorwork_remoteEntry.js')
         .withAllowedContexts(['*'])
         .forProducts([{
@@ -30,7 +30,7 @@ export function createActorworkManifest(config?: any) {
           version: '*'
         }])
         .endUiFeature
-      .addActivityFeature('getUserProfileData', '1.0.0', 'default')
+      .withActivityFeature('getUserProfileData', '1.0.0', 'default')
         .withAllowedContexts(['*'])
         .forProducts([{
           domain: '*',
@@ -38,7 +38,7 @@ export function createActorworkManifest(config?: any) {
           version: '*'
         }])
         .endActivityFeature
-      .addActivityFeature('getUserWorkListData', '1.0.0', 'default')
+      .withActivityFeature('getUserWorkListData', '1.0.0', 'default')
         .withAllowedContexts(['AUTH'])
         .forProducts([{
           domain: '*',
