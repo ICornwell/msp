@@ -246,7 +246,7 @@ export interface FilterColumnOptions<C extends CNTX, TValue, RT> extends ReBuild
   endFiltering: RT;
 }
 
-export interface TableExtension<C extends CNTX, RT> extends ReExtensionBuilder<RT> {
+export interface TableExtension<C extends CNTX, RT> extends ReExtensionBuilder<C, RT> {
   forDataType<_T extends FluxorData<any>>(): FluentSimple;
   withOrientation(orientation: TableOrientation): FluentSimple;
   withVirtualization(rowHeight: number, overscan?: number): FluentSimple;

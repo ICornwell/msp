@@ -32,7 +32,7 @@ export type ReBuilder = {
   build: <BS>(buildSettings: BS, dataDescriptor: FluxorData<any>) => any
 }
 
-export type ReExtensionBuilder<RT> = {
+export type ReExtensionBuilder<_C extends CNTX, RT> = {
   _endExtension?: () => RT;
   _buildExtension?: <BS>(buildSettings: BS, extendedElement: any) => void;
 }

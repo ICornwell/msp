@@ -5,8 +5,9 @@ import { createExtendedComponent } from '../../renderEngine/components/ReCompone
 import { ReComponentCommonProps } from '../../renderEngine/components/ReComponentProps.js';
 import { styled } from '@mui/material/styles';
 import SvgIcon from '@mui/material/SvgIcon';
-import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements.js';
-import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
+import { extendWithElementSetContainer, FEC } from '../../renderEngine/components/ContainerElements.js';
+//import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements.js';
+//import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
 
 export type LabelFrameProps = {
   icon?: React.ElementType;
@@ -85,8 +86,8 @@ export default function LabelFrame(props: LabelFrameProps & PropsWithChildren & 
 // fix all other errors in this file, and all other fluent extension factories,
 // before attempting to address generic typing issues with the extension functions.
 // sometimes they can take a while to resolve even after the underlying issues are fixed.
-export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, ElementSetContainerExtension<CNTX, any>>(
+export const LabelFrameComponent = createExtendedComponent<LabelFrameProps & ReComponentCommonProps & PropsWithChildren, FEC>(
   LabelFrame, 
   'LabelFrame',
-   extendWithElementSetContainer
+   extendWithElementSetContainer as FEC
 );

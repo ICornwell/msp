@@ -5,8 +5,9 @@ import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentSystemProps } from '../../renderEngine/components/ReComponentProps.js';
-import { ElementSetContainerExtension, extendWithElementSetContainer } from '../../renderEngine/components/ContainerElements.js';
-import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
+import {  extendWithElementSetContainer, FEC } from '../../renderEngine/components/ContainerElements.js';
+// import { CNTX } from "../../renderEngine/UiPlan/ReUiPlanBuilder.js";
+// import { ElementSetContainerExtension } from '../../renderEngine/components/ContainerElements.js';
 
 export type ColumnProps = {
   fillDirection: 'across' | 'down';
@@ -75,8 +76,8 @@ export default function Columns(props: ColumnProps & PropsWithChildren) {
 // fix all other errors in this file, and all other fluent extension factories,
 // before attempting to address generic typing issues with the extension functions.
 // sometimes they can take a while to resolve even after the underlying issues are fixed.
-export const ColumnsComponent = createExtendedComponent<ColumnProps, ElementSetContainerExtension<CNTX, any>>(
+export const ColumnsComponent = createExtendedComponent<ColumnProps, FEC>(
   Columns, 
   'Columns',
-  extendWithElementSetContainer
+  extendWithElementSetContainer as FEC
 );

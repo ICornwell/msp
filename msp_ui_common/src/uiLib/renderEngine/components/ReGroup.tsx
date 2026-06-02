@@ -1,8 +1,9 @@
 import React from 'react';
 import { createExtendedComponent } from './ReComponentWrapper.js';
 import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentProps.js';
-import { ElementSetContainerExtension, extendWithElementSetContainer } from './ContainerElements.js';
-import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
+import { extendWithElementSetContainer, FEC } from './ContainerElements.js';
+//import { ElementSetContainerExtension, extendWithElementSetContainer } from './ContainerElements.js';
+// import { CNTX } from '../../renderEngine/UiPlan/ReUiPlanBuilder.js';
 
 export type ReGroupProps = {
   hidden?: boolean;
@@ -16,8 +17,8 @@ export default function ReGroup({ hidden, children }: ReGroupProps& ReComponentC
     </div>)
 }
 
-export const ReGroupComponent = createExtendedComponent<ReGroupProps, ElementSetContainerExtension<CNTX, any>>(
+export const ReGroupComponent = createExtendedComponent<ReGroupProps, FEC>(
   ReGroup, 
   'ReGroup',
-  extendWithElementSetContainer
+  extendWithElementSetContainer as FEC
 );

@@ -4,11 +4,20 @@ import { withSecurityActorWorkModel } from './modelDeclarations.js';
 function createSecurityBuilder(config?: any) {
   return withSecurityActorWorkModel(
     makeManifest(config)
+      .withNamespace('security')
       .withAllowedContexts(['*'])
       .withService('msp_security')
   )
     .forProducts([{ domain: '*', name: '*', version: '*' }])
     .withAllowedContexts(['*'])
+    .withActivityFeature('executeProxyFlow', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('issueAccessCapability', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
    
 }
 

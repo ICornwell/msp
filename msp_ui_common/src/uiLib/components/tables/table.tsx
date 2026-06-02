@@ -104,10 +104,11 @@ export function extendWithTable<C extends CNTX, RT>(
 
 export default Table;
 
+type FEC = <C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => TableExtension<C, RT>;
+
 export const TableComponent = createExtendedComponent<
   React.ComponentProps<typeof Table>,
-  TableExtension<CNTX, any>
->(Table, 'Table', extendWithTable as any);
+  FEC>(Table, 'Table', extendWithTable as FEC);
 
 // NB. compiler warnings/errors relating to generic typing of 'extendWithTable'
 // are due to other errors breaking inference - the code is usually correct.

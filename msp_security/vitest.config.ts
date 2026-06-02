@@ -37,6 +37,7 @@ export default defineConfig({
           globals: true,
           include: [
             'src/activityElements/**/*.{test,spec}.{ts,tsx,js,jsx}',
+            'src/serviceActivityElements/**/*.{test,spec}.{ts,tsx,js,jsx}',
             'src/apiElements/**/*.{test,spec}.{ts,tsx,js,jsx}',
             'src/data/**/*.{test,spec}.{ts,tsx,js,jsx}',
             'src/manifest/**/*.{test,spec}.{ts,tsx,js,jsx}',

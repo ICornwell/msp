@@ -17,6 +17,14 @@ interface BladeProps {
 
 const bladeWidth = 320;
 
+function resolveBladeWidth(widthPreset?: 1 | 2 | 3 | 4 | 5 | 6) {
+  if (!widthPreset) {
+    return bladeWidth;
+  }
+
+  return `calc(${(widthPreset / 6) * 100}vw)`;
+}
+
 export const Blade: React.FC<BladeProps> = ({
 
 }) => {
@@ -79,7 +87,7 @@ export const Blade: React.FC<BladeProps> = ({
       onClose={() => handleClose()}
       sx={{
         '& .MuiDrawer-paper': {
-          width: bladeWidth,
+          width: resolveBladeWidth(bladeState?.bladeWidthPreset),
           boxSizing: 'border-box',
           marginTop: '64px', // Adjust if you have a different AppBar height
         },

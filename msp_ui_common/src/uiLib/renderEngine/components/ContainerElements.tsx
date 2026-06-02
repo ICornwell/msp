@@ -3,7 +3,7 @@ import { ReUiPlanElement } from "../UiPlan/ReUiPlan.js";
 
 export type SimplifiedReUiPlanComponentBuilder<C extends CNTX, RT> = ReUiPlanComponentBuilder<C, any, RT>;
 
-export interface SingleItemContainerExtension<C extends CNTX, RT = any> extends ReExtensionBuilder<RT> {
+export interface SingleItemContainerExtension<C extends CNTX, RT = any> extends ReExtensionBuilder<C, RT> {
   containingSingle():  FluentSubBuilder<SimplifiedReUiPlanComponentBuilder<C, FluentSimple>>;
 };
 
@@ -11,14 +11,15 @@ export type {ReUiPlanElementSetBuilder};
 
 // C = CNTX type, RT = return-to type
 // The generator will substitute the actual C when creating ExtensionOf
-export interface ElementSetContainerExtension<C extends CNTX = CNTX, RT = any> extends ReExtensionBuilder<RT> {
+export interface ElementSetContainerExtension<C extends CNTX = CNTX, RT = any> extends ReExtensionBuilder<C, RT> {
   containingElementSet(): FluentSubBuilder<ReUiPlanElementSetBuilder<C, RT>>;
 };
 
 export function extendWithSingleItemContainer<C extends CNTX, RT>(returnTo: RT): SingleItemContainerExtension<C, RT> {
   const containedBuilders: ReUiPlanComponentBuilder<any, any, any>[] = [];
   const extension: FluentExtension = {
-    containingSingle: ():FluentSubBuilder<ReUiPlanComponentBuilder<C, any, FluentSimple>> => (CreateReUiPlanComponent<C, any, RT>(returnTo,
+    containingSingle: ():FluentSubBuilder<ReUiPlanComponentBuilder<C, any, FluentSimple>> => (
+      CreateReUiPlanComponent<C, any, RT>(returnTo,
     'SingleItemContainer', containedBuilders) as unknown as FluentSubBuilder<SimplifiedReUiPlanComponentBuilder<C, FluentSimple>>),
     _buildExtension: (buildConfig: any, extendedElement: ReUiPlanElement) => {
       containedBuilders.forEach(componentBuilder => {
@@ -33,14 +34,14 @@ export function extendWithSingleItemContainer<C extends CNTX, RT>(returnTo: RT):
 }
 
 export function extendWithElementSetContainer<C extends CNTX, RT, BLD>(
-  _returnTo: RT,
-  builder: BLD,
+  returnTo: RT,
+  _builder: BLD,
   _contextPlaceHolder: C
 ): ElementSetContainerExtension<C, RT> {
   const containedBuilders: ReUiPlanElementSetBuilder<any, any>[] = [];
   const extension: FluentExtension = {
     containingElementSet: (): FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>> => (
-      CreateReUiPlanElementSet(builder, containedBuilders) as unknown as FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>>
+      CreateReUiPlanElementSet<C, RT>(returnTo, containedBuilders) as unknown as FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>>
     ),
     _buildExtension: (buildConfig: any, extendedElement: ReUiPlanElement) => {
       if (!extendedElement.children) extendedElement.children = [];
@@ -55,3 +56,5 @@ export function extendWithElementSetContainer<C extends CNTX, RT, BLD>(
 
   return extension as ElementSetContainerExtension<C, RT>;
 }
+
+export type FEC = <C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => ElementSetContainerExtension<C, RT>;

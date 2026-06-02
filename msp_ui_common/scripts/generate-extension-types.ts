@@ -165,7 +165,7 @@ function ExtensionTypeGenerator(configPath: string): { generate: () => Promise<v
     // Helper to process a method/property and extract info
     function processFluentOperation(iReturnType: string, iName: string) {
       const returnsFluentSimple = iReturnType.includes('FluentSimple');
-      const subBuilderType = iReturnType.match(/FluentSubBuilder<(\w+)</)?.[1] ?? null;
+      const subBuilderType = iReturnType.match(/FluentSubBuilder<(?:import\([^)]*\)\.)?(\w+)</)?.[1] ?? null;
 
       return {
         name: iName,
@@ -241,8 +241,8 @@ function ExtensionTypeGenerator(configPath: string): { generate: () => Promise<v
  * Maps extension methods to properly substitute CNTX and RT types.
  * Handles: ${extensionNames}
  */
-export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BLD = unknown, RT = any> =
-  T extends ComponentWrapper<infer P, infer E>
+export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, _BLD = unknown, RT = any> =
+  T extends ComponentWrapper<infer _P, infer E>
     ? E extends object
       ? ${extensionBranches.join('\n     ')}
       : E  // Fallback: not a recognized extension, return as-is
@@ -303,14 +303,14 @@ export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BL
 ${extensionList}
 // ===================================================================
 
-import type { ComponentWrapper } from '../components/ReComponentWrapper';
+import type { ComponentWrapper } from '../components/ReComponentWrapper.js';
 import type { 
   CNTX,
   ReUiPlanComponentBuilder,
   ReBuilderBase, 
   FluentSimple,
   FluentSubBuilder
-} from './ReUiPlanBuilder';
+} from './ReUiPlanBuilder.js';
 
 ${extensionImports}
 
@@ -340,7 +340,7 @@ export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<a
 
 import type { CNTX, ComponentWrapper } from './ReUiPlanBuilder';
 
-export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, BLD = unknown> = {};
+export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, _BLD = unknown> = {};
 
 export type ComponentBuilderWithExt<C extends CNTX, T extends ComponentWrapper<any, any>, RT> = RT;
 `;

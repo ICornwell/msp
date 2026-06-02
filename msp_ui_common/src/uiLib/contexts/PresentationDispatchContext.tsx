@@ -15,6 +15,7 @@ export type PresentationBladeState = ContextOwnedItem & {
   content?: any;
   title?: string | ((context: any) => string);
   viewDataIdentifier?: ViewDataIdentifier;
+  bladeWidthPreset?: 1 | 2 | 3 | 4 | 5 | 6;
 };
 
 export type PresentationCurrentTab = {
@@ -86,7 +87,8 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
     open: false,
     content: undefined,
     viewDataIdentifier: undefined,
-    contextOwnerId: ''
+    contextOwnerId: '',
+    bladeWidthPreset: undefined
   });
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [currentTab, setCurrentTab] = useState<Tab | null>(null);
@@ -124,6 +126,7 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           open: true, content: request.params?.content,
           viewDataIdentifier: request.params?.viewDataIdentifier,
           title: request.params?.title,
+          bladeWidthPreset: request.params?.bladeWidthPreset,
           contextOwnerId: request.contextOwnerId,
         });
         break;
@@ -133,6 +136,7 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           content: undefined,
           viewDataIdentifier: undefined,
           title: undefined,
+          bladeWidthPreset: undefined,
           contextOwnerId: ''
         });
         break;

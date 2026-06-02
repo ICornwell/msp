@@ -18,7 +18,8 @@ export {
 export { 
   Table,
   Columns,
-  LabelFrame
+  LabelFrame,
+  Stepper
 } from './coreComponents.js';
 
 export * from './components/primatives/core/strategies/index.js';

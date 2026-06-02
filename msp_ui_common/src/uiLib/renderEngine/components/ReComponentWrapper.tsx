@@ -8,7 +8,7 @@ import { Theme } from '@mui/material/styles';
 import { RePubSubMsg } from '../data/ReEnginePubSub.js';
 import { ReSubscriptionHandler } from './RePubSubHook.js';
 import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan.js';
-import { ReNullExtension } from '../UiPlan/ReUiPlanBuilder.js';
+import { ReNullExtension, ReExtensionBuilder } from '../UiPlan/ReUiPlanBuilder.js';
 
 const useStyles = makeStyles()((theme: Theme) => ({
   label: {
@@ -186,7 +186,7 @@ export type DisplayMode = ReUiPlanDisplayMode | 'all';
 /**
  * Base component wrapper that includes both the component and its metadata
  */
-export interface ComponentWrapper<P, E = ReNullExtension> {
+export interface ComponentWrapper<P, E extends ReExtensionBuilder<CNTX, any> | ReNullExtension = ReNullExtension> {
   isComponentWrapper: true;
   // The actual React component
   component: ComponentType<P>;
@@ -268,12 +268,13 @@ export function createContainerComponent<P extends { children?: ReactNode }>(
     displayMode: 'all'
   };
 }
+//type FEC = <C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => ReExtensionBuilder<C, RT>;
 
-export function createExtendedComponent<P extends Object, E>(
+export function createExtendedComponent<P extends Object, FEC extends (<C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => any)>(
   component: ComponentType<P>,
   displayName?: string,
-  extensionFactory?: <C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, _contextPlaceHolder: C) => E
-): ComponentWrapper<P, E> {
+  extensionFactory?: FEC
+): ComponentWrapper<P, ReturnType<FEC>> {
   return {
     isComponentWrapper: true,
     component,
@@ -281,6 +282,6 @@ export function createExtendedComponent<P extends Object, E>(
     acceptsChildren: true,
     isManagedForm: false,
     displayMode: 'all',
-    extensionFactory: extensionFactory as<C extends CNTX, RT, BLD>(returnTo: RT, builder: BLD, contextPlaceHolder: C) => E
+    extensionFactory: extensionFactory as FEC
   };
 }

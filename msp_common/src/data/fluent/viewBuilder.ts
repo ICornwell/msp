@@ -73,25 +73,22 @@ type ReType<T extends CURC<any, any>, NewDataForCNTX, EName> =
 // RT = Return Type (what to return to on .end())
 // ============================================================================================================
 
-export interface ViewElementBuilder<
+type VB<VBType extends 'ViewElementBuilder' | 'ViewRecursiveElementBuilder',
+  DT, DO extends DomainObject, PDO extends DomainObject,
+  EName extends string | number | symbol, RT extends RETC<any, any>> = 
+ VBType extends 'ViewElementBuilder' ? ViewElementNonRecursive<DT, DO, PDO, EName, RT> :
+    ViewElementRecursive<DT, DO, PDO, EName, RT>;
+
+export type SubElementRT<
+  X extends 'ViewElementBuilder' | 'ViewRecursiveElementBuilder',
   DT,
   DO extends DomainObject,
   PDO extends DomainObject,
   EName extends string | number | symbol,
-  RT extends RETC<any, any>
-> {
-  withRelation: (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>) =>
-    CNTX<ViewElementBuilder<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>;
-  withDocPathName: <P extends string>(docPathName: P) => CNTX<ViewElementBuilder<DT, DomainObjectWithNewPath<DO, P>, PDO, EName, RT>, PropsOfDomainObject<DO>>;
-  // Single withNamedSubElement using object notation like test.ts deep() method
-  withNamedSubElement: <SubEName extends string, NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
-    name: SubEName,
-    nextDomainObject: NDO,
-    isCollection: IC
-  ) =>
-    // return a deeper viewElementBuilder context, wrapping this one, wrapper the previous one
-    NEXC<
-      ViewElementBuilder<MakeArray<PropsOfDomainObject<NDO>, IC>, NDO, DO, SubEName,
+  RT extends RETC<any, any>,
+  SubEName extends string, NDO extends DomainObject<any, any, any>, IC extends TrueFalse
+> = NEXC<
+      VB<X, MakeArray<PropsOfDomainObject<NDO>, IC>, NDO, DO, SubEName,
         CURC<
           ViewElementBuilder<JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>, DO, PDO, EName,
             ReType<RT, JOIN<DT, 
@@ -100,20 +97,76 @@ export interface ViewElementBuilder<
       >,
       MakeArray<PropsOfDomainObject<NDO>, IC>>
 
+export interface ViewElementBase<
+  X extends 'ViewElementBuilder' | 'ViewRecursiveElementBuilder',
+  DT,
+  DO extends DomainObject,
+  PDO extends DomainObject,
+  EName extends string | number | symbol,
+  RT extends RETC<any, any>
+>{
+withNamedSubElement: <SubEName extends string, NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
+    name: SubEName,
+    nextDomainObject: NDO,
+    isCollection: IC
+  ) =>
+    // return a deeper ViewElementBuilder context, wrapping this one, wrapper the previous one
+    SubElementRT<X,DT, DO, PDO, EName, RT, SubEName, NDO, IC>;
+
   withSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     nextDomainObject: NDO,
     isCollection: IC
   ) =>
-    // return a deeper viewElementBuilder context, wrapping this one, wrapper the previous one
-    NEXC<
-      ViewElementBuilder<MakeArray<PropsOfDomainObject<NDO>, IC>, NDO, DO, PathOfDomainObject<NDO>,
-        CURC<
-          ViewElementBuilder<JOIN<DT, CreateObjProp<PathOfDomainObject<NDO>, PropsOfDomainObject<NDO>, IC>>, DO, PDO, EName,
-            ReType<RT, JOIN<DT, 
-              CreateObjProp<PathOfDomainObject<NDO>, PropsOfDomainObject<NDO>, IC>>, EName>>,
-                 JOIN<DT, CreateObjProp<PathOfDomainObject<NDO>, PropsOfDomainObject<NDO>, IC>>>
-      >,
-      MakeArray<PropsOfDomainObject<NDO>, IC>>
+    // return a deeper ViewElementBuilder context, wrapping this one, wrapper the previous one
+    SubElementRT<X,DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC>;
+  withRelation: (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>) =>
+    CNTX<ViewElementBuilder<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>;
+  withDocPathName: <P extends string>(docPathName: P) => CNTX<ViewElementBuilder<DT, DomainObjectWithNewPath<DO, P>, PDO, EName, RT>, PropsOfDomainObject<DO>>;
+ 
+}
+
+export interface ViewElementRecursive<
+  DT,
+  DO extends DomainObject,
+  PDO extends DomainObject,
+  EName extends string | number | symbol,
+  RT extends RETC<any, any>
+> extends ViewElementBase<'ViewElementBuilder', DT, DO, PDO, EName, RT>{
+  Recurse: () => CNTX<ViewElementBuilder<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>
+}
+
+export interface ViewElementNonRecursive<
+  DT,
+  DO extends DomainObject,
+  PDO extends DomainObject,
+  EName extends string | number | symbol,
+  RT extends RETC<any, any>
+> extends ViewElementBase<'ViewElementBuilder', DT, DO, PDO, EName, RT>{
+withRecursiveNamedSubElement: <SubEName extends string, NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
+    name: SubEName,
+    nextDomainObject: NDO,
+    isCollection: IC
+  ) =>
+    // return a deeper ViewElementBuilder context, wrapping this one, wrapper the previous one
+    SubElementRT<'ViewRecursiveElementBuilder',DT, DO, PDO, EName, RT, SubEName, NDO, IC>;
+
+  withRecursiveSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
+    nextDomainObject: NDO,
+    isCollection: IC
+  ) =>
+    // return a deeper ViewElementBuilder context, wrapping this one, wrapper the previous one
+    SubElementRT<'ViewRecursiveElementBuilder',DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC>;
+}
+
+export interface ViewElementBuilder<
+  DT,
+  DO extends DomainObject,
+  PDO extends DomainObject,
+  EName extends string | number | symbol,
+  RT extends RETC<any, any>
+> extends ViewElementBase<'ViewElementBuilder', DT, DO, PDO, EName, RT> {
+   // Single withNamedSubElement using object notation like test.ts deep() method
+  
 
   end: () => RT;
   __build: () => ViewElement<any>;
@@ -131,10 +184,7 @@ export interface ViewBuilder<RootDT = any> {
   withRootElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(domainObject: NDO, isCollection: IC) =>
     NEXC<
       ViewElementBuilder<
-        MakeArray<PropsOfDomainObject<NDO>, IC>,
-        NDO,
-        NDO,
-        RootEName,
+        MakeArray<PropsOfDomainObject<NDO>, IC>, NDO, NDO, RootEName,
         CURC<
           ViewBuilder<Flatten<JOIN<RootDT, CreateObjProp<RootEName, PropsOfDomainObject<NDO>, IC>>>>,
           Flatten<JOIN<MakeArray<RootDT, IC>, CreateObjProp<RootEName, PropsOfDomainObject<NDO>, IC>>>

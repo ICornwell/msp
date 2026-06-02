@@ -23,6 +23,18 @@ function createAwsServiceBuilder(config?: any) {
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
+    .withActivityFeature('readClusterSetupConfig', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('writeClusterSetupConfig', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('reconcileClusterSetupConfig', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
     .withDataFeature('awsEksClusters', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])

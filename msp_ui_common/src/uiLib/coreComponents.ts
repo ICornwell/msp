@@ -7,6 +7,7 @@ import { CNTX } from './renderEngine/UiPlan/ReUiPlan.js';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from './renderEngine/components/ContainerElements.js';
 import { ColumnProps } from './components/index.js';
 import { LabelFrameProps } from './components/containers/labelframe.js';
+import { StepperProps, extendWithStepper } from './components/containers/stepper.js';
 
 // Placeholder type for component props
 
@@ -26,3 +27,8 @@ export const LabelFrame: ComponentWrapper<LabelFrameProps, ElementSetContainerEx
   displayName: 'LabelFrame',
   extensionFactory: extendWithElementSetContainer
 } as unknown as ComponentWrapper<LabelFrameProps, ElementSetContainerExtension>;
+
+export const Stepper: ComponentWrapper<StepperProps, any> = {
+  displayName: 'Stepper',
+  extensionFactory: extendWithStepper
+} as unknown as ComponentWrapper<StepperProps, any>;

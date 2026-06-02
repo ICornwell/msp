@@ -100,12 +100,12 @@ describe('Declarative View Builder', () => {
     .buildObject();
 
   const relatedObjs = createRelations()
-    .allowRelationFrom('belongsTo', accountObject, personObject, false)
-    .allowRelationFrom('accountOwner', personObject, accountObject, false)
-    .allowRelationFrom('hasOrder', accountObject, orderObject, true)
-    .allowRelationFrom('withItem', orderObject, orderItemObject, true)
-    .allowRelationFrom('forProduct', orderItemObject, productObject, false)
-    .allowRelationFrom('fromSellingPerson', orderItemObject, personObject, false)
+    .allowRelationFromTo('belongsTo', accountObject, personObject, false)
+    .allowRelationFromTo('accountOwner', personObject, accountObject, false)
+    .allowRelationFromTo('hasOrder', accountObject, orderObject, true)
+    .allowRelationFromTo('withItem', orderObject, orderItemObject, true)
+    .allowRelationFromTo('forProduct', orderItemObject, productObject, false)
+    .allowRelationFromTo('fromSellingPerson', orderItemObject, personObject, false)
     .buildRelatedObjects();
 
 
@@ -337,7 +337,7 @@ describe('Declarative View Builder', () => {
       .buildObject();
 
     const relatedObjs2 = createRelations()
-    .allowRelationFrom('belongsTo', accountObject2, personObject2, false)
+    .allowRelationFromTo('belongsTo', accountObject2, personObject2, false)
     .buildRelatedObjects()
 
     
@@ -517,9 +517,9 @@ describe('Declarative View Builder', () => {
       .buildObject();
 
     const relObjs = createRelations()
-    .allowRelationFrom('hasOrder', accountObject, orderObject, true)
-    .allowRelationFrom('hasItem', orderObject, itemObject, true)
-    .allowRelationFrom('orderedProduct', itemObject, productObject, false)
+    .allowRelationFromTo('hasOrder', accountObject, orderObject, true)
+    .allowRelationFromTo('hasItem', orderObject, itemObject, true)
+    .allowRelationFromTo('orderedProduct', itemObject, productObject, false)
     .buildRelatedObjects();
 
     // Build view with structure, then configure sub-elements using nested builder pattern

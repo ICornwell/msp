@@ -14,7 +14,9 @@ export function workItemDetail() {
         .containingElementSet()
 
           .showingItem.fromComponentElement(Columns)
+          
             .withComponentProps({columns: 2, fillDirection: 'down'})
+            
             .containingElementSet()
 
               .showingItem.fromComponentElement(PresetTextComponent)

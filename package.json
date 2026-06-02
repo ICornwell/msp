@@ -74,9 +74,7 @@
     "actorwork:generate:extension-types": "yarn workspace msp_actorwork run generate:extension-types",
     "actorwork:prebuild": "yarn workspace msp_actorwork run prebuild",
     "aws:start": "yarn workspace msp_aws run start",
-   
     "aws:build": "yarn workspace msp_aws run build",
-   
     "aws:test": "yarn workspace msp_aws run test",
     "aws:test:watch": "yarn workspace msp_aws run test:watch",
     "aws:test:ui": "yarn workspace msp_aws run test:ui",

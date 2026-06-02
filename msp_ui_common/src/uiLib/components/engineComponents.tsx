@@ -2,6 +2,7 @@ import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponent
 
 import { ColumnsComponent } from './containers/columns.js';
 import { LabelFrameComponent } from './containers/labelframe.js';
+import { StepperComponent } from './containers/stepper.js';
 
 import { ReGroupComponent } from '../renderEngine/components/ReGroup.js';
 import { ReFluxListComponent } from '../renderEngine/components/ReFluxList.js';
@@ -21,6 +22,7 @@ export default function EngineComponents() {
 
   addComponent(ColumnsComponent);
   addComponent(LabelFrameComponent);
+  addComponent(StepperComponent);
 
   addComponent(ReGroupComponent);
   addComponent(ReFluxListComponent);
