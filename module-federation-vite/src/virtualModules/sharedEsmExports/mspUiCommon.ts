@@ -42,6 +42,7 @@ export function mspUiCommonExportCode(): string {
     export const PresetTextComponent = pick('PresetTextComponent');
     export const Re = pick('Re');
     export const ServiceDispatcher = pick('ServiceDispatcher');
+    export const Stepper = pick('Stepper');
     export const Table = pick('Table');
     export const UiEventProvider = pick('UiEventProvider');
     export const createBehaviour = pick('createBehaviour');

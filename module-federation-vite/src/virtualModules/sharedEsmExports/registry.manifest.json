@@ -354,6 +354,7 @@
         "PresetTextComponent",
         "Re",
         "ServiceDispatcher",
+        "Stepper",
         "Table",
         "UiEventProvider",
         "createBehaviour",

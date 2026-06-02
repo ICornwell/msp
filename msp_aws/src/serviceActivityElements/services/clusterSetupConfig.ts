@@ -16,13 +16,14 @@ export type AwsClusterSetupDesiredState = {
   };
 };
 
+export type AwsResourceConfigStatus = 'draft' | 'ready' | 'applied' | 'drifted';
 export type AwsClusterSetupConfig = {
   setupId: string;
   accountId?: string;
   region: string;
   clusterName: string;
   wizardVersion: string;
-  status: 'draft' | 'ready' | 'applied' | 'drifted';
+  status: AwsResourceConfigStatus;
   desiredState: AwsClusterSetupDesiredState;
   updatedAt: string;
 } & Partial<DataObject>;
@@ -232,7 +233,7 @@ async function reconcileClusterSetupConfigHandler(
     ...current,
     content: {
       ...current.content,
-      status: payload.dryRun ? 'ready' : 'applied',
+      status: (payload.dryRun ? 'ready' : 'applied') as AwsResourceConfigStatus,
       updatedAt: new Date().toISOString(),
     },
   };
