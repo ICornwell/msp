@@ -37,7 +37,9 @@ function getBuilder<T>(context: CNTX<T, any>): T {
   return builder as T;
 }
 
-
+type RTOfRT<RT> = 
+RT extends CNTX<infer B, any> ? B extends ViewElementRecursive<any, any, any, any, infer RT2, any> ? RT2
+ : (B extends ViewElementNonRecursive<any, any, any, any, infer RT3> ? RT3 : never) : never;
 
 // ============================================================================================================
 // ReType - reconstructs parent context with extended data for building hierachies, recursing to the root
@@ -59,7 +61,7 @@ type ReType<T extends CURC<any, any>, NewDataForCNTX, EName> =
           NewDataForCNTX
         >
         : T)
-    :  B extends ViewElementRecursive<infer ParentDT, infer ParentDO, infer parentPDO, infer ParentEName, infer InnerRT>
+    :  B extends ViewElementRecursive<infer ParentDT, infer ParentDO, infer parentPDO, infer ParentEName, infer InnerRT, infer ParentRSN>
       ? (ParentEName extends string | number | symbol
         ? RETC<
           ViewElementRecursive<
@@ -67,12 +69,13 @@ type ReType<T extends CURC<any, any>, NewDataForCNTX, EName> =
             ParentDO,
             parentPDO,
             ParentEName,
-            ReType<InnerRT, JOIN<ParentDT, { [K in EName]+?: NewDataForCNTX }>, ParentEName>
+            ReType<InnerRT, JOIN<ParentDT, { [K in EName]+?: NewDataForCNTX }>, ParentEName>,
+            ParentRSN
           >,
           NewDataForCNTX
         >
         : T)
-    : (B extends ViewBuilder<any>
+    :  (B extends ViewBuilder<any>
         ? RETC<
           ViewBuilder< NewDataForCNTX >, // just base the view's datatype to the rootelements datatype
           NewDataForCNTX
@@ -125,7 +128,8 @@ type RecursiveSubElementRT<
   RT extends RETC<any, any>,
   SubEName extends string,
   NDO extends DomainObject<any, any, any>,
-  IC extends TrueFalse
+  IC extends TrueFalse,
+  RSN extends string
 > = NEXC<
   ViewElementRecursive<
     MakeArray<PropsOfDomainObject<NDO>, IC>,
@@ -138,10 +142,12 @@ type RecursiveSubElementRT<
         DO,
         PDO,
         EName,
-        ReType<RT, JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>, EName>
+        ReType<RT, JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>, EName>,
+        RSN
       >,
       JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>
-    >
+    >,
+    RSN
   >,
   MakeArray<PropsOfDomainObject<NDO>, IC>
 >;
@@ -154,7 +160,8 @@ type RecursiveEntrySubElementRT<
   RT extends RETC<any, any>,
   SubEName extends string,
   NDO extends DomainObject<any, any, any>,
-  IC extends TrueFalse
+  IC extends TrueFalse,
+  RSN extends string
 > = NEXC<
   ViewElementRecursive<
     MakeArray<PropsOfDomainObject<NDO>, IC>,
@@ -170,7 +177,40 @@ type RecursiveEntrySubElementRT<
         ReType<RT, JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>, EName>
       >,
       JOIN<DT, CreateObjProp<SubEName, PropsOfDomainObject<NDO>, IC>>
-    >
+    >,
+    RSN
+  >,
+  MakeArray<PropsOfDomainObject<NDO>, IC>
+>;
+
+type RecursiveEndSubElementRT<
+  DT,
+  DO extends DomainObject,
+  PDO extends DomainObject,
+  EName extends string | number | symbol,
+  RT extends RETC<any, any>,
+  SubEName extends string,
+  NDO extends DomainObject<any, any, any>,
+  IC extends TrueFalse,
+  RSN extends string
+> = NEXC<
+  ViewElementRecursiveEnd<
+    MakeArray<PropsOfDomainObject<NDO>, IC>,
+    NDO,
+    DO,
+    SubEName,
+    CURC<
+      ViewElementRecursive<
+        JOIN<DT, CreateObjProp<SubEName, any, IC>>,
+        DO,
+        PDO,
+        EName,
+        ReType<RT, JOIN<DT, CreateObjProp<SubEName, any, IC>>, EName>,
+        RSN
+      >,
+      JOIN<DT, CreateObjProp<SubEName, any, IC>>
+    >,
+    RSN
   >,
   MakeArray<PropsOfDomainObject<NDO>, IC>
 >;
@@ -184,28 +224,40 @@ export interface ViewElementRecursive<
   DO extends DomainObject,
   PDO extends DomainObject,
   EName extends string | number | symbol,
-  RT extends RETC<any, any>
+  RT extends RETC<any, any>,
+  RSN extends string
 >{
   withNamedSubElement: <SubEName extends string, NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     name: SubEName,
     nextDomainObject: NDO,
     isCollection: IC
-  ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, IC>;
+  ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, IC, RSN>;
 
   withSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     nextDomainObject: NDO,
     isCollection: IC
-  ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC>;
+  ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC, RSN>;
 
   withRelation: (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>) =>
-    CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>;
+    CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT, RSN>, PropsOfDomainObject<DO>>;
 
   withDocPathName: <P extends string>(docPathName: P) =>
-    CNTX<ViewElementRecursive<DT, DomainObjectWithNewPath<DO, P>, PDO, EName, RT>, PropsOfDomainObject<DO>>;
+    CNTX<ViewElementRecursive<DT, DomainObjectWithNewPath<DO, P>, PDO, EName, RT, RSN>, PropsOfDomainObject<DO>>;
 
-  recurse: { end: () => RT};
+  recurse: () => RecursiveEndSubElementRT<DT, DO, PDO, EName, RT, RSN, DO, false, RSN>;
+  end: () => RT;
+  __build: () => ViewElement<any>;
+}
 
-  end: ()=>RT
+export interface ViewElementRecursiveEnd<
+  _DT,
+  _DO extends DomainObject,
+  _PDO extends DomainObject,
+  _EName extends string | number | symbol,
+  RT extends RETC<any, any>,
+  _RSN extends string
+>{
+  endRecurse: () => RTOfRT<RT>;
   __build: () => ViewElement<any>;
 }
 
@@ -238,13 +290,13 @@ export interface ViewElementNonRecursive<
     nextDomainObject: NDO,
     isCollection: IC
   ) =>
-    RecursiveEntrySubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, IC>;
+    RecursiveEntrySubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, IC, SubEName>;
 
   withRecursiveSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     nextDomainObject: NDO,
     isCollection: IC
   ) =>
-    RecursiveEntrySubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC>;
+    RecursiveEntrySubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC, PathOfSingleDomainObject<NDO>>;
 
   end: () => RT;
   __build: () => ViewElement<any>;
@@ -276,11 +328,14 @@ export interface ViewBuilder<RootDT = any> {
   __build: () => View<any>;
 }
 
-function buildSubElement( 
+type RecusiveType = 'recursive' | 'end-recursive' | 'non-recursive';
+
+function buildSubElement<RSN extends string>( 
       queryIdsUsed: Set<string>,
       builder: any,
       subElementBuilders: Array<any>,
-      recursive = false,
+      recursive: RecusiveType = 'non-recursive',
+      recurseStartName?: RSN,
       recurseLevel: number = 0
     ) {
 return function <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
@@ -303,7 +358,7 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
       }
 
       queryIdsUsed.add(actualQueryId);
-      if (!recursive) {
+      if (recursive === 'non-recursive') {
       const subElementBuilder = createViewElementNonRecursiveBuilder(
         builder as any,
         elementName,
@@ -315,7 +370,7 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
       );
 
       return subElementBuilder;
-    } else {
+    } else if (recursive === 'recursive') {
       const subElementBuilder = createViewElementRecursiveBuilder(
         builder as any,
         elementName,
@@ -324,6 +379,20 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
         isSubCollection,
         subElementBuilders,
         queryIdsUsed,
+        recurseStartName!,
+        recurseLevel
+      );
+      return subElementBuilder;
+    } else if (recursive === 'end-recursive') {
+      const subElementBuilder = createViewElementRecursiveEndBuilder(
+        builder as any,
+        elementName,
+        actualQueryId,
+        actualDomainObject,
+        isSubCollection,
+        subElementBuilders,
+        queryIdsUsed,
+        recurseStartName!,
         recurseLevel
       );
       return subElementBuilder;
@@ -333,12 +402,13 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
 // ============================================================================================================
 // Runtime Implementation
 // ============================================================================================================
-export function createViewElementRecursiveBuilder<
+export function createViewElementRecursiveEndBuilder<
   DT,
   DO extends DomainObject,
   PDO extends DomainObject,
   EName extends string | number | symbol,
-  RT extends CNTX<any, any>
+  RT extends CNTX<any, any>,
+  RSN extends string = string
 >(
   returnTo: BuilderOf<RT>,
   elementName: string,
@@ -346,9 +416,10 @@ export function createViewElementRecursiveBuilder<
   domainObject: DO,
   isCollection: TrueFalse,
   elementBuilders: Array<any>,
-  queryIdsUsed: Set<string>,
+  _queryIdsUsed: Set<string>,
+  recurseStartName: RSN,
   recurseLevel: number = 1
-): CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT>, DT> {
+): CNTX<ViewElementRecursiveEnd<DT, DO, PDO, EName, RT, RSN>, DT> {
 
   const element: Partial<ViewElement<any>> = {
     object: domainObject.name,
@@ -360,13 +431,83 @@ export function createViewElementRecursiveBuilder<
     relationFromParent: undefined,
     subElements: undefined,
     isRecurseEndPoint: false,
-    recurseLevel: recurseLevel
+    recurseLevel: recurseLevel,
+    recurseStartName: recurseStartName
   };
 
   let subElementBuilders: Array<any> = [];
 
   
-  const builder: ViewElementRecursive< DT, DO, PDO, EName, RT> = {
+  const builder: ViewElementRecursiveEnd< DT, DO, PDO, EName, RT, RSN> = {
+   
+
+    endRecurse: function (): RTOfRT<RT> {
+      return returnTo as RTOfRT<RT>;
+    },
+
+    __build: function (): ViewElement<any> {
+      if (subElementBuilders.length > 0) {
+        element.subElements = subElementBuilders.map((seb: any) => getBuilder(seb).__build()) as SubElement[];
+      }
+      
+      return element as SubElement;
+    }
+  };
+
+  // Create context wrapper with data property
+  const builderContext: CNTX<ViewElementRecursiveEnd<DT, DO, PDO, EName, RT, RSN>, DT> = {
+    ...builder,
+    data: {} as Flatten<DT>,
+    build: function (): View<Flatten<DT>> {
+      //const view = builder.build();
+      return builder.__build() as unknown as View<Flatten<DT>>;
+    }
+  };
+
+  elementBuilders.push(builderContext as any);
+
+  return builderContext;
+}
+
+
+export function createViewElementRecursiveBuilder<
+  DT,
+  DO extends DomainObject,
+  PDO extends DomainObject,
+  EName extends string | number | symbol,
+  RT extends CNTX<any, any>,
+  RSN extends string = string
+>(
+  returnTo: BuilderOf<RT>,
+  elementName: string,
+  queryObjectId: string,
+  domainObject: DO,
+  isCollection: TrueFalse,
+  elementBuilders: Array<any>,
+  queryIdsUsed: Set<string>,
+  recurseStartName: RSN,
+  recurseLevel: number = 1
+): CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT, RSN>, DT> {
+
+  const element: Partial<ViewElement<any>> = {
+    object: domainObject.name,
+    docPathName: elementName,
+    queryObjectId: queryObjectId,
+    isEntity: domainObject.isEntity ?? false,
+    domainObjectId: domainObject.vid,
+    isCollection: isCollection,
+    relationFromParent: undefined,
+    subElements: undefined,
+    isRecurseEndPoint: false,
+    isRecurseStartPoint: recurseLevel === 0, // mark this element as the start point of a recursive relationship
+    recurseLevel: recurseLevel,
+    recurseStartName: recurseStartName
+  };
+
+  let subElementBuilders: Array<any> = [];
+
+  
+  const builder: ViewElementRecursive< DT, DO, PDO, EName, RT, RSN> = {
     withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
       return builderContext;
@@ -377,20 +518,21 @@ export function createViewElementRecursiveBuilder<
     },
     withNamedSubElement:  <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
       (name: SubEName, nextDomainObject: DO, isCollection: IC) => 
-        buildSubElement(queryIdsUsed, builder, subElementBuilders, false, recurseLevel + 1)
+        buildSubElement(queryIdsUsed, builder, subElementBuilders, 'recursive', recurseStartName, recurseLevel + 1)
       (name, nextDomainObject, isCollection),
 
     withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
-    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, false, recurseLevel + 1)
+    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, 'recursive', recurseStartName, recurseLevel + 1)
           <PathOfSingleDomainObject<DO>, DO, IC>
           (innerDomainObject.defaultDocPathName, innerDomainObject, isCollection),
 
-    recurse: {
-      end: function (): RT {
-        return returnTo as RT;
-      }
+    recurse: function (): any {
+      element.isRecurseEndPoint = true; // mark this element as the end point of the recursive relationship
+      return buildSubElement(queryIdsUsed, returnTo, subElementBuilders, 'end-recursive', recurseStartName, recurseLevel + 1)
+          <RSN, DO, true>
+          (recurseStartName, domainObject, true);
     },
 
     end: function (): RT {
@@ -407,7 +549,7 @@ export function createViewElementRecursiveBuilder<
   };
 
   // Create context wrapper with data property
-  const builderContext: CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT>, DT> = {
+  const builderContext: CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT, RSN>, DT> = {
     ...builder,
     data: {} as Flatten<DT>,
     build: function (): View<Flatten<DT>> {
@@ -461,30 +603,28 @@ export function createViewElementNonRecursiveBuilder<
       return builderContext;
     },
         withNamedSubElement:  <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
-      (name: SubEName, nextDomainObject: DO, isCollection: IC) => buildSubElement(queryIdsUsed, builder, subElementBuilders, false)
+      (name: SubEName, nextDomainObject: DO, isCollection: IC) => buildSubElement(queryIdsUsed, builder, subElementBuilders, 'non-recursive')
       (name, nextDomainObject, isCollection),
 
     withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
-    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, false)
+    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, 'non-recursive')
           <PathOfSingleDomainObject<DO>, DO, IC>
           (innerDomainObject.defaultDocPathName, innerDomainObject, isCollection),
     
 
      withRecursiveNamedSubElement:   <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
       (name: SubEName, nextDomainObject: DO, isCollection: IC) => {
-        element.isRecurseStartPoint = true; // mark this element as the start point of a recursive relationship
         return buildSubElement(queryIdsUsed, 
-        builder, subElementBuilders, true)
+        builder, subElementBuilders, 'recursive')
       (name, nextDomainObject, isCollection)},
 
     withRecursiveSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
     ) => {
-      element.isRecurseStartPoint = true; // mark this element as the start point of a recursive relationship
-      return buildSubElement(queryIdsUsed, builder, subElementBuilders, true)
+      return buildSubElement(queryIdsUsed, builder, subElementBuilders, 'recursive')
           <PathOfSingleDomainObject<DO>, DO, IC>
           (innerDomainObject.defaultDocPathName, innerDomainObject, isCollection);
     },

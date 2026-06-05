@@ -24,6 +24,23 @@ describe('Declarative View Builder', () => {
       .endProperty()
     .buildSchema();
 
+     const orgSchema = createSchema('org')
+    .withId('org', '1.0')
+    .withProperty('name')
+      .forType<string>()
+      .withDictionaryId('dict-org-name', '1.0')
+      .withInfoType('Text')
+      .withDefaultLabel('Name')
+      .endProperty()
+    .withProperty('uuid')
+      .forType<string>()
+      .withDictionaryId('dict-org-uuid', '1.0')
+      .withInfoType('Text')
+      .withDefaultLabel('Org UUID')
+      .endProperty()
+    .buildSchema();
+
+
     const teamSchema = createSchema('team')
     .withId('team', '1.0')
     .withProperty('name')
@@ -66,17 +83,24 @@ describe('Declarative View Builder', () => {
     .forDomain({ name: 'recursion-test', version: '1.0' })
     .buildObject();
 
-    const teamObject = createEntityObject('team', teamSchema)
-        .withId('test-team', '1.0')
-        .forDomain({ name: 'recursion-test', version: '1.0' })
-        .buildObject();
-  
+  const teamObject = createEntityObject('team', teamSchema)
+      .withId('test-team', '1.0')
+      .forDomain({ name: 'recursion-test', version: '1.0' })
+      .buildObject();
+
+  const orgObject = createEntityObject('org', orgSchema)
+      .withId('test-org', '1.0')
+      .forDomain({ name: 'recursion-test', version: '1.0' })
+      .buildObject();
+
 
   const relatedObjs = createRelations()
     .allowRelationFromTo('withLink', userObject, linkObject, false)
     .allowRelationFromTo('toUser', linkObject, userObject, false)
     .allowRelationFromTo('withLink', teamObject, linkObject, false)
     .allowRelationFromTo('toTeam', linkObject, teamObject, false)
+    .allowRelationFromTo('withLink', orgObject, linkObject, false)
+    .allowRelationFromTo('toOrg', linkObject, orgObject, false)
     .buildRelatedObjects();
 
 
@@ -88,23 +112,28 @@ describe('Declarative View Builder', () => {
     const simpleViewContext = createView('account-people-orders')
         .withVersion('1.0')
         .withRootKey('email')
-        .withRootElement(relatedObjs.user, false)  // Object notation with element name
+        .withRootElement(relatedObjs.org, false)  // Object notation with element name
             .withRecursiveNamedSubElement("links", relatedObjs.link, true)  // Object notation
                 .withRelation('withLink')
                 
                 .withSubElement(relatedObjs.user, true)  // Object notation
                     .withRelation('toUser')
-                    .recurse // will go back to 'withLink' links
-                    .end()
-                .withNamedSubElement("teams", relatedObjs.team, true)  // Object notation
-                    .withRelation('toTeam')
-                    .recurse // will go back to 'withLink' links
-                    .end()
+                    .recurse() // will go back to 'withLink' links
+                    .endRecurse()
+                 
+                 .withNamedSubElement("teams", relatedObjs.team, true)  // Object notation
+                     .withRelation('toTeam')
+                     .recurse() // will go back to 'withLink' links
+                    .endRecurse()
                 .end()
             .end()
+        
         .endView()
 
     const accView = simpleViewContext.build();
+    expect(accView.rootElement.isRecurseStartPoint || false).toBe(false);
+    expect(accView.rootElement.subElements?.[0]?.isRecurseStartPoint || false).toBe(true);
 
+      console.log('simpleViewContext:', JSON.stringify(simpleViewContext, null, 2));
   })
 });
