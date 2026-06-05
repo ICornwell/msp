@@ -51,8 +51,8 @@ export type NameOfDomainObject<T extends DomainObject> =
 
 export type PathOfDomainObject<T extends DomainObject> =
   T extends Array<infer AT>
-  ? AT extends DomainObject<any, infer P, any, any, any> ? (P extends string ? P : NameOfDomainObject<T>) : NameOfDomainObject<T>
-  : T extends DomainObject<any, infer P, any, any, any> ? (P extends string ? P : NameOfDomainObject<T>) : NameOfDomainObject<T>;
+  ? AT extends DomainObject<any, infer P, any, any, any> ? P : never
+  : T extends DomainObject<any, infer P, any, any, any> ? P : never;
 
 export type UNARRAY<T> = T extends Array<infer AT> ? AT : T;
 
@@ -143,7 +143,7 @@ export type DomainObject<N extends string = string, P extends string = N, S exte
   schemaId?: versionedResourceId;
   isEntity?: TrueFalse;
   defaultPresentationLabel?: string;
-  defaultDocPathName?: P;
+  defaultDocPathName: P;
   businessKey?: string | string[] | ((data: any) => string);
   alternateKey?: string | string[] | ((data: any) => string);
   storeWithDBLabel?: string;

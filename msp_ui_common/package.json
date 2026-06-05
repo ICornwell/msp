@@ -144,36 +144,36 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": "./src/uiLib/index.ts",
-      "types": "./distUiLib/uiLib/index.d.ts"
+      "import": "./distUiLib/index.js",
+      "types": "./distUiLib/index.d.ts"
     },
     "./uiLib": {
-      "import": "./src/uiLib/index.ts",
-      "types": "./distUiLib/uiLib/index.d.ts"
+      "import": "./distUiLib/index.js",
+      "types": "./distUiLib/index.d.ts"
     },
     "./uiLib/components": {
-      "import": "./src/uiLib/components/index.ts",
-      "types": "./distUiLib/uiLib/components/index.d.ts"
+      "import": "./distUiLib/components/index.js",
+      "types": "./distUiLib/components/index.d.ts"
     },
     "./uiLib/comms": {
-      "import": "./src/uiLib/comms/index.ts",
-      "types": "./distUiLib/uiLib/comms/index.d.ts"
+      "import": "./distUiLib/comms/index.js",
+      "types": "./distUiLib/comms/index.d.ts"
     },
     "./uiLib/behaviours": {
-      "import": "./src/uiLib/behaviours/index.ts",
-      "types": "./distUiLib/uiLib/behaviours/index.d.ts"
+      "import": "./distUiLib/behaviours/index.js",
+      "types": "./distUiLib/behaviours/index.d.ts"
     },
     "./uiLib/contexts": {
-      "import": "./src/uiLib/contexts/index.ts",
-      "types": "./distUiLib/uiLib/contexts/index.d.ts"
+      "import": "./distUiLib/contexts/index.js",
+      "types": "./distUiLib/contexts/index.d.ts"
     },
     "./uiLib/hooks": {
-      "import": "./src/uiLib/hooks/index.ts",
-      "types": "./distUiLib/uiLib/hooks/index.d.ts"
+      "import": "./distUiLib/hooks/index.js",
+      "types": "./distUiLib/hooks/index.d.ts"
     },
     "./uiLib/renderEngine": {
-      "import": "./src/uiLib/renderEngine/index.ts",
-      "types": "./distUiLib/uiLib/renderEngine/index.d.ts"
+      "import": "./distUiLib/renderEngine/index.js",
+      "types": "./distUiLib/renderEngine/index.d.ts"
     }
   },
   "packageManager": "yarn@4.9.1"

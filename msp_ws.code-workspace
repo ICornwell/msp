@@ -47,9 +47,9 @@
 		}
 	],
 	"settings": {
-		"typescript.tsdk": "/home/ian/js/msp/.yarn/sdks/typescript/lib",
+		"typescript.tsdk": "",
 		"typescript.enablePromptUseWorkspaceTsdk": true,
-		"js/ts.tsdk.path": "/home/ian/js/msp/.yarn/sdks/typescript/lib",
+		"js/ts.tsdk.path": "/home/ian/js/msp/node_modules/typescript/lib",
 		"vitest.rootConfig": "",
 		"vitest.workspaceConfig": "${workspaceFolder}/.."
 	}
