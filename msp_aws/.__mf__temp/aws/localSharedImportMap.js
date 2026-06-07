@@ -14,6 +14,11 @@
             return pkg;
         }
       ,
+        "@emotion/react/jsx-runtime": async () => {
+          let pkg = await import("__mf__virtual/aws__prebuild___mf_0_emotion_mf_1_react_mf_1_jsx_mf_2_runtime__prebuild__.js");
+            return pkg;
+        }
+      ,
         "msp_ui_common": async () => {
           let pkg = await import("__mf__virtual/aws__prebuild__msp_ui_common__prebuild__.js");
             return pkg;
@@ -108,6 +113,60 @@
               }
               usedShared["@azure/msal-react"].loaded = true
               const {"@azure/msal-react": pkgDynamicImport} = importMap
+              const res = await pkgDynamicImport()
+              const exportModule = {...res}
+              // All npm packages pre-built by vite will be converted to esm
+              // removed code below
+              // Object.defineProperty(exportModule, "__esModule", {
+              //   value: true,
+              //   enumerable: false
+              // })
+              return function () {
+                if (!exportModule.default) {
+                  return exportModule
+                } else {
+                  const mod = exportModule.default;
+                  if (typeof mod === 'function') {
+                    try {
+                      return Object.assign(mod, exportModule);
+                    } catch (_error) {
+                      return mod;
+                    }
+                  }
+
+                  if (typeof mod === 'object' && mod !== null) {
+                    // ESM namespace objects can be non-extensible. Build a merged
+                    // plain object instead of mutating module/default objects.
+                    return {
+                      ...exportModule,
+                      ...mod,
+                      default: mod,
+                    };
+                  }
+
+                  return exportModule;
+                }
+              }
+            },
+            shareConfig: {
+              singleton: true,
+              requiredVersion: "*",
+              
+            }
+          }
+        ,
+          "@emotion/react/jsx-runtime": {
+            name: "@emotion/react/jsx-runtime",
+            version: "11.14.0",
+            scope: ["default"],
+            loaded: false,
+            from: "aws",
+            async get () {
+              if (false) {
+                throw new Error(`Shared module '${"@emotion/react/jsx-runtime"}' must be provided by host`);
+              }
+              usedShared["@emotion/react/jsx-runtime"].loaded = true
+              const {"@emotion/react/jsx-runtime": pkgDynamicImport} = importMap
               const res = await pkgDynamicImport()
               const exportModule = {...res}
               // All npm packages pre-built by vite will be converted to esm

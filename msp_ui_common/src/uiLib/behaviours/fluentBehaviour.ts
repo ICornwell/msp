@@ -21,19 +21,19 @@ export type BehaviourActionParam<DT, E extends UiMsgNames> = string | number | b
  |undefined);
 export type BehaviourActionParams<DT, E extends UiMsgNames> = Record<string, BehaviourActionParam<DT, E>> 
 
-export type ActivityCallDefinition<E = any> = {
+export type ActivityCallDefinition<E extends UiMsgNames = any> = {
   id: string;
   label?: string;
   /** Fully-qualified activity path: namespace/activityName/version */
   action: string;
   payload?: any;
-  payloadFromEvent?: (event: E) => any;
+  payloadFromEvent?: (event: EventTypesByMsgName<E>) => any;
   payloadFromSession?: (sessionInfo: SessionInfo) => any;
   context?: string;
-  contextFromEvent?: (event: E) => string | undefined;
+  contextFromEvent?: (event: EventTypesByMsgName<E>) => string | undefined;
 };
 
-export interface ActivityDispatchBuilder<DT, E, RT> {
+export interface ActivityDispatchBuilder<DT, E extends UiMsgNames, RT> {
   /** Dispatch an async activity call to the service layer. */
   callAsync: (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
   callSync:  (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
@@ -42,7 +42,7 @@ export interface ActivityDispatchBuilder<DT, E, RT> {
 
 // ── Menu subsystem ────────────────────────────────────────────────────────────
 
-export interface MenuDispatchBuilder<DT, E, RT> {
+export interface MenuDispatchBuilder<DT, E extends UiMsgNames, RT> {
   add:     (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
   remove:  (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
   enable:  (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;

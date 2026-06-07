@@ -107,13 +107,13 @@ export type ExtensionOf<C extends CNTX, T extends ComponentWrapper<any, any>, _B
                  : R extends FluentSubBuilder<infer BLD2> // check for sub-builder pattern #2
                    ? BLD2 extends StepperPageBuilder<C, any>
                      ? ((...args: A) => StepperPageBuilder<C, ComponentBuilderWithExt<C, T, RT>>)
-                     : E[K]
+                     : E[K] 
                    : E[K] // not pattern #2 either
                // we are not a function
                : E[K]
            }
       : E  // Fallback: not a recognized extension, return as-is
-    : E
+    : E 
   : never;
 
 
