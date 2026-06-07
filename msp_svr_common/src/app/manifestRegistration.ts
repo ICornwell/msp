@@ -1,5 +1,5 @@
 // Manifest Registration Service
-import { Manifest, Config, serviceRequest } from 'msp_svr_common';
+import { Manifest, Config, serviceRequest } from '../index.js';
 
 export async function registerManifest(config: Partial<Config>, manifest: Partial<Manifest>): Promise<boolean> {
   try {

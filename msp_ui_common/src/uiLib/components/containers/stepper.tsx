@@ -1,4 +1,5 @@
-import { PropsWithChildren, ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -68,7 +69,7 @@ export interface StepperPageBuilder<C extends CNTX, RT> {
   withButtons: (buttons: StepperPageButton[]) => StepperPageBuilder<C, RT>;
   withScrollEligible: (scrollEligible?: boolean) => StepperPageBuilder<C, RT>;
   activateOnOpen: (activateOnOpen?: boolean) => StepperPageBuilder<C, RT>;
-  containingElementSet: () => FluentSubBuilder<ReUiPlanElementSetBuilder<C, StepperPageBuilder<C, RT>>>;
+  containingElementSet: () => ReUiPlanElementSetBuilder<C, StepperPageBuilder<C, RT>>;
   endPage: RT;
 }
 
@@ -130,7 +131,7 @@ function createStepperPageBuilder<C extends CNTX, RT>(
     pageRecord.page.activateOnOpen = activateOnOpen;
     return pageBuilder;
   };
-  pageBuilder.containingElementSet = () => CreateReUiPlanElementSet(pageBuilder, pageRecord.containedBuilders) as unknown as FluentSubBuilder<ReUiPlanElementSetBuilder<C, StepperPageBuilder<C, RT>>>;
+  pageBuilder.containingElementSet = () => CreateReUiPlanElementSet(pageBuilder, pageRecord.containedBuilders) as unknown as ReUiPlanElementSetBuilder<C, StepperPageBuilder<C, RT>>;
   pageBuilder.endPage = returnTo;
 
   return pageBuilder as StepperPageBuilder<C, RT>;

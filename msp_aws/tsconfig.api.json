@@ -6,6 +6,7 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "./distApi",
+    "rootDir": "./src",
     "esModuleInterop": true,
     "strict": true,
     "noUnusedLocals": true,
@@ -20,6 +21,7 @@
   "include": [
     "src/serviceActivityElements/**/*.ts",
     "src/manifest/**/*.ts",
-    "src/apiElements/**/*.ts"
+    "src/apiElements/**/*.ts",
+    "src/uiElements/fluxorObjects/**/*.ts"
   ]
 }

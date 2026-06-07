@@ -6,7 +6,8 @@ import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 import mix from 'vite-plugin-mix'  // temporarily disabled for BFF isolation test
 
-import { Ports, sharedDeps } from 'msp_common'
+import { Ports } from 'msp_svr_common'
+import { common } from 'msp_svr_common'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -17,7 +18,7 @@ export default defineConfig({
     mix.default({ handler: './uiApiProxyHandler.ts' }),  // BFF disabled
     federation({
       name: 'host',
-      shared: { ...sharedDeps }
+      shared: { ...common.sharedDeps }
     }),
     react({
       devTarget: 'es2022',
@@ -94,7 +95,7 @@ export default defineConfig({
     // A few extra CJS packages that aren't in sharedDeps but are pulled in
     // as transitive deps and need esbuild interop are listed separately.
     include: [
-      ...Object.keys(sharedDeps),
+      ...Object.keys(common.sharedDeps),
       // dev-only React runtime (not in sharedDeps, only used in dev mode)
       'react/jsx-dev-runtime',
       // CJS transitive deps of @emotion & React that esbuild must interop

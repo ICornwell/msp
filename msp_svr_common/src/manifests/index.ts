@@ -1,5 +1,4 @@
 export * from './manifest.js';
-export * from './registration.js';
 export * from './manifestBuilder.js';
 export * from './typeVariantsBuilder.js';
 

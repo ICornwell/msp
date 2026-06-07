@@ -1,6 +1,7 @@
 import { default as express } from "express";
-import { ActivitySet, DataRequestEnvelope, ServiceActivity, serviceManager } from "msp_svr_common";
-import { SERVICE_TYPE } from "./server";
+import { ActivitySet, ServiceActivity, serviceManager } from "../service-manager/index.js";
+import { DataRequestEnvelope } from "msp_common";
+import { SERVICE_TYPE } from "./server.js";
 
 
 

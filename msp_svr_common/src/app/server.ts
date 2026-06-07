@@ -2,7 +2,9 @@
 import { createApp } from './api.js';
 
 import { registerWithRetry } from './manifestRegistration.js';
-import { ActivitySet, Manifest, Config, ServiceActivity } from 'msp_svr_common';
+import {  Manifest  } from '../manifests/index.js';
+import { ActivitySet, ServiceActivity } from '../service-manager/index.js';
+import { Config } from '../sharedconfig.js';
 export type SERVICE = 'service';
 export type DATA = 'data';
 export enum SERVICE_TYPE { SERVICE = 'service', DATA = 'data' }

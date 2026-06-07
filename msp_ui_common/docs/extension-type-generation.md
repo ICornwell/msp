@@ -23,7 +23,7 @@ To break that cycle, we generate the `ExtensionOf` mapping type.
 `package.json` has:
 
 - `generate:extension-types`
-- `prebuild`: runs the generator before `tsc -b`
+- `prebuild`: runs the generator before `tsgo -b`
 
 So normal build flow regenerates types automatically.
 

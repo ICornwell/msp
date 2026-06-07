@@ -17,7 +17,6 @@ import { Project, InterfaceDeclaration } from 'ts-morph';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { readFileSync } from 'fs';
-import e from 'express';
 
 interface ExtensionMethodInfo {
   name: string;
@@ -192,7 +191,7 @@ function ExtensionTypeGenerator(configPath: string): { generate: () => Promise<v
       const hasFluentSimple = ext.methods.some(m => m.returnsFluentSimple);
 
       extensionBranches.push(`  // Handle ${ext.name}`);
-      extensionBranches.push(` ${itemCount == 0 ? ' ' : ':'}  ${ext.name}<any, any> extends E`);
+      extensionBranches.push(` ${itemCount == 0 ? ' ' : ':'}  E extends ${ext.name}<any, any>`);
       extensionBranches.push(`    ? { [K in keyof E]:`);
 
       // If this extension uses FluentSimple/FluentSubBuilder pattern (like TableExtension)
@@ -202,7 +201,7 @@ function ExtensionTypeGenerator(configPath: string): { generate: () => Promise<v
         extensionBranches.push(`          //  we are a function`);
         extensionBranches.push(`          ? R extends FluentSimple  //check for simple pattern #1`);
         extensionBranches.push(`            // yes we are simple pattern #1`);
-        extensionBranches.push(`            ? ((...args: A) => ReUiPlanComponentBuilder<C, T, RT> & ${ext.name}<C, RT>)`);
+        extensionBranches.push(`            ? ((...args: A) => ComponentBuilderWithExt<C, T, RT> & ${ext.name}<C, RT>)`);
         extensionBranches.push(`            // not simple pattern #1, check for pattern #2`);
         extensionBranches.push(`            : R extends FluentSubBuilder<infer BLD2> // check for sub-builder pattern #2`);
 
@@ -214,7 +213,7 @@ function ExtensionTypeGenerator(configPath: string): { generate: () => Promise<v
             const isFirst = i === 0;
             const isLast = i === subBuilderArray.length - 1;
 
-            extensionBranches.push(`              ${isFirst ? '?' : ':'} BLD2 extends ${subBuilder}<C, any>`);
+            extensionBranches.push(`              ${isFirst ? '?' : ':'} BLD2 extends ${subBuilder}<any, any>`);
             extensionBranches.push(`                ? ((...args: A) => ${subBuilder}<C, ComponentBuilderWithExt<C, T, RT>>)`);
           }
           // Close the BLD2 extends chain

@@ -12,7 +12,7 @@ export function workListContent() {
        .showingItem.fromComponentElement(Table)
           .withLabel('User Info Table')
           .withHelperText('A table showing vehicle information and calculated premiums')
-       //   .enableFiltering(true)
+          .enableFiltering(true)
           
     
       

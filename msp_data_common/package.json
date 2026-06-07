@@ -13,8 +13,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc -w"
+    "build": "rm -rf ./dist && tsgo -b",
+    "build:watch": "tsgo -w"
   },
   "dependencies": {
     "@types/node": "^25.0.3",
@@ -34,7 +34,6 @@
     "jose": "^6.1.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "msp_common": "workspace:*",
     "msp_svr_common": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -57,7 +56,7 @@
     "@types/semver": "^7",
     "@types/swagger-jsdoc": "^6",
     "@types/ws": "^8",
-    "typescript": "^5.8.3",
+    "@typescript/native-preview": "^7.0.0-dev.20260607.1",
     "vitest": "^4.0.18"
   }
 }

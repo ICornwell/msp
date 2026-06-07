@@ -1,5 +1,5 @@
 import { ClientCredentialsConfig } from 'msp_common';
-import { Ports } from './ports.js';
+import { Ports } from 'msp_svr_common';
 
 export type ProductConfig = {
     domain: string,

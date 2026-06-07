@@ -51,6 +51,7 @@
 		"typescript.enablePromptUseWorkspaceTsdk": true,
 		"js/ts.tsdk.path": "/home/ian/js/msp/node_modules/typescript/lib",
 		"vitest.rootConfig": "",
-		"vitest.workspaceConfig": "${workspaceFolder}/.."
+		"vitest.workspaceConfig": "${workspaceFolder}/..",
+		"js/ts.experimental.useTsgo": true
 	}
 }

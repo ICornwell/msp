@@ -5,8 +5,8 @@
   "type": "module",
   "moduleResolution": "nodenext",
   "scripts": {
-    "build": "tsc -b",
-    "build:watch": "tsc -b -w",
+    "build": "rm -rf ./distUiLib && tsgo -b",
+    "build:watch": "tsgo -b -w",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -126,6 +126,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
+    "@typescript/native-preview": "^7.0.0-dev.20260607.1",
     "@vitejs/plugin-react": "^4.4.1",
     "happy-dom": "^17.4.7",
     "identity-obj-proxy": "^3.0.0",
@@ -136,7 +137,6 @@
     "ts-jest": "^29.1.1",
     "ts-morph": "^27.0.2",
     "tsx": "^4.21.0",
-    "typescript": "5.9.3",
     "vite": "^6.3.1",
     "vite-plugin-babel": "^1.3.1",
     "vitest": "^3.1.3"

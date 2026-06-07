@@ -1,6 +1,7 @@
-import { Columns, LabelFrame, PresetTextComponent, Re, Stepper } from 'msp_ui_common';
+import { Columns, FluxorData, LabelFrame, PresetTextComponent, Re, Stepper } from 'msp_ui_common';
 
 import { awsSetupWizardFluxorData } from '../../../fluxorObjects/awsSetupWizardFluxor.js';
+import type {AwsClusterSetupConfig} from '../../../../data/clusterSetUpConfig.js';
 
 export function awsSetupWizardContent() {
   return Re.makeUiPlan('AwsClusterSetupConfig', '1.0')
@@ -37,12 +38,14 @@ export function awsSetupWizardContent() {
       .end()
     .endPage
     .withPage('trust-identity', 'Trust and Identity')
+      
       .withDescription('Capture account and identity routing for setup execution.')
       .withButtons([
         { label: 'Back', role: 'back' },
         { label: 'Next', role: 'next' },
       ])
       .containingElementSet()
+      .usingFluxor({} as FluxorData<AwsClusterSetupConfig>)
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Trust')
           .containingElementSet()
@@ -70,6 +73,7 @@ export function awsSetupWizardContent() {
         { label: 'Next', role: 'next' },
       ])
       .containingElementSet()
+        .usingFluxor({} as FluxorData<AwsClusterSetupConfig>)
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Network')
           .containingElementSet()
@@ -104,6 +108,7 @@ export function awsSetupWizardContent() {
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Resources')
           .containingElementSet()
+          .usingFluxor({} as FluxorData<AwsClusterSetupConfig>)
             .showingItem.fromComponentElement(Columns)
               .withComponentProps({ columns: 2, fillDirection: 'down' })
               .containingElementSet()

@@ -1,8 +1,9 @@
-import { Config } from "./sharedconfig";
+import { Config } from "./sharedconfig.js";
 import { makeManifest } from "./manifests/manifestBuilder.js";
-import { authenticatedGet, authenticatedDelete, authenticatedPatch, authenticatedPost, authenticatedPut } from "./als/index.js";
+import { authenticatedGet, authenticatedDelete, authenticatedPatch,
+   authenticatedPost, authenticatedPut } from "./als/index.js";
 import { Manifest } from "./manifests/index.js";
-import { registerManifest } from "./manifests/registration.js";
+import { registerManifest } from "./app/manifestRegistration.js";
 
 let cachedConfig: Partial<Config> = {}
 
@@ -16,7 +17,7 @@ export function getConfig(): Partial<Config> {
 
 export const manifest = {
  make: makeManifest(getConfig()),
- register: (manifest: Manifest) => registerManifest(manifest)
+ register: (manifest: Manifest) => registerManifest(getConfig(), manifest)
 }
 
 export const httpRequest = {

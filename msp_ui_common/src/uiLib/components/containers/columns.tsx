@@ -1,5 +1,5 @@
 
-import React, { PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';

@@ -75,7 +75,7 @@ export const sharedVersions: Record<string, VersionInfo> = {
   },
   '@emotion/react/jsx-runtime': {
     version: '*', isEsm: false,
-    gen: { mode: 'default-only' },
+    gen: { mode: 'list', sentinel: 'jsx', exports: ['Fragment', 'jsx', 'jsxs'] },
   },
   '@mui/styled-engine': {
     version: '*', isEsm: false,

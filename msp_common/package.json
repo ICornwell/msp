@@ -17,8 +17,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc -w"
+    "build": "rm -rf ./dist &&tsgo -b",
+    "build:watch": "tsgo -w"
   },
   "dependencies": {
     "@types/node": "^25.0.3",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/semver": "^7",
-    "typescript": "^5.8.3",
+    "@typescript/native-preview": "^7.0.0-dev.20260607.1",
     "vitest": "^4.0.18"
   }
 }

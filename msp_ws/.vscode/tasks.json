@@ -25,7 +25,7 @@
                 "cwd": "${workspaceFolder}/../msp_fes"
             },
             "problemMatcher": [
-                "$tsc"
+                "$tsgo"
             ],
             "group": {
                 "kind": "build",
@@ -40,7 +40,7 @@
                 "cwd": "${workspaceFolder}/../msp_servicehub"
             },
             "problemMatcher": [
-                "$tsc"
+                "$tsgo"
             ],
             "group": {
                 "kind": "build",
@@ -55,7 +55,7 @@
                 "cwd": "${workspaceFolder}/../msp_common"
             },
             "problemMatcher": [
-                "$tsc"
+                "$tsgo"
             ],
             "isBackground": true,
             "group": {
@@ -71,7 +71,7 @@
                 "cwd": "${workspaceFolder}/../msp_svr_common"
             },
             "problemMatcher": [
-                "$tsc"
+                "$tsgo"
             ],
             "isBackground": true,
             "group": {
@@ -87,7 +87,7 @@
                 "cwd": "${workspaceFolder}/../msp_data_common"
             },
             "problemMatcher": [
-                "$tsc"
+                "$tsgo"
             ],
             "isBackground": true,
             "group": {
@@ -103,7 +103,7 @@
                 "cwd": "${workspaceFolder}/../msp_ui_common"
             },
             "problemMatcher": [
-                "$tsc"
+                "$tsgo"
             ],
             "isBackground": true,
             "group": {

@@ -14,7 +14,7 @@
   "scripts": {
     "start": "node ./distApi/api/server.js",
     "dev": "tsx watch ./src/api/server.ts",
-    "build": "tsc -b",
+    "build": "tsgo -b",
     "test": "vitest run"
   },
   "dependencies": {

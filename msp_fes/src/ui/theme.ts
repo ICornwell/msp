@@ -44,7 +44,8 @@ const theme = createTheme({
   },
   typography: {
     allVariants: {
-      color: '#333333',
+      "--tree-view-color": '#333333',
+     // color: '#333333',
     },
     fontFamily: 'Bahnschrift, sans-serif',
     fontSize: 12,

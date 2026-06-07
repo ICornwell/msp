@@ -107,6 +107,16 @@
       "factory": "emotionReactExportCode"
     },
     {
+      "package": "@emotion/react/jsx-runtime",
+      "module": "./reactJsxRuntime",
+      "factory": "reactJsxRuntimeExportCode",
+      "namedExports": [
+        "Fragment",
+        "jsx",
+        "jsxs"
+      ]
+    },
+    {
       "package": "@emotion/styled",
       "module": "./emotionStyled",
       "factory": "emotionStyledExportCode"

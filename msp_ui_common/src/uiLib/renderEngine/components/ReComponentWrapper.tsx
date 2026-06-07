@@ -4,13 +4,12 @@ import FormHelperText from '@mui/material/FormHelperText';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentProps.js';
 import { makeStyles } from 'tss-react/mui';
-import { Theme } from '@mui/material/styles';
 import { RePubSubMsg } from '../data/ReEnginePubSub.js';
 import { ReSubscriptionHandler } from './RePubSubHook.js';
 import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan.js';
 import { ReNullExtension, ReExtensionBuilder } from '../UiPlan/ReUiPlanBuilder.js';
 
-const useStyles = makeStyles()((theme: Theme) => ({
+const useStyles = makeStyles()((theme) => ({
   label: {
     color: theme.palette.text.primary,
   },

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node ./distApi/server.js",
-    "build": "tsc -b",
+    "build": "tsgo -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

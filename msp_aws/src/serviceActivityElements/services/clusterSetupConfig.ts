@@ -1,57 +1,11 @@
-import type { DataObject, ViewDataContent } from 'msp_common';
+import type { ViewDataContent } from 'msp_common';
 import type { ServiceActivity, ServiceActivityResultBuilder } from 'msp_svr_common';
+import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload, 
+  WriteClusterSetupConfigPayload, ReconcileClusterSetupConfigPayload,
+   ClusterSetupPlanStep, 
+   AwsResourceConfigStatus} from '../../data/clusterSetUpConfig.js';
 
-export type AwsClusterSetupDesiredState = {
-  eks?: {
-    clusterVersion?: string;
-    nodeCount?: number;
-  };
-  ecr?: {
-    repositories?: string[];
-  };
-  network?: {
-    vpcCidr?: string;
-    publicSubnetCount?: number;
-    privateSubnetCount?: number;
-  };
-};
 
-export type AwsResourceConfigStatus = 'draft' | 'ready' | 'applied' | 'drifted';
-export type AwsClusterSetupConfig = {
-  setupId: string;
-  accountId?: string;
-  region: string;
-  clusterName: string;
-  wizardVersion: string;
-  status: AwsResourceConfigStatus;
-  desiredState: AwsClusterSetupDesiredState;
-  updatedAt: string;
-} & Partial<DataObject>;
-
-export type ReadClusterSetupConfigPayload = {
-  setupId?: string;
-  region?: string;
-  clusterName?: string;
-};
-
-export type WriteClusterSetupConfigPayload = Partial<AwsClusterSetupConfig> & {
-  setupId?: string;
-  region?: string;
-  clusterName?: string;
-};
-
-export type ReconcileClusterSetupConfigPayload = {
-  setupId?: string;
-  region?: string;
-  clusterName?: string;
-  dryRun?: boolean;
-};
-
-export type ClusterSetupPlanStep = {
-  operation: 'create' | 'update' | 'noop';
-  path: string;
-  value?: unknown;
-};
 
 const setupStore = new Map<string, ViewDataContent<AwsClusterSetupConfig>>();
 

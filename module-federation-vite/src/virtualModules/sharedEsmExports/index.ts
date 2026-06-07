@@ -32,6 +32,7 @@ const exportCodeByPackage: Record<string, ExportCodeFactory> = {
   '@mui/system': muiSystemExportCode,
   '@mui/icons-material': muiIconsMaterialExportCode,
   '@emotion/react': emotionReactExportCode,
+  '@emotion/react/jsx-runtime': reactJsxRuntimeExportCode,
   '@emotion/styled': emotionStyledExportCode,
   '@azure/msal-browser': msalBrowserExportCode,
   '@azure/msal-react': msalReactExportCode,

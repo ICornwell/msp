@@ -17,8 +17,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc -w"
+    "build": "rm -rf ./dist && tsgo -b",
+    "build:watch": "tsgo -b -w"
   },
   "dependencies": {
     "@azure/msal-node": "^5.2.2",
@@ -61,7 +61,7 @@
     "@types/semver": "^7",
     "@types/swagger-jsdoc": "^6",
     "@types/ws": "^8",
-    "typescript": "^5.8.3",
+    "@typescript/native-preview": "^7.0.0-dev.20260607.1",
     "vitest": "^4.0.18"
   }
 }

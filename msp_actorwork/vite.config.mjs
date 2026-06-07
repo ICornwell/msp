@@ -4,10 +4,11 @@ import react from '@vitejs/plugin-react-swc';
 import svgr from 'vite-plugin-svgr';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sharedDeps, Ports } from 'msp_common';
+import { Ports } from 'msp_svr_common';
+import { common } from 'msp_svr_common';
 
 const mfPort = parseInt(process.env['VITE_PORT'], 10) || Ports.core.MF_msp_actorwork
-const mfShared = sharedDeps ;
+const mfShared = common.sharedDeps ;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({

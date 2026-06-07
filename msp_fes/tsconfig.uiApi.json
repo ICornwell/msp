@@ -11,8 +11,7 @@
     "sourceMap": true,
     "rootDir": "./src/uiApi",
     "outDir": "./distApi",
-  //  "declarationDir": "./dist/types",
-    "esModuleInterop": true,
+
 
     /* Linting */
     "strict": true,
@@ -33,5 +32,6 @@
     "noUncheckedSideEffectImports": true,
     
   },
-  "include": ["./src/uiApi/**/*.js", "./src/uiApi/**/*.ts", "./src/uiApi/config.ts"]
+  "include": ["./src/uiApi/**/*.js", "./src/uiApi/**/*.ts", "./src/uiApi/config.ts"],
+  "exclude": ["./src/uiApi/**/*.test.ts", "./src/uiApi/**/*.test.js"]
 }

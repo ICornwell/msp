@@ -5,6 +5,7 @@
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true,
+    "rootDir": ".",
     "outDir": "./distApi",
     "esModuleInterop": true,
     "strict": true,

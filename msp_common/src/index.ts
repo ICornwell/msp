@@ -32,5 +32,4 @@ export * from './data/models/fluxor/fluxorData.js'
 
 // Re-export UI message types
 export * from './messages/index.js';
-
-export {Ports} from './ports.js';
+export * from './sharedDeps.js'

@@ -1,5 +1,5 @@
 
-import React, { PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 
 import { createExtendedComponent } from '../../renderEngine/components/ReComponentWrapper.js';
 import { ReComponentCommonProps } from '../../renderEngine/components/ReComponentProps.js';

@@ -1,5 +1,5 @@
 import { ClientCredentialsConfig, JWTValidationConfig } from 'msp_common';
-import { Ports } from 'msp_common';
+import { Ports } from './ports.js';
 
 export type ProductConfig = {
     domain: string,
