@@ -1,5 +1,5 @@
-import { activitySet, ActivitySet, ServiceActivityResultBuilder, serviceManager, serviceRequest, ServiceRequestEnvelope, type DataFeatureManifestSection } from 'msp_svr_common';
-
+import { activitySet, ActivitySet, ServiceActivityResultBuilder, serviceManager, serviceRequest, type DataFeatureManifestSection } from 'msp_svr_common';
+import { ServiceRequestEnvelope } from 'msp_common';
 type RegisteredDataFeature = DataFeatureManifestSection & {
   manifestNamespace?: string;
   serviceName?: string;

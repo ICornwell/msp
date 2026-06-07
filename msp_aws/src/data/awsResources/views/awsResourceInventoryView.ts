@@ -12,5 +12,6 @@ export const awsResourceInventoryView = createView('aws-resource-inventory')
   .withNamedSubElement('ecrRepository', ecrRepository, true)
   .withRelation('deploysImageFrom')
   .end()
+  .end()
   .endView()
   .build();

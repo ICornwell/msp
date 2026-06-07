@@ -1,7 +1,7 @@
 import { default as express } from "express";
-import { serviceManager, ServiceRequestEnvelope } from "msp_svr_common";
+import { serviceManager } from "msp_svr_common";
 import { simpleViewActivitySet} from "./activities/dgmAccess.js"
-import { DataRequestEnvelope, DataViewQueryEnvelope, DataViewUpsertEnvelope } from "msp_svr_common";
+import { DataRequestEnvelope, DataViewQueryEnvelope, DataViewUpsertEnvelope, ServiceRequestEnvelope } from "msp_common";
 import { routeServiceActivity } from "./services/serviceActivityRouter.js";
 import { routeDataActivity } from "./services/dataActivityRouter.js";
 

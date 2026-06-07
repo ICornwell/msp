@@ -15,5 +15,5 @@ export const ecrRepositoryObject = createEntityObject('ecrRepository', ecrReposi
   .buildObject();
 
 export const relatedAwsResourceObjects = createRelations()
-  .allowRelationToFrom('deploysImageFrom', eksClusterObject, ecrRepositoryObject, true)
+  .allowRelationFromTo('deploysImageFrom', eksClusterObject, ecrRepositoryObject, true)
   .buildRelatedObjects();

@@ -1,7 +1,8 @@
 // Service Activity Registry
 // Uses ActivitySet for version matching and name matching
 
-import { serviceManager, activitySet, ServiceActivityResultBuilder, ServiceRequestEnvelope, serviceRequest } from 'msp_svr_common';
+import { serviceManager, activitySet, ServiceActivityResultBuilder, serviceRequest } from 'msp_svr_common';
+import { ServiceRequestEnvelope } from 'msp_common';
 import type { ActivitySet } from 'msp_svr_common';
 import type {ProductConfig} from 'msp_svr_common';
 import { ActivityFeatureManifestSection, Manifest, ServiceManifestSection } from 'msp_svr_common';

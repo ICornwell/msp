@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { createSemaphoreRouter } from './routes/semaphores.js';
 import { InMemorySemaphoreProvider } from '../providers/inMemory/InMemorySemaphoreProvider.js';
-import {Ports} from 'msp_common'
+import {Ports} from 'msp_svr_common'
 const app = express();
 
 app.use(express.json({ limit: '5mb' }));

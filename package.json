@@ -25,7 +25,7 @@
     "build:mf": "yarn mf:prebuild && yarn mf:build",
     "build:utils": "echo \"Building Utils\" && yarn semaphores:build && yarn security:build",
     "build:hubs": "echo \"Building Hubs\" && yarn servicehub:build && yarn datahub:build && yarn fes:build",
-    "build:modules": "echo \"Building Modules\" && yarn actorwork:build && yarn aws:build && yarn fes:build",
+    "build:modules": "echo \"Building Modules\" && yarn actorwork:build && yarn aws:build",
     "build:data": "echo \"Building Data\" && yarn busdata:build && yarn techdata:build",
     "start": "yarn start:utils & yarn start:hubs & yarn actorwork:start & yarn fes:start",
     "start:utils": "echo \"Starting Utils\" && yarn semaphores:start & yarn security:start",
