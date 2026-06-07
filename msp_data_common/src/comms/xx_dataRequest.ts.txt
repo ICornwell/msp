@@ -96,7 +96,6 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 }
 
 export async function ReadData(view: View, id: string, options?: DataRequestOptions) {
-	
 	const baseUrl = resolveBaseUrl(options?.baseUrl);
 	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
 
