@@ -49,10 +49,10 @@ export function workItemDetail() {
                 .withValueBinding((ctx) => ctx.localData.work_deadline)
               .endElement
 
-            .end()
+            .endSet
           .endElement
 
-        .end()
+        .endSet
       .endElement
 
       // ── Participation details ────────────────────────────────────────
@@ -94,10 +94,10 @@ export function workItemDetail() {
                 .withValueBinding((ctx) => ctx.localData.link_deadline)
               .endElement
 
-            .end()
+            .endSet
           .endElement
 
-        .end()
+        .endSet
       .endElement
 
     .endSet

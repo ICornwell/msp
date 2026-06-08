@@ -34,14 +34,14 @@ export function extendWithSingleItemContainer<C extends CNTX, RT>(returnTo: RT):
 }
 
 export function extendWithElementSetContainer<C extends CNTX, RT, BLD>(
-  returnTo: RT,
-  _builder: BLD,
+  _returnTo: RT,
+  builder: BLD,
   _contextPlaceHolder: C
 ): ElementSetContainerExtension<C, RT> {
   const containedBuilders: ReUiPlanElementSetBuilder<any, any>[] = [];
   const extension: FluentExtension = {
     containingElementSet: (): FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>> => (
-      CreateReUiPlanElementSet<C, RT>(returnTo, containedBuilders) as unknown as FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>>
+      CreateReUiPlanElementSet<C, BLD>(builder, containedBuilders) as unknown as FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>>
     ),
     _buildExtension: (buildConfig: any, extendedElement: ReUiPlanElement) => {
       if (!extendedElement.children) extendedElement.children = [];
