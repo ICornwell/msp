@@ -4,6 +4,7 @@ export * from './sharedconfig.js'
 export * from './comms/index.js'
 export * from './als/index.js'
 export * from './app/index.js'
+export * from './security/serviceSecretClient.js'
 
 export * from './configuredCommon.js';
 export * from './sharedconfig.js';

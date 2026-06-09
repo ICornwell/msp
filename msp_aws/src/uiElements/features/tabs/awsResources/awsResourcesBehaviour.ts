@@ -68,11 +68,69 @@ export const useAwsResourcesBehaviour = () => {
       } as any)
       .endMenus()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-    .whenEventSatisfies((event) => event?.payload?.context?.action === 'openAwsSetupWizard')
+    .whenEventSatisfies((event) => event?.payload?.action === 'awsWizardConnect')
+    .dispatch.toActivity
+      .callAsync({
+        id: 'connectAwsCredentials',
+        action: 'aws/connectAwsCredentials/1.0.0',
+        payloadFromEvent: (event) => ({
+          ...defaultSetupContext,
+          setupId: event?.payload?.context?.setupId ?? defaultSetupContext.setupId,
+          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+          clusterName: event?.payload?.context?.clusterName ?? defaultSetupContext.clusterName,
+          accountId: event?.payload?.context?.accountId,
+          accountName: event?.payload?.context?.accountName,
+          accessKeyId: event?.payload?.context?.accessKeyId,
+          secretAccessKey: event?.payload?.context?.secretAccessKey,
+          sessionToken: event?.payload?.context?.sessionToken,
+        }),
+      })
+      .callAsync({
+        id: 'refreshAwsWizardBootstrap',
+        action: 'aws/getAwsWizardBootstrap/1.0.0',
+        payloadFromEvent: (event) => ({
+          ...defaultSetupContext,
+          ...(event?.payload?.context ?? {}),
+        }),
+      })
+      .callAsync({
+        id: 'refreshSetupConfigAfterConnect',
+        action: 'aws/readClusterSetupConfig/1.0.0',
+        payloadFromEvent: (event) => ({
+          ...defaultSetupContext,
+          setupId: event?.payload?.context?.setupId ?? defaultSetupContext.setupId,
+          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+          clusterName: event?.payload?.context?.clusterName ?? defaultSetupContext.clusterName,
+        }),
+      })
+      .callAsync({
+        id: 'refreshEksClustersFromWizardConnect',
+        action: 'aws/listEksClusters/1.0.0',
+        payloadFromEvent: (event) => ({
+          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+        }),
+      })
+      .callAsync({
+        id: 'refreshEcrReposFromWizardConnect',
+        action: 'aws/listEcrRepositories/1.0.0',
+        payloadFromEvent: (event) => ({
+          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+        }),
+      })
+      .callAsync({
+        id: 'refreshNetworkFromWizardConnect',
+        action: 'aws/awsNetworkTopology/1.0.0',
+        payloadFromEvent: (event) => ({
+          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+        }),
+      })
+    .endActivity()
+    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+    .whenEventSatisfies((event) => event?.payload?.action === 'openAwsSetupWizard')
     .dispatch.toPresentation
       .openBlade(
         'AwsSetupWizardBlade',
-        { title: 'AWS Setup Configuration Wizard' },
+        { title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3 },
         awsSetupWizardContent(),
         {
           viewDomain: 'aws',
@@ -83,7 +141,7 @@ export const useAwsResourcesBehaviour = () => {
       )
       .endPresentation()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-    .whenEventSatisfies((event) => event?.payload?.context?.action === 'saveAwsSetupDraft')
+    .whenEventSatisfies((event) => event?.payload?.action === 'saveAwsSetupDraft')
     .dispatch.toActivity
       .callAsync({
         id: 'saveAwsSetupDraft',
@@ -96,7 +154,7 @@ export const useAwsResourcesBehaviour = () => {
       })
       .endActivity()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-    .whenEventSatisfies((event) => event?.payload?.context?.action === 'dryRunAwsSetup')
+    .whenEventSatisfies((event) => event?.payload?.action === 'dryRunAwsSetup')
     .dispatch.toActivity
       .callAsync({
         id: 'dryRunAwsSetupReconcile',

@@ -55,9 +55,13 @@ export async function serviceRequest<TPayload = any, TResult = any>(
 ): Promise<ServiceRequestResult<TResult>> {
 	const baseUrl = resolveBaseUrl(options?.baseUrl);
 	const url = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
+	const forwardedOptions  = { ...options };
+	delete forwardedOptions.baseUrl;
+	delete forwardedOptions.endpointPath;
 
 	const controller = new AbortController();
 	const timeoutMs = options?.timeoutMs;
+	delete forwardedOptions.timeoutMs;
 	const timeoutHandle = (timeoutMs && timeoutMs > 0)
 		? setTimeout(() => controller.abort(), timeoutMs)
 		: undefined;
@@ -69,7 +73,7 @@ export async function serviceRequest<TPayload = any, TResult = any>(
 	}
 
 	try {
-		const response = await authenticatedPut(url, request)
+		const response = await authenticatedPut(url, request, forwardedOptions);
 
 
 		let body: any = undefined;

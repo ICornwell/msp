@@ -1,171 +1,23 @@
-import { activitySet, ServiceActivityResultBuilder } from 'msp_svr_common'
-import type { ActivitySet, DataFeatureManifestSection, Manifest } from 'msp_svr_common'
-import { getAllClaims } from 'msp_svr_common'
-import { getFeatureAliasForProduct, getRegisteredFeatures, registerFeatures as registerUiFeatures } from '../services/uiFeatureRegistry.js'
-import { registerFeatures as registerActivityFeatures } from '../services/serviceActivityRegistry.js'
-import { UiRemoteIdentity } from 'msp_common'
-import { withSemaphore } from 'msp_semaphores'
-import { getConfig } from 'msp_svr_common'
-import { runServiceActivity } from 'msp_svr_common'
+import { buildActivitySet } from 'msp_svr_common'
+import type { ActivitySet } from 'msp_svr_common'
 
-function getDataFeatures(source: any): any[] {
-    const fromSource = Array.isArray(source?.dataFeatures) ? source.dataFeatures : [];
-    
-    return [...fromSource];
-}
+import { discoverOpenUiFeatures } from '../services/discovery/discoverOpenUiFestures.js';
+import { registerManifest } from '../services/discovery/registerManifest.js';
 
-async function forwardDataFeaturesToDataHub(manifest: Manifest): Promise<number> {
-    const registrations: Array<{ manifestNamespace?: string; serviceName?: string; dataFeatures: any[] }> = [];
-
-    const domainLevelDataFeatures = getDataFeatures(manifest);
-    if (domainLevelDataFeatures.length > 0) {
-        registrations.push({
-            manifestNamespace: manifest.namespace,
-            dataFeatures: domainLevelDataFeatures,
-        });
-    }
-
-    for (const service of manifest.services || []) {
-        const serviceDataFeatures = [
-            ...getDataFeatures(service).map((feature: DataFeatureManifestSection) => ({
-                ...feature,
-                manifestNamespace: manifest.namespace,
-                serviceName: service.name,
-                serverUrl: feature.serverUrl || service.serverDataUrl || manifest.serverDataUrl 
-            })),
-            ...((service.apiFeatures || []).flatMap((apiFeature: any) => [
-                ...(Array.isArray(apiFeature?.data) ? apiFeature.data : []),
-                ...(Array.isArray(apiFeature?.information) ? apiFeature.information : []),
-            ])),
-        ];
-
-        if (serviceDataFeatures.length > 0) {
-            registrations.push({
-                manifestNamespace: manifest.namespace,
-                serviceName: service.name,
-                dataFeatures: serviceDataFeatures,
-            });
-        }
-    }
-
-    if (registrations.length === 0) {
-        return 0;
-    }
-
-    const dataHubBaseUrl = getConfig().getHostUrl?.('dataHub') || 'http://localhost:4002';
-    await runServiceActivity(
-        'discovery',
-        'registerDataFeatures',
-        '1.0.0',
-        { registrations },
-        { baseUrl: dataHubBaseUrl },
-    );
-
-    return registrations.length;
-}
-
-const discoveryActivitySet: ActivitySet = activitySet()
-
-discoveryActivitySet.use({
-    namespace: 'discovery',
-    activityName: 'discoverOpenUiFeatures',
-    version: '1.0.0',
-    matchingVersionRange: '*',
-    context: '*',
-    funcs:  async (payload, serviceResult: ServiceActivityResultBuilder) => {
-        console.log(`Discovery request received: ${JSON.stringify(payload)}`);
-        const product = payload?.product || {
-            domain: '*',
-            name: '*',
-            version: '*',
-            variantName: '*',
-        };
-        const claims = await getAllClaims();
-        const userIdClaim = claims['idTokenClaims'];
-
-        const allFeatures = getRegisteredFeatures();
-        console.log(`Currently registered features: ${allFeatures.length}`);
-        const matchingFeatures = allFeatures
-            .filter(feature => feature.allowedContexts.includes('*')    
-            || (feature.allowedContexts.includes('AUTH') && userIdClaim))
-            .map(feature => getFeatureAliasForProduct(
-                feature.namespace || '*',
-                feature.name || '*',
-                product.domain || '*',
-                product.name || '*',
-                product.version || '*',
-                product.variantName || '*'
-            ) )
-            .map(feature => { 
-                const uiFeatureIdentity = { ...feature };
-                // remoteEntry has a real, internal Url for the services
-                // we do not expose this to browser clients
-                // the proxy keeps it for routing purposes
-                delete uiFeatureIdentity.remoteEntry; // remoteEntry is not part of the identity, it's just routing info
-                return uiFeatureIdentity as UiRemoteIdentity // Only return features that have a valid remoteEntry for routing
-            }).filter(match => match) as unknown as UiRemoteIdentity[];
-        
-        
-        if (matchingFeatures.length == 0) return serviceResult.failed('No matching feature found');
-
-        return serviceResult.success({ features: matchingFeatures })
-    }
-});
-
-discoveryActivitySet.use({
-    namespace: 'discovery',
-    activityName: 'registerManifest',
-    version: '1.0.0',
-    matchingVersionRange: '*',
-    context: '*',
-    funcs:  async (payload, serviceResult: ServiceActivityResultBuilder) => {
-        console.log(`Discovery registration received: ${JSON.stringify(payload)}`);
-        return await withSemaphore(
-            {
-                semaphoreBaseUrl: getConfig().semaphoresUrl || 'no-semaphores-url-configured',
-                semaphoreName: 'servicehub:register-manifest',
-                ttlMs: Number(process.env['MSP_SEMAPHORE_REGISTER_MANIFEST_TTL_MS'] || 10000),
-                holderId: process.env['HOSTNAME'] || 'servicehub',
-            },
-            async () => {
-                // payload can be single feature or array of features
-                const manifest = (payload.manifest || payload) as Manifest; // Support both { manifest: {...} } and direct feature object(s)
-
-                if (manifest.services) {
-                    for (const service of manifest.services) {
-                        if (service.uiFeatures) {
-                            const uiFeatures = service.uiFeatures.map((feature: any) => ({
-                                namespace : feature.namespace || service.namespace || manifest.namespace, // Default to service name if namespace not provided
-                                ...feature,
-                                // Optionally add service name or other metadata to the feature
-                                serviceName: service.name,
-                            }));
-                            registerUiFeatures(manifest, service, uiFeatures);
-                            console.log(`Registered ${service.uiFeatures.length} features from service ${service.name}`);
-                        }
-                        if (service.activityFeatures) {
-                            const activityFeatures = service.activityFeatures.map((feature: any) => ({
-                                 namespace : feature.namespace || service.namespace || manifest.namespace,
-                                ...feature,
-                                // Optionally add service name or other metadata to the feature
-                                serviceName: service.name,
-                            }));
-                            registerActivityFeatures(manifest, service, activityFeatures);
-                            console.log(`Registered ${service.activityFeatures.length} features from service ${service.name}`);
-                        }
-                    }
-                }
-
-                const forwardedDataRegistrations = await forwardDataFeaturesToDataHub(manifest);
-
-                return serviceResult.success({
-                    message: 'Features registered successfully',
-                    count: manifest.services?.length,
-                    forwardedDataRegistrations,
-                })
-            }
-        )
-    }
-});
+const discoveryActivitySet: ActivitySet =
+    buildActivitySet()
+        .withNamespace('discovery')
+        .withVersion('1.0.0')
+        .withMatchingVersionRange('*')
+        .withContext('*')
+        .use({
+            activityName: 'discoverOpenUiFeatures',
+            funcs: discoverOpenUiFeatures
+        })
+        .use({
+            activityName: 'registerManifest',
+            funcs: registerManifest
+        })
+        .build();
 
 export { discoveryActivitySet }

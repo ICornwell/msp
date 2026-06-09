@@ -102,88 +102,158 @@ export function addServiceActivityToSet(set: ServiceActivity[], activity: Servic
 
 export type ActivitySet = {
     isEmpty: () => boolean;
+    hasNamespace: (namespace?: string) => boolean;
+    activities: ServiceActivity[];
     use: (serviceActivity: ServiceActivity) => void;
     useBefore: (serviceActivity: ServiceActivity) => void;
     useAfter: (serviceActivity: ServiceActivity) => void;
     handle: (namespace: string, activityName: string, version: string, payload: any, resultBuilder?: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
 }
 
+//the builder doesn't need handle or isEmpty, those are implemented in the final ActivitySet
+// for runtime use
+type ActivitySetBuilder = {
+     [P in keyof Omit<ActivitySet, 'handle' | 'isEmpty' | 'hasNamespace' | 'activities'>]-?:
+      (ActivitySet[P] extends (...args: any) => any ? (serviceActivity: ServiceActivityWithOptionals) => ActivitySetBuilder : ActivitySetBuilder)
+} & {
+    withNamespace: (namespace: string) => ActivitySetBuilder;
+    withVersion: (version: string) => ActivitySetBuilder;
+    withMatchingVersionRange: (matchingVersionRange: string) => ActivitySetBuilder;
+    withContext: (context: Matcher) => ActivitySetBuilder;
 
-export function activitySet(): ActivitySet {
+    build: () => ActivitySet;
+}
+
+// The builder is used for defining activities with shared options in a fluent way, e.g. for a whole manifest or a whole service
+// so common props are optional
+type ServiceActivityWithOptionals = {
+    [P in keyof Pick<ServiceActivity, 'namespace' | 'version' | 'matchingVersionRange' | 'context'>]+?: ServiceActivity[P]
+} & Omit<ServiceActivity, 'namespace' | 'version' | 'matchingVersionRange' | 'context'>;
+
+export function emptyActivitySet(): ActivitySet {
+    return buildActivitySet().build();
+}
+
+export function buildActivitySet(): ActivitySetBuilder {
 
     const activities: ServiceActivity[] = []
 
     const middlewareBefore: ServiceActivity[] = []
     const middlewareAfter: ServiceActivity[] = []
 
+    let currentNamespace = ''
+    let currentVersion = ''
+    let currentMatchingVersionRange = ''
+    let currentContext: Matcher = '*';
 
-
-    function useBefore(serviceActivity: ServiceActivity): void {
-        addServiceActivityToSet(middlewareBefore, serviceActivity);
+    // use the defined props if given, or the current shared ones, or defaults
+    function completeServiceActivityWithCurrentOptions(activity: ServiceActivityWithOptionals): ServiceActivity {
+        return {
+            namespace: activity.namespace || currentNamespace || '*',
+            activityName: activity.activityName,
+            version: activity.version || currentVersion || '1.0.0',
+            matchingVersionRange: activity.matchingVersionRange || currentMatchingVersionRange || '*',
+            context: activity.context || currentContext || '*',
+            funcs: activity.funcs
+        }
     }
-    function useAfter(serviceActivity: ServiceActivity): void {
-        addServiceActivityToSet(middlewareAfter, serviceActivity);
-    }
 
-    function use(serviceActivity: ServiceActivity): void {
-        addServiceActivityToSet(activities, serviceActivity);
-    }
+    const builder: ActivitySetBuilder = {
+        withNamespace: function (namespace: string): ActivitySetBuilder {
+            currentNamespace = namespace;
+            return builder;
+        },
+        withVersion: function (version: string): ActivitySetBuilder {
+            currentVersion = version;
+            return builder;
+        },
+        withMatchingVersionRange: function (matchingVersionRange: string): ActivitySetBuilder {
+            currentMatchingVersionRange = matchingVersionRange;
+            return builder;
+        },
+        withContext: function (context: Matcher): ActivitySetBuilder {
+            currentContext = context;
+            return builder;
+        },
 
-    function isEmpty() {
-        return activities.length === 0;
-    }
+        useBefore: function (serviceActivity: ServiceActivityWithOptionals): ActivitySetBuilder {
+            addServiceActivityToSet(middlewareBefore, completeServiceActivityWithCurrentOptions(serviceActivity));
+            return builder;
+        },
+        useAfter: function (serviceActivity: ServiceActivityWithOptionals): ActivitySetBuilder {
+            addServiceActivityToSet(middlewareAfter, completeServiceActivityWithCurrentOptions(serviceActivity));
+            return builder;
+        },
 
-    async function handle(namespace: string, activityName: string, version: string,
-        payload: any, resultBuilder?: ServiceActivityResultBuilder): Promise<ServiceActivityResultBuilder> {
-        const rb = (!resultBuilder) ? CreateResultBuilder() : resultBuilder;
+        use: function (serviceActivity: ServiceActivityWithOptionals): ActivitySetBuilder {
+            addServiceActivityToSet(activities, completeServiceActivityWithCurrentOptions(serviceActivity));
+            return builder;
+        },
 
-        async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder, runBeforeAndAfter = true) {
-            const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
-                && isMatch(activityName, handler.activityName));
 
-            const bestVersionActivities = bestVersionMatch(matchingActivities, version,
-                 (x) => `${x.namespace}:${x.activityName}`, (x) => x.version,
-                x => (x.matchingVersionRange??'none'));
-            console.log(`Found ${matchingActivities.length} matching activities, running ${bestVersionActivities.length} out of ${activities.length} with best version match for version ${version}`);
-            
-            if (bestVersionActivities.length === 0) {
-                console.warn(`No matching activity found for ${namespace}:${activityName} v${version} from ${activities.length} registered activities`);
-                console.warn(`Available activities were: ${candidateActivies.map(a => `${a.namespace}:${a.activityName} v${a.version} (match range: ${a.matchingVersionRange})`).join(', ')}`);
-                return;
-            }
-            
-            for (const activity of bestVersionActivities) {
-                for (const func of Array.isArray(activity.funcs) ? activity.funcs : [activity.funcs]) {
-                    console.log(`Running activity ${activity.namespace}:${activity.activityName} v${activity.version} for request version ${version}`);
-                    
-                    if (runBeforeAndAfter && (middlewareBefore?.length ?? 0) !== 0) {
-                        await runAllMatches(middlewareBefore, rb, false);
+
+        build: function (): ActivitySet {
+            return {
+                isEmpty: function () {
+                    return activities.length === 0;
+                },
+                hasNamespace: function (namespace?: string) {
+                    return activities.some(a => a.namespace === namespace);
+                },
+
+                use: builder.use,
+                useBefore: builder.useBefore,
+                useAfter: builder.useAfter,
+                activities: activities,
+
+                handle: async function (namespace: string, activityName: string, version: string,
+                    payload: any, resultBuilder?: ServiceActivityResultBuilder): Promise<ServiceActivityResultBuilder> {
+                    const rb = (!resultBuilder) ? CreateResultBuilder() : resultBuilder;
+
+                    async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder, runBeforeAndAfter = true) {
+                        const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
+                            && isMatch(activityName, handler.activityName));
+
+                        const bestVersionActivities = bestVersionMatch(matchingActivities, version,
+                            (x) => `${x.namespace}:${x.activityName}`, (x) => x.version,
+                            x => (x.matchingVersionRange ?? 'none'));
+                        console.log(`Found ${matchingActivities.length} matching activities, running ${bestVersionActivities.length} out of ${activities.length} with best version match for version ${version}`);
+
+                        if (bestVersionActivities.length === 0) {
+                            console.warn(`No matching activity found for ${namespace}:${activityName} v${version} from ${activities.length} registered activities`);
+                            console.warn(`Available activities were: ${candidateActivies.map(a => `${a.namespace}:${a.activityName} v${a.version} (match range: ${a.matchingVersionRange})`).join(', ')}`);
+                            return;
+                        }
+
+                        for (const activity of bestVersionActivities) {
+                            for (const func of Array.isArray(activity.funcs) ? activity.funcs : [activity.funcs]) {
+                                console.log(`Running activity ${activity.namespace}:${activity.activityName} v${activity.version} for request version ${version}`);
+
+                                if (runBeforeAndAfter && (middlewareBefore?.length ?? 0) !== 0) {
+                                    await runAllMatches(middlewareBefore, rb, false);
+                                }
+
+                                await func(payload, resultBuilder);
+                                if (resultBuilder.currentResult().updatedPayload) {
+                                    payload = resultBuilder.currentResult().updatedPayload;
+                                }
+
+                                if (runBeforeAndAfter && (middlewareAfter?.length ?? 0) !== 0) {
+                                    await runAllMatches(middlewareAfter, rb, false);
+                                }
+
+                            }
+                        }
                     }
-                    
-                    await func(payload, resultBuilder);
-                    if (resultBuilder.currentResult().updatedPayload) {
-                        payload = resultBuilder.currentResult().updatedPayload;
-                    }
 
-                    if (runBeforeAndAfter && (middlewareAfter?.length ?? 0) !== 0) {
-                        await runAllMatches(middlewareAfter, rb, false);
-                    }
+                    await runAllMatches(activities, rb);
 
+
+                    return rb;
                 }
             }
         }
-        
-        await runAllMatches(activities, rb);
-        
-
-        return rb;
     }
 
-    return {
-        isEmpty,
-        use,
-        useBefore,
-        useAfter,
-        handle
-    }
+    return builder;
 }

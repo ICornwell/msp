@@ -81,6 +81,7 @@ export default function UniversalInput(
     testId, 
     helperText, 
     disabled, 
+    placeholder,
     events,
     strategy: resolvedStrategy,
     dataType = 'text',
@@ -124,8 +125,15 @@ export default function UniversalInput(
     value,
     rawInput,
     path: (props as any).path,  // May come from record binder
-    metadata: { dataType, displayMode, hints, ...extraMeta }
+    metadata: { dataType, displayMode, hints, ...extraMeta },
+    textInputRef: inputRef,  // Provide textarea ref for strategies that need it
   });
+
+  const computedPlaceholder = (value === undefined && placeholder === undefined) ? 'Not Set' 
+    : (value === undefined ? `${placeholder} (Not Set)` 
+    : (value === null ? ( placeholder === undefined ? 'Intentionally Blank' : `${placeholder} (Intentionally Blank)` )
+    : (value === '' ? ( placeholder === undefined ? 'Intentionally Empty' : `${placeholder} (Intentionally Empty)` )
+    : placeholder)));
 
   // Format value for display
   const formattedValue = useMemo(() => {
@@ -190,7 +198,7 @@ export default function UniversalInput(
     if (storedExpression) {
       setInputValue(storedExpression);
     } else {
-      setInputValue(String(strategy?.formatter?.useFormatForEdit ? formattedValue : value) ?? '');
+      setInputValue(String(strategy?.formatter?.useFormatForEdit ? formattedValue : (value ?? '')));
     }
   };
 
@@ -202,8 +210,16 @@ export default function UniversalInput(
   };
 
   const handleBlur = () => {
+    if (strategy.formatter?.onBlur) {
+      strategy.formatter.onBlur(inputValue, createContext());
+    }
     setIsEditing(false);
     
+    if (strategy.readonly?.getReadOnly(createContext())) {
+      // readonly might be using formatted value or redaction, and shouldn't commit changes
+      return;
+    }
+
     if (!strategy.parser) {
       // No parser - just pass through as string
       onChange?.(inputValue);
@@ -287,8 +303,9 @@ export default function UniversalInput(
       inputRef={inputRef}
       variant="filled"
       // Always type="text" - we handle everything ourselves
-      type="text"
+      type={strategy.formatter?.inputType?.(value, createContext()) ?? "text"}
       value={inputValue}
+      placeholder={computedPlaceholder}
       onChange={handleInput}
       onFocus={handleFocus}
       onBlur={handleBlur}
@@ -300,7 +317,7 @@ export default function UniversalInput(
       slotProps={{
         inputLabel: { shrink: true },
         input: {
-          readOnly: forceReadonly,
+          readOnly: forceReadonly || strategy.readonly?.getReadOnly(createContext()) || false,
           startAdornment: startAdornment ? (
             <InputAdornment style={{marginTop: '2px'}}position="start">{startAdornment}</InputAdornment>
           ) : undefined,

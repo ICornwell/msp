@@ -18,7 +18,19 @@ function createSecurityBuilder(config?: any) {
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
-   
+    .withActivityFeature('storeServiceSecret', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('retrieveServiceSecret', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('getEncryptionPublicKey', '1.0.0', 'default')
+      .withAllowedContexts(['*'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+
 }
 
 export function createSecurityManifest(config?: any) {

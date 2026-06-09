@@ -1,5 +1,6 @@
 // Outbound request handler with automatic token acquisition and claim propagation
 import { getAllClaims } from './claimHelpers.js';
+import { getRequestContext } from './context.js';
 import { getTokenForService, clearTokenCahe } from '../auth/auth.js';
 
 export interface OutboundRequestOptions {
@@ -9,6 +10,7 @@ export interface OutboundRequestOptions {
   body?: any;
   excludeClaims?: string[]; // Claims to exclude from propagation
   includeAllClaims?: boolean; // Default: true
+  includeIdToken?: boolean; // Default: false
 }
 
 
@@ -68,7 +70,7 @@ export async function makeAuthenticatedRequest(
   requestOptions: OutboundRequestOptions
 ): Promise<Response> {
   // Acquire access token
-  const accessToken = await getTokenForService();
+  const serviceToken = await getTokenForService(requestOptions.includeIdToken ?? false);
   
   // Get claim headers
   const claimHeaders = getClaimHeaders(
@@ -78,11 +80,16 @@ export async function makeAuthenticatedRequest(
   
   // Build headers
   const headers: Record<string, string> = {
-    'Authorization': `Bearer ${accessToken}`,
+    'Authorization': `Bearer ${serviceToken.access}`,
     'Content-Type': 'application/json',
     ...claimHeaders,
     ...requestOptions.headers, // Allow override
   };
+
+  const requestContext = getRequestContext();
+  if (requestOptions.includeIdToken && requestContext?.idToken) {
+    headers['X-MSP-ID-Token'] = requestContext.idToken;
+  }
   
   // Build fetch options
   const fetchOptions: RequestInit = {

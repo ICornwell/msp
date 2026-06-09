@@ -1,7 +1,7 @@
 // Service Activity Registry
 // Uses ActivitySet for version matching and name matching
 
-import { serviceManager, activitySet, ServiceActivityResultBuilder, serviceRequest } from 'msp_svr_common';
+import { serviceManager, emptyActivitySet, ServiceActivityResultBuilder, serviceRequest } from 'msp_svr_common';
 import { ServiceRequestEnvelope } from 'msp_common';
 import type { ActivitySet } from 'msp_svr_common';
 import type {ProductConfig} from 'msp_svr_common';
@@ -20,7 +20,7 @@ export type ServiceActivityRegistration = {
 };
 
 const registrations: ServiceActivityRegistration[] = [];
-const registeredActivitySet: ActivitySet = activitySet();
+const registeredActivitySet: ActivitySet = emptyActivitySet();
 
   function isSameFeature(a: ServiceActivityRegistration, b: ServiceActivityRegistration): unknown {
     return a.namespace === b.namespace && a.activityName === b.activityName && a.version === b.version;

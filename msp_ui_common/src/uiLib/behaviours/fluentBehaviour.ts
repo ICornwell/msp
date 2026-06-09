@@ -6,6 +6,7 @@ import { BehaviourArg } from "./Behaviour.js";
 import { SessionInfo } from "../contexts/index.js";
 import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
 import type { BehaviourScopeLevel } from "./behaviourConfig.js";
+import { BladeParamOptions } from "../contexts/PresentationDispatchContext.js";
 
 export type { BehaviourScopeLevel };
 
@@ -19,7 +20,7 @@ export type BehaviourActionFnContext<DT, E extends UiMsgNames> = {
 export type BehaviourActionParam<DT, E extends UiMsgNames> = string | number | boolean | Date
  |undefined | ((context: BehaviourActionFnContext<DT, E>) => string | number | boolean | Date
  |undefined);
-export type BehaviourActionParams<DT, E extends UiMsgNames> = Record<string, BehaviourActionParam<DT, E>> 
+export type BehaviourActionParams<DT, E extends UiMsgNames, ParamOptions extends string = string> = Partial<Record<ParamOptions, BehaviourActionParam<DT, E>> >
 
 export type ActivityCallDefinition<E extends UiMsgNames = any> = {
   id: string;
@@ -72,7 +73,7 @@ export interface PagedTabBuilder<DT, E extends UiMsgNames, RT> {
 }
 
 export interface PresentationDispatchBuilder<DT, E extends UiMsgNames, RT> {
-  openBlade:    (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  openBlade:    (target: string, params?: BehaviourActionParams<DT, E, BladeParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   closeBlade:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
   openTab:      (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   /** Open a tab with a named set of pages. Fluently add pages via the returned PagedTabBuilder. */

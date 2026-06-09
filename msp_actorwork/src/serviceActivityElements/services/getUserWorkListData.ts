@@ -61,7 +61,7 @@ const mockUserData: Record<string, ViewDataContent<UserWorkData[]>> = {
   }
 };
 
-async function getUserWorkListDataHandler(
+export async function getUserWorkListDataHandler(
   payload: GetUserWorkDataPayload,
   resultBuilder: ServiceActivityResultBuilder
 ): Promise<ServiceActivityResultBuilder> {

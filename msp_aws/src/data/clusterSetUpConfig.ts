@@ -19,6 +19,10 @@ export type AwsResourceConfigStatus = 'draft' | 'ready' | 'applied' | 'drifted';
 export type AwsClusterSetupConfig = {
   setupId: string;
   accountId?: string;
+  accountName?: string;
+  connectionStatus?: 'success' | 'failed' | 'unknown';
+  connectionMessage?: string;
+  connectionCheckedAt?: string;
   region: string;
   clusterName: string;
   wizardVersion: string;

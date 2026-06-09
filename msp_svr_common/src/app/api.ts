@@ -39,14 +39,17 @@ export function createApp(config: Partial<Config>, serviceType: SERVICE_TYPE, se
   app.use(mspAuthMiddleware(config))
 
   // Mount API routes
+  console.log(`Mounting API routes for service type: ${serviceType}`);
   app.use('/api/v1', getRoutes(serviceType, serviceActivities));
 
   // Health check endpoint
+  console.log('Registering health check endpoint at /health');
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'actorwork', timestamp: new Date().toISOString() });
   });
 
   // Error handler
+  console.log('Registering error handler');
   app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Error:', err);
     res.status(err.status || 500).json({
@@ -55,6 +58,8 @@ export function createApp(config: Partial<Config>, serviceType: SERVICE_TYPE, se
       error: process.env.NODE_ENV === 'development' ? err : undefined
     });
   });
+
+  console.log('Express app created with configured middleware and routes');
 
   return app;
 }

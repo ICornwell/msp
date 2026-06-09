@@ -13,11 +13,13 @@ export type ProductConfig = {
 export type Config = {
     product: ProductConfig,
     myPort: string,
+    myDataPort: string,
     myUrl: string,
     myMFUrl: string,
     myDataUrl: string,
     serviceHubApiUrl: string,
     serviceHubMfUrl: string,
+    dataHubApiUrl: string,
     semaphoresUrl: string,
     uiWebUrl: string,
     uiBffUrl: string,
@@ -25,6 +27,7 @@ export type Config = {
     getMFHostUrl: (service: string, domain?: string, version?: string, variantName?: string) => string,
     getDataHostUrl: (service: string, domain?: string, version?: string, variantName?: string) => string,
     getPort: (service: string, domain?: string, version?: string, variantName?: string) => number,
+    getDataPort: (service: string, domain?: string, version?: string, variantName?: string) => number,
     clientCredentials?: ClientCredentialsConfig,
     jwtValidation?: JWTValidationConfig
 
@@ -33,6 +36,7 @@ export type Config = {
 const sharedconfig: Partial<Config> = {
     serviceHubApiUrl: HostName('serviceHub'),
     serviceHubMfUrl: HostName('serviceHub'),
+    dataHubApiUrl: HostName('dataHub'),
     semaphoresUrl: HostName('msp_semaphores'),
     uiWebUrl: HostName('uiWeb'),
     uiBffUrl: HostName('uiBff'),
@@ -40,14 +44,16 @@ const sharedconfig: Partial<Config> = {
     getHostUrl: HostName,
     getMFHostUrl: MFHostName,
     getDataHostUrl: DataHostName,
-    getPort: Port
+    getPort: Port,
+    getDataPort: (service: string, domain?: string, version?: string, variantName?: string) =>
+         Port(service, domain, version, variantName, true)
 }
 
 function makeName(service: string, domain?: string, version?: string, variantName?: string) {
     return `${domain ? domain + '-' : ''}${service}${version ? '-' + version : ''}${variantName ? '-' + variantName : ''}`;
 }
 
-function Port(service: string, domain: string = '', version: string = '1.0.0', variantName: string = 'default'): number {
+function Port(service: string, domain: string = '', version: string = '1.0.0', variantName: string = 'default', fordata: boolean = false): number {
     if (process.env[`${service.toUpperCase()}_HOST`]) {
         // when hostnames are in env vars, the system is out
         // of the local development environment and we should assume standard ports
@@ -61,7 +67,7 @@ function Port(service: string, domain: string = '', version: string = '1.0.0', v
     
     const moduleName = makeName(service, domain, version, variantName);
     if ((Ports.modules as any)?.[moduleName]) {
-        return (Ports.modules as any)[moduleName].services;
+        return !fordata ? (Ports.modules as any)[moduleName].services : (Ports.modules as any)[moduleName].data;
     }
     throw new Error(`No port found for service ${moduleName}. Please add to Ports configuration.`);
 }

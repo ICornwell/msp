@@ -7,6 +7,7 @@ const router = express.Router();
 // All business logic, activity registration, and delegation happens in servicehub
 
 const getServiceHubUrl = () => getConfig().serviceHubApiUrl || 'http://localhost:4001';
+const getSecurityServiceUrl = () => process.env['MSP_SECURITY_API_URL'] || 'http://localhost:4005';
 
 // Standard service execution endpoint - proxy to servicehub
 router.put('/service/run', async (req, res) => {
@@ -55,5 +56,22 @@ function extractForwardHeaders(req: express.Request): Record<string, string> {
   
   return headers;
 }
+
+// Public endpoint — proxies encryption public key from msp_security to UI.
+// No auth required: the public key is safe to expose by definition.
+router.get('/security/encryption-key', async (_req, res) => {
+  try {
+    const secUrl = getSecurityServiceUrl();
+    const response = await fetch(`${secUrl}/discovery/encryption-public-key`);
+    const body = await response.json();
+    res.status(response.status).json(body);
+  } catch (error: any) {
+    res.status(502).json({
+      success: false,
+      message: 'Could not fetch encryption public key from security service',
+      error: error?.message,
+    });
+  }
+});
 
 export default router;

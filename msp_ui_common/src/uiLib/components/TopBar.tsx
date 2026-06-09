@@ -178,6 +178,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               nameTag='Main Menu'
               key='menu1'
               anchorEl={mainMenuAnchorEl}
+              menuTarget='top'
               open={Boolean(mainMenuAnchorEl)}
               onClose={handleMainMenuClose} />
         </Box>

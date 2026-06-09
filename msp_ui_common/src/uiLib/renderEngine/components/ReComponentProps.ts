@@ -15,6 +15,7 @@ export type ReComponentCommonProps = {
   componentName?: string;
   dataSource?: any;
   testId?: string;
+  placeholder?: string;
   displayMode?: 'editing' | 'editable' | 'readonly';
 }
 

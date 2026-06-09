@@ -1,4 +1,4 @@
-import type { ServiceActivity, ServiceActivityResultBuilder } from 'msp_svr_common';
+import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import {
   type ProxyExecutionEnvelope,
@@ -15,16 +15,7 @@ export type ExecuteProxyFlowPayload = {
   envelope: ProxyExecutionEnvelope;
 };
 
-export const ExecuteProxyFlowActivity: ServiceActivity = {
-  namespace: 'security',
-  activityName: 'executeProxyFlow',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: executeProxyFlowHandler,
-};
-
-async function executeProxyFlowHandler(
+export async function executeProxyFlowHandler(
   payload: ExecuteProxyFlowPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {

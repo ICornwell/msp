@@ -1,14 +1,13 @@
-import { Columns, FluxorData, LabelFrame, PresetTextComponent, Re, Stepper } from 'msp_ui_common';
+import { Columns, LabelFrame, PresetButtonComponent, PresetSecretComponent, PresetTextComponent, Re, StatusIcon, StatusLabel, Stepper } from 'msp_ui_common/uiLib';
 
 import { awsSetupWizardFluxorData } from '../../../fluxorObjects/awsSetupWizardFluxor.js';
-import type {AwsClusterSetupConfig} from '../../../../data/clusterSetUpConfig.js';
 
 export function awsSetupWizardContent() {
   return Re.makeUiPlan('AwsClusterSetupConfig', '1.0')
     .withElementSet.usingFluxor(awsSetupWizardFluxorData)
     .fromInlineElementSet
     .showingItem.fromComponentElement(Stepper)
-    .withOrientation('vertical')
+    .withOrientation('horizontal')
     .withPage('platform-intent', 'Platform Intent')
       .withDescription('Define the platform setup intent for this AWS environment.')
       .withButton({ label: 'Next', role: 'next' })
@@ -45,7 +44,6 @@ export function awsSetupWizardContent() {
         { label: 'Next', role: 'next' },
       ])
       .containingElementSet()
-      .usingFluxor({} as FluxorData<AwsClusterSetupConfig>)
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Trust')
           .containingElementSet()
@@ -57,8 +55,55 @@ export function awsSetupWizardContent() {
                   .withValueBinding((ctx) => ctx.localData.accountId)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
+                  .withLabel('Account Name')
+                  .withValueBinding((ctx) => ctx.localData.accountName)
+                .endElement
+                .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Region')
                   .withValueBinding((ctx) => ctx.localData.region)
+                .endElement
+                .showingItem.fromComponentElement(PresetTextComponent)
+                  .withLabel('Access Key Id')
+                  .withValueBinding((ctx) => ctx.localData.accessKeyId)
+                .endElement
+                .showingItem.fromComponentElement(PresetSecretComponent)
+                  .withLabel('Secret Access Key')
+                  .withValueBinding((ctx) => ctx.localData.secretAccessKey)
+                .endElement
+                .showingItem.fromComponentElement(PresetSecretComponent)
+                  .withLabel('Session Token (Optional)')
+                  .withValueBinding((ctx) => ctx.localData.sessionToken)
+                .endElement
+                .showingItem.fromComponentElement(PresetButtonComponent)
+                  .withLabel('Connect')
+                  .withComponentProps({
+                    internalName: 'awsWizardConnect',
+                    size: 'small',
+                    includeRecordInContext: true,
+                    context: {
+                      setupId: 'aws-cluster-setup-default',
+                      region: 'eu-west-2',
+                      clusterName: 'msp-dev-eks',
+                    },
+                  })
+                .endElement
+                .showingItem.fromComponentElement(StatusIcon)
+                  .withLabel('Connection')
+                  .withValueBinding((ctx) => ctx.localData.connectionStatus)
+                .endElement
+                .showingItem.fromComponentElement(StatusLabel)
+                  .withLabel('Connection Result')
+                  .withValueBinding((ctx) => {
+                    const status = ctx.localData.connectionStatus;
+                    const message = ctx.localData.connectionMessage?.trim();
+                    if (status === 'success') {
+                      return message || 'Connection succeeded';
+                    }
+                    if (status === 'failed') {
+                      return `Connection failed: ${message || 'Unknown error'}`;
+                    }
+                    return message || 'Not connected yet.';
+                  })
                 .endElement
               .end()
             .endElement
@@ -72,8 +117,8 @@ export function awsSetupWizardContent() {
         { label: 'Back', role: 'back' },
         { label: 'Next', role: 'next' },
       ])
+      
       .containingElementSet()
-        .usingFluxor({} as FluxorData<AwsClusterSetupConfig>)
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Network')
           .containingElementSet()
@@ -108,7 +153,6 @@ export function awsSetupWizardContent() {
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Resources')
           .containingElementSet()
-          .usingFluxor({} as FluxorData<AwsClusterSetupConfig>)
             .showingItem.fromComponentElement(Columns)
               .withComponentProps({ columns: 2, fillDirection: 'down' })
               .containingElementSet()

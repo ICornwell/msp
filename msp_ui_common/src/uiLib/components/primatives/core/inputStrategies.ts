@@ -36,6 +36,7 @@ export interface StrategyContext {
   rawInput: string;
   path?: string;  // Data path for shadow notes
   metadata?: Record<string, unknown>;
+  textInputRef?: React.RefObject<HTMLInputElement | null>;  // For strategies that need input control
 }
 
 // ============================================================================
@@ -45,6 +46,10 @@ export interface StrategyContext {
 /** Controls text alignment in the input */
 export interface AlignmentStrategy {
   getAlignment: (ctx: StrategyContext) => Alignment;
+}
+
+export interface ReadOnlyStrategy {
+  getReadOnly: (ctx: StrategyContext) => boolean;
 }
 
 /** 
@@ -62,8 +67,10 @@ export interface AdornmentStrategy {
  * Run when displaying value (readonly or edit blur)
  */
 export interface FormatterStrategy {
-  useFormatForEdit?:boolean
+  useFormatForEdit?: boolean;
   format: (value: unknown, ctx: StrategyContext) => string;
+  inputType?: (value: unknown, ctx: StrategyContext) => string;  // Optional: specify input type (e.g., "text", "number") for better mobile keyboards
+  onBlur?: (value: unknown, ctx: StrategyContext) => void;  // Optional: callback when input loses focus
 }
 
 /**
@@ -74,7 +81,7 @@ export interface FormatterStrategy {
 export interface ParserStrategy<T = unknown> {
   parse: (input: string, ctx: StrategyContext) => ParseResult<T>;
   /** Optional: detect if input looks like an expression */
-  isExpression?: (input: string) => boolean;
+  isExpression?: (input: string, ctx?: StrategyContext) => boolean;
 }
 
 /**
@@ -92,6 +99,7 @@ export interface ClickActionStrategy {
 // ============================================================================
 
 export interface InputStrategy<T = unknown> {
+  readonly?: ReadOnlyStrategy;
   alignment?: AlignmentStrategy;
   adornment?: AdornmentStrategy;
   formatter?: FormatterStrategy;
@@ -174,7 +182,8 @@ export type DataTypeHint =
   | 'date' 
   | 'datetime'
   | 'select'
-  | 'percentage';
+  | 'percentage'
+  | 'secret'
 
 /**
  * Display mode hints

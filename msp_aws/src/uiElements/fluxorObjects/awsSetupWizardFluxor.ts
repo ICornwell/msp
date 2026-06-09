@@ -1,16 +1,7 @@
 import type { FluxorData } from 'msp_common';
+import type { AwsSetupWizardDraftFluxorRow } from './awsWizardFluxorModels.js';
 
-export type AwsSetupWizardRow = {
-  setupId?: string;
-  accountId?: string;
-  region?: string;
-  clusterName?: string;
-  wizardVersion?: string;
-  status?: string;
-  updatedAt?: string;
-};
-
-export const awsSetupWizardFluxorData: FluxorData<AwsSetupWizardRow> = {
+export const awsSetupWizardFluxorData: FluxorData<AwsSetupWizardDraftFluxorRow> = {
   setupId: {
     dictionaryName: 'aws-setup-id',
     attributeName: 'setup-id',
@@ -20,6 +11,26 @@ export const awsSetupWizardFluxorData: FluxorData<AwsSetupWizardRow> = {
     dictionaryName: 'aws-account-id',
     attributeName: 'account-id',
     label: 'Account Id',
+  },
+  accountName: {
+    dictionaryName: 'aws-account-name',
+    attributeName: 'account-name',
+    label: 'Account Name',
+  },
+  connectionStatus: {
+    dictionaryName: 'aws-connection-status',
+    attributeName: 'connection-status',
+    label: 'Connection Status',
+  },
+  connectionMessage: {
+    dictionaryName: 'aws-connection-message',
+    attributeName: 'connection-message',
+    label: 'Connection Message',
+  },
+  connectionCheckedAt: {
+    dictionaryName: 'aws-connection-checked-at',
+    attributeName: 'connection-checked-at',
+    label: 'Connection Checked At',
   },
   region: {
     dictionaryName: 'aws-region',

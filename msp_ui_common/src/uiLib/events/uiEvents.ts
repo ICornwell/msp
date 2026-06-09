@@ -31,6 +31,7 @@ export type UiDataCacheEvent<T = any> = UiEventMessage<{
 export type UiNavigationEvent<T = any, C = any> = UiEventMessage<{
   viewDataIdentifier: string;
   viewDataContent: T;
+  action?: string;
   context?: C;
 }>;
 

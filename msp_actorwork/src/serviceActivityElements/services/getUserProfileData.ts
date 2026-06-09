@@ -1,5 +1,4 @@
-import type { ServiceActivity, 
-  ServiceActivityResultBuilder } from 'msp_svr_common';
+import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import type { DataObject,  ViewDataContent } from 'msp_common';
 
@@ -72,7 +71,7 @@ const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
   }
 };
 
-async function getUserProfileDataHandler(
+export async function getUserProfileDataHandler(
   payload: GetUserProfileDataPayload,
   resultBuilder: ServiceActivityResultBuilder
 ): Promise<ServiceActivityResultBuilder> {
@@ -103,11 +102,4 @@ async function getUserProfileDataHandler(
   }
 }
 
-export const GetUserProfileDataActivity: ServiceActivity = {
-  namespace: 'actorwork',
-  activityName: 'getUserProfileData',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*', //  Anyone can call this activity, no restrictions
-  funcs: getUserProfileDataHandler,
-};
+

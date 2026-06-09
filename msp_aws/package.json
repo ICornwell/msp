@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "clear_mf_cache": "rm -rf node_modules/.vite && rm -rf node_modules/__mf__virtual",
-    "start": "node ./distApi/serviceActivityElements/server.js --inspect & vite",
+    "start": "yarn start:server & yarn start:data & vite",
     "start:server": "node ./distApi/serviceActivityElements/server.js",
     "data": "node ./distApi/dataActivityElements/server.js --inspect & vite",
     "start:data": "node ./distApi/dataActivityElements/server.js",
@@ -19,6 +19,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@aws-sdk/client-sts": "^3.940.0",
     "@module-federation/vite": "workspace:*",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "cookie-parser": "^1.4.7",

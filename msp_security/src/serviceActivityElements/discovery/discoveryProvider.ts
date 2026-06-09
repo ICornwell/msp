@@ -1,6 +1,17 @@
+export type EncryptionPublicKeyResponse = {
+  kid: string;
+  kty: string;
+  alg: string;
+  use: 'enc';
+  n?: string;
+  e?: string;
+  key_ops: string[];
+};
+
 export type DiscoveryProvider = {
   getWellKnownConfig: () => Promise<DiscoveryResponse>;
   getJwksJson: () => Promise<JwksResponse>;
+  getEncryptionPublicKey: () => Promise<EncryptionPublicKeyResponse | null>;
 };
 
 export type DiscoveryProviderConfig = {
@@ -95,6 +106,8 @@ export function getDiscoveryProvider(config: DiscoveryProviderConfig): Discovery
 
   const jwks = parseJwks(process.env['MSP_SECURITY_JWKS_JSON']);
 
+  const encryptionKey: EncryptionPublicKeyResponse | null = resolveEncryptionKey();
+
   return {
     getWellKnownConfig: async (): Promise<DiscoveryResponse> => {
       return wellKnownConfig;
@@ -102,6 +115,50 @@ export function getDiscoveryProvider(config: DiscoveryProviderConfig): Discovery
 
     getJwksJson: async (): Promise<JwksResponse> => {
       return jwks;
-    }
+    },
+
+    getEncryptionPublicKey: async (): Promise<EncryptionPublicKeyResponse | null> => {
+      return encryptionKey;
+    },
   };
+}
+
+function resolveEncryptionKey(): EncryptionPublicKeyResponse | null {
+  // First: check for a dedicated encryption public key in env
+  const encKeyJson = process.env['MSP_SECURITY_ENCRYPTION_PUBLIC_KEY_JSON'];
+  if (encKeyJson?.trim()) {
+    try {
+      const parsed = JSON.parse(encKeyJson) as Partial<EncryptionPublicKeyResponse>;
+      if (parsed?.kid && parsed?.kty) {
+        return {
+          kid: parsed.kid,
+          kty: parsed.kty,
+          alg: parsed.alg ?? 'RSA-OAEP-256',
+          use: 'enc',
+          n: parsed.n,
+          e: parsed.e,
+          key_ops: parsed.key_ops ?? ['encrypt'],
+        };
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // Second: look in existing JWKS for the first key with use:enc
+  const signingJwks = parseJwks(process.env['MSP_SECURITY_JWKS_JSON']);
+  const encKey = signingJwks.keys.find((k) => k.use === 'enc');
+  if (encKey) {
+    return {
+      kid: encKey.kid,
+      kty: encKey.kty,
+      alg: encKey.alg ?? 'RSA-OAEP-256',
+      use: 'enc',
+      n: encKey.n,
+      e: encKey.e,
+      key_ops: ['encrypt'],
+    };
+  }
+
+  return null;
 }

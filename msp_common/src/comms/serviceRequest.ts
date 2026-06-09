@@ -17,6 +17,7 @@ export type ServiceRequestEnvelope<TPayload = any> = {
 	payload: TPayload;
 	context?: string;
 	correlationId?: string;
+	includeIdClaim?: boolean;
 };
 
 export type ServiceRequestOptions = {
@@ -24,6 +25,7 @@ export type ServiceRequestOptions = {
 	endpointPath?: string;
 	timeoutMs?: number;
 	headers?: Record<string, string>;
+	includeIdClaim?: boolean;
 };
 
 export type ServiceRequestResult<TResult = any> = ServiceActivityResult & {

@@ -1,14 +1,26 @@
 import { config } from 'dotenv';
-import { setConfig, startMspServer, SERVICE_TYPE } from 'msp_svr_common';
+import { setConfig, startMspDataServer, SERVICE_TYPE } from 'msp_svr_common';
 
-import { createAwsManifest } from '../manifest/manifest.js';
 import { resolveConfig } from './config.js';
-import { getDataServiceActivities } from './services/awsDataActivities.js';
+import { AwsResourceDataActivities } from './activities/awsResourceDataActivities.js';
+
+process.on('unhandledRejection', err => {
+  console.error('UNHANDLED REJECTION:', err);
+});
+
+process.on('uncaughtException', err => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('beforeExit', code => {
+  console.log('BEFORE EXIT', code);
+  console.log((process as any)._getActiveHandles().map((h: any) => h.constructor.name));
+});
 
 config();
 
-console.log('\n🚀 AWS API server starting...');
+console.log('\n🚀 AWS API Data server starting...');
 const Config = resolveConfig();
 setConfig(Config);
-startMspServer(Config, createAwsManifest(Config), SERVICE_TYPE.DATA, getDataServiceActivities());
-console.log('\n🚀 AWS API server running');
+startMspDataServer(Config, SERVICE_TYPE.DATA, AwsResourceDataActivities);
+console.log('\n🚀 AWS API Data server running');

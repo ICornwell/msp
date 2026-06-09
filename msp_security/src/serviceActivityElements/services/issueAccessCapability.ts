@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 
-import type { ServiceActivity, ServiceActivityResultBuilder } from 'msp_svr_common';
+import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 
 export type IssueAccessCapabilityPayload = {
   subject: {
@@ -100,16 +100,9 @@ export type ResolvedCapabilityRequest = {
   returnType: 'token' | 'credentialRef';
 };
 
-export const IssueAccessCapabilityActivity: ServiceActivity = {
-  namespace: 'security',
-  activityName: 'issueAccessCapability',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: issueAccessCapabilityHandler,
-};
 
-async function issueAccessCapabilityHandler(
+
+export async function issueAccessCapabilityHandler(
   payload: IssueAccessCapabilityPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {

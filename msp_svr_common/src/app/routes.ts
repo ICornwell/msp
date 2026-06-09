@@ -22,6 +22,12 @@ export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: Activity
   const services = serviceManager();
   services.use(serviceActivities);
 
+  let activities = Array.isArray(serviceActivities) ? serviceActivities : (serviceActivities as ActivitySet).activities ?? [serviceActivities];
+  console.log(`Handling ${activities.length} activities for service type ${serviceType}:`);
+  activities.forEach(activity => {
+    console.log(`Handling activity: ${activity.namespace}-${activity.activityName} v${activity.version} (context: ${activity.context})`);
+   })
+
 
   router.get("/health", (_req, res) => {
     res.status(200).json({
@@ -31,6 +37,7 @@ export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: Activity
   });
 
   if (serviceType === 'service') {
+    console.log('Registering service route: PUT /service/run');
     router.put('/service/run', async (req, res) => {
       const request = req.body as ServiceRequestEnvelope;
 
@@ -62,6 +69,7 @@ export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: Activity
   }
 
   if (serviceType === 'data') {
+    console.log('Registering data route: PUT /data');
     router.put('/data', async (req, res) => {
       const request = req.body as DataRequestEnvelope;
 

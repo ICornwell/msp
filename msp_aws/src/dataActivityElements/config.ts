@@ -25,8 +25,11 @@ export function resolveConfig(): Partial<Config> {
     product: thisProduct,
     clientCredentials,
     serviceHubApiUrl: SharedConfig?.getHostUrl?.('serviceHub') || 'http://localhost:4001',
-    myUrl: SharedConfig?.getHostUrl?.(thisProduct.name) || 'http://localhost:4005',
-    myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name) || 'http://localhost:3005',
+    myUrl: SharedConfig?.getHostUrl?.(thisProduct.name, thisProduct.domain, thisProduct.version, thisProduct.variantName) || 'http://localhost:4005',
+    myMFUrl: SharedConfig?.getMFHostUrl?.(thisProduct.name, thisProduct.domain, thisProduct.version, thisProduct.variantName) || 'http://localhost:3005',
+    myDataUrl: SharedConfig?.getDataHostUrl?.(thisProduct.name, thisProduct.domain, thisProduct.version, thisProduct.variantName) || 'http://localhost:5005',
+    myPort: SharedConfig?.getPort?.(thisProduct.name, thisProduct.domain, thisProduct.version, thisProduct.variantName)?.toString() || '4005',
+    myDataPort: SharedConfig?.getDataPort?.(thisProduct.name, thisProduct.domain, thisProduct.version, thisProduct.variantName)?.toString() || '5005',
     jwtValidation: {
       trustedIssuers: process.env['MSP_core_issuers']
         ? process.env['MSP_core_issuers'].split(',')

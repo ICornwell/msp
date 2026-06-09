@@ -1,10 +1,10 @@
 import type { ServiceActivityResult } from "msp_common";
 import type { ActivitySet, ServiceActivity } from './serviceActivitySet.js';
 //import { isMatch } from './isMatch.js';
-import { CreateResultBuilder, defaultResult, activitySet } from './serviceActivitySet.js';
+import { CreateResultBuilder, defaultResult, emptyActivitySet } from './serviceActivitySet.js';
 
 export function serviceManager() {
-    const activities: ActivitySet = activitySet()
+    const activities: ActivitySet = emptyActivitySet()
     const activitySets: ActivitySet[] = [activities] 
     return {
         use: function (serviceActivity: ServiceActivity | ServiceActivity[] | ActivitySet): void {
@@ -29,6 +29,10 @@ export function serviceManager() {
             const rb = CreateResultBuilder(result)
 
             for (const activitySet of activitySets) {
+                if (activitySet.hasNamespace(undefined)) {
+                    console.log(`Activity set with undefined namespace`);
+                }
+                if (activitySet.isEmpty() || !activitySet.hasNamespace(namespace)) continue;
                 await activitySet.handle(namespace, activityName, version, payload, rb);
             }
 

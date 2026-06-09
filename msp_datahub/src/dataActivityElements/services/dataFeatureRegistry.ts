@@ -1,4 +1,4 @@
-import { activitySet, ActivitySet, ServiceActivityResultBuilder, serviceManager, serviceRequest, type DataFeatureManifestSection } from 'msp_svr_common';
+import { emptyActivitySet, ActivitySet, ServiceActivityResultBuilder, serviceManager, serviceRequest, type DataFeatureManifestSection } from 'msp_svr_common';
 import { ServiceRequestEnvelope } from 'msp_common';
 type RegisteredDataFeature = DataFeatureManifestSection & {
   manifestNamespace?: string;
@@ -6,7 +6,7 @@ type RegisteredDataFeature = DataFeatureManifestSection & {
 };
 
 const dataFeatures: RegisteredDataFeature[] = [];
-const registeredActivitySet: ActivitySet = activitySet();
+const registeredActivitySet: ActivitySet = emptyActivitySet();
 
 // function isSameFeature(a: ServiceActivityRegistration, b: ServiceActivityRegistration): unknown {
 //   return a.namespace === b.namespace && a.activityName === b.activityName && a.version === b.version;

@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node ./distApi/server.js",
-    "build": "tsgo -b",
+    "start": "node ./distApi/dataActivityElements/server.js",
+    "build": "rm -rf ./distApi && tsgo -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",

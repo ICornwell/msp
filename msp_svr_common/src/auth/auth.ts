@@ -6,15 +6,15 @@ import { getTokenForService as getGenericToken, clearTokenCahe as genericClearTo
 /**
  * Acquire an access token using client credentials flow
  */
-export async function getTokenForService(): Promise<string> {
+export async function getTokenForService(includeId: boolean = false): Promise<{ access: string; id?: string }> {
   const config = getConfig();
   const clientCredentials = config.clientCredentials!;
   switch (clientCredentials.authLibrary ?? 'generic') {
     case 'msal':
-      return await getMsalToken() ?? "no token";
+      return await getMsalToken(includeId) ?? { access: "no token" };
     case 'generic':
     default:
-      return await getGenericToken() ?? "no token";
+      return await getGenericToken(includeId) ?? { access: "no token" };
   }
 }
 

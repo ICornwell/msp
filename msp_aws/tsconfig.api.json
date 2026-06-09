@@ -20,6 +20,7 @@
   },
   "include": [
     "src/serviceActivityElements/**/*.ts",
+    "src/dataActivityElements/**/*.ts",
     "src/manifest/**/*.ts",
     "src/apiElements/**/*.ts",
     "src/uiElements/fluxorObjects/**/*.ts"

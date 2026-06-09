@@ -25,6 +25,15 @@ export function getDiscoveryRouter(provider: DiscoveryProvider): Router {
     res.json(result);
   });
 
- 
+  // Public encryption key — used by UI/BFF to encrypt secrets before sending to vault
+  router.get('/encryption-public-key', async (_req, res) => {
+    const key = await provider.getEncryptionPublicKey();
+    if (!key) {
+      res.status(404).json({ error: 'No encryption public key configured' });
+      return;
+    }
+    res.json(key);
+  });
+
   return router;
 }

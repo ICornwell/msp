@@ -2,7 +2,8 @@ import { ConfidentialClientApplication } from '@azure/msal-node';
 import { getConfig } from '../configuredCommon.js';
 
 const defaultExpiryMs = 5 * 60 * 1000; // 5 minutes
-let cachedToken: { token: string; expiresAt: number } | null = null;
+type CachedToken = { access: string; id?: string; expiresAt: number };
+let cachedToken: CachedToken | null = null;
 
 function getMsalConfig() {
   const config = getConfig();
@@ -21,10 +22,17 @@ function getMsalConfig() {
 }
 
 
-export async function getTokenForService() {
+export async function getTokenForService(includeId: boolean = false): Promise<{ access: string; id?: string }> {
   // Check cache first
   if (cachedToken && cachedToken.expiresAt > Date.now() + 60000) { // 60s buffer
-    return cachedToken.token;
+    if (!includeId || cachedToken.id) {
+      return {
+        access: cachedToken.access,
+        id: cachedToken.id,
+      };
+    }
+
+    cachedToken = null;
   }
   const config = getMsalConfig();
   const cca = new ConfidentialClientApplication(config.id);
@@ -32,12 +40,16 @@ export async function getTokenForService() {
   if (token) {
     const expiresInMs = token.expiresOn?.getTime() ?? defaultExpiryMs;
     cachedToken = {
-      token: token.accessToken,
+      access: token.accessToken,
+      id: includeId ? token.idToken : undefined,
       expiresAt: Date.now() + expiresInMs,
     };
-    return cachedToken.token;
+    return {
+      access: cachedToken.access,
+      id: cachedToken.id,
+    };
   }
-  return null;
+  return { access: 'no token' };
 }
 
 export function clearTokenCahe() {

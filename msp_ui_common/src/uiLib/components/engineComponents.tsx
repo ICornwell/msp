@@ -9,11 +9,15 @@ import { ReFluxListComponent } from '../renderEngine/components/ReFluxList.js';
 
 import { TableComponent } from './tables/table.js';
 import { PresetBooleanComponent } from './primatives/presets/PresetBoolean.js';
+import { PresetButtonComponent } from './primatives/presets/PresetButton.js';
 import { PresetNumberComponent } from './primatives/presets/PresetNumber.js';
 import { PresetMoneyComponent } from './primatives/presets/PresetMoney.js';
 import { PresetTextComponent } from './primatives/presets/PresetText.js';
 import { PresetDateComponent } from './primatives/presets/PresetDate.js';
 import { PresetLinkComponent } from './primatives/presets/PresetLink.js';
+import { PresetSecretComponent } from './primatives/presets/PresetSecret.js';
+import { StatusIconComponent } from './primatives/StatusIcon.js';
+import { StatusLabelComponent } from './primatives/StatusLabel.js';
 
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
@@ -30,11 +34,15 @@ export default function EngineComponents() {
   addComponent(TableComponent);
 
   addComponent(PresetBooleanComponent);
+  addComponent(PresetButtonComponent);
   addComponent(PresetNumberComponent);
   addComponent(PresetMoneyComponent);
   addComponent(PresetTextComponent);
+  addComponent(PresetSecretComponent);
   addComponent(PresetDateComponent);
   addComponent(PresetLinkComponent);
+  addComponent(StatusIconComponent);
+  addComponent(StatusLabelComponent);
   return null
 }
 

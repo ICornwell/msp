@@ -1,5 +1,7 @@
-import type { ServiceActivity } from 'msp_svr_common';
+import type { ActivitySet } from 'msp_svr_common';
 
-export function getDataServiceActivities(): ServiceActivity[] {
-  return [];
+import { AwsResourceDataActivities } from '../activities/awsResourceDataActivities.js';
+
+export function getDataServiceActivities(): ActivitySet {
+  return AwsResourceDataActivities;
 }

@@ -18,6 +18,8 @@ export type PresentationBladeState = ContextOwnedItem & {
   bladeWidthPreset?: 1 | 2 | 3 | 4 | 5 | 6;
 };
 
+export type BladeParamOptions = keyof Omit<PresentationBladeState, 'open' | 'content' | 'contextOwnerId'>;
+
 export type PresentationCurrentTab = {
   tab: Tab | null;
   currentPage?: TabPage;

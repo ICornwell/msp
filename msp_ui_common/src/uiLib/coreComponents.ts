@@ -32,3 +32,13 @@ export const Stepper: ComponentWrapper<StepperProps, StepperExtension<CNTX, any>
   displayName: 'Stepper',
   extensionFactory: extendWithStepper
 } as unknown as ComponentWrapper<StepperProps, StepperExtension<CNTX, any>>;
+
+export const StatusIcon: ComponentWrapper<unknown> = {
+  displayName: 'StatusIcon',
+  extensionFactory: undefined,
+} as unknown as ComponentWrapper<unknown>;
+
+export const StatusLabel: ComponentWrapper<unknown> = {
+  displayName: 'StatusLabel',
+  extensionFactory: undefined,
+} as unknown as ComponentWrapper<unknown>;

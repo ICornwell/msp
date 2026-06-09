@@ -1,5 +1,5 @@
 import type { DataObject, ViewDataContent } from 'msp_common';
-import type { ServiceActivity, ServiceActivityResultBuilder } from 'msp_svr_common';
+import { runDataActivity, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
 export type ListEksClustersPayload = {
   region?: string;
@@ -17,39 +17,67 @@ export type EksClusterData = {
   aws_status?: string;
 } & Partial<DataObject>;
 
-const mockClusters: ViewDataContent<EksClusterData>[] = [
-  {
-    viewDomain: 'aws',
-    viewName: 'AwsResourceInventory',
-    viewVersion: '1.0.0',
-    viewRootEntityType: 'eksCluster',
-    viewRootEntityId: 'eks-dev-primary',
-    viewRootEntityBusKey: 'eks-dev-primary',
-    viewRootId: 'eks-dev-primary',
-    content: {
-      __entityId: 'eks-dev-primary',
-      id: 'eks-dev-primary',
-      clusterName: 'msp-dev-eks',
-      region: 'eu-west-2',
-      status: 'ACTIVE',
-      version: '1.31',
-      endpoint: 'https://example.eks.amazonaws.com',
-      aws_type: 'EKS Cluster',
-      aws_name: 'msp-dev-eks',
-      aws_region: 'eu-west-2',
-      aws_status: 'ACTIVE',
-    },
-  },
-];
+type AwsSdkEksClusterData = {
+  accountId?: string;
+  arn?: string;
+  name?: string;
+  region?: string;
+  status?: string;
+  version?: string;
+  endpoint?: string;
+  roleArn?: string;
+  tags?: Record<string, string>;
+} & Partial<DataObject>;
 
-async function listEksClustersHandler(
+function normalizeEksRows(
+  rows: ViewDataContent<AwsSdkEksClusterData>[] = [],
+): ViewDataContent<EksClusterData>[] {
+  return rows.map((row) => {
+    const rowId = String(row.content.id ?? row.content.__entityId ?? row.viewRootEntityId ?? row.viewRootId);
+    const region = row.content.region ?? 'unknown';
+    const clusterName = row.content.name ?? rowId;
+    const status = row.content.status ?? 'UNKNOWN';
+    const version = row.content.version ?? 'unknown';
+    const endpoint = row.content.endpoint ?? '';
+
+    return {
+      viewDomain: 'aws',
+      viewName: 'AwsResourceInventory',
+      viewVersion: '1.0.0',
+      viewRootEntityType: 'eksCluster',
+      viewRootEntityId: rowId,
+      viewRootEntityBusKey: rowId,
+      viewRootId: rowId,
+      content: {
+        __entityId: rowId,
+        id: rowId,
+        clusterName,
+        region,
+        status,
+        version,
+        endpoint,
+        aws_type: 'EKS Cluster',
+        aws_name: clusterName,
+        aws_region: region,
+        aws_status: status,
+      },
+    };
+  });
+}
+
+export async function listEksClustersHandler(
   payload: ListEksClustersPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
+  const response = await runDataActivity<ListEksClustersPayload, { data?: ViewDataContent<AwsSdkEksClusterData>[] }>(
+    'aws',
+    'awsEksClusters',
+    '1.0.0',
+    payload ?? {},
+  );
+  const sourceRows = response.result?.data ?? [];
+  const filtered = normalizeEksRows(sourceRows);
   const region = payload?.region?.trim();
-  const filtered = region
-    ? mockClusters.filter((c) => c.content.region === region)
-    : mockClusters;
 
   resultBuilder.log(
     `Returning ${filtered.length} EKS clusters${region ? ` for region ${region}` : ''}`,
@@ -57,11 +85,3 @@ async function listEksClustersHandler(
   return resultBuilder.success({ data: filtered });
 }
 
-export const ListEksClustersActivity: ServiceActivity = {
-  namespace: 'aws',
-  activityName: 'listEksClusters',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: listEksClustersHandler,
-};

@@ -2,23 +2,31 @@ import { getConfig } from "../configuredCommon.js";
 
 interface TokenResponse {
   access_token: string;
+  id_token?: string;
   token_type: string;
   expires_in: number;
   ext_expires_in?: number;
 }
 
-// Token cache: key = scope, value = { token, expiresAt }
-const tokenCache = new Map<string, { token: string; expiresAt: number }>();
+// Token cache: key = scope, value = { access, id?, expiresAt }
+const tokenCache = new Map<string, { access: string; id?: string; expiresAt: number }>();
 
 /**
  * Acquire an access token using client credentials flow
  */
-export async function getTokenForService(): Promise<string> {
+export async function getTokenForService(includeId: boolean = false): Promise<{ access: string; id?: string }> {
   const config = getConfig().clientCredentials!;
   // Check cache first
   const cached = tokenCache.get(config.scope);
   if (cached && cached.expiresAt > Date.now() + 60000) { // 1 minute buffer
-    return cached.token;
+    if (!includeId || cached.id) {
+      return {
+        access: cached.access,
+        id: cached.id,
+      };
+    }
+
+    tokenCache.delete(config.scope);
   }
   
   const authority = config.authority || 'https://login.microsoftonline.com';
@@ -49,11 +57,15 @@ export async function getTokenForService(): Promise<string> {
     
     // Cache the token
     tokenCache.set(config.scope, {
-      token: tokenResponse.access_token,
+      access: tokenResponse.access_token,
+      id: includeId ? tokenResponse.id_token : undefined,
       expiresAt: Date.now() + (tokenResponse.expires_in * 1000),
     });
     
-    return tokenResponse.access_token;
+    return {
+      access: tokenResponse.access_token,
+      id: includeId ? tokenResponse.id_token : undefined,
+    };
   } catch (error) {
     throw new Error(`Failed to acquire access token: ${error}`);
   }

@@ -1,5 +1,5 @@
 import type { DataObject, ViewDataContent } from 'msp_common';
-import type { ServiceActivity, ServiceActivityResultBuilder } from 'msp_svr_common';
+import { runDataActivity, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
 export type ListEcrRepositoriesPayload = {
   region?: string;
@@ -16,38 +16,64 @@ export type EcrRepositoryData = {
   aws_status?: string;
 } & Partial<DataObject>;
 
-const mockRepositories: ViewDataContent<EcrRepositoryData>[] = [
-  {
-    viewDomain: 'aws',
-    viewName: 'AwsResourceInventory',
-    viewVersion: '1.0.0',
-    viewRootEntityType: 'ecrRepository',
-    viewRootEntityId: 'ecr-dev-actorwork',
-    viewRootEntityBusKey: 'ecr-dev-actorwork',
-    viewRootId: 'ecr-dev-actorwork',
-    content: {
-      __entityId: 'ecr-dev-actorwork',
-      id: 'ecr-dev-actorwork',
-      repositoryName: 'actorwork/dev',
-      region: 'eu-west-2',
-      imageTagMutability: 'IMMUTABLE',
-      scanOnPush: true,
-      aws_type: 'ECR Repository',
-      aws_name: 'actorwork/dev',
-      aws_region: 'eu-west-2',
-      aws_status: 'IMMUTABLE (scan-on-push)',
-    },
-  },
-];
+type AwsSdkEcrRepositoryData = {
+  accountId?: string;
+  repositoryArn?: string;
+  repositoryName?: string;
+  repositoryUri?: string;
+  region?: string;
+  imageTagMutability?: string;
+  scanOnPush?: boolean;
+} & Partial<DataObject>;
 
-async function listEcrRepositoriesHandler(
+function normalizeRepositoryRows(
+  rows: ViewDataContent<AwsSdkEcrRepositoryData>[] = [],
+): ViewDataContent<EcrRepositoryData>[] {
+  return rows.map((row) => {
+    const rowId = String(row.content.id ?? row.content.__entityId ?? row.viewRootEntityId ?? row.viewRootId);
+    const region = row.content.region ?? 'unknown';
+    const repositoryName = row.content.repositoryName ?? rowId;
+    const imageTagMutability = row.content.imageTagMutability ?? 'UNKNOWN';
+    const scanOnPush = Boolean(row.content.scanOnPush);
+    const status = `${imageTagMutability}${scanOnPush ? ' (scan-on-push)' : ''}`;
+
+    return {
+      viewDomain: 'aws',
+      viewName: 'AwsResourceInventory',
+      viewVersion: '1.0.0',
+      viewRootEntityType: 'ecrRepository',
+      viewRootEntityId: rowId,
+      viewRootEntityBusKey: rowId,
+      viewRootId: rowId,
+      content: {
+        __entityId: rowId,
+        id: rowId,
+        repositoryName,
+        region,
+        imageTagMutability,
+        scanOnPush,
+        aws_type: 'ECR Repository',
+        aws_name: repositoryName,
+        aws_region: region,
+        aws_status: status,
+      },
+    };
+  });
+}
+
+export async function listEcrRepositoriesHandler(
   payload: ListEcrRepositoriesPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
+  const response = await runDataActivity<ListEcrRepositoriesPayload, { data?: ViewDataContent<AwsSdkEcrRepositoryData>[] }>(
+    'aws',
+    'awsEcrRepositories',
+    '1.0.0',
+    payload ?? {},
+  );
+  const sourceRows = response.result?.data ?? [];
+  const filtered = normalizeRepositoryRows(sourceRows);
   const region = payload?.region?.trim();
-  const filtered = region
-    ? mockRepositories.filter((repo) => repo.content.region === region)
-    : mockRepositories;
 
   resultBuilder.log(
     `Returning ${filtered.length} ECR repositories${region ? ` for region ${region}` : ''}`,
@@ -55,11 +81,3 @@ async function listEcrRepositoriesHandler(
   return resultBuilder.success({ data: filtered });
 }
 
-export const ListEcrRepositoriesActivity: ServiceActivity = {
-  namespace: 'aws',
-  activityName: 'listEcrRepositories',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: listEcrRepositoriesHandler,
-};

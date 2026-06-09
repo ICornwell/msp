@@ -1,5 +1,5 @@
 import type { ViewDataContent } from 'msp_common';
-import type { ServiceActivity, ServiceActivityResultBuilder } from 'msp_svr_common';
+import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload, 
   WriteClusterSetupConfigPayload, ReconcileClusterSetupConfigPayload,
    ClusterSetupPlanStep, 
@@ -26,6 +26,9 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
       __entityId: setupId,
       id: setupId,
       setupId,
+      accountName: 'Unassigned',
+      connectionStatus: 'unknown',
+      connectionMessage: 'Not connected yet.',
       region,
       clusterName,
       wizardVersion: '1.0.0',
@@ -155,7 +158,7 @@ function buildReconcilePlan(setup: AwsClusterSetupConfig): ClusterSetupPlanStep[
   return plan;
 }
 
-async function readClusterSetupConfigHandler(
+export async function readClusterSetupConfigHandler(
   payload: ReadClusterSetupConfigPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
@@ -164,7 +167,7 @@ async function readClusterSetupConfigHandler(
   return resultBuilder.success({ data: setups });
 }
 
-async function writeClusterSetupConfigHandler(
+export async function writeClusterSetupConfigHandler(
   payload: WriteClusterSetupConfigPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
@@ -173,7 +176,7 @@ async function writeClusterSetupConfigHandler(
   return resultBuilder.success({ data: [updated] });
 }
 
-async function reconcileClusterSetupConfigHandler(
+export async function reconcileClusterSetupConfigHandler(
   payload: ReconcileClusterSetupConfigPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
@@ -202,29 +205,3 @@ async function reconcileClusterSetupConfigHandler(
 
 seedSetup('eu-west-2', 'msp-dev-eks');
 
-export const ReadClusterSetupConfigActivity: ServiceActivity = {
-  namespace: 'aws',
-  activityName: 'readClusterSetupConfig',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: readClusterSetupConfigHandler,
-};
-
-export const WriteClusterSetupConfigActivity: ServiceActivity = {
-  namespace: 'aws',
-  activityName: 'writeClusterSetupConfig',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: writeClusterSetupConfigHandler,
-};
-
-export const ReconcileClusterSetupConfigActivity: ServiceActivity = {
-  namespace: 'aws',
-  activityName: 'reconcileClusterSetupConfig',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: '*',
-  funcs: reconcileClusterSetupConfigHandler,
-};
