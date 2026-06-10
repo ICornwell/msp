@@ -4,7 +4,7 @@
 import { PresetLinkInputProps } from './components/index.js';
 import { ComponentWrapper } from './renderEngine/components/ReComponentWrapper.js';
 import { ReComponentCommonProps, ReComponentSystemProps } from './renderEngine/components/ReComponentProps.js';
-import { PresetButtonInputProps } from './components/index.js';
+import { BasicButtonProps } from './components/index.js';
 
 // Placeholder type for component props
 type ComponentProps = unknown;
@@ -14,11 +14,6 @@ export const PresetLinkComponent: ComponentWrapper<PresetLinkInputProps& ReCompo
   displayName: 'PresetLink',
   extensionFactory: undefined
 } as unknown as ComponentWrapper<PresetLinkInputProps& ReComponentCommonProps & ReComponentSystemProps>;
-
-export const PresetButtonComponent: ComponentWrapper<PresetButtonInputProps& ReComponentCommonProps & ReComponentSystemProps> = {
-  displayName: 'PresetButton',
-  extensionFactory: undefined
-} as unknown as ComponentWrapper<PresetButtonInputProps& ReComponentCommonProps & ReComponentSystemProps>;
 
 // Text input component
 export const PresetTextComponent: ComponentWrapper<ComponentProps> = {

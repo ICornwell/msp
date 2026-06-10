@@ -9,7 +9,7 @@ import { ReFluxListComponent } from '../renderEngine/components/ReFluxList.js';
 
 import { TableComponent } from './tables/table.js';
 import { PresetBooleanComponent } from './primatives/presets/PresetBoolean.js';
-import { PresetButtonComponent } from './primatives/presets/PresetButton.js';
+import { BasicButtonComponent } from './primatives/BasicButton.js';
 import { PresetNumberComponent } from './primatives/presets/PresetNumber.js';
 import { PresetMoneyComponent } from './primatives/presets/PresetMoney.js';
 import { PresetTextComponent } from './primatives/presets/PresetText.js';
@@ -34,7 +34,7 @@ export default function EngineComponents() {
   addComponent(TableComponent);
 
   addComponent(PresetBooleanComponent);
-  addComponent(PresetButtonComponent);
+  addComponent(BasicButtonComponent);
   addComponent(PresetNumberComponent);
   addComponent(PresetMoneyComponent);
   addComponent(PresetTextComponent);

@@ -1,8 +1,9 @@
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import type { DataObject, ViewDataContent } from 'msp_common';
-import type { ServiceActivityResultBuilder } from 'msp_svr_common';
+import { ReadData, WriteData, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import { resolveAwsCredentials } from './awsCredentialResolver.js';
+import { awsDesiredResourceConfigView } from '../../data/index.js';
 
 type AwsReadPayload = {
   accountId?: string;
@@ -111,8 +112,6 @@ type AwsDesiredResourceConfigRecord = {
   resources: AwsDesiredConfigPayload['resources'];
   updatedAt: string;
 } & Partial<DataObject>;
-
-const desiredConfigStore = new Map<string, ViewDataContent<AwsDesiredResourceConfigRecord>>();
 
 function makeRecordId(prefix: string, region: string, key: string) {
   return `${prefix}:${region}:${key}`;
@@ -331,7 +330,12 @@ export async function writeAwsDesiredResourceConfigHandler(
     rowId,
   );
 
-  desiredConfigStore.set(key, record);
+  await WriteData(awsDesiredResourceConfigView, {
+    ...record.content,
+    __entityId: rowId,
+    id: rowId,
+  });
+
   resultBuilder.log(`Data layer: stored desired config for ${key}.`);
   return resultBuilder.success({ data: [record] });
 }
@@ -341,14 +345,28 @@ export async function readAwsDesiredResourceConfigHandler(
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
   const key = `${payload.setupCaseId}::${payload.setupRunId}`;
-  const found = desiredConfigStore.get(key);
+  const rowId = makeRecordId('desired-config', payload.region, key);
 
-  if (found) {
-    resultBuilder.log(`Data layer: found desired config for ${key}.`);
-    return resultBuilder.success({ data: [found] });
+  try {
+    const readResult = await ReadData(awsDesiredResourceConfigView, rowId);
+    const found = readResult?.data ?? readResult?.result?.data ?? readResult;
+    if (found) {
+      const normalized = found.content
+        ? (found as ViewDataContent<AwsDesiredResourceConfigRecord>)
+        : toViewData<AwsDesiredResourceConfigRecord>(
+            'AwsDesiredResourceConfig',
+            'awsDesiredResourceConfig',
+            found as AwsDesiredResourceConfigRecord,
+            String((found as any)?.id ?? rowId),
+          );
+
+      resultBuilder.log(`Data layer: found desired config for ${key}.`);
+      return resultBuilder.success({ data: [normalized] });
+    }
+  } catch {
+    // Fall back to empty record below.
   }
 
-  const rowId = makeRecordId('desired-config', payload.region, key);
   const emptyRecord = toViewData<AwsDesiredResourceConfigRecord>(
     'AwsDesiredResourceConfig',
     'awsDesiredResourceConfig',

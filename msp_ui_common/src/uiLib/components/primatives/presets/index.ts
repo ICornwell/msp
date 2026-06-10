@@ -1,5 +1,4 @@
 export * from './PresetBoolean.js';
-export * from './PresetButton.js';
 export * from './PresetDate.js';
 export * from './PresetMoney.js';
 export * from './PresetNumber.js';

@@ -1,13 +1,10 @@
 import type { ViewDataContent } from 'msp_common';
-import type { ServiceActivityResultBuilder } from 'msp_svr_common';
+import { ReadData, WriteData, type ServiceActivityResultBuilder } from 'msp_svr_common';
 import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload, 
   WriteClusterSetupConfigPayload, ReconcileClusterSetupConfigPayload,
    ClusterSetupPlanStep, 
    AwsResourceConfigStatus} from '../../data/clusterSetUpConfig.js';
-
-
-
-const setupStore = new Map<string, ViewDataContent<AwsClusterSetupConfig>>();
+import { awsClusterSetupConfigView } from '../../data/index.js';
 
 function setupKey(region: string, clusterName: string, setupId?: string) {
   return `${setupId ?? 'default'}::${region}::${clusterName}`;
@@ -51,36 +48,60 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
     },
   };
 
-  setupStore.set(setupKey(region, clusterName, setupId), content);
   return content;
 }
 
-function readSetup(payload: ReadClusterSetupConfigPayload): ViewDataContent<AwsClusterSetupConfig>[] {
-  const setups = Array.from(setupStore.values());
-  const filtered = setups.filter((setup) => {
-    const matchesRegion = !payload.region || setup.content.region === payload.region;
-    const matchesCluster = !payload.clusterName || setup.content.clusterName === payload.clusterName;
-    const matchesSetup = !payload.setupId || setup.content.setupId === payload.setupId;
-    return matchesRegion && matchesCluster && matchesSetup;
-  });
-
-  if (filtered.length > 0) {
-    return filtered;
+function normalizeSetupRow(row: any): ViewDataContent<AwsClusterSetupConfig> | undefined {
+  if (!row) {
+    return undefined;
   }
 
-  if (payload.region && payload.clusterName) {
-    return [seedSetup(payload.region, payload.clusterName, payload.setupId)];
+  if (row.content && row.viewName === 'AwsClusterSetupConfig') {
+    return row as ViewDataContent<AwsClusterSetupConfig>;
   }
 
-  return [];
+  if (row.content && row.setupId) {
+    const setupId = row.setupId as string;
+    return {
+      viewDomain: 'aws',
+      viewName: 'AwsClusterSetupConfig',
+      viewVersion: '1.0.0',
+      viewRootEntityType: 'awsClusterSetupConfig',
+      viewRootEntityId: setupId,
+      viewRootEntityBusKey: setupId,
+      viewRootId: setupId,
+      content: row as AwsClusterSetupConfig,
+    };
+  }
+
+  return undefined;
 }
 
-function mergeSetup(payload: WriteClusterSetupConfigPayload): ViewDataContent<AwsClusterSetupConfig> {
+async function readSetup(payload: ReadClusterSetupConfigPayload): Promise<ViewDataContent<AwsClusterSetupConfig>[]> {
   const region = payload.region ?? 'eu-west-2';
   const clusterName = payload.clusterName ?? 'msp-dev-eks';
   const setupId = payload.setupId ?? 'aws-cluster-setup-default';
   const key = setupKey(region, clusterName, setupId);
-  const existing = setupStore.get(key) ?? seedSetup(region, clusterName, setupId);
+
+  try {
+    const readResult = await ReadData(awsClusterSetupConfigView, key);
+    const normalized = normalizeSetupRow(readResult?.data ?? readResult?.result?.data ?? readResult);
+    if (normalized) {
+      return [normalized];
+    }
+  } catch {
+    // Seed fallback path below.
+  }
+
+  return [seedSetup(region, clusterName, setupId)];
+}
+
+async function mergeSetup(payload: WriteClusterSetupConfigPayload): Promise<ViewDataContent<AwsClusterSetupConfig>> {
+  const region = payload.region ?? 'eu-west-2';
+  const clusterName = payload.clusterName ?? 'msp-dev-eks';
+  const setupId = payload.setupId ?? 'aws-cluster-setup-default';
+  const key = setupKey(region, clusterName, setupId);
+  const existing = (await readSetup({ setupId, region, clusterName }))[0] ?? seedSetup(region, clusterName, setupId);
 
   const nextContent: ViewDataContent<AwsClusterSetupConfig> = {
     ...existing,
@@ -112,7 +133,14 @@ function mergeSetup(payload: WriteClusterSetupConfigPayload): ViewDataContent<Aw
     },
   };
 
-  setupStore.set(key, nextContent);
+  const persistedPayload = {
+    ...nextContent.content,
+    __entityId: key,
+    id: key,
+  };
+
+  await WriteData(awsClusterSetupConfigView, persistedPayload);
+
   return nextContent;
 }
 
@@ -162,7 +190,7 @@ export async function readClusterSetupConfigHandler(
   payload: ReadClusterSetupConfigPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const setups = readSetup(payload);
+  const setups = await readSetup(payload);
   resultBuilder.log(`Returning ${setups.length} AWS cluster setup config record(s)`);
   return resultBuilder.success({ data: setups });
 }
@@ -171,7 +199,7 @@ export async function writeClusterSetupConfigHandler(
   payload: WriteClusterSetupConfigPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const updated = mergeSetup(payload);
+  const updated = await mergeSetup(payload);
   resultBuilder.log(`Stored AWS cluster setup config for ${updated.content.clusterName} in ${updated.content.region}`);
   return resultBuilder.success({ data: [updated] });
 }
@@ -183,7 +211,7 @@ export async function reconcileClusterSetupConfigHandler(
   const region = payload.region ?? 'eu-west-2';
   const clusterName = payload.clusterName ?? 'msp-dev-eks';
   const setupId = payload.setupId ?? 'aws-cluster-setup-default';
-  const current = setupStore.get(setupKey(region, clusterName, setupId)) ?? seedSetup(region, clusterName, setupId);
+  const current = (await readSetup({ setupId, region, clusterName }))[0] ?? seedSetup(region, clusterName, setupId);
   const plan = buildReconcilePlan(current.content);
 
   const reconciled = {
@@ -196,12 +224,14 @@ export async function reconcileClusterSetupConfigHandler(
   };
 
   if (!payload.dryRun) {
-    setupStore.set(setupKey(region, clusterName, setupId), reconciled);
+    await WriteData(awsClusterSetupConfigView, {
+      ...reconciled.content,
+      __entityId: setupKey(region, clusterName, setupId),
+      id: setupKey(region, clusterName, setupId),
+    });
   }
 
   resultBuilder.log(`Reconciliation plan includes ${plan.length} step(s) for ${clusterName} in ${region}`);
   return resultBuilder.success({ data: [reconciled], plan, dryRun: !!payload.dryRun });
 }
-
-seedSetup('eu-west-2', 'msp-dev-eks');
 

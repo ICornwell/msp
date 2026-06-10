@@ -5,9 +5,10 @@ import { ComponentWrapper } from './renderEngine/components/ReComponentWrapper.j
 import { TableExtension, TableProps, extendWithTable} from './components/tables/index.js';
 import { CNTX } from './renderEngine/UiPlan/ReUiPlan.js';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from './renderEngine/components/ContainerElements.js';
-import { ColumnProps } from './components/index.js';
+import { BasicButtonProps, ColumnProps } from './components/index.js';
 import { LabelFrameProps } from './components/containers/labelframe.js';
 import { StepperProps, extendWithStepper, StepperExtension } from './components/containers/stepper.js';
+import { ReComponentCommonProps, ReComponentSystemProps } from './renderEngine/components/ReComponentProps.js';
 
 // Placeholder type for component props
 
@@ -42,3 +43,8 @@ export const StatusLabel: ComponentWrapper<unknown> = {
   displayName: 'StatusLabel',
   extensionFactory: undefined,
 } as unknown as ComponentWrapper<unknown>;
+
+export const BasicButton: ComponentWrapper<BasicButtonProps> = {
+  displayName: 'BasicButton',
+  extensionFactory: undefined
+} as unknown as ComponentWrapper<BasicButtonProps>;

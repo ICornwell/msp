@@ -75,14 +75,14 @@ export const useAwsResourcesBehaviour = () => {
         action: 'aws/connectAwsCredentials/1.0.0',
         payloadFromEvent: (event) => ({
           ...defaultSetupContext,
-          setupId: event?.payload?.context?.setupId ?? defaultSetupContext.setupId,
-          region: event?.payload?.context?.region ?? defaultSetupContext.region,
-          clusterName: event?.payload?.context?.clusterName ?? defaultSetupContext.clusterName,
-          accountId: event?.payload?.context?.accountId,
-          accountName: event?.payload?.context?.accountName,
-          accessKeyId: event?.payload?.context?.accessKeyId,
-          secretAccessKey: event?.payload?.context?.secretAccessKey,
-          sessionToken: event?.payload?.context?.sessionToken,
+          setupId: event?.payload?.viewDataContent?.setupId ?? defaultSetupContext.setupId,
+          region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
+          clusterName: event?.payload?.viewDataContent?.clusterName ?? defaultSetupContext.clusterName,
+          accountId: event?.payload?.viewDataContent?.accountId,
+          accountName: event?.payload?.viewDataContent?.accountName,
+          accessKeyId: event?.payload?.viewDataContent?.accessKeyId,
+          secretAccessKey: event?.payload?.viewDataContent?.secretAccessKey,
+          sessionToken: event?.payload?.viewDataContent?.sessionToken,
         }),
       })
       .callAsync({
@@ -90,7 +90,7 @@ export const useAwsResourcesBehaviour = () => {
         action: 'aws/getAwsWizardBootstrap/1.0.0',
         payloadFromEvent: (event) => ({
           ...defaultSetupContext,
-          ...(event?.payload?.context ?? {}),
+          ...(event?.payload?.viewDataContent ?? {}),
         }),
       })
       .callAsync({
@@ -98,30 +98,30 @@ export const useAwsResourcesBehaviour = () => {
         action: 'aws/readClusterSetupConfig/1.0.0',
         payloadFromEvent: (event) => ({
           ...defaultSetupContext,
-          setupId: event?.payload?.context?.setupId ?? defaultSetupContext.setupId,
-          region: event?.payload?.context?.region ?? defaultSetupContext.region,
-          clusterName: event?.payload?.context?.clusterName ?? defaultSetupContext.clusterName,
+          setupId: event?.payload?.viewDataContent?.setupId ?? defaultSetupContext.setupId,
+          region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
+          clusterName: event?.payload?.viewDataContent?.clusterName ?? defaultSetupContext.clusterName,
         }),
       })
       .callAsync({
         id: 'refreshEksClustersFromWizardConnect',
         action: 'aws/listEksClusters/1.0.0',
         payloadFromEvent: (event) => ({
-          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+          region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
         }),
       })
       .callAsync({
         id: 'refreshEcrReposFromWizardConnect',
         action: 'aws/listEcrRepositories/1.0.0',
         payloadFromEvent: (event) => ({
-          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+          region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
         }),
       })
       .callAsync({
         id: 'refreshNetworkFromWizardConnect',
         action: 'aws/awsNetworkTopology/1.0.0',
         payloadFromEvent: (event) => ({
-          region: event?.payload?.context?.region ?? defaultSetupContext.region,
+          region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
         }),
       })
     .endActivity()
@@ -148,7 +148,7 @@ export const useAwsResourcesBehaviour = () => {
         action: 'aws/writeClusterSetupConfig/1.0.0',
         payloadFromEvent: (event) => ({
           ...defaultSetupContext,
-          ...(event?.payload?.context ?? {}),
+          ...(event?.payload?.viewDataContent ?? {}),
           status: 'ready',
         }),
       })
@@ -161,7 +161,7 @@ export const useAwsResourcesBehaviour = () => {
         action: 'aws/reconcileClusterSetupConfig/1.0.0',
         payloadFromEvent: (event) => ({
           ...defaultSetupContext,
-          ...(event?.payload?.context ?? {}),
+          ...(event?.payload?.viewDataContent ?? {}),
           dryRun: true,
         }),
       })

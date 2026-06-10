@@ -32,10 +32,13 @@ export function createSecretStrategy(options: SecretStrategyOptions): InputStrat
   } = options;
 
   return {
-
+    readonly: {
+      getReadOnly: (ctx: StrategyContext) => (ctx.value === redactedValue)
+    },
     formatter: {
+
     //  useFormatForEdit: true,
-      inputType: (value: unknown) => (isVisible || value === redactedValue) ? 'text' : 'password',  // Always use text input to allow copy-paste, but we control the masking
+      inputType: (value: unknown) => (isVisible && value !== redactedValue) ? 'text' : 'password',
       onBlur: (value: unknown, ctx: StrategyContext) => {
         options.onBlur?.(value, ctx);
       },

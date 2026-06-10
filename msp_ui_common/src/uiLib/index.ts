@@ -7,7 +7,6 @@ export type { FluxorData } from './renderEngine/index.js';
 
 // Preset components for use in UiPlans
 export {
-  PresetButtonComponent,
   PresetTextComponent,
   PresetSecretComponent,
   PresetNumberComponent,
@@ -23,7 +22,8 @@ export {
   LabelFrame,
   Stepper,
   StatusIcon,
-  StatusLabel
+  StatusLabel,
+  BasicButton
 } from './coreComponents.js';
 
 export * from './components/primatives/core/strategies/index.js';

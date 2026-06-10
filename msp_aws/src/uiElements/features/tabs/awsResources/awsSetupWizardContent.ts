@@ -1,4 +1,4 @@
-import { Columns, LabelFrame, PresetButtonComponent, PresetSecretComponent, PresetTextComponent, Re, StatusIcon, StatusLabel, Stepper } from 'msp_ui_common/uiLib';
+import { Columns, LabelFrame, BasicButtonComponent, PresetSecretComponent, PresetTextComponent, Re, StatusIcon, StatusLabel, Stepper } from 'msp_ui_common/uiLib';
 
 import { awsSetupWizardFluxorData } from '../../../fluxorObjects/awsSetupWizardFluxor.js';
 
@@ -74,7 +74,7 @@ export function awsSetupWizardContent() {
                   .withLabel('Session Token (Optional)')
                   .withValueBinding((ctx) => ctx.localData.sessionToken)
                 .endElement
-                .showingItem.fromComponentElement(PresetButtonComponent)
+                .showingItem.fromComponentElement(BasicButtonComponent)
                   .withLabel('Connect')
                   .withComponentProps({
                     internalName: 'awsWizardConnect',

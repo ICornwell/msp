@@ -82,7 +82,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
 
             const payload = {
               ...activity.payload,
-              ...objectFromMaybeFunction(activity.payloadFromnEvent, event),
+              ...objectFromMaybeFunction(activity.payloadFromEvent, event),
               ...objectFromMaybeFunction(activity.payloadFromData, data),
               ...objectFromMaybeFunction(activity.payloadFromSession, sessionInfo),
             }
