@@ -32,7 +32,7 @@ export function resolveConfig(): Partial<Config> {
             trustedIssuers: process.env['MSP_core_issuers']
                 ? process.env['MSP_core_issuers'].split(',')
                 : [],
-            audience: process.env['MSP_aud'],
+            audience: (process.env['MSP_aud'] ?? '').split(',').map((aud) => aud.trim()),
             clockTolerance: 300,
             maxTokenAge: 3600
         }

@@ -68,6 +68,7 @@ async function validateAwsConnectionViaDataActivity(
     'aws',
     'awsValidateCredentials',
     '1.0.0',
+    'default',
     {
       accountId,
       region,
@@ -118,7 +119,7 @@ export async function connectAwsCredentialsHandler(
   const failureMessage = connection.message || 'Unable to connect to AWS with supplied credentials.';
 
   if (!connection.connected) {
-    await runServiceActivity(
+    const writeResponse = await runServiceActivity(
       'aws',
       'writeClusterSetupConfig',
       '1.0.0',
@@ -137,6 +138,7 @@ export async function connectAwsCredentialsHandler(
     return resultBuilder.success({
       connected: false,
       connection,
+      data: writeResponse.result?.data,
       accountId,
       accountName,
       region,
@@ -148,7 +150,7 @@ export async function connectAwsCredentialsHandler(
   if (connection.accountId && connection.accountId !== accountId) {
     const mismatchMessage = `Provided accountId ${accountId} does not match AWS caller account ${connection.accountId}.`;
 
-    await runServiceActivity(
+    const writeResponse = await runServiceActivity(
       'aws',
       'writeClusterSetupConfig',
       '1.0.0',
@@ -170,6 +172,7 @@ export async function connectAwsCredentialsHandler(
         ...connection,
         message: mismatchMessage,
       },
+      data: writeResponse.result?.data,
       accountId,
       accountName,
       region,

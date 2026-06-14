@@ -1,4 +1,4 @@
-import { useRef, useContext, createContext } from 'react';
+import { useRef, useContext, createContext, useEffect } from 'react';
 import { AuthenticationResult, PublicClientApplication, AccountInfo } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
@@ -33,7 +33,38 @@ const msalConfig = {
 
 };
 
+const tokenScopes = String(viteEnv.VITE_scopes ?? viteEnv.VITE_scope ?? '')
+  .split(/[\s,]+/)
+  .map((scope: string) => scope.trim())
+  .filter((scope: string) => scope.length > 0);
+
+if (tokenScopes.length === 0) {
+  throw new Error('Missing VITE_scopes (or VITE_scope). Configure API scopes explicitly to acquire tokens with the correct audience.');
+}
+
+const authScopes = tokenScopes;
+
 const msalInstance = new PublicClientApplication(msalConfig);
+
+function extractClaimsFromIdToken(idToken?: string): Record<string, any> | undefined {
+  if (!idToken) {
+    return undefined;
+  }
+
+  try {
+    const payload = idToken.split('.')[1];
+    if (!payload) {
+      return undefined;
+    }
+
+    const normalised = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(normalised);
+    return JSON.parse(decoded) as Record<string, any>;
+  } catch (error) {
+    console.warn('Unable to parse id token claims from token payload.', error);
+    return undefined;
+  }
+}
 
 export interface UserSessionState {
   isAuthenticated: boolean;
@@ -42,6 +73,7 @@ export interface UserSessionState {
   userClaims?: Record<string, any>;
   accessToken?: string;
   idToken?: string;
+  tokenExpiresAtEpochMs?: number;
   sessionId?: string;
 }
 
@@ -61,6 +93,7 @@ const initialState: UserSessionState = {
   userClaims: undefined,
   accessToken: undefined,
   idToken: undefined,
+  tokenExpiresAtEpochMs: undefined,
   sessionId: undefined,
 };
 
@@ -92,29 +125,138 @@ export const UserSessionContext = createContext<{
 export const UserSessionProvider = ({ children }: { children: any }) => {
   const { raiseUiEvent } = useUiEventPublisher();
   const state = useRef(initialState);
+  const tokenRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  function clearTokenRefreshTimer() {
+    if (tokenRefreshTimerRef.current) {
+      clearTimeout(tokenRefreshTimerRef.current);
+      tokenRefreshTimerRef.current = undefined;
+    }
+  }
+
+  function postServiceWorkerMessage(message: Record<string, unknown>, callback: () => void) {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      callback();
+      return;
+    }
+
+    const sw = (navigator as any).serviceWorker;
+    try {
+      if (sw?.controller?.postMessage) {
+        sw.controller.postMessage(message);
+        callback();
+        return;
+      }
+    } catch (error) {
+      console.warn('Error posting message to active service worker controller:', error);
+    }
+
+    if (sw && typeof sw.getRegistration === 'function') {
+      sw.getRegistration().then((registration: any) => {
+        const target = registration?.active ?? registration?.waiting ?? registration?.installing;
+        target?.postMessage?.(message);
+        callback();
+      }).catch((error: any) => {
+        console.error('Error fetching Service Worker registration:', error);
+        callback();
+      });
+      return;
+    }
+
+    callback();
+  }
+
+  function scheduleTokenRefresh(expiresOn?: Date) {
+    clearTokenRefreshTimer();
+
+    if (!expiresOn) {
+      console.warn('Token refresh not scheduled because token expiry was unavailable.');
+      return;
+    }
+
+    const refreshAtMs = expiresOn.getTime() - 30_000;
+    const delayMs = Math.max(refreshAtMs - Date.now(), 0);
+
+    tokenRefreshTimerRef.current = setTimeout(() => {
+      void refreshTokenAndReshare();
+    }, delayMs);
+
+    console.log('Scheduled token refresh in ms:', delayMs);
+  }
+
+  async function refreshTokenAndReshare() {
+    if (!state.current.isAuthenticated) {
+      return;
+    }
+
+    const accounts = msalInstance.getAllAccounts();
+    const preferredAccount = accounts.find(acc => acc.username === state.current.userId) ?? accounts[0];
+    if (!preferredAccount) {
+      console.warn('Token refresh skipped: no active account in MSAL cache.');
+      return;
+    }
+
+    try {
+      const tokenResult = await msalInstance.acquireTokenSilent({
+        account: preferredAccount,
+        scopes: authScopes,
+      });
+
+      const updatedState: UserSessionState = {
+        ...state.current,
+        isAuthenticated: true,
+        userName: preferredAccount.name,
+        userId: preferredAccount.username,
+        userClaims: extractClaimsFromIdToken(tokenResult.idToken) ?? state.current.userClaims,
+        accessToken: tokenResult.accessToken,
+        idToken: tokenResult.idToken,
+        tokenExpiresAtEpochMs: tokenResult.expiresOn?.getTime(),
+      };
+
+      state.current = updatedState;
+      registerTokenWithServiceWorker(updatedState, () => {
+        console.log('Service Worker refreshed token shared.');
+      });
+      scheduleTokenRefresh(tokenResult.expiresOn ?? undefined);
+    } catch (error) {
+      console.error('Silent token refresh failed:', error);
+    }
+  }
+
   const loggedIn = (accountInfo: AccountInfo) => {
+    clearTokenRefreshTimer();
     if (state.current.isAuthenticated) {
       raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
     }
-    const uss: UserSessionState = {
+    const pendingSessionState: UserSessionState = {
       isAuthenticated: true,
       userName: accountInfo.name,
       userId: accountInfo.username,
-      userClaims: accountInfo.idTokenClaims,
-      accessToken: accountInfo.idToken,
-      idToken: accountInfo.idToken,
+      userClaims: extractClaimsFromIdToken(accountInfo.idToken) ?? accountInfo.idTokenClaims,
+      accessToken: undefined,
+      idToken: undefined,
+      tokenExpiresAtEpochMs: undefined,
       sessionId: v4()
-    }
-    state.current = uss;
-    raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_IN, payload: uss,
-      timestamp: Date.now(), correlationId: v4() });
-    callHandlers();
+    };
+
+    state.current = pendingSessionState;
+
+    // Acquire a full id/access token pair before sharing to SW or raising login events.
+    void refreshTokenAndReshare().then(() => {
+      registerTokenWithServiceWorker(state.current, () => {
+        raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_IN, payload: state.current,
+          timestamp: Date.now(), correlationId: v4() });
+        callHandlers();
+      });
+    });
   };
   const loggedOut = () => {
-    raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
-    
-    state.current = initialState;
-    callHandlers();
+    clearTokenRefreshTimer();
+    deregisterTokenWithServiceWorker(state.current, () => {
+      raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
+      state.current = initialState;
+      callHandlers();
+    });
   };
 
   // Check if we're in a browser environment
@@ -127,19 +269,46 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
     })
   }
 
-  if (state.current.isAuthenticated && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-    // Send user info to service worker
-    const sw = (navigator as any).serviceWorker;
-    if (sw && typeof sw.getRegistration === 'function') {
-      sw.getRegistration().then((registration: any) => {
-        // You can now use the registration object
-        registration?.active?.postMessage({ type: 'USER_INFO', userIdToken: state.current.idToken });
-        console.log('Service Worker sent token:', state.current.idToken);
-      }).catch((error: any) => {
-        console.error('Error fetching Service Worker registration:', error);
-      });
-    }
+  useEffect(() => {
+    // Defensive reset on app init to avoid stale tokens in a long-lived service worker.
+    postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'app-init' }, () => {
+      console.log('Service Worker token state cleared on app init.');
+    });
+  }, []);
+
+
+function registerTokenWithServiceWorker(state: UserSessionState,callback: () => void) {
+  if (!state.isAuthenticated) {
+    callback();
+    return;
   }
+
+  postServiceWorkerMessage({
+    type: 'USER_INFO',
+    userAccessToken: state.accessToken,
+    userIdToken: state.idToken,
+    tokenExpiresAtEpochMs: state.tokenExpiresAtEpochMs,
+  }, () => {
+    console.log('Service Worker sent token update.', {
+      hasAccessToken: Boolean(state.accessToken),
+      hasIdToken: Boolean(state.idToken),
+      tokenExpiresAtEpochMs: state.tokenExpiresAtEpochMs,
+    });
+    callback();
+  });
+}
+
+function deregisterTokenWithServiceWorker(state: UserSessionState,callback: () => void) {
+  if (!state.isAuthenticated) {
+    callback();
+    return;
+  }
+
+  postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'logout' }, () => {
+    console.log('Service Worker sent cleared token message.');
+    callback();
+  });
+}
 
   function handleResponse(response: AuthenticationResult | null) {
     if (response !== null) {
@@ -152,7 +321,7 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
       if (currentAccounts.length === 0) {
         // no accounts signed-in, attempt to sign a user in
         msalInstance.loginRedirect({
-          scopes: ['user.read'],
+          scopes: authScopes,
           prompt: 'select_account'
         });
       } else if (currentAccounts.length > 1) {

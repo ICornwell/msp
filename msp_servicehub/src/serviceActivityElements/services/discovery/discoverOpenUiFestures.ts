@@ -10,6 +10,7 @@ export async function discoverOpenUiFeatures(payload: any, serviceResult: Servic
     version: '*',
     variantName: '*',
   };
+  console.log(`SVR: Discovering features for product: ${JSON.stringify(product)}`);
   const claims = getAllClaims();
   const userIdClaim = claims['idTokenClaims'];
 

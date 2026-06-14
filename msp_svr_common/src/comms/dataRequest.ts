@@ -45,7 +45,7 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 	const baseUrl = resolveBaseUrl(options?.baseUrl);
 	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
 
-	const url = resolveUrl(routeUrl, `/_view_upsert/${id}`);
+	const url = resolveUrl(routeUrl, `/view/write/${id}`);
 
 	const controller = new AbortController();
 	const timeoutMs = options?.timeoutMs;
@@ -100,7 +100,7 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 	const baseUrl = resolveBaseUrl(options?.baseUrl);
 	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
 
-	const url = resolveUrl(routeUrl, `/query/${id}`);
+	const url = resolveUrl(routeUrl, `/view/read/${id}`);
 
 	const controller = new AbortController();
 	const timeoutMs = options?.timeoutMs;
@@ -142,6 +142,15 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		}
 	}
 	
+}
+
+export type DataRequestResultBuilder = {
+    updatePayload: (payload: any) => DataRequestResultBuilder;
+    updateResult: (result: any) => DataRequestResultBuilder;
+    success: (result?: any) => DataRequestResultBuilder;
+    failed: (message?: string, error?: any) => DataRequestResultBuilder;
+    log: (message: string) => DataRequestResultBuilder;
+    currentResult: () => any;
 }
 
 export async function DataRequest<TPayload = any, TResult = any>(
@@ -190,6 +199,7 @@ export async function runDataActivity<TPayload = any, TResult = any>(
 	namespace: string,
 	activityName: string,
 	version: string,
+	variantName: string,
 	payload: TPayload,
 	options?: DataRequestOptions,
 ): Promise<DataRequestResult<TResult>> {
@@ -197,6 +207,7 @@ export async function runDataActivity<TPayload = any, TResult = any>(
 		namespace,
 		activityName,
 		version,
+		variantName,
 		payload,
 	}, options);
 }

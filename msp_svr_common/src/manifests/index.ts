@@ -10,7 +10,7 @@ export type {
   ApiFeatureManifestSection,
   ActivityFeatureManifestSection,
   DataFeatureManifestSection,
-  InformationManifestSection,
+  ViewsManifestSection,
   WorkManifestSection,
   TypeVariantsManifestBlock,
   ActorCoreType,
@@ -19,6 +19,7 @@ export type {
   WorkTypeVariantManifestSection,
   LinkPrototypeEndpointManifestSection,
   LinkTypeVariantManifestSection,
+  VersionedNamespaceResourceId
 } from './manifest.js';
 
 export type {
@@ -28,5 +29,6 @@ export type {
   ManifestUiFeatureBuilder,
   ManifestApiFeatureBuilder,
   ManifestActivityFeatureBuilder,
+  ManifestDataFeatureBuilder,
 } from './manifestBuilder.js';
 

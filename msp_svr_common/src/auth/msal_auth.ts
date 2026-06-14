@@ -16,7 +16,7 @@ function getMsalConfig() {
       }
     },
     request: {
-      scopes: [config.clientCredentials?.scope + '.default'], // e.g. 'https://graph.microsoft.com/.default'
+      scopes: [config.clientCredentials?.scope ?? 'no scope specified'], // e.g. 'https://graph.microsoft.com/.default'
     }
   }
 }

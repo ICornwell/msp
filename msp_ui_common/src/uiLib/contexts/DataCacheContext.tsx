@@ -2,8 +2,9 @@ import { useContext, createContext, useRef, useState } from 'react';
 import PubSub, { UiPubSubMsg } from './UiPubSub.js';
 import { useUiEventContext } from './UiEventContext.js';
 //import { DataIdentifier } from './Data.js';
-import type { ViewDataContent, ViewDataQueryIdentifier } from 'msp_common';
+import type { DataViewIdQueryEnvelope,  ViewDataContent,  ViewDataQueryIdentifier } from 'msp_common';
 import { v4 as uuid } from 'uuid';
+import { serviceRequest } from '../comms/serverRequests.js';
 
 /**
  * UIEvent messageTypes raised by the DataCache subsystem.
@@ -11,7 +12,7 @@ import { v4 as uuid } from 'uuid';
  */
 export type DataCacheEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
-  DATA_LOADED:  'DATA_LOADED',
+  DATA_LOADED: 'DATA_LOADED',
   /** Raised when a cached data view is mutated via save(). */
   DATA_CHANGED: 'DATA_CHANGED',
 }
@@ -19,7 +20,7 @@ export type DataCacheEventsType = {
 
 export const DataCacheEvents: DataCacheEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
-  DATA_LOADED:  'DATA_LOADED',
+  DATA_LOADED: 'DATA_LOADED',
   /** Raised when a cached data view is mutated via save(). */
   DATA_CHANGED: 'DATA_CHANGED',
 } as const;
@@ -85,13 +86,13 @@ export type DataCacheContextType = {
   unsubscribeFromEvents: (subscriptionId: string) => void;
   publishRequest: (request: DataRequest) => void;
   publishEvent: (event: DataEvent) => void;
-  
+
   // Direct cache queries (sync)
   queryData: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => any | undefined;
   submitData: (viewDataContent: ViewDataContent<any>) => any | undefined;
   queryDataByIdentifier: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => any | undefined;
   isLocked: (viewDataQueryIdentifier: ViewDataQueryIdentifier) => boolean;
-  
+
   // Internal cache state (for provider only)
   _cache: Map<CacheKey, CachedView>;
   _entityIndex: Map<string, Set<CacheKey>>;
@@ -103,9 +104,9 @@ export type DataCacheContextType = {
 
 export const DataCacheContext = createContext<DataCacheContextType>({
   subscribeToEvents: () => '',
-  unsubscribeFromEvents: () => {},
-  publishRequest: () => {},
-  publishEvent: () => {},
+  unsubscribeFromEvents: () => { },
+  publishRequest: () => { },
+  publishEvent: () => { },
   queryData: () => undefined,
   submitData: () => undefined,
   queryDataByIdentifier: () => undefined,
@@ -125,26 +126,26 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
 
   // Publish to the private DataCache bus AND the UIEvent bus.
   // Behaviours see the UIEvent; render-engine containers subscribe to the private bus.
-  function fireDataEvent(event: DataEvent) {
+  function dispatchDataEvent(event: DataEvent) {
     // timeout to enusre event is in the next, rather than cuurent react cycle
     // so fast repsosnes from the cache don't miss the requester's listener subscriptions
     setTimeout(() => {
-    const msg = { messageType: event.type, payload: event, ...event } as any;
-    eventPubSubRef.current.publish(msg);
+      const msg = { messageType: event.type, payload: event, ...event } as any;
+      eventPubSubRef.current.publish(msg);
 
-    const isChange = event.type === 'DataViewChanged';
-    raiseUiEvent({
-      messageType: isChange ? DataCacheEvents.DATA_CHANGED : DataCacheEvents.DATA_LOADED,
-      payload: {
-        viewDataContent: event.viewDataContent,
-        fromCache: (event as any).fromCache ?? false,
-        dataEventType: event.type,
-      },
-      correlationId: event.correlationId || uuid(),
-      timestamp: Date.now(),
-    });
-  }, 0);
-}
+      const isChange = event.type === 'DataViewChanged';
+      raiseUiEvent({
+        messageType: isChange ? DataCacheEvents.DATA_CHANGED : DataCacheEvents.DATA_LOADED,
+        payload: {
+          viewDataContent: event.viewDataContent,
+          fromCache: (event as any).fromCache ?? false,
+          dataEventType: event.type,
+        },
+        correlationId: event.correlationId || uuid(),
+        timestamp: Date.now(),
+      });
+    }, 0);
+  }
 
   // Subscribe to requests and handle them
   const requestSubIdRef = useRef<string | undefined>(undefined);
@@ -164,7 +165,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
 
   async function loadData(viewDataQueryIdentifier: ViewDataQueryIdentifier, forceRefresh = false, correlationId?: string): Promise<void> {
     const key = toCacheKey(viewDataQueryIdentifier);
-    
+
     if (inFlightRequests.has(key)) {
       return;
     }
@@ -172,39 +173,38 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     if (!forceRefresh && cache.has(key)) {
       const cached = cache.get(key)!;
       const data = fromViewData(cached.viewDataContent as ViewDataContent<any>, viewDataQueryIdentifier)
-      fireDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: true, correlationId } as any);
+      dispatchDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: true, correlationId } as any);
       return;
     }
 
     const loadPromise = (async () => {
       try {
-        //TODO: replace with real data loading logic
-        // we've not had to do this yet as data has been loaded
-        // via ServiceActiivty calls so far
-        // but he manifests will provide ViewDataQueryIdentifier maps to Activities
-        // so the UI can just request by the ViewDataQueryIdentifier and not have to know
-        // the Service Activity names
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const mockData = { id: viewDataQueryIdentifier.viewRootEntityId, type: viewDataQueryIdentifier.viewRootEntityId, view: viewDataQueryIdentifier.viewName, loadedAt: Date.now() };
-        const viewDataContent: ViewDataContent<any> = {
-          viewName: viewDataQueryIdentifier.viewName,
-          viewDomain: viewDataQueryIdentifier.viewDomain,
-          viewVersion: viewDataQueryIdentifier.viewVersion ?? '1.0.0',
-          viewRootEntityType: viewDataQueryIdentifier.viewRootEntityId,
-          viewRootEntityId: viewDataQueryIdentifier.viewRootEntityId,
-          viewRootEntityBusKey: viewDataQueryIdentifier.viewRootEntityId,
-          viewRootId: viewDataQueryIdentifier.viewRootEntityId,
-          content: mockData,
-        };
-        cache.set(key, { viewDataContent, loadedAt: Date.now() });
+        // if we don't have the data - request it from the the server,
+        // cache the results and publish a DataViewLoaded event
+        const response = await serviceRequest<DataViewIdQueryEnvelope>('view-read', {
+          viewId: viewDataQueryIdentifier,
+          id: viewDataQueryIdentifier.recordId!,
+        });
 
-        if (!entityIndex.has(viewDataQueryIdentifier.viewRootEntityId)) {
-          entityIndex.set(viewDataQueryIdentifier.viewRootEntityId, new Set());
+        if (response.success && response.result) {
+          const raw = response.result;
+          for (const data of (Array.isArray(raw?.data) ? raw.data : [raw.data]) as Array<ViewDataContent<any>>) {
+            const viewDataContent = data?.viewName !== undefined
+              ? fromViewData(data as ViewDataContent<any>, viewDataQueryIdentifier)
+              : undefined;
+            if (viewDataContent) {
+              cache.set(key, { viewDataContent, loadedAt: Date.now() });
+
+              if (!entityIndex.has(viewDataQueryIdentifier.viewRootEntityId)) {
+                entityIndex.set(viewDataQueryIdentifier.viewRootEntityId, new Set());
+              }
+            }
+            entityIndex.get(viewDataQueryIdentifier.viewRootEntityId)!.add(key);
+
+
+            dispatchDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: false, correlationId } as any);
+          }
         }
-        entityIndex.get(viewDataQueryIdentifier.viewRootEntityId)!.add(key);
-
-        const data = fromViewData(viewDataContent, viewDataQueryIdentifier)
-        fireDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: false, correlationId } as any);
       } catch (error: any) {
         eventPubSubRef.current.publish({
           messageType: 'DataViewLoadFailed',
@@ -230,7 +230,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     } else if (msg.type === 'UnloadDataView') {
       const key = toCacheKey(msg.viewDataContent);
       cache.delete(key);
-      
+
       const indexSet = entityIndex.get(msg.viewDataContent.viewRootId);
       if (indexSet) {
         indexSet.delete(key);
@@ -246,7 +246,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     } else if (msg.type === 'PublishChange') {
       const key = toCacheKey(msg.viewDataContent);
       const cached = cache.get(key);
-      
+
       if (cached) {
         if (msg.changePath && msg.changeValue !== undefined) {
           let target = cached.viewDataContent?.content;
@@ -256,7 +256,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
           target[msg.changePath[msg.changePath.length - 1]] = msg.changeValue;
         }
 
-        fireDataEvent({
+        dispatchDataEvent({
           type: 'DataViewChanged',
           viewDataContent: cached.viewDataContent,
           changeType: 'updated', path: msg.changePath,
@@ -267,14 +267,14 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   }
 
   const contextValue: DataCacheContextType = {
-    subscribeToEvents: (callback, filter) => 
+    subscribeToEvents: (callback, filter) =>
       eventPubSubRef.current.subscribe({ callback, msgTypeFilter: filter }),
-    unsubscribeFromEvents: (subscriptionId) => 
+    unsubscribeFromEvents: (subscriptionId) =>
       eventPubSubRef.current.unsubscribe(subscriptionId),
-    publishRequest: (request) => 
+    publishRequest: (request) =>
       requestPubSubRef.current.publish({ messageType: request.type, payload: request, ...request } as any),
-    publishEvent: (event) => fireDataEvent(event),
-    
+    publishEvent: (event) => dispatchDataEvent(event),
+
     queryData: (viewDataQueryIdentifier) => {
       const key = toCacheKey(viewDataQueryIdentifier);
       return cache.get(key)?.viewDataContent?.content;
@@ -289,7 +289,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
       const cached = cache.get(key);
       if (cached && cached.viewDataContent) {
         cached.viewDataContent.content = viewDataContent.content;
-        fireDataEvent({
+        dispatchDataEvent({
           type: 'DataViewChanged',
           viewDataContent: cached.viewDataContent,
           changeType: 'updated',
@@ -297,7 +297,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
         } as DataEvent);
       } else {
         cache.set(key, { viewDataContent, loadedAt: Date.now() });
-        fireDataEvent({
+        dispatchDataEvent({
           type: 'DataViewLoaded',
           viewDataContent,
           fromCache: false,
@@ -310,7 +310,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
       const key = toCacheKey(viewDataQueryIdentifier);
       return cache.get(key)?.locked ?? false;
     },
-    
+
     _cache: cache,
     _entityIndex: entityIndex,
   };

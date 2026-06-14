@@ -5,6 +5,7 @@ export async function routeDataActivity(
   namespace: string,
   activityName: string,
   version: string,
+  variantName: string = 'default',
   payload: any,
   _context?: string
 ) {
@@ -12,7 +13,7 @@ export async function routeDataActivity(
   // Try remote services using the registry's ActivitySet (with fancy version matching)
   const latestRegisteredActivities = createServiceManager();
 
-  const registeredActivityResults = await latestRegisteredActivities.runAllMatches(namespace, activityName, version, payload);
+  const registeredActivityResults = await latestRegisteredActivities.runAllMatches(namespace, activityName, version, variantName, payload);
   
   if (registeredActivityResults.success) {
     return registeredActivityResults;

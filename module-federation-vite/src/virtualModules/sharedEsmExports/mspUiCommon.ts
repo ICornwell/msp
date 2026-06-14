@@ -26,6 +26,7 @@ export function mspUiCommonExportCode(): string {
       : (moduleFactory?.default ?? moduleFactory);
     export default sharedModule;
     export const ActivityDispatchProvider = pick('ActivityDispatchProvider');
+    export const BasicButton = pick('BasicButton');
     export const Behaviour = pick('Behaviour');
     export const BehaviourDispatchProvider = pick('BehaviourDispatchProvider');
     export const BehaviourHandlerRegistryProvider = pick('BehaviourHandlerRegistryProvider');
@@ -36,7 +37,6 @@ export function mspUiCommonExportCode(): string {
     export const MenuDispatchProvider = pick('MenuDispatchProvider');
     export const PresentationDispatchProvider = pick('PresentationDispatchProvider');
     export const PresetBooleanComponent = pick('PresetBooleanComponent');
-    export const PresetButtonComponent = pick('PresetButtonComponent');
     export const PresetDateComponent = pick('PresetDateComponent');
     export const PresetLinkComponent = pick('PresetLinkComponent');
     export const PresetMoneyComponent = pick('PresetMoneyComponent');

@@ -31,6 +31,7 @@ router.put('/data', async (req, res) => {
       request.namespace,
       request.activityName,
       request.version,
+      request.variantName || 'default',
       request.payload,
       request.context
     );
@@ -46,7 +47,7 @@ router.put('/data', async (req, res) => {
 });
 
 
-router.put('/_view_upsert', async (req, res) => {
+router.put('/view/write', async (req, res) => {
   const request = req.body as DataViewUpsertEnvelope;
 
   if (!request?.payload?.view || !request?.payload?.data) {
@@ -61,6 +62,7 @@ router.put('/_view_upsert', async (req, res) => {
       'datahub_dgm',
       'writeDataView',
       '1.0.0',
+      'default',
       request.payload,
     );
 
@@ -68,13 +70,13 @@ router.put('/_view_upsert', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: 'Service execution failed.',
+      message: 'Data upsert execution failed.',
       error: error?.message ?? String(error),
     });
   }
 });
 
-router.put('/_view_query', async (req, res) => {
+router.put('/view/read', async (req, res) => {
   const request = req.body as DataViewQueryEnvelope;
 
   if (!request?.payload?.view ) {
@@ -90,6 +92,7 @@ router.put('/_view_query', async (req, res) => {
       'datahub_dgm',
       'readDataView',
       '1.0.0',
+      'default',
       request.payload,
     );
 
@@ -119,6 +122,7 @@ router.put('/service/run', async (req, res) => {
       request.namespace,
       request.activityName,
       request.version,
+      request.variantName || 'default',
       request.payload,
       request.context
     );

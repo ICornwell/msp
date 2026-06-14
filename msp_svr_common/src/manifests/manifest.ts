@@ -1,6 +1,17 @@
+import { View } from "msp_common";
 import { ProductConfig } from "../sharedconfig.js";
 
 export type OptStr = string | undefined;
+
+export type ManifestResourceType = 'feature' | 'service' | 'work' | 'actor' | 'view';
+
+export type VersionedNamespaceResourceId = {
+  type: ManifestResourceType;
+  namespace?: string;
+  name: string;
+  version?: string;
+  variantName?: string;
+};
 
 export declare type ManifestCommon<N extends string = string, VR extends string = string, VN extends string = string> = {
   // manifest sections can restrict usage contexts
@@ -32,8 +43,6 @@ export declare type Manifest<N extends string = string, VR extends string = stri
 
 export declare type DomainManifest<N extends string = string, VR extends string = string, VN extends string = string> = Manifest<N, VR, VN> & {
   dataFeatures: DataFeatureManifestSection[]
-  // Deprecated alias kept for transition.
-  informationPackages?: DataFeatureManifestSection[]
   subDomains: DomainManifest[]
   work: WorkManifestSection[]
 }
@@ -41,12 +50,11 @@ export declare type DomainManifest<N extends string = string, VR extends string 
 export declare type ServiceManifestSection<N extends string = string, VR extends string = string, VN extends string = string> = ManifestCommon<N, VR, VN> & {
 
  dataFeatures: DataFeatureManifestSection[]
- // Deprecated alias kept for transition.
- informationPackages?: DataFeatureManifestSection[]
  uiFeatures: UiFeatureManifestSection[]
  apiFeatures: ApiFeatureManifestSection[]
  activityFeatures: ActivityFeatureManifestSection[]
  work: WorkManifestSection[]
+ directViews: ViewsManifestSection[]
 }
 
 export declare type UiFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> =  ManifestCommon<N, VR, VN> &{
@@ -54,24 +62,24 @@ export declare type UiFeatureManifestSection<N extends string = string, VR exten
 }
 
 export declare type ActivityFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> =  ManifestCommon<N, VR, VN> &{
-   remotePath: string;
+  useForViewReads: View[]; 
+  useForViewWrites: View[]; 
+  remotePath: string;
    
 }
 
 export declare type ApiFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> = ManifestCommon<N, VR, VN> & {
- data?: DataFeatureManifestSection[]
- // Deprecated alias kept for transition.
- information?: DataFeatureManifestSection[]
- work?: WorkManifestSection[]
  remotePath: string;
 }
 
 export declare type DataFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> = ManifestCommon<N, VR, VN> & {
- remotePath: string;
+  useForViewReads: View[]; 
+  useForViewWrites: View[]; 
+  remotePath: string;
 }
 
 // Deprecated alias kept for transition.
-export declare type InformationManifestSection = DataFeatureManifestSection;
+export declare type ViewsManifestSection = { owner: VersionedNamespaceResourceId, view: View, isWriteAllowed: boolean };
 
 export declare type WorkManifestSection<N extends string = string, VR extends string = string, VN extends string = string> = ManifestCommon<N, VR, VN> & {
  

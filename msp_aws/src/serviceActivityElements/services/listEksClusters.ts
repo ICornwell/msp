@@ -73,6 +73,7 @@ export async function listEksClustersHandler(
     'aws',
     'awsEksClusters',
     '1.0.0',
+    'default',
     payload ?? {},
   );
   const sourceRows = response.result?.data ?? [];

@@ -1,5 +1,4 @@
-import type { ServiceActivity, 
-  ServiceActivityResultBuilder } from 'msp_svr_common';
+import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import type { DataObject,  ViewDataContent } from 'msp_common';
 import type { UserWorkListProps } from '../../uiElements/fluxorObjects/workListFluxor.js';
@@ -92,11 +91,4 @@ export async function getUserWorkListDataHandler(
   }
 }
 
-export const GetUserWorkListDataActivity: ServiceActivity = {
-  namespace: 'actorwork',
-  activityName: 'getUserWorkListData',
-  version: '1.0.0',
-  matchingVersionRange: '^1.0.0',
-  context: 'AUTH', // Only authenticated users can call this activity
-  funcs: getUserWorkListDataHandler,
-};
+

@@ -2,7 +2,10 @@
 // Adds X-Msp-Request header to outbound requests and checks for X-Msp-Response in responses
 
 
-let currentIdToken = undefined
+let currentAccessToken = undefined;
+let currentIdToken = undefined;
+let tokenExpiresAtEpochMs = undefined;
+let tokenExpiryClearTimeout = undefined;
 
 const DEBUG_SW_LOGS = true;
 
@@ -22,11 +25,58 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'USER_INFO') {
-    console.log('[Service Worker] Received user info:', event.data.userIdToken);
+    currentAccessToken = event.data.userAccessToken;
     currentIdToken = event.data.userIdToken;
+    tokenExpiresAtEpochMs = event.data.tokenExpiresAtEpochMs;
+    scheduleExpiryBasedTokenClear(tokenExpiresAtEpochMs);
+    console.log('[Service Worker] Received user info', {
+      hasAccessToken: Boolean(currentAccessToken),
+      hasIdToken: Boolean(currentIdToken),
+      tokenExpiresAtEpochMs,
+    });
     // You can store or use the user info as needed
+    return;
+  }
+
+  if (event.data && event.data.type === 'CLEAR_TOKENS') {
+    clearTokens(event.data.reason || 'explicit-clear');
   }
 });
+
+function clearTokens(reason) {
+  currentAccessToken = undefined;
+  currentIdToken = undefined;
+  tokenExpiresAtEpochMs = undefined;
+  if (tokenExpiryClearTimeout) {
+    clearTimeout(tokenExpiryClearTimeout);
+    tokenExpiryClearTimeout = undefined;
+  }
+
+  if (DEBUG_SW_LOGS) {
+    console.log('[Service Worker] Cleared tokens', { reason });
+  }
+}
+
+function scheduleExpiryBasedTokenClear(expiresAtEpochMs) {
+  if (tokenExpiryClearTimeout) {
+    clearTimeout(tokenExpiryClearTimeout);
+    tokenExpiryClearTimeout = undefined;
+  }
+
+  if (!expiresAtEpochMs || Number.isNaN(Number(expiresAtEpochMs))) {
+    return;
+  }
+
+  const clearAtMs = Number(expiresAtEpochMs) + 30_000;
+  const delayMs = Math.max(clearAtMs - Date.now(), 0);
+  tokenExpiryClearTimeout = setTimeout(() => {
+    clearTokens('expiry+30s');
+  }, delayMs);
+
+  if (DEBUG_SW_LOGS) {
+    console.log('[Service Worker] Scheduled token clear in ms', delayMs);
+  }
+}
 
 // Fetch event - intercept all HTTP requests
 self.addEventListener('fetch', (event) => {
@@ -42,40 +92,62 @@ self.addEventListener('fetch', (event) => {
       try {
         const reqUrl = new URL(request.url);
         const { host, alias, path } = resolveHostAndPath(reqUrl);
+        const isSameOrigin = reqUrl.origin === self.location.origin;
+        const shouldInjectHeaders = Boolean(alias) || (isSameOrigin && reqUrl.pathname.startsWith('/api/v1/'));
 
-        if (!alias) {
+        if (!shouldInjectHeaders) {
+          if (DEBUG_SW_LOGS) {
+            console.log('[Service Worker] bypass fetch', {
+              url: request.url,
+              alias,
+              sameOrigin: isSameOrigin,
+              pathname: reqUrl.pathname,
+            });
+          }
           return fetch(request);
         }
 
         if (DEBUG_SW_LOGS) {
-          console.log('[Service Worker] alias fetch intercept', {
+          console.log('[Service Worker] fetch intercept', {
             url: request.url,
             alias,
             resolvedHost: host,
             resolvedPath: path,
+            sameOrigin: isSameOrigin,
           });
         }
 
         const outgoingHeaders = new Headers(request.headers);
         outgoingHeaders.set('X-Msp-Request', 'true');
+        if (currentAccessToken) {
+          outgoingHeaders.set('Authorization', `Bearer ${currentAccessToken}`);
+        }
         if (currentIdToken) {
-          outgoingHeaders.set('Authorization', `Bearer ${currentIdToken}`);
+          outgoingHeaders.set('MSP-X-ACTOR-ID-CLAIM', currentIdToken);
         }
 
-        const modifiedUrl = `${reqUrl.protocol}//${host}${path}${reqUrl.search}`;
+        const modifiedUrl = alias
+          ? `${reqUrl.protocol}//${host}${path}${reqUrl.search}`
+          : request.url;
+
+        if (DEBUG_SW_LOGS) {
+          console.log('[Service Worker] calling with headers', outgoingHeaders);
+        }
+
+        // Read body to a concrete ArrayBuffer to avoid stream/duplex issues.
+        // request.body is a ReadableStream even for plain JSON payloads;
+        // passing it directly to new Request() requires duplex:'half' and
+        // can trigger ALPN negotiation failures on some Chromium builds.
+        const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
+        const bodyBytes = hasBody ? await request.clone().arrayBuffer() : undefined;
 
         const modifiedRequest = new Request(modifiedUrl, {
           method: request.method,
           headers: outgoingHeaders,
-          body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
-          mode: request.mode,
+          body: bodyBytes,
           credentials: request.credentials,
-          cache: request.cache,
           redirect: request.redirect,
-          integrity: request.integrity,
-          keepalive: request.keepalive,
           signal: request.signal,
-          referrer: request.referrer || undefined,
           referrerPolicy: request.referrerPolicy || undefined,
         });
 

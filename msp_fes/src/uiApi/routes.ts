@@ -10,41 +10,49 @@ const getServiceHubUrl = () => getConfig().serviceHubApiUrl || 'http://localhost
 const getSecurityServiceUrl = () => process.env['MSP_SECURITY_API_URL'] || 'http://localhost:4005';
 
 // Standard service execution endpoint - proxy to servicehub
-router.put('/service/run', async (req, res) => {
-  try {
-    console.log('Received request to /service/run');
-    const serviceHubUrl = getServiceHubUrl();
-    const response = await fetch(`${serviceHubUrl}/api/v1/service/run`, {
-      method: 'PUT',
-      headers: { 
-        'content-type': 'application/json',
-        ...extractForwardHeaders(req)
-      },
-      body: JSON.stringify({
-        namespace: req.body.namespace || 'default',
-        activityName: req.body.activityName || 'default',
-        version: req.body.version ||'1.0.0',
-        payload: req.body.payload | req.body
-      })
-    });
+router.put('/service/run', routedProxy('/service/run'));
+router.put('/data', routedProxy('/data'));
+router.put('/view/read', routedProxy('/view/read'));
+router.put('/view/write', routedProxy('/view/write'));
 
-    const result = await response.json();
-    res.status(response.status).json(result);
-  } catch (error: any) {
-    console.error('DMZ gateway error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Gateway communication failed',
-      error: error?.message
-    });
+function routedProxy(route: string) {
+  return async  (req: express.Request, res: express.Response) => {
+    try {
+      console.log(`Received request to ${route}`);
+      const serviceHubUrl = getServiceHubUrl();
+      const response = await fetch(`${serviceHubUrl}/api/v1/${route}`, {
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json',
+          ...extractForwardHeaders(req)
+        },
+        body: JSON.stringify({
+          namespace: req.body.namespace || 'default',
+          activityName: req.body.activityName || 'default',
+          version: req.body.version || '1.0.0',
+          variantName: req.body.variantName || 'default',
+          payload: req.body.payload || req.body
+        })
+      });
+
+      const result = await response.json();
+      res.status(response.status).json(result);
+    } catch (error: any) {
+      console.error('DMZ gateway error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Gateway communication failed',
+        error: error?.message
+      });
+    }
   }
-});
+}
 
 function extractForwardHeaders(req: express.Request): Record<string, string> {
   console.log('Extracting headers from request');
   const headers: Record<string, string> = {};
   const forwardHeaders = ['authorization', 'x-correlation-id', 'x-request-id', 'user-agent'];
-  
+
   for (const header of forwardHeaders) {
     console.log(`Checking for header: ${header}`);
     const value = req.headers[header];
@@ -53,7 +61,7 @@ function extractForwardHeaders(req: express.Request): Record<string, string> {
       headers[header] = Array.isArray(value) ? value[0] : value;
     }
   }
-  
+
   return headers;
 }
 

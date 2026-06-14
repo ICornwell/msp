@@ -1,6 +1,6 @@
 // JWT Token validation and verification using jose
 import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
-import { setRequestContext } from './context.js';
+import { setClaimStoreEntry, setRequestContext } from './context.js';
 import { JWTValidationConfig } from 'msp_common';
 
 
@@ -22,6 +22,7 @@ async function getJWKSEndpoint(issuer: string): Promise<string> {
   try {
     const response = await fetch(wellKnownUrl);
     if (!response.ok) {
+      console.log(`SVR: failed to fetch OIDC discovery document from ${wellKnownUrl}: ${response.statusText}`);
       throw new Error(`Failed to fetch OIDC discovery document: ${response.statusText}`);
     }
     
@@ -51,6 +52,7 @@ async function getJWKS(issuer: string): Promise<ReturnType<typeof createRemoteJW
 function decodeJWT(token: string): { header: any; payload: any } {
   const parts = token.split('.');
   if (parts.length !== 3) {
+    console.log('SVR: failing auth: invalid JWT format');
     throw new Error('Invalid JWT format');
   }
   
@@ -58,6 +60,45 @@ function decodeJWT(token: string): { header: any; payload: any } {
   const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
   
   return { header, payload };
+}
+
+type ValidationOptions = {
+  validateAudience?: boolean;
+  includeApiAudienceAlias?: boolean;
+  maxTokenAge?: number;
+};
+
+async function validateJwtToken(
+  token: string,
+  config: JWTValidationConfig,
+  options: ValidationOptions = {},
+): Promise<ValidatedToken> {
+  const { payload: decodedPayload } = decodeJWT(token);
+
+  if (!config.trustedIssuers.includes(decodedPayload.iss)) {
+    throw new Error(`Untrusted issuer: ${decodedPayload.iss}`);
+  }
+
+  const JWKS = await getJWKS(decodedPayload.iss);
+  const verifyOptions: any = {
+    issuer: config.trustedIssuers,
+    clockTolerance: config.clockTolerance || 60,
+  };
+
+  if (options.validateAudience !== false && config.audience) {
+    verifyOptions.audience = config.audience
+  }
+
+  if (options.maxTokenAge ?? config.maxTokenAge) {
+    verifyOptions.maxTokenAge = options.maxTokenAge ?? config.maxTokenAge;
+  }
+
+  const result = await jwtVerify(token, JWKS, verifyOptions);
+  return {
+    payload: result.payload,
+    raw: token,
+    header: result.protectedHeader,
+  };
 }
 
 /**
@@ -68,39 +109,13 @@ export async function validateIdToken(
   config: JWTValidationConfig
 ): Promise<ValidatedToken> {
   try {
-    // Decode to check issuer first
-    const { payload: decodedPayload } = decodeJWT(token);
-    
-    // Check if issuer is trusted
-    if (!config.trustedIssuers.includes(decodedPayload.iss)) {
-      throw new Error(`Untrusted issuer: ${decodedPayload.iss}`);
-    }
-    
-    // Get JWKS for the issuer
-    const JWKS = await getJWKS(decodedPayload.iss);
-    
-    // Verify the token
-    const verifyOptions: any = {
-      issuer: config.trustedIssuers,
-      clockTolerance: config.clockTolerance || 60,
-    };
-    
-    if (config.audience) {
-      verifyOptions.audience = config.audience;
-    }
-    
-    if (config.maxTokenAge) {
-      verifyOptions.maxTokenAge = config.maxTokenAge;
-    }
-    
-    const result = await jwtVerify(token, JWKS, verifyOptions);
-    
-    return {
-      payload: result.payload,
-      raw: token,
-      header: result.protectedHeader,
-    };
+    return await validateJwtToken(token, config, {
+      validateAudience: true,
+      includeApiAudienceAlias: true,
+      maxTokenAge: config.maxTokenAge,
+    });
   } catch (error) {
+    console.log(`SVR: failing auth: ID token validation error: ${error}`);
     throw new Error(`ID token validation failed: ${error}`);
   }
 }
@@ -113,36 +128,30 @@ export async function validateAccessToken(
   config: JWTValidationConfig
 ): Promise<ValidatedToken> {
   try {
-    // Decode to check issuer first
-    const { payload: decodedPayload } = decodeJWT(token);
-    
-    // Check if issuer is trusted
-    if (!config.trustedIssuers.includes(decodedPayload.iss)) {
-      throw new Error(`Untrusted issuer: ${decodedPayload.iss}`);
-    }
-    
-    // Get JWKS for the issuer
-    const JWKS = await getJWKS(decodedPayload.iss);
-    
-    // Verify the token
-    const verifyOptions: any = {
-      issuer: config.trustedIssuers,
-      clockTolerance: config.clockTolerance || 60,
-    };
-    
-    if (config.audience) {
-      verifyOptions.audience = config.audience;
-    }
-    
-    const result = await jwtVerify(token, JWKS, verifyOptions);
-    
-    return {
-      payload: result.payload,
-      raw: token,
-      header: result.protectedHeader,
-    };
+    return await validateJwtToken(token, config, {
+      validateAudience: true,
+      includeApiAudienceAlias: true,
+    });
   } catch (error) {
+            console.log(`SVR: failing auth: claim token validation error: ${error}`);
+        console.log(`for token: ${token}`);
+        console.log(`with config: ${JSON.stringify(config)}`);
+  
     throw new Error(`Access token validation failed: ${error}`);
+  }
+}
+
+export async function validateClaimToken(
+  token: string,
+  config: JWTValidationConfig,
+): Promise<ValidatedToken> {
+  try {
+    return await validateJwtToken(token, config, {
+      validateAudience: false,
+    });
+  } catch (error) {
+    console.log(`SVR: failing auth: claim token validation error: ${error}`);
+    throw new Error(`Claim token validation failed: ${error}`);
   }
 }
 
@@ -181,6 +190,22 @@ export async function validateAndStoreAccessToken(
   setRequestContext({
     accessToken: validated.raw,
     accessTokenClaims: validated.payload as any,
+  });
+}
+
+export async function validateAndStoreClaimToken(
+  claimName: string,
+  headerName: string,
+  token: string,
+  config: JWTValidationConfig,
+): Promise<void> {
+  const validated = await validateClaimToken(token, config);
+  setClaimStoreEntry(claimName, {
+    name: claimName,
+    headerName,
+    kind: 'jwt',
+    token: validated.raw,
+    claims: validated.payload as Record<string, any>,
   });
 }
 

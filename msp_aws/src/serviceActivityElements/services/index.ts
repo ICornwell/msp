@@ -3,3 +3,4 @@ export * from './listEcrRepositories.js';
 export * from './clusterSetupConfig.js';
 export * from './getAwsWizardBootstrap.js';
 export * from './connectAwsCredentials.js';
+export * from './refreshAwsWizardViews.js';

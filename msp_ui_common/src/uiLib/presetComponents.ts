@@ -4,7 +4,6 @@
 import { PresetLinkInputProps } from './components/index.js';
 import { ComponentWrapper } from './renderEngine/components/ReComponentWrapper.js';
 import { ReComponentCommonProps, ReComponentSystemProps } from './renderEngine/components/ReComponentProps.js';
-import { BasicButtonProps } from './components/index.js';
 
 // Placeholder type for component props
 type ComponentProps = unknown;

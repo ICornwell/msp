@@ -44,10 +44,10 @@ export interface ActivityDispatchBuilder<DT, E extends UiMsgNames, RT> {
 // ── Menu subsystem ────────────────────────────────────────────────────────────
 
 export interface MenuDispatchBuilder<DT, E extends UiMsgNames, RT> {
-  add:     (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
-  remove:  (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
-  enable:  (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
-  disable: (menu: MenuItem) => MenuDispatchBuilder<DT, E, RT>;
+  add:     (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  remove:  (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  enable:  (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  disable: (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
   endMenus: () => RT;
 }
 

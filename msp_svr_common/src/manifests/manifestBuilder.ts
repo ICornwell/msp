@@ -1,13 +1,19 @@
-import { Manifest, ServiceManifestSection,
-   UiFeatureManifestSection, ApiFeatureManifestSection, ActivityFeatureManifestSection,
+import {
+  Manifest, ServiceManifestSection,
+  UiFeatureManifestSection, ApiFeatureManifestSection, ActivityFeatureManifestSection,
   TypeVariantsManifestBlock, ManifestTypeVariants, TypedManifest,
-  TypedServiceManifestSection, TypedFeatureManifestSection, CompoundKeyFromSection, 
+  TypedServiceManifestSection, TypedFeatureManifestSection, CompoundKeyFromSection,
   MergeTypeVariantsManifestBlocks,
   TypeVariantsScopeFromBlock,
   MergeManifestTypeVariants,
   EmptyManifestTypeVariants,
-  DataFeatureManifestSection} from './manifest.js'
+  DataFeatureManifestSection,
+  ViewsManifestSection
+} from './manifest.js'
 import { Config, ProductConfig } from '../sharedconfig.js'
+import { View } from 'msp_common';
+
+
 
 // Flatten - recursively flattens intersection types into a single object type
 // Apply this to the final extracted type: Flatten<typeof builder.data>
@@ -17,12 +23,12 @@ export type Flatten<T> = T extends Array<infer AT>
 
 type FlattenObject<T> = T extends (Object | undefined)
   ? { [K in keyof T]: T[K] extends Array<infer Item>
-      ? FlattenObject<Exclude<Item, undefined>>[]
-      : (T[K] extends (Object | undefined)
-        ? FlattenObject<T[Exclude<K, undefined>]>
-        : T[K]
-        )
-    }
+    ? FlattenObject<Exclude<Item, undefined>>[]
+    : (T[K] extends (Object | undefined)
+      ? FlattenObject<T[Exclude<K, undefined>]>
+      : T[K]
+    )
+  }
   : T;
 
 type AnyTypedServiceSection = TypedServiceManifestSection<any, any>;
@@ -52,21 +58,21 @@ type UPSERTTypeVariants<
   TNewVariants extends TypeVariantsManifestBlock,
 > = TVariantContainer extends { TypeVariants: infer TVariants }
   ? Omit<TVariantContainer, 'TypeVariants'> & {
-      TypeVariants: TVariants extends ManifestTypeVariants
-        ? MergeManifestTypeVariants<TVariants, TypeVariantsScopeFromBlock<TNewVariants>>
-        : TVariants extends TypeVariantsManifestBlock
-          ? TypeVariantsScopeFromBlock<MergeTypeVariantsManifestBlocks<TVariants, TNewVariants>>
-          : TypeVariantsScopeFromBlock<TNewVariants>;
-    }
+    TypeVariants: TVariants extends ManifestTypeVariants
+    ? MergeManifestTypeVariants<TVariants, TypeVariantsScopeFromBlock<TNewVariants>>
+    : TVariants extends TypeVariantsManifestBlock
+    ? TypeVariantsScopeFromBlock<MergeTypeVariantsManifestBlocks<TVariants, TNewVariants>>
+    : TypeVariantsScopeFromBlock<TNewVariants>;
+  }
   : TVariantContainer extends { typeVariants?: infer TVariants }
-    ? Omit<TVariantContainer, 'typeVariants'> & {
-        typeVariants: TVariants extends ManifestTypeVariants
-          ? MergeManifestTypeVariants<TVariants, TypeVariantsScopeFromBlock<TNewVariants>>
-          : TVariants extends TypeVariantsManifestBlock
-            ? TypeVariantsScopeFromBlock<MergeTypeVariantsManifestBlocks<TVariants, TNewVariants>>
-            : MergeManifestTypeVariants<EmptyManifestTypeVariants, TypeVariantsScopeFromBlock<TNewVariants>>;
-      }
-    : TVariantContainer;
+  ? Omit<TVariantContainer, 'typeVariants'> & {
+    typeVariants: TVariants extends ManifestTypeVariants
+    ? MergeManifestTypeVariants<TVariants, TypeVariantsScopeFromBlock<TNewVariants>>
+    : TVariants extends TypeVariantsManifestBlock
+    ? TypeVariantsScopeFromBlock<MergeTypeVariantsManifestBlocks<TVariants, TNewVariants>>
+    : MergeManifestTypeVariants<EmptyManifestTypeVariants, TypeVariantsScopeFromBlock<TNewVariants>>;
+  }
+  : TVariantContainer;
 
 export type ManifestBuildResult<
   TManifest extends TypedManifest
@@ -79,8 +85,8 @@ type NameFrom<NameBearer> = NameBearer extends { name?: infer N } ? (N extends s
 type VersionFrom<VersionBearer> = VersionBearer extends { version?: infer V } ? (V extends string ? V : never) : never;
 type VariantNameFrom<VariantNameBearer> = VariantNameBearer extends { variantName?: infer VN } ? (VN extends string ? VN : never) : never;
 
-type UPSERTServiceToManifest<TManifest extends TypedManifest, TService extends TypedServiceManifestSection> 
-= Omit<TManifest, 'Services'> & { Services: TManifest['Services'] & { [K in CompoundKeyFromSection<TService>]: TService } };
+type UPSERTServiceToManifest<TManifest extends TypedManifest, TService extends TypedServiceManifestSection>
+  = Omit<TManifest, 'Services'> & { Services: TManifest['Services'] & { [K in CompoundKeyFromSection<TService>]: TService } };
 
 type UPSERTUiFeatureToService<
   TService extends TypedServiceManifestSection,
@@ -112,7 +118,7 @@ type UPSERTDataFeatureToService<
 
 // type AddTypeVariantsToService<TService extends TypedServiceManifestSection, TBlock extends TypeVariantsManifestBlock> 
 // = Omit<TService, 'TypeVariants'> & { TypeVariants: MergeManifestTypeVariants<TypeVariantsScopeFromBlock<TBlock>, TService['TypeVariants']> }
- 
+
 
 function toCompoundName(section: { name?: string; version?: string; variantName?: string }): string | undefined {
   if (typeof section?.name !== 'string') {
@@ -180,7 +186,7 @@ export interface ManifestBuilder<
 }
 
 export function makeManifest(config: Partial<Config>): ManifestBuilder<TypedManifest<{}>> {
-  return makeAnyManifest<TypedManifest<{},{actorTypeVariants:[],workTypeVariants:[],linkTypeVariants:[]}>>(config);
+  return makeAnyManifest<TypedManifest<{}, { actorTypeVariants: [], workTypeVariants: [], linkTypeVariants: [] }>>(config);
 }
 
 function makeAnyManifest<TManifest extends TypedManifest>(config: Partial<Config>): ManifestBuilder<TManifest> {
@@ -198,8 +204,8 @@ function makeAnyManifest<TManifest extends TypedManifest>(config: Partial<Config
     typeVariants: {}
   }
   const builder = {
-    withService: (name: string, version: string = "1.0.0", variantName: string = "default") => 
-      (makeServiceManifest(builder, name, version, variantName, values.serviceBuilders) as ManifestServiceBuilder<TManifest, SeededServiceSection<NameTriplet<typeof name, typeof version, typeof variantName>>>),
+    withService: (name: string, version: string = "1.0.0", variantName: string = "default") =>
+    (makeServiceManifest(builder, name, version, variantName, values.serviceBuilders) as ManifestServiceBuilder<TManifest, SeededServiceSection<NameTriplet<typeof name, typeof version, typeof variantName>>>),
     withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => { values.typeVariants = typeVariants; return builder as ManifestBuilder<UPSERTTypeVariants<TManifest, TBlock>> },
     forProducts: (products: Partial<ProductConfig>[]) => { values.forProducts = products; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
@@ -207,7 +213,7 @@ function makeAnyManifest<TManifest extends TypedManifest>(config: Partial<Config
     build: () => {
       // Finalize and return the manifest
       return {
-        namespace: values.namespace || `${config.product?.domain ??'default'}-${config.product?.name ??'default'}`,
+        namespace: values.namespace || `${config.product?.domain ?? 'default'}-${config.product?.name ?? 'default'}`,
         name: config.product?.name || 'Unnamed Manifest',
         version: config.product?.version || 'Unnamed Manifest',
         variantName: config.product?.variantName || 'Unnamed Manifest',
@@ -246,16 +252,16 @@ export interface ManifestServiceBuilder<
   TService extends TypedServiceManifestSection = any,
 
 > {
-  withServerUrl(serverUrl: string): ManifestServiceBuilder<TManifest,TService>
-  withMFServerUrl(serverUrl: string): ManifestServiceBuilder<TManifest,TService>
-  withDataServerUrl(serverUrl: string): ManifestServiceBuilder<TManifest,TService>
-  withAllowedContexts(contexts: string[]): ManifestServiceBuilder<TManifest,TService>
-  forProducts(products: Partial<ProductConfig>[]): ManifestServiceBuilder<TManifest,TService>
-  withNamespace(namespace: string): ManifestServiceBuilder<TManifest,TService>
+  withServerUrl(serverUrl: string): ManifestServiceBuilder<TManifest, TService>
+  withMFServerUrl(serverUrl: string): ManifestServiceBuilder<TManifest, TService>
+  withDataServerUrl(serverUrl: string): ManifestServiceBuilder<TManifest, TService>
+  withAllowedContexts(contexts: string[]): ManifestServiceBuilder<TManifest, TService>
+  forProducts(products: Partial<ProductConfig>[]): ManifestServiceBuilder<TManifest, TService>
+  withNamespace(namespace: string): ManifestServiceBuilder<TManifest, TService>
 
-  withTypeVariants<TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock): 
-  ManifestServiceBuilder<UPSERTServiceToManifest<TManifest, UPSERTTypeVariants<TService, TBlock>>,
-   UPSERTTypeVariants<TService, TBlock>>
+  withTypeVariants<TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock):
+    ManifestServiceBuilder<UPSERTServiceToManifest<TManifest, UPSERTTypeVariants<TService, TBlock>>,
+      UPSERTTypeVariants<TService, TBlock>>
 
   withUiFeature<TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version?: TFeatureVersion, variantName?: TFeatureVariantName): ManifestUiFeatureBuilder<TManifest, TService, TypedFeatureManifestSection<UiFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>>
   withApiFeature<TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version?: TFeatureVersion, variantName?: TFeatureVariantName): ManifestApiFeatureBuilder<TManifest, TService, TypedFeatureManifestSection<ApiFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>>
@@ -269,8 +275,8 @@ export interface ManifestServiceBuilder<
 }
 
 export function makeServiceManifest<TReturnManifest extends TypedManifest, TName extends string,
- TVersion extends string, TVariantName extends string>(returnTo: ManifestBuilder<TReturnManifest>,
-   name:TName, version: TVersion, variantName: TVariantName, services: ManifestServiceBuilder<TReturnManifest, any>[]
+  TVersion extends string, TVariantName extends string>(returnTo: ManifestBuilder<TReturnManifest>,
+    name: TName, version: TVersion, variantName: TVariantName, services: ManifestServiceBuilder<TReturnManifest, any>[]
   ): ManifestServiceBuilder<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>> {
   const service = {
     namespace: '',
@@ -286,11 +292,12 @@ export function makeServiceManifest<TReturnManifest extends TypedManifest, TName
     uiFeatureBuilders: [] as ManifestUiFeatureBuilder<any, any, any>[],
     apiFeatureBuilders: [] as ManifestApiFeatureBuilder<any, any, any>[],
     activityFeatureBuilders: [] as ManifestActivityFeatureBuilder<any, any, any>[],
-    dataFeatureBuilders: [] as ManifestDataFeatureBuilder<any, any, any>[]
+    dataFeatureBuilders: [] as ManifestDataFeatureBuilder<any, any, any>[],
+    views: [] as ViewsManifestSection[]
   }
 
 
-  const builder : ManifestServiceBuilder<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>> = {
+  const builder: ManifestServiceBuilder<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>> = {
     withServerUrl: (serverUrl: string) => { service.serverUrl = serverUrl; return builder },
     withMFServerUrl: (serverMFUrl: string) => { service.serverMFUrl = serverMFUrl; return builder },
     withDataServerUrl: (serverDataUrl: string) => { service.serverDataUrl = serverDataUrl; return builder },
@@ -298,20 +305,22 @@ export function makeServiceManifest<TReturnManifest extends TypedManifest, TName
     forProducts: (products: Partial<ProductConfig>[]) => { service.forProducts = products; return builder },
     withNamespace: (namespace: string) => { service.namespace = namespace; return builder },
 
-     withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => { service.typeVariants = typeVariants;
-      return builder as unknown as ManifestServiceBuilder<UPSERTServiceToManifest<TReturnManifest, UPSERTTypeVariants<SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>, TBlock>>, UPSERTTypeVariants<SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>, TBlock>> },
+    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => {
+      service.typeVariants = typeVariants;
+      return builder as unknown as ManifestServiceBuilder<UPSERTServiceToManifest<TReturnManifest, UPSERTTypeVariants<SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>, TBlock>>, UPSERTTypeVariants<SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>, TBlock>>
+    },
 
     withUiFeature: <TFeatureName extends string, TFeatureVersion extends string = '1.0.0',
-     TFeatureVariantName extends string = 'default'>(name: TFeatureName, 
-      version: TFeatureVersion = "1.0.0" as TFeatureVersion,
-       variantName: TFeatureVariantName = "default" as TFeatureVariantName) => makeUiFeatureManifest<
-      TReturnManifest,
-      SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>,
-      TypedFeatureManifestSection<UiFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>,
-      TFeatureName,
-      TFeatureVersion,
-      TFeatureVariantName
-    >(builder, name, version, variantName, service.uiFeatureBuilders),
+      TFeatureVariantName extends string = 'default'>(name: TFeatureName,
+        version: TFeatureVersion = "1.0.0" as TFeatureVersion,
+        variantName: TFeatureVariantName = "default" as TFeatureVariantName) => makeUiFeatureManifest<
+          TReturnManifest,
+          SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>,
+          TypedFeatureManifestSection<UiFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>,
+          TFeatureName,
+          TFeatureVersion,
+          TFeatureVariantName
+        >(builder, name, version, variantName, service.uiFeatureBuilders),
     withApiFeature: <TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version: TFeatureVersion = "1.0.0" as TFeatureVersion, variantName: TFeatureVariantName = "default" as TFeatureVariantName) => makeApiFeatureManifest<
       TReturnManifest,
       SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>,
@@ -327,7 +336,7 @@ export function makeServiceManifest<TReturnManifest extends TypedManifest, TName
       TFeatureName,
       TFeatureVersion,
       TFeatureVariantName
-    >(builder, name, version, variantName, service.activityFeatureBuilders),
+    >(builder, name, version, variantName, service.activityFeatureBuilders, service.views),
     withDataFeature: <TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version: TFeatureVersion = "1.0.0" as TFeatureVersion, variantName: TFeatureVariantName = "default" as TFeatureVariantName) => makeDataFeatureManifest<
       TReturnManifest,
       SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>,
@@ -335,8 +344,22 @@ export function makeServiceManifest<TReturnManifest extends TypedManifest, TName
       TFeatureName,
       TFeatureVersion,
       TFeatureVariantName
-    >(builder, name, version, variantName, service.dataFeatureBuilders),
-    
+    >(builder, name, version, variantName, service.dataFeatureBuilders, service.views),
+    withView: (view: View, allowWrites: boolean = false) => {
+      service.views.push(
+        {
+          owner: {
+            type: 'service',
+            namespace: service.namespace,
+            name: service.name,
+            version: service.version,
+            variantName: service.variantName
+          },
+          view,
+          isWriteAllowed: allowWrites
+
+        }); return builder
+    },
     endService: returnTo as ManifestBuilder<UPSERTServiceToManifest<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>>>,
     build: (config?: Partial<Config>) => {
       const serviceManifest: ServiceManifestSection<TName, TVersion, TVariantName> = {
@@ -354,7 +377,8 @@ export function makeServiceManifest<TReturnManifest extends TypedManifest, TName
         uiFeatures: service.uiFeatureBuilders.map(fb => fb.build(config)),
         activityFeatures: service.activityFeatureBuilders.map(fb => fb.build(config)),
         apiFeatures: service.apiFeatureBuilders.map(fb => fb.build(config)),
-        dataFeatures: service.dataFeatureBuilders.map(fb => fb.build(config))
+        dataFeatures: service.dataFeatureBuilders.map(fb => fb.build(config)),
+        directViews: service.views
       }
 
       // Finalize and return the manifest
@@ -371,7 +395,7 @@ export function makeServiceManifest<TReturnManifest extends TypedManifest, TName
         DataFeatures: toNamedSectionMap(serviceManifest.dataFeatures)
       } as SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>;
     }
-  } as  ManifestServiceBuilder<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>>
+  } as ManifestServiceBuilder<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>>
   services.push(builder)
   return builder as ManifestServiceBuilder<TReturnManifest, SeededServiceSection<NameTriplet<TName, TVersion, TVariantName>>>
 }
@@ -430,7 +454,9 @@ export interface ManifestActivityFeatureBuilder<
   >
   withAllowedContexts(contexts: string[]): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   forProducts(product: Partial<ProductConfig>[]): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
-
+  useForViewRead(view: View): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  useForViewWrite(view: View): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  withView: (view: View) => ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   endActivityFeature: ManifestServiceBuilder<
     UPSERTServiceToManifest<TReturnManifest, UPSERTActivityFeatureToService<TReturnService, TReturnFeature>>,
     UPSERTActivityFeatureToService<TReturnService, TReturnFeature>
@@ -450,7 +476,9 @@ export interface ManifestDataFeatureBuilder<
   >
   withAllowedContexts(contexts: string[]): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   forProducts(product: Partial<ProductConfig>[]): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
-
+  useForViewRead(view: View): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  useForViewWrite(view: View): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  withView: (view: View) => ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   endDataFeature: ManifestServiceBuilder<
     UPSERTServiceToManifest<TReturnManifest, UPSERTDataFeatureToService<TReturnService, TReturnFeature>>,
     UPSERTDataFeatureToService<TReturnService, TReturnFeature>
@@ -478,11 +506,13 @@ export function makeUiFeatureManifest<
 
 
   const builder = {
-    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => { values.typeVariants = typeVariants; return builder as unknown as ManifestUiFeatureBuilder<
-      UPSERTServiceToManifest<TReturnManifest, UPSERTUiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
-      UPSERTUiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
-      UPSERTTypeVariants<TReturnFeature, TBlock>
-    > },
+    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => {
+      values.typeVariants = typeVariants; return builder as unknown as ManifestUiFeatureBuilder<
+        UPSERTServiceToManifest<TReturnManifest, UPSERTUiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
+        UPSERTUiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
+        UPSERTTypeVariants<TReturnFeature, TBlock>
+      >
+    },
     withRemoteName: (remoteName: string) => { values.remoteName = remoteName; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
     forProducts: (products: Partial<ProductConfig>[]) => { values.forProducts = products; return builder },
@@ -526,11 +556,13 @@ export function makeApiFeatureManifest<
 
 
   const builder = {
-    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => { values.typeVariants = typeVariants; return builder as unknown as ManifestApiFeatureBuilder<
-      UPSERTServiceToManifest<TReturnManifest, UPSERTApiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
-      UPSERTApiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
-      UPSERTTypeVariants<TReturnFeature, TBlock>
-    > },
+    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => {
+      values.typeVariants = typeVariants; return builder as unknown as ManifestApiFeatureBuilder<
+        UPSERTServiceToManifest<TReturnManifest, UPSERTApiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
+        UPSERTApiFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
+        UPSERTTypeVariants<TReturnFeature, TBlock>
+      >
+    },
     withRemoteName: (remoteName: string) => { values.remoteName = remoteName; return builder },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
     forProducts: (products: Partial<ProductConfig>[]) => { values.forProducts = products; return builder },
@@ -561,28 +593,50 @@ export function makeActivityFeatureManifest<
   TName extends string = NameFrom<TReturnFeature>,
   TVersion extends string = VersionFrom<TReturnFeature>,
   TVariantName extends string = VariantNameFrom<TReturnFeature>,
->(returnTo: ManifestServiceBuilder<TReturnManifest, TReturnService>, name: TName, version: TVersion, variantName: TVariantName, featureBuilders: ManifestActivityFeatureBuilder<any, any, any>[]): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature> {
+>(returnTo: ManifestServiceBuilder<TReturnManifest, TReturnService>, name: TName, version: TVersion,
+  variantName: TVariantName, featureBuilders: ManifestActivityFeatureBuilder<any, any, any>[],
+  views: ViewsManifestSection[]): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature> {
   const values = {
     name,
     version,
     variantName,
     activityNamespace: '',
-     activityName: '',
-     activityVersion: '',
+    activityName: '',
+    activityVersion: '',
     allowedContexts: ['*'],
     forProducts: {} as Partial<ProductConfig>[],
-    typeVariants: {} as TypeVariantsManifestBlock
+    typeVariants: {} as TypeVariantsManifestBlock,
+    useForViewRead: [] as View[],
+    useForViewWrite: [] as View[]
   }
 
 
   const builder = {
-    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => { values.typeVariants = typeVariants; return builder as unknown as ManifestActivityFeatureBuilder<
-      UPSERTServiceToManifest<TReturnManifest, UPSERTActivityFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
-      UPSERTActivityFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
-      UPSERTTypeVariants<TReturnFeature, TBlock>
-    > },
+    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => {
+      values.typeVariants = typeVariants; return builder as unknown as ManifestActivityFeatureBuilder<
+        UPSERTServiceToManifest<TReturnManifest, UPSERTActivityFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
+        UPSERTActivityFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
+        UPSERTTypeVariants<TReturnFeature, TBlock>
+      >
+    },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
     forProducts: (products: Partial<ProductConfig>[]) => { values.forProducts = products; return builder },
+
+    useForViewRead: (view: View) => { values.useForViewRead.push(view); return builder },
+    useForViewWrite: (view: View) => { values.useForViewWrite.push(view); return builder },
+    withView: (view: View, allowWrites: boolean = false) => {
+      views.push(
+        {
+          owner: {
+            type: 'feature',
+            name: values.name,
+            version: values.version,
+            variantName: values.variantName
+          },
+          view,
+          isWriteAllowed: allowWrites
+        }); return builder
+    },
     endActivityFeature: returnTo,
     build: (_config?: Partial<Config>) => {
       // Finalize and return the manifest
@@ -593,7 +647,9 @@ export function makeActivityFeatureManifest<
         remotePath: `${values.activityNamespace}/${values.activityName}/${values.activityVersion}`,
         allowedContexts: values.allowedContexts,
         forProducts: values.forProducts,
-        typeVariants: values.typeVariants
+        typeVariants: values.typeVariants,
+        useForViewRead: values.useForViewRead,
+        useForViewWrite: values.useForViewWrite
       } as unknown as TReturnFeature
       return activityFeatureManifest
 
@@ -610,28 +666,49 @@ export function makeDataFeatureManifest<
   TName extends string = NameFrom<TReturnFeature>,
   TVersion extends string = VersionFrom<TReturnFeature>,
   TVariantName extends string = VariantNameFrom<TReturnFeature>,
->(returnTo: ManifestServiceBuilder<TReturnManifest, TReturnService>, name: TName, version: TVersion, variantName: TVariantName, featureBuilders: ManifestDataFeatureBuilder<any, any, any>[]): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature> {
+>(returnTo: ManifestServiceBuilder<TReturnManifest, TReturnService>, name: TName, version: TVersion,
+  variantName: TVariantName, featureBuilders: ManifestDataFeatureBuilder<any, any, any>[],
+  views: ViewsManifestSection[]): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature> {
   const values = {
     name,
     version,
     variantName,
     activityNamespace: '',
-     activityName: '',
-     activityVersion: '',
+    activityName: '',
+    activityVersion: '',
     allowedContexts: ['*'],
     forProducts: {} as Partial<ProductConfig>[],
-    typeVariants: {} as TypeVariantsManifestBlock
+    typeVariants: {} as TypeVariantsManifestBlock,
+    useForViewRead: [] as View[],
+    useForViewWrite: [] as View[]
   }
 
 
   const builder = {
-    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => { values.typeVariants = typeVariants; return builder as unknown as ManifestDataFeatureBuilder<
-      UPSERTServiceToManifest<TReturnManifest, UPSERTDataFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
-      UPSERTDataFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
-      UPSERTTypeVariants<TReturnFeature, TBlock>
-    > },
+    withTypeVariants: <TBlock extends TypeVariantsManifestBlock>(typeVariants: TBlock) => {
+      values.typeVariants = typeVariants; return builder as unknown as ManifestDataFeatureBuilder<
+        UPSERTServiceToManifest<TReturnManifest, UPSERTDataFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>>,
+        UPSERTDataFeatureToService<TReturnService, UPSERTTypeVariants<TReturnFeature, TBlock>>,
+        UPSERTTypeVariants<TReturnFeature, TBlock>
+      >
+    },
     withAllowedContexts: (contexts: string[]) => { values.allowedContexts = contexts; return builder },
     forProducts: (products: Partial<ProductConfig>[]) => { values.forProducts = products; return builder },
+    useForViewRead: (view: View) => { values.useForViewRead.push(view); return builder },
+    useForViewWrite: (view: View) => { values.useForViewWrite.push(view); return builder },
+    withView: (view: View, allowWrites: boolean = false) => {
+      views.push(
+        {
+          owner: {
+            type: 'feature',
+            name: values.name,
+            version: values.version,
+            variantName: values.variantName
+          },
+          view,
+          isWriteAllowed: allowWrites
+        }); return builder
+    },
     endDataFeature: returnTo,
     build: (_config?: Partial<Config>) => {
       // Finalize and return the manifest
@@ -642,12 +719,14 @@ export function makeDataFeatureManifest<
         remotePath: `${values.activityNamespace}/${values.activityName}/${values.activityVersion}`,
         allowedContexts: values.allowedContexts,
         forProducts: values.forProducts,
-        typeVariants: values.typeVariants
+        typeVariants: values.typeVariants,
+        useForViewRead: values.useForViewRead,
+        useForViewWrite: values.useForViewWrite
       } as unknown as TReturnFeature
       return dataFeatureManifest
 
     }
-  } as unknown  as ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  } as unknown as ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   featureBuilders.push(builder)
   return builder as ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
 }

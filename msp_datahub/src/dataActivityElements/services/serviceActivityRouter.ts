@@ -12,11 +12,12 @@ export async function routeServiceActivity(
   namespace: string,
   activityName: string,
   version: string,
+  variantName: string = 'default',
   payload: any,
   _context?: string
 ) {
   // Try local activities first
-  const localResults = await localServices.runAllMatches(namespace, activityName, version, payload);
+  const localResults = await localServices.runAllMatches(namespace, activityName, version, variantName, payload);
   
   if (localResults.success) {
     return localResults;
@@ -27,8 +28,9 @@ export async function routeServiceActivity(
     namespace,
     activityName,
     version,
+    variantName,
     success: false,
-    message: `No service found for activity: ${namespace}/${activityName}@${version}`,
+    message: `No service found for activity: ${namespace}/${activityName}@${version}#${variantName}`,
     error: { code: 'ACTIVITY_NOT_FOUND' },
     logs: [
       ...(localResults.logs || [])

@@ -1,9 +1,10 @@
 import { createContext, useContext, useCallback, type ReactNode } from 'react';
 import { useUiEventPublisher } from './UiEventContext.js';
 import { useDataCacheContext } from './DataCacheContext.js';
-import type { ServiceRequestEnvelope, ServiceRequestResult } from 'msp_common';
+import type { ServiceRequestEnvelope } from 'msp_common';
 import type { ViewDataContent } from "msp_common";
 import { UiActivityEvent } from '../events/uiEvents.js';
+import { serviceRequest } from '../comms/serverRequests.js';
 
 export type ActivityEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
@@ -38,6 +39,7 @@ export const ActivityDispatchContext = createContext<ActivityDispatchContextType
 
 export type ActivityDispatchProviderProps = {
   serviceHubUrl?: string;
+  serviceType?: 'activity' | 'data' | 'view-read' | 'view-write';
   defaultTimeout?: number;
   children: ReactNode;
 };
@@ -66,30 +68,14 @@ export function ActivityDispatchProvider({
         namespace,
         activityName,
         version,
+        variantName: 'default',
         payload,
         context,
         correlationId,
       };
 
-      const controller = new AbortController();
-      const timeoutHandle = setTimeout(() => controller.abort(), defaultTimeout);
-
       try {
-        const response = await fetch(`${serviceHubUrl}/service/run`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(envelope),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutHandle);
-
-        if (!response.ok) {
-          console.error('Activity call failed:', response.status, response.statusText);
-          throw new Error(`Activity call failed: ${response.status} ${response.statusText}`);
-        }
-
-        const result = await response.json() as ServiceRequestResult;
+        const result = await serviceRequest('activity', envelope);
 
         if (result.success && result.result) {
           const raw = result.result;
@@ -127,7 +113,7 @@ export function ActivityDispatchProvider({
         }
       } catch (err: any) {
         console.error('Activity call error:', err);
-        clearTimeout(timeoutHandle);
+       
         raiseUiEvent({
           messageType: ActivityEvents.ACTIVITY_FAILED,
           payload: {

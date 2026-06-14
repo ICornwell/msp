@@ -40,6 +40,44 @@ const App: React.FC = () => {
   const [swRegistered, setSwRegistered] = useState(false);
 
   useEffect(() => {
+    async function waitForServiceWorkerControl(timeoutMs = 5000): Promise<boolean> {
+      if (!('serviceWorker' in navigator)) {
+        return false;
+      }
+
+      if (navigator.serviceWorker.controller) {
+        return true;
+      }
+
+      try {
+        await navigator.serviceWorker.ready;
+      } catch {
+        // no-op
+      }
+
+      if (navigator.serviceWorker.controller) {
+        return true;
+      }
+
+      return await new Promise<boolean>((resolve) => {
+        const onControllerChange = () => {
+          cleanup();
+          resolve(true);
+        };
+        const timeout = setTimeout(() => {
+          cleanup();
+          resolve(Boolean(navigator.serviceWorker.controller));
+        }, timeoutMs);
+
+        const cleanup = () => {
+          clearTimeout(timeout);
+          navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+        };
+
+        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+      });
+    }
+
     if (!('serviceWorker' in navigator)) {
       setSwRegistered(false);
       return;
@@ -47,7 +85,7 @@ const App: React.FC = () => {
 
     navigator.serviceWorker
       .register('/service-worker.js')
-      .then((registration) => {
+      .then(async (registration) => {
         console.log('Service Worker registered successfully:', registration.scope);
         console.log('Service Worker lifecycle state:', {
           installing: registration.installing?.state,
@@ -55,6 +93,11 @@ const App: React.FC = () => {
           active: registration.active?.state,
           hasController: Boolean(navigator.serviceWorker.controller),
         });
+
+        const isControlled = await waitForServiceWorkerControl();
+        if (!isControlled) {
+          console.warn('Service Worker registered but controller not active yet; continuing without strict SW gate.');
+        }
         setSwRegistered(true);
       })
       .catch((error) => {

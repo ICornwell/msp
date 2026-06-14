@@ -131,7 +131,7 @@ export function getRequestId(): string | undefined {
  */
 export function getCorrelationId(): string | undefined {
   const context = getRequestContext();
-  return context?.correlationId;
+  return context?.correlationId || context?.claimStore?.['correlation-id']?.value;
 }
 
 /**
@@ -139,7 +139,8 @@ export function getCorrelationId(): string | undefined {
  */
 export function getCustomClaim(claimName: string): any {
   const context = getRequestContext();
-  return context?.customClaims?.[claimName];
+  const entry = context?.claimStore?.[claimName];
+  return entry?.claims ?? entry?.value;
 }
 
 /**
@@ -147,7 +148,23 @@ export function getCustomClaim(claimName: string): any {
  */
 export function getAllCustomClaims(): Record<string, any> | undefined {
   const context = getRequestContext();
-  return context?.customClaims;
+  if (!context?.claimStore) {
+    return undefined;
+  }
+
+  return Object.fromEntries(
+    Object.entries(context.claimStore).map(([name, entry]) => [name, entry.claims ?? entry.value ?? entry.token]),
+  );
+}
+
+export function getClaimStoreEntries() {
+  const context = getRequestContext();
+  return context?.claimStore;
+}
+
+export function getClaimToken(claimName: string): string | undefined {
+  const context = getRequestContext();
+  return context?.claimStore?.[claimName]?.token ?? context?.claimStore?.[claimName]?.value;
 }
 
 /**
@@ -183,6 +200,6 @@ export function getAllClaims(): Record<string, any> {
   return {
     ...context?.idTokenClaims,
     ...context?.accessTokenClaims,
-    ...context?.customClaims,
+    ...getAllCustomClaims(),
   };
 }

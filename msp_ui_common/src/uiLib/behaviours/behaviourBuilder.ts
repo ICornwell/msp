@@ -193,10 +193,10 @@ function makeMenuDispatchBuilder<DT, E extends UiMsgNames, RT>(
   };
 
   return {
-    add:     (menu) => withMenuAction('add', menu),
-    remove:  (menu) => withMenuAction('remove', menu),
-    enable:  (menu) => withMenuAction('enable', menu),
-    disable: (menu) => withMenuAction('disable', menu),
+    add:     (menu) => withMenuAction('add', menu as MenuItem),
+    remove:  (menu) => withMenuAction('remove', menu as MenuItem),
+    enable:  (menu) => withMenuAction('enable', menu as MenuItem),
+    disable: (menu) => withMenuAction('disable', menu as MenuItem),
     endMenus: () => returnBuilder
   };
 }

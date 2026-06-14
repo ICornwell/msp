@@ -269,7 +269,7 @@ export default function StepperWizard(props: StepperProps & PropsWithChildren) {
         ))}
       </Stepper>
 
-      <Box sx={{ pt: 2 }}>
+      <Box sx={{ pt: 2 }} key={`pagekey-${activePage?.pageId}`}>
         {activePage?.content && reEngineElementFactory ? reEngineElementFactory(buildPageNode(activePage) as any, localData) : children}
       </Box>
 

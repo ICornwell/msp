@@ -1,4 +1,5 @@
-import { emptyActivitySet, ActivitySet, ServiceActivityResultBuilder, serviceManager, serviceRequest, type DataFeatureManifestSection } from 'msp_svr_common';
+import { emptyActivitySet, ActivitySet, ServiceActivityResultBuilder,
+   serviceManager, serviceRequest, type DataFeatureManifestSection } from 'msp_svr_common';
 import { ServiceRequestEnvelope } from 'msp_common';
 type RegisteredDataFeature = DataFeatureManifestSection & {
   manifestNamespace?: string;
@@ -49,23 +50,26 @@ function registerDataFeatureServiceActivity(feature: RegisteredDataFeature) {
       namespace: feature.namespace || 'default',
       activityName: feature.name || 'unnamed-activity',
       version: feature.version || '1.0.0',
+      variantName: feature.variantName || 'default',
       matchingVersionRange: feature.version || '1.0.0',
       context: '*',
       funcs: async (payload: any, resultBuilder: ServiceActivityResultBuilder) => {
         try {
-          const envelope: ServiceRequestEnvelope = {
+          const envelope: ServiceRequestEnvelope = 
+          {
             namespace: feature.namespace || 'default',
             activityName: feature.name || 'unnamed-activity',
             version: feature.version || '1.0.0',
+            variantName: feature.variantName || 'default',
             payload,
             context: '*'
           };
 
-          resultBuilder.log(`Proxying to ${feature.serviceName} at ${feature.serverUrl}`);
+          resultBuilder.log(`Proxying to ${feature.serviceName} at ${feature.serverUrl} for ${feature.namespace}.${feature.name} v${feature.version} vr${feature.variantName}`);
 
           const result = await serviceRequest(envelope, {
             baseUrl: feature.serverUrl || 'http://localhost',
-            endpointPath: '/api/v1/service/run',
+            endpointPath: '/api/v1/data',
             timeoutMs: 30000
           });
 

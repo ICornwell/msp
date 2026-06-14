@@ -2,6 +2,7 @@ export type ServiceActivityResult = {
     activityName: string;
     namespace: string;
     version: string;
+		variantName: string;
     updatedPayload?: any;
     success: boolean;
     message?: string;
@@ -10,14 +11,18 @@ export type ServiceActivityResult = {
     result?: any;
 }
 
-export type ServiceRequestEnvelope<TPayload = any> = {
-	namespace: string;
-	activityName: string;
-	version: string;
-	payload: TPayload;
+export type RequestEnvelope<TPayload = any> = {
+		payload: TPayload;
 	context?: string;
 	correlationId?: string;
 	includeIdClaim?: boolean;
+}
+
+export type ServiceRequestEnvelope<TPayload = any> = RequestEnvelope<TPayload> & {
+	namespace: string;
+	activityName: string;
+	version: string;
+	variantName?: string;
 };
 
 export type ServiceRequestOptions = {

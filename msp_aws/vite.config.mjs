@@ -18,6 +18,7 @@ export default defineConfig({
       filename: 'aws_remoteEntry.js',
       exposes: {
         './AwsResourcesFeature': './src/uiElements/features/tabs/awsResources/AwsResourcesFeature.tsx',
+        './AwsSettingsFeature': './src/uiElements/features/blades/awsConfigWiz/awsSettingsFeature.tsx',
       },
       name: 'aws',
       shared: mfShared,

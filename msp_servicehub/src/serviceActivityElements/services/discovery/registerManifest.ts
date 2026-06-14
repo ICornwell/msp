@@ -24,6 +24,9 @@ async function forwardDataFeaturesToDataHub(manifest: Manifest): Promise<number>
         const serviceDataFeatures = [
             ...getDataFeatures(service).map((feature: DataFeatureManifestSection) => ({
                 ...feature,
+                namespace: feature.namespace || service.namespace || manifest.namespace,
+                version: feature.version || service.version || manifest.version,
+                variantName: feature.variantName || service.variantName || manifest.variantName,
                 manifestNamespace: manifest.namespace,
                 serviceName: service.name,
                 serverUrl: feature.serverUrl || service.serverDataUrl || manifest.serverDataUrl

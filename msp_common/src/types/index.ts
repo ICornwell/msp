@@ -9,7 +9,7 @@ export interface ClientCredentialsConfig {
 
 export interface JWTValidationConfig {
   trustedIssuers: string[];
-  audience?: string | string[];
+  audience?: string[];
   clockTolerance?: number; // in seconds
   maxTokenAge?: number; // in seconds
 }

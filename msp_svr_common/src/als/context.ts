@@ -35,6 +35,15 @@ export type WorkToken={
   };
 }
 
+export type ClaimStoreEntry = {
+  name: string;
+  headerName: string;
+  kind: 'jwt' | 'meta';
+  token?: string;
+  claims?: Record<string, any>;
+  value?: string;
+};
+
 export interface RequestContext extends IdToken, AccessToken {
   
   
@@ -46,9 +55,11 @@ export interface RequestContext extends IdToken, AccessToken {
   work: WorkToken[];
 
   transactionToken?: string
-  
-  // Custom context data
-  customClaims?: Record<string, any>;
+
+  claimStore?: Record<string, ClaimStoreEntry>;
+  serviceLineage?: string;
+  serviceLineageCurrentPath?: string;
+  serviceLineageChildCounter?: number;
 }
 
 // Create AsyncLocalStorage instance
@@ -58,6 +69,7 @@ export const requestContextStorage = new AsyncLocalStorage<RequestContext>();
  * Get the current request context from AsyncLocalStorage
  */
 export function getRequestContext(): RequestContext | undefined {
+  console.warn('SVR: Getting from ALS context');
   return requestContextStorage.getStore();
 }
 
@@ -67,8 +79,29 @@ export function getRequestContext(): RequestContext | undefined {
 export function setRequestContext(context: Partial<RequestContext>): void {
   const currentContext = getRequestContext();
   if (currentContext) {
+    console.log(`SVR: updating request context with ${JSON.stringify(context)}`);
     Object.assign(currentContext, context);
+  } else {
+    console.warn('SVR: No active request context found to set');
   }
+}
+
+export function getClaimStore(): Record<string, ClaimStoreEntry> {
+  return getRequestContext()?.claimStore ?? {};
+}
+
+export function setClaimStoreEntry(name: string, entry: ClaimStoreEntry): void {
+  const currentContext = getRequestContext();
+  if (!currentContext) {
+    console.warn(`SVR: No active request context found to store claim ${name}`);
+    return;
+  }
+
+  if (!currentContext.claimStore) {
+    currentContext.claimStore = {};
+  }
+
+  currentContext.claimStore[name] = entry;
 }
 
 /**
@@ -78,6 +111,7 @@ export function runWithContext<T>(
   context: RequestContext,
   fn: () => T
 ): T {
+  console.log(`SVR: running function within new synchronous request context: ${JSON.stringify(context)}`);
   return requestContextStorage.run(context, fn);
 }
 
@@ -88,6 +122,7 @@ export async function runWithContextAsync<T>(
   context: RequestContext,
   fn: () => Promise<T>
 ): Promise<T> {
+  console.log(`SVR: running function within new async request context: ${JSON.stringify(context)}`);
   return requestContextStorage.run(context, fn);
 }
 
@@ -95,6 +130,7 @@ export async function runWithContextAsync<T>(
  * Clear the current context (useful for cleanup)
  */
 export function clearContext(): void {
+  console.log('SVR: clearing request context');
   const context = getRequestContext();
   if (context) {
     Object.keys(context).forEach(key => {

@@ -74,7 +74,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
       new Map([
         [
           'ServiceCallRequest',
-          (action, event, data) => {
+          (action, eventWithDataCarrier, _data) => {
             const activity = action.eventData?.activity || action.eventData?.menu || action.eventData;
             const actionPath = activity?.action || '';
             const [namespace, activityName, version] = String(actionPath).split('/');
@@ -82,16 +82,16 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
 
             const payload = {
               ...activity.payload,
-              ...objectFromMaybeFunction(activity.payloadFromEvent, event),
-              ...objectFromMaybeFunction(activity.payloadFromData, data),
+              ...objectFromMaybeFunction(activity.payloadFromEvent, eventWithDataCarrier.event),
+              ...objectFromMaybeFunction(activity.payloadFromData, eventWithDataCarrier.data),
               ...objectFromMaybeFunction(activity.payloadFromSession, sessionInfo),
             }
 
 
             const context = {
               ...activity.context,
-              ...objectFromMaybeFunction(activity.contextFromEvent, event),
-              ...objectFromMaybeFunction(activity.contextFromData, data),
+              ...objectFromMaybeFunction(activity.contextFromEvent, eventWithDataCarrier.event),
+              ...objectFromMaybeFunction(activity.contextFromData, eventWithDataCarrier.data),
               ...objectFromMaybeFunction(activity.contextFromSession, sessionInfo),
             }
 
@@ -100,7 +100,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
         ],
         [
           'MenuRequest',
-          (action, event) => {
+          (action, eventWithDataCarrier) => {
             const menu = action.eventData?.menu || {};
             const requestType = action.eventData?.requestType;
             const menuId = menu.id || menu.menuId;
@@ -116,13 +116,13 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
               hidden: typeof menu.hidden === 'boolean' ? menu.hidden : undefined,
               groupId: menu.groupId,
               menuTarget: menu.menuTarget,
-              context: menu.context ?? event?.payload?.data ?? event?.payload?.context,
+              context: menu.context ?? eventWithDataCarrier?.event?.payload?.data ?? eventWithDataCarrier?.event?.payload?.context,
             });
           },
         ],
          [
           'NavTreeRequest',
-          (action, event) => {
+          (action, eventWithDataCarrier) => {
             const navItem = action.eventData?.navItem || {};
             const requestType = action.eventData?.requestType;
             const navItemId = navItem.id || navItem.navItemId;
@@ -138,28 +138,28 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
               hidden: typeof navItem.hidden === 'boolean' ? navItem.hidden : undefined,
               groupId: navItem.groupId,
               navItemTarget: navItem.navItemTarget,
-              context: navItem.context ?? event?.payload?.data ?? event?.payload?.context,
+              context: navItem.context ?? eventWithDataCarrier?.event?.payload?.data ?? eventWithDataCarrier?.event?.payload?.context,
             });
           },
         ],
         [
           'PresentationRequest',
-          (action, event) => {
+          (action, eventWithDataCarrier) => {
             const requestType = action.eventData?.requestType;
             const target = action.eventData?.target;
             if (!requestType || !target) return;
 
             const params =
               typeof action.eventData?.paramsFromEvent === 'function'
-                ? action.eventData.paramsFromEvent(event)
+                ? action.eventData.paramsFromEvent(eventWithDataCarrier.event)
                 : {}
 
             Object.entries(action.eventData.params || {}).forEach(([key, value]) => {
-              params[key] = paramFromMaybeFunction(value, event, value);
+              params[key] = paramFromMaybeFunction(value, eventWithDataCarrier, value);
             })
 
             params.content = action.eventData?.content;
-            params.viewDataIdentifier =  event?.viewDataIdentifier 
+            params.viewDataIdentifier =  eventWithDataCarrier?.viewDataIdentifier 
               || action.eventData?.viewDataIdentifier; // the event is the preferred source for viewDataIdentifier,
               //  as it allows it to be dynamic based on the triggering event
               //  and action.eventData.viewDataIdentifier is replaced later 
@@ -169,7 +169,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
         ],
         [
           'DataRequest',
-          (action, _event, data) => {
+          (action, _eventWithDataCarrier, data) => {
             const requestType = action.eventData?.requestType;
             const viewDataIdentifier = action.eventData?.viewDataIndentifier;
             if (!requestType || !viewDataIdentifier) return;

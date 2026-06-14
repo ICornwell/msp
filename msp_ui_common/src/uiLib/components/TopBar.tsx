@@ -71,7 +71,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   toggleSidebar,
   sidebarCollapsed,
 }) => {
-  const [currentUser, setCurrentUser] = useState<UserSessionState>({isAuthenticated: false, userName: undefined, userId: undefined});
+  const [currentUser, setCurrentUser] = useState<UserSessionState>({isAuthenticated: false,
+     userName: undefined, userId: undefined});
   const {login} = useUserSession({
     onLoggedIn: (sessionInfo) => {
       console.log(`User logged in: ${sessionInfo.userId}`);

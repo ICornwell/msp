@@ -1,4 +1,6 @@
 import { View } from "../data/fluent";
+import { ViewIdentifier } from "../types";
+import { RequestEnvelope } from "./serviceRequest";
 
 export type DataActivityResult = {
     activityName: string;
@@ -12,26 +14,17 @@ export type DataActivityResult = {
     result?: any;
 }
 
-export type DataRequestEnvelope<TPayload = any> = {
+export type DataRequestEnvelope<TPayload = any> = RequestEnvelope<TPayload> & {
 	namespace: string;
 	activityName: string;
 	version: string;
-	payload: TPayload;
-	context?: string;
-	correlationId?: string;
+	variantName?: string;
 };
 
-export type DataViewQueryEnvelope = {
-	payload: {view : View,  id: string};
-	context?: string;
-	correlationId?: string;
-};
+export type DataViewQueryEnvelope = RequestEnvelope<{view : View,  id: string}>;
+	
 
-export type DataViewUpsertEnvelope = {
-	payload: {view : View, data: any};
-	context?: string;
-	correlationId?: string;
-};
+export type DataViewUpsertEnvelope  = RequestEnvelope<{view: View, data: any}>
 
 export type DataRequestOptions = {
 	baseUrl?: string;
@@ -43,6 +36,9 @@ export type DataRequestOptions = {
 export type DataRequestResult<TResult = any> = DataActivityResult & {
 	result?: TResult;
 };
+
+export type DataViewIdQueryEnvelope = RequestEnvelope<{viewId: ViewIdentifier, id: string}>
+export type DataViewIdUpsertEnvelope = RequestEnvelope<{viewId: ViewIdentifier, data: any}>
 
 
 

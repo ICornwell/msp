@@ -2,7 +2,7 @@ import { ActivitySet, buildActivitySet } from 'msp_svr_common';
 
 import { listEcrRepositoriesHandler, listEksClustersHandler,
   readClusterSetupConfigHandler, writeClusterSetupConfigHandler, reconcileClusterSetupConfigHandler,
-  getAwsWizardBootstrapHandler, connectAwsCredentialsHandler }
+  getAwsWizardBootstrapHandler, connectAwsCredentialsHandler, refreshAwsWizardViewsHandler }
 from '../services/index.js';
 
 
@@ -39,6 +39,10 @@ export function getServiceActivities(): ActivitySet {
     .use({
       activityName: 'connectAwsCredentials',
       funcs: connectAwsCredentialsHandler,
+    })
+    .use({
+      activityName: 'refreshAwsWizardViews',
+      funcs: refreshAwsWizardViewsHandler,
     })
     .build();
 }

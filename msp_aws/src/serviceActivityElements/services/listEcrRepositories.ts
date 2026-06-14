@@ -69,6 +69,7 @@ export async function listEcrRepositoriesHandler(
     'aws',
     'awsEcrRepositories',
     '1.0.0',
+    'default',
     payload ?? {},
   );
   const sourceRows = response.result?.data ?? [];

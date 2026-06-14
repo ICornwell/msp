@@ -35,7 +35,7 @@ export async function getTokenForService(includeId: boolean = false): Promise<{ 
   const body = new URLSearchParams({
     client_id: config.clientId,
     client_secret: config.clientSecret,
-    scope: config.scope + '.default',
+    scope: config.scope,
     grant_type: 'client_credentials',
   });
   

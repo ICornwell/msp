@@ -3,6 +3,9 @@ import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import { NavTreeItem } from '../contexts/uiEventTypes.js'
 import NavigationTree from './trees/NavigationTree.js';
+import IconButton from '@mui/material/IconButton';
+import { AppMenu } from './AppMenu.js';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 interface SidebarProps {
   navItems: NavTreeItem[];
@@ -11,6 +14,8 @@ interface SidebarProps {
   onTabSelect: (tabId: string) => void;
 //  openBlade: (contentId: string) => void;
 }
+
+
 
 const drawerWidth = 240;
 const drawerCollapsedWidth = 56;
@@ -22,14 +27,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 //  onTabSelect,
 //  openBlade
 }) => {
-  /* const handleNavItemClick = (item: NavItem) => {
-    if (item.tabId) {
-      onTabSelect(item.tabId);
-    }
-    if (item.bladeId) {
-      openBlade(item.bladeId);
-    }
-  }; */
+  const [settingsMenuAnchorEl, setSettingsMenuAnchorEl] = React.useState<HTMLElement | null>(null);
+
+  const handleSettingsMenuOpen = (event: Partial<MouseEvent>) => {
+    console.log('Settings menu open', event.currentTarget, settingsMenuAnchorEl, event.currentTarget == settingsMenuAnchorEl);
+    setSettingsMenuAnchorEl(event.currentTarget as HTMLElement);
+  };
+
+   const handleSettingsMenuClose = () => {
+    setSettingsMenuAnchorEl(null);
+  };
+
 
   return (
     <div style={{ marginTop: '64px' }}>
@@ -58,6 +66,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }}>
         <NavigationTree />
       </Box>
+      <Box sx={{alignSelf: 'flex-end', padding: 1 }}>
+          <IconButton
+            key ="menu-button"
+            edge="start"
+            color="inherit"
+            aria-label="toggle menu"
+            onClick={(e) => handleSettingsMenuOpen(e as unknown as MouseEvent)}
+            sx={{ mr: 2 }}
+          >
+            <SettingsIcon sx={{ display: { xs: 'block' } }} />
+          </IconButton>
+          <AppMenu
+              nameTag='Settings Menu'
+              key='menu1'
+              anchorEl={settingsMenuAnchorEl}
+              menuTarget='settings'
+              open={Boolean(settingsMenuAnchorEl)}
+              onClose={handleSettingsMenuClose} />
+        </Box>
     </Drawer>
     </div>
   );

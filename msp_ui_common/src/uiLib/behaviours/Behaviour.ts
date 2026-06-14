@@ -135,14 +135,14 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
             const dataIndentifier = dataCarrier.viewDataIdentifier || dataCarrier.viewDataQueryIdentifier || dataCarrier.viewDataContent;
             const dataContent = dataCarrier.viewDataContent || dataCarrier.viewData || dataCarrier.data;
             
-            if (element.dataCondition && !element.dataCondition(data)) {
+            if (element.dataCondition && !element.dataCondition(dataContent)) {
               return;
             }
 
             if (element.dataIdentifierCondition && !element.dataIdentifierCondition(dataIndentifier)) {
               return;
             }
-            runElementActions(element, {event, data: dataContent, viewDataIdentifier: dataIndentifier});
+            runElementActions(element, { event, data: dataContent, viewDataIdentifier: dataIndentifier});
           } catch (_e) {
             // if we failed it will be because the condition function threw an error.
             // which is the same as them not being met
@@ -188,7 +188,7 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
 
   return null
 
-  function runElementActions(element: any, event: any) {
+  function runElementActions(element: any, eventWithDataCarrier: any) {
     for (const action of element.actions || []) {
       // action elements can be mutated as they are processed to resolve
       // functions to values, so we create a copy of the action for each instance to avoid
@@ -205,7 +205,7 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
       }
 
       if (instanceAction.kind === 'localEffect') {
-        instanceAction.effect(event, data);
+        instanceAction.effect(eventWithDataCarrier, data);
         continue;
       }
       Object.entries(instanceAction.eventData).forEach(([key, value]) => {
@@ -217,12 +217,12 @@ export function Behaviour({ config, initialData }: BehaviourProps) {
           && !key.endsWith('FromEvent')
           && !key.endsWith('Func')
           && !key.endsWith('Function')) {
-          instanceAction.eventData[key] = value(event, data);
+          instanceAction.eventData[key] = value(eventWithDataCarrier, data);
         }
       });
       console.log('Dispatching action for event', element.eventType, 'with data', instanceAction.eventData);
       const handler = registry.get(action.eventType);
-      handler?.(instanceAction, event, data);
+      handler?.(instanceAction, eventWithDataCarrier, data);
     }
   }
 }

@@ -56,6 +56,7 @@ export function registerFeatures(manifest: Manifest, service: ServiceManifestSec
       namespace: registration.namespace,
       activityName: registration.activityName,
       version: registration.version,
+      variantName: registration.variantName || 'default',
       matchingVersionRange,
       context: '*',
       funcs: async (payload: any, resultBuilder: ServiceActivityResultBuilder) => {
@@ -64,6 +65,7 @@ export function registerFeatures(manifest: Manifest, service: ServiceManifestSec
             namespace: registration.namespace,
             activityName: registration.activityName,
             version: registration.version,
+            variantName: registration.variantName || 'default',
             payload,
             context: '*'
           };

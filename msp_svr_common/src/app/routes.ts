@@ -1,6 +1,6 @@
 import { default as express } from "express";
 import { ActivitySet, ServiceActivity, serviceManager } from "../service-manager/index.js";
-import { DataRequestEnvelope } from "msp_common";
+import { DataRequestEnvelope, ServiceRequestEnvelope } from "msp_common";
 import { SERVICE_TYPE } from "./server.js";
 
 
@@ -9,14 +9,6 @@ export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: Activity
 
   const router = express.Router();
 
-  type ServiceRequestEnvelope = {
-    namespace: string;
-    activityName: string;
-    version: string;
-    payload: any;
-    context?: string;
-    correlationId?: string;
-  };
 
   // Create service manager and register activities
   const services = serviceManager();
@@ -54,6 +46,7 @@ export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: Activity
           request.namespace,
           request.activityName,
           request.version,
+          request.variantName ?? 'default',
           request.payload,
         );
 
@@ -86,6 +79,7 @@ export function getRoutes(serviceType: SERVICE_TYPE, serviceActivities: Activity
           request.namespace,
           request.activityName,
           request.version,
+          request.variantName ?? 'default',
           request.payload,
         );
 

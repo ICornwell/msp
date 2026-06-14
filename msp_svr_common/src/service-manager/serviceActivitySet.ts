@@ -9,6 +9,7 @@ export type ServiceActivity = {
     activityName: Matcher;
     namespace: Matcher;
     version: string;
+    variantName: string;
     matchingVersionRange: string
     context: Matcher
     funcs: ServiceActivityExec | ServiceActivityExec[];
@@ -27,6 +28,7 @@ export const defaultResult: ServiceActivityResult = {
     activityName: '',
     namespace: '',
     version: '',
+    variantName: '',
     updatedPayload: undefined,
     success: false,
     message: undefined,
@@ -84,6 +86,7 @@ export function addServiceActivityToSet(set: ServiceActivity[], activity: Servic
             namespace: activity.namespace,
             activityName: activity.activityName,
             version: activity.version,
+            variantName: activity.variantName,
             matchingVersionRange: activity.matchingVersionRange,
             context: activity.context,
             funcs: f
@@ -93,6 +96,7 @@ export function addServiceActivityToSet(set: ServiceActivity[], activity: Servic
             namespace: activity.namespace,
             activityName: activity.activityName,
             version: activity.version,
+            variantName: activity.variantName,
             matchingVersionRange: activity.matchingVersionRange,
             context: activity.context,
             funcs: activity.funcs
@@ -107,7 +111,7 @@ export type ActivitySet = {
     use: (serviceActivity: ServiceActivity) => void;
     useBefore: (serviceActivity: ServiceActivity) => void;
     useAfter: (serviceActivity: ServiceActivity) => void;
-    handle: (namespace: string, activityName: string, version: string, payload: any, resultBuilder?: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
+    handle: (namespace: string, activityName: string, version: string, variantName: string, payload: any, resultBuilder?: ServiceActivityResultBuilder) => Promise<ServiceActivityResultBuilder>;
 }
 
 //the builder doesn't need handle or isEmpty, those are implemented in the final ActivitySet
@@ -118,6 +122,7 @@ type ActivitySetBuilder = {
 } & {
     withNamespace: (namespace: string) => ActivitySetBuilder;
     withVersion: (version: string) => ActivitySetBuilder;
+    withVariantName: (variantName: string) => ActivitySetBuilder;
     withMatchingVersionRange: (matchingVersionRange: string) => ActivitySetBuilder;
     withContext: (context: Matcher) => ActivitySetBuilder;
 
@@ -127,8 +132,8 @@ type ActivitySetBuilder = {
 // The builder is used for defining activities with shared options in a fluent way, e.g. for a whole manifest or a whole service
 // so common props are optional
 type ServiceActivityWithOptionals = {
-    [P in keyof Pick<ServiceActivity, 'namespace' | 'version' | 'matchingVersionRange' | 'context'>]+?: ServiceActivity[P]
-} & Omit<ServiceActivity, 'namespace' | 'version' | 'matchingVersionRange' | 'context'>;
+    [P in keyof Pick<ServiceActivity, 'namespace' | 'version' | 'matchingVersionRange' | 'context' | 'variantName'>]+?: ServiceActivity[P]
+} & Omit<ServiceActivity, 'namespace' | 'version' | 'matchingVersionRange' | 'context' | 'variantName'>;
 
 export function emptyActivitySet(): ActivitySet {
     return buildActivitySet().build();
@@ -143,6 +148,7 @@ export function buildActivitySet(): ActivitySetBuilder {
 
     let currentNamespace = ''
     let currentVersion = ''
+    let currentVariantName = ''
     let currentMatchingVersionRange = ''
     let currentContext: Matcher = '*';
 
@@ -152,6 +158,7 @@ export function buildActivitySet(): ActivitySetBuilder {
             namespace: activity.namespace || currentNamespace || '*',
             activityName: activity.activityName,
             version: activity.version || currentVersion || '1.0.0',
+            variantName: activity.variantName || currentVariantName || 'default',
             matchingVersionRange: activity.matchingVersionRange || currentMatchingVersionRange || '*',
             context: activity.context || currentContext || '*',
             funcs: activity.funcs
@@ -165,6 +172,10 @@ export function buildActivitySet(): ActivitySetBuilder {
         },
         withVersion: function (version: string): ActivitySetBuilder {
             currentVersion = version;
+            return builder;
+        },
+        withVariantName: function (variantName: string): ActivitySetBuilder {
+            currentVariantName = variantName;
             return builder;
         },
         withMatchingVersionRange: function (matchingVersionRange: string): ActivitySetBuilder {
@@ -206,16 +217,16 @@ export function buildActivitySet(): ActivitySetBuilder {
                 useAfter: builder.useAfter,
                 activities: activities,
 
-                handle: async function (namespace: string, activityName: string, version: string,
+                handle: async function (namespace: string, activityName: string, version: string, variantName: string,
                     payload: any, resultBuilder?: ServiceActivityResultBuilder): Promise<ServiceActivityResultBuilder> {
                     const rb = (!resultBuilder) ? CreateResultBuilder() : resultBuilder;
 
                     async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder, runBeforeAndAfter = true) {
                         const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
-                            && isMatch(activityName, handler.activityName));
+                            && isMatch(activityName, handler.activityName) && isMatch(variantName, handler.variantName));
 
                         const bestVersionActivities = bestVersionMatch(matchingActivities, version,
-                            (x) => `${x.namespace}:${x.activityName}`, (x) => x.version,
+                            (x) => `${x.namespace}:${x.activityName}:${x.variantName}`, (x) => x.version,
                             x => (x.matchingVersionRange ?? 'none'));
                         console.log(`Found ${matchingActivities.length} matching activities, running ${bestVersionActivities.length} out of ${activities.length} with best version match for version ${version}`);
 

@@ -9,11 +9,20 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import { pipeline } from 'node:stream/promises';
 
-import { Ports } from 'msp_svr_common'
+import { Ports, setConfig } from 'msp_svr_common'
+import { resolveConfig } from './src/uiApi/config.js';
+import {
+  assertProxyAuthStartupConfig,
+  buildProxyAuthAndPropagationHeaders,
+  validateInboundRequestAuth,
+} from './uiApiProxyAuth.js';
 
 const _dirname = typeof __dirname !== 'undefined' ? __dirname : join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const reservedMfRoutePrefixes = ['@', '.'];
 const reservedMfRouteNames = new Set(['src', 'node_modules']);
+
+setConfig(resolveConfig());
+assertProxyAuthStartupConfig();
 
 // Express 5 natively supports async route handlers.
 const app = express();
@@ -71,6 +80,12 @@ function getProxyCall(proxyUrl: string) {
       return;
     }
 
+    const inboundValidation = await validateInboundRequestAuth(req);
+    if (!inboundValidation.ok) {
+      res.status(inboundValidation.status).json({ error: inboundValidation.message });
+      return;
+    }
+
     const reqUrl = originalPath;
 
     let url
@@ -110,6 +125,11 @@ function getProxyCall(proxyUrl: string) {
 
       delete simpleHeaders['if-none-match'];
       delete simpleHeaders['if-modified-since'];
+      delete simpleHeaders['authorization'];
+
+      const propagationAndAuthHeaders = await buildProxyAuthAndPropagationHeaders(req, {
+        propagateClaims: proxyUrl !== '/ui/v1',
+      });
 
       const upstreamRes = await fetch(newUrl,
         {
@@ -118,6 +138,7 @@ function getProxyCall(proxyUrl: string) {
           body: req.method === 'GET' ? null : bodyContent,
           headers: {
             ...simpleHeaders,
+            ...propagationAndAuthHeaders,
             host: newUrl.host,
             'accept-encoding': 'identity'
           },

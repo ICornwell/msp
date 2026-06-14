@@ -1,9 +1,11 @@
 import type { ManifestBuildResult, TypedManifest } from 'msp_svr_common';
 import { makeManifest } from 'msp_svr_common';
 import { withAwsActorWorkModel } from './modelDeclarations.js';
+import { addAwsDataFeatures } from './dataFeatures.js';
+import { addAwsActivityFeatures } from './activityFeatures.js';
 
 function createAwsServiceBuilder(config?: any) {
-  return withAwsActorWorkModel(
+  const service = withAwsActorWorkModel(
     makeManifest(config)
       .withNamespace('aws')
       .withAllowedContexts(['*'])
@@ -13,69 +15,15 @@ function createAwsServiceBuilder(config?: any) {
     .withAllowedContexts(['*'])
     .withUiFeature('AwsResourcesFeature')
       .withRemoteName('aws_remoteEntry.js')
-      .withAllowedContexts(['*'])
+      .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endUiFeature
-    .withActivityFeature('listEksClusters', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withActivityFeature('listEcrRepositories', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withActivityFeature('readClusterSetupConfig', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withActivityFeature('writeClusterSetupConfig', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withActivityFeature('reconcileClusterSetupConfig', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withActivityFeature('getAwsWizardBootstrap', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withActivityFeature('connectAwsCredentials', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endActivityFeature
-    .withDataFeature('awsEksClusters', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('awsEcrRepositories', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('awsIamRoles', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('awsNetworkTopology', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('awsInventorySnapshot', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('readAwsDesiredResourceConfig', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('writeAwsDesiredResourceConfig', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature
-    .withDataFeature('awsValidateCredentials', '1.0.0', 'default')
-      .withAllowedContexts(['AUTH'])
-      .forProducts([{ domain: '*', name: '*', version: '*' }])
-      .endDataFeature;
+    
+    addAwsActivityFeatures(service)
+
+    addAwsDataFeatures(service);
+
+    return service;
 }
 
 export function createAwsManifest(config?: any) {

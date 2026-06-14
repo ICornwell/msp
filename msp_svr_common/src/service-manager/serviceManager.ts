@@ -19,12 +19,13 @@ export function serviceManager() {
                 activities.use(serviceActivity);
         },
 
-        runAllMatches: async function (namespace: string, activityName: string, version: string, payload: any): Promise<ServiceActivityResult> {
+        runAllMatches: async function (namespace: string, activityName: string, version: string, variantName: string, payload: any): Promise<ServiceActivityResult> {
             const result = {
                 ...defaultResult,
                 namespace: namespace,
                 activityName:  activityName,
-                version: version
+                version: version,
+                variantName: variantName
             }
             const rb = CreateResultBuilder(result)
 
@@ -33,7 +34,7 @@ export function serviceManager() {
                     console.log(`Activity set with undefined namespace`);
                 }
                 if (activitySet.isEmpty() || !activitySet.hasNamespace(namespace)) continue;
-                await activitySet.handle(namespace, activityName, version, payload, rb);
+                await activitySet.handle(namespace, activityName, version, variantName, payload, rb);
             }
 
             return result

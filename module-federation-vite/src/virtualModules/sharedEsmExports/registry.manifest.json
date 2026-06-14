@@ -348,6 +348,7 @@
       "factory": "mspUiCommonExportCode",
       "namedExports": [
         "ActivityDispatchProvider",
+        "BasicButton",
         "Behaviour",
         "BehaviourDispatchProvider",
         "BehaviourHandlerRegistryProvider",
@@ -358,7 +359,6 @@
         "MenuDispatchProvider",
         "PresentationDispatchProvider",
         "PresetBooleanComponent",
-        "PresetButtonComponent",
         "PresetDateComponent",
         "PresetLinkComponent",
         "PresetMoneyComponent",

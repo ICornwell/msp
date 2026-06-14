@@ -70,6 +70,32 @@ CBAC  ← signed context authority tokens (time, geo, custom domain facts)
 
 All three must allow. Default answer is always DENY.
 
+### Runtime trust material on the wire
+
+MSP now distinguishes explicitly between three different classes of request
+headers at service boundaries:
+
+- `Authorization: Bearer <access-token>`
+  Used only for service-use authentication and authorisation at the receiving
+  service boundary. This token is validated for signature, issuer, audience,
+  and expiry. It is not itself entered into the propagated claim store.
+
+- `MSP-X-{thing}-{attribute}-CLAIM: <jwt>`
+  Used for propagated, signed subject-related facts. Each such header carries a
+  full JWT token, not a flattened claim value. On receipt, each token is
+  validated for signature, issuer, and expiry, then stored in the request
+  claim-store under the `thing-attribute` name. These are the facts used for
+  work / feature / view / policy / obligation matching.
+
+- `MSP-CORRELATION-ID` and `MSP-SERVICE-LC`
+  Used for traceability and hop lineage. `MSP-CORRELATION-ID` is stored and
+  propagated unchanged. `MSP-SERVICE-LC` records the service path across hops,
+  including a hierarchical hop number, service identity, and timestamp.
+
+The important consequence is that MSP "claims" in transit are not bare JWT
+payload properties. They are independently signed claim tokens from trusted
+authorities, propagated intact between services.
+
 ### Core domain entities
 
 **Actor** — one of five types: User (human), System (service account), Agent (AI/LLM with pre-prompt context), Team (organisational grouping), Organisation (legal corporate entity). Has type + attributes. See [../domain/WORK_MODEL.md](../domain/WORK_MODEL.md) for the full Actor type definitions.
@@ -132,6 +158,11 @@ Minimisation and redaction DSLs are admitted as part of the Custom Module
 manifest (signed). DataHub executes them; Custom Service Module never touches
 raw data.
 
+This boundary assumes all inter-service calls use the shared outbound request
+mechanism in `msp_svr_common/src/als/outboundRequests.ts`, since that is where
+claim-token propagation, correlation propagation, service-lineage propagation,
+and response-header collection are enforced.
+
 ---
 
 ## Audit model
@@ -182,6 +213,11 @@ Context authorities are themselves admitted via the signing/approval flow.
 An assertion from an unregistered authority is treated as absent (→ deny
 if the policy requires it).
 
+In transport terms, a CBAC assertion is represented as an
+`MSP-X-{thing}-{attribute}-CLAIM` JWT issued by a trusted authority. The
+receiving service validates the token before the assertion is admitted into the
+request claim-store.
+
 ---
 
 ## Phased build-out (as of March 2026)
@@ -190,6 +226,8 @@ if the policy requires it).
 - MF Vite plugin with correct shared scope (singleton fix: done)
 - ServiceHub manifest-based routing (working)
 - MSAL actor token propagation (working)
+- ALS-backed propagated claim-token store, correlation propagation, and
+  service-lineage propagation (working)
 - Manifest signing infrastructure (not yet started)
 - Basic ReBAC in ServiceHub (not yet started)
 

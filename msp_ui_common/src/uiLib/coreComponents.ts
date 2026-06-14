@@ -8,7 +8,6 @@ import { ElementSetContainerExtension, extendWithElementSetContainer } from './r
 import { BasicButtonProps, ColumnProps } from './components/index.js';
 import { LabelFrameProps } from './components/containers/labelframe.js';
 import { StepperProps, extendWithStepper, StepperExtension } from './components/containers/stepper.js';
-import { ReComponentCommonProps, ReComponentSystemProps } from './renderEngine/components/ReComponentProps.js';
 
 // Placeholder type for component props
 

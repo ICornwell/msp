@@ -203,6 +203,49 @@ an unregistered authority is treated as absent — if a policy requires it,
 the result is deny. This prevents the CBAC layer from being widened by
 introducing an unofficial authority.
 
+### 3.2.1 Transported claims are signed tokens, not flattened fields
+
+At runtime, RGAM distinguishes between:
+
+- a service authentication token carried in the `Authorization` header, used
+  to authenticate and authorise the calling service or actor at the receiving
+  service boundary; and
+- propagated claim tokens carried as `MSP-X-{thing}-{attribute}-CLAIM`
+  headers, each of which is a complete JWT establishing a signed fact from a
+  trusted authority.
+
+This distinction matters. A propagated "claim" is not the `department`,
+`jurisdiction`, or `actor` field copied out of a JWT payload and forwarded as a
+ string. It is the signed JWT itself, preserved intact, revalidated on receipt,
+ and only then admitted into the local request claim-store.
+
+This gives the platform a clean trust rule:
+
+- access tokens prove service-use authority for the current hop;
+- propagated claim tokens prove subject-related facts that may be used in
+  ReBAC / ABAC / CBAC evaluation at later hops.
+
+The receiving service validates each propagated claim token for signature,
+issuer, and expiry before it is used. The platform therefore reasons over a
+set of independently attested facts, not an unstructured bag of copied claim
+properties.
+
+### 3.2.2 Correlation and service lineage are first-class security evidence
+
+Two non-JWT headers are also carried as part of the request evidence chain:
+
+- `MSP-CORRELATION-ID`
+  A stable request correlation identifier, stored and propagated end to end.
+
+- `MSP-SERVICE-LC`
+  A service-lineage chain, where each hop appends its own service identity,
+  timestamp, and hierarchical hop path.
+
+This lineage is not merely an observability aid. It forms part of the
+explainability and audit evidence for how a request traversed the platform.
+Where the audit graph records the policy basis for a decision, service lineage
+records the concrete runtime path through which that decision was exercised.
+
 ### 3.3 DataHub: minimisation as a topological guarantee
 
 The most important structural property of RGAM is that data minimisation and
@@ -223,6 +266,11 @@ This means:
 
 **The minimisation guarantee does not depend on trusting the module code.**
 This is the property that makes it meaningful.
+
+For the same reason, claim propagation does not depend on trusting each module
+to invent its own outbound request semantics. The platform-standard outbound
+request path is the enforcement point for claim-token propagation, correlation
+propagation, service-lineage propagation, and response evidence collection.
 
 ### 3.4 The graph database as unified truth
 
