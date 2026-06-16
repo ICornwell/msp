@@ -1,4 +1,4 @@
-import type { ViewDataContent } from 'msp_common';
+import { matchesId, type ViewDataContent } from 'msp_common';
 import { ReadData, WriteData, type ServiceActivityResultBuilder } from 'msp_svr_common';
 import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload, 
   WriteClusterSetupConfigPayload, ReconcileClusterSetupConfigPayload,
@@ -6,15 +6,18 @@ import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload,
    AwsResourceConfigStatus} from '../../data/clusterSetUpConfig.js';
 import { awsClusterSetupConfigView } from '../../data/index.js';
 
+const setupViewIdentifier = awsClusterSetupConfigView.getViewIdentifier!();
+
 function setupKey(region: string, clusterName: string, setupId?: string) {
   return `${setupId ?? 'default'}::${region}::${clusterName}`;
 }
 
 function seedSetup(region: string, clusterName: string, setupId: string = 'aws-cluster-setup-default') {
   const content: ViewDataContent<AwsClusterSetupConfig> = {
-    viewDomain: 'aws',
-    viewName: 'AwsClusterSetupConfig',
-    viewVersion: '1.0.0',
+    viewDomain: setupViewIdentifier.viewDomain,
+    viewName: setupViewIdentifier.viewName,
+    viewVersion: setupViewIdentifier.viewVersion,
+    viewVariantName: setupViewIdentifier.viewVariantName,
     viewRootEntityType: 'awsClusterSetupConfig',
     viewRootEntityId: setupId,
     viewRootEntityBusKey: setupId,
@@ -56,16 +59,17 @@ function normalizeSetupRow(row: any): ViewDataContent<AwsClusterSetupConfig> | u
     return undefined;
   }
 
-  if (row.content && row.viewName === 'AwsClusterSetupConfig') {
+  if (row.content && matchesId(row, setupViewIdentifier)) {
     return row as ViewDataContent<AwsClusterSetupConfig>;
   }
 
   if (row.content && row.setupId) {
     const setupId = row.setupId as string;
     return {
-      viewDomain: 'aws',
-      viewName: 'AwsClusterSetupConfig',
-      viewVersion: '1.0.0',
+      viewDomain: setupViewIdentifier.viewDomain,
+      viewName: setupViewIdentifier.viewName,
+      viewVersion: setupViewIdentifier.viewVersion,
+      viewVariantName: setupViewIdentifier.viewVariantName,
       viewRootEntityType: 'awsClusterSetupConfig',
       viewRootEntityId: setupId,
       viewRootEntityBusKey: setupId,

@@ -7,11 +7,16 @@ import cookieParser from 'cookie-parser';
 
 import { getRoutes } from './routes.js';
 import { ActivitySet, Config, ServiceActivity } from '../index.js';
-import { mspAuthMiddleware } from '../als/authMiddleware.js';
+import { InboundRequestAuthPolicy, mspAuthMiddleware } from '../als/authMiddleware.js';
 import { SERVICE_TYPE } from './server.js';
 
 // Express 5 natively supports async route handlers.
-export function createApp(config: Partial<Config>, serviceType: SERVICE_TYPE, serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
+export function createApp(
+  config: Partial<Config>,
+  serviceType: SERVICE_TYPE,
+  serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity,
+  inboundRequestAuthPolicy?: InboundRequestAuthPolicy,
+) {
   const app: Express = express();
 
   /* // CORS configuration
@@ -36,7 +41,7 @@ export function createApp(config: Partial<Config>, serviceType: SERVICE_TYPE, se
   // Compression
   app.use(compression());
 
-  app.use(mspAuthMiddleware(config))
+  app.use(mspAuthMiddleware(config, inboundRequestAuthPolicy))
 
   // Mount API routes
   console.log(`Mounting API routes for service type: ${serviceType}`);

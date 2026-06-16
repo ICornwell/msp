@@ -1,4 +1,4 @@
-import { getAllClaims, ServiceActivityResultBuilder } from "msp_svr_common";
+import { getUltimateRequesterId, ServiceActivityResultBuilder } from "msp_svr_common";
 import { getFeatureAliasForProduct, getRegisteredFeatures } from "../uiFeatureRegistry.js";
 import { UiRemoteIdentity } from "msp_common";
 
@@ -11,8 +11,7 @@ export async function discoverOpenUiFeatures(payload: any, serviceResult: Servic
     variantName: '*',
   };
   console.log(`SVR: Discovering features for product: ${JSON.stringify(product)}`);
-  const claims = getAllClaims();
-  const userIdClaim = claims['idTokenClaims'];
+  const userIdClaim = getUltimateRequesterId();
 
   const allFeatures = getRegisteredFeatures();
   console.log(`Currently registered features: ${allFeatures.length}`);

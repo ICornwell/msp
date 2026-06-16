@@ -5,6 +5,7 @@ import { registerWithRetry } from './manifestRegistration.js';
 import {  Manifest  } from '../manifests/index.js';
 import { ActivitySet, ServiceActivity } from '../service-manager/index.js';
 import { Config } from '../sharedconfig.js';
+import { InboundRequestAuthPolicy } from '../als/authMiddleware.js';
 export type SERVICE = 'service';
 export type DATA = 'data';
 export enum SERVICE_TYPE { SERVICE = 'service', DATA = 'data' }
@@ -13,12 +14,14 @@ export function startMspServer(
   config: Partial<Config>,
   manifest: Partial<Manifest>,
   serviceType: SERVICE_TYPE = SERVICE_TYPE.SERVICE,
-  serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
+  serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity,
+  inboundRequestAuthPolicy?: InboundRequestAuthPolicy,
+) {
 
   const PORT = config.myPort || 443
 
   // Start the server
-  const app = createApp(config, serviceType, serviceActivities);
+  const app = createApp(config, serviceType, serviceActivities, inboundRequestAuthPolicy);
   const server = app.listen(PORT, () => {
     console.log(`\n🚀Service API server running on ${config.myUrl}`);
     console.log(`   - Health check: ${config.myUrl}/health`);

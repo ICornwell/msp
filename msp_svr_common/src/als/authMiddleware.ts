@@ -1,9 +1,41 @@
 import { validateAndStoreAccessToken, validateAndStoreClaimToken } from './jwtTokens.js';
-import { runWithContext, setClaimStoreEntry, setRequestContext } from './context.js';
+import {
+  canonicalHeaderName,
+  inferAssertionTypeFromHeaderName,
+  isAssertionHeaderName,
+  runWithContext,
+  setMetadataStoreEntry,
+  setRequestContext,
+} from './context.js';
 import { Config } from '../sharedconfig.js';
 import { getConfig } from '../configuredCommon.js';
 
-const CLAIM_HEADER_PATTERN = /^msp-x-([a-z0-9]+)-([a-z0-9]+)-claim$/i;
+const HEADER_CORRELATION_ID = 'msp-correlation-id';
+const HEADER_SERVICE_LINEAGE = 'msp-service-lc';
+const HEADER_AUTHORIZATION = 'authorization';
+const HEADER_AUTH_ACCESS_PRIMARY = 'msp-auth-access-1-assertion';
+
+export type InboundRequestAuthPolicyResult =
+  | { status: number; message?: string }
+  | number
+  | 'ok'
+  | undefined
+  | null;
+
+export type InboundRequestAuthPolicy =
+  () => InboundRequestAuthPolicyResult | Promise<InboundRequestAuthPolicyResult>;
+
+function normalisePolicyResult(result: InboundRequestAuthPolicyResult): { status: number; message?: string } {
+  if (result === undefined || result === null || result === 'ok') {
+    return { status: 200 };
+  }
+
+  if (typeof result === 'number') {
+    return { status: result };
+  }
+
+  return result;
+}
 
 function getServiceName(config: Config): string {
   const product = config.product;
@@ -20,7 +52,10 @@ function getLastServiceLineagePath(lineage: string): string {
 }
 
 
-export function mspAuthMiddleware(config?: Partial<Config>) {
+export function mspAuthMiddleware(
+  config?: Partial<Config>,
+  inboundRequestAuthPolicy?: InboundRequestAuthPolicy,
+) {
  
   return async function (req: any, res: any, next: any) {
       
@@ -28,43 +63,48 @@ export function mspAuthMiddleware(config?: Partial<Config>) {
     config = getConfig();
   }
   console.log(`SVR: doing auth middleware invoked for ${config.myUrl}`);
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers[HEADER_AUTHORIZATION];
   const bearerToken = authHeader?.replace('Bearer ', '');
   
   try {
     // Create new context for this request
     await runWithContext(
-      { requestId: req.id, timestamp: Date.now(), work: [], claimStore: {} },
+      {
+        requestId: req.id,
+        timestamp: Date.now(),
+        assertionStore: {},
+        metadataStore: {},
+      },
       async () => {
         const jwtValidation = config!.jwtValidation ?? {
           trustedIssuers: [`https://login.microsoftonline.com/${config!.clientCredentials?.tenantId}/v2.0`],
-          audience: ['api://default'],
+            audience: ['api://default'],
           clockTolerance: 300,
           maxTokenAge: 3600, // Default to Azure AD, can be overridden by config
         };
 
         if (bearerToken) {
-          console.log('SVR: validating bearer token as access token');
-          await validateAndStoreAccessToken(bearerToken, jwtValidation);
+            await validateAndStoreAccessToken(bearerToken, jwtValidation, HEADER_AUTH_ACCESS_PRIMARY);
+            await validateAndStoreClaimToken(
+              HEADER_AUTH_ACCESS_PRIMARY,
+              HEADER_AUTH_ACCESS_PRIMARY,
+              bearerToken,
+              jwtValidation,
+            );
         } else {
-          console.log('SVR: no bearer token provided - defaulting to guest access with limited permissions');
+            // Guest/no bearer requests are allowed and enforced by service policy.
         }
 
         const correlationId = String(
-          req.headers['msp-x-correlation-id'] || req.headers['msp-correlation-id'] || req.id || '',
+            req.headers[HEADER_CORRELATION_ID] || req.id || '',
         ).trim();
         if (correlationId) {
           setRequestContext({ correlationId });
-          setClaimStoreEntry('correlation-id', {
-            name: 'correlation-id',
-            headerName: 'MSP-X-CORRELATION-ID',
-            kind: 'meta',
-            value: correlationId,
-          });
+            setMetadataStoreEntry(HEADER_CORRELATION_ID, correlationId);
         }
 
         const incomingServiceLineage = String(
-          req.headers['msp-x-service-lc'] || req.headers['msp-service-lc'] || '',
+            req.headers[HEADER_SERVICE_LINEAGE] || '',
         ).trim();
         const serviceLineage = incomingServiceLineage || buildRootServiceLineage(config as Config);
         setRequestContext({
@@ -72,17 +112,11 @@ export function mspAuthMiddleware(config?: Partial<Config>) {
           serviceLineageCurrentPath: getLastServiceLineagePath(serviceLineage),
           serviceLineageChildCounter: 0,
         });
-        setClaimStoreEntry('service-lc', {
-          name: 'service-lc',
-          headerName: 'MSP-X-SERVICE-LC',
-          kind: 'meta',
-          value: serviceLineage,
-        });
+          setMetadataStoreEntry(HEADER_SERVICE_LINEAGE, serviceLineage);
 
         for (const [rawHeaderName, rawHeaderValue] of Object.entries(req.headers)) {
-          const headerName = String(rawHeaderName);
-          const match = headerName.match(CLAIM_HEADER_PATTERN);
-          if (!match) {
+            const headerName = canonicalHeaderName(rawHeaderName);
+            if (!isAssertionHeaderName(headerName)) {
             continue;
           }
 
@@ -92,11 +126,26 @@ export function mspAuthMiddleware(config?: Partial<Config>) {
             continue;
           }
 
-          const claimName = `${match[1].toLowerCase()}-${match[2].toLowerCase()}`;
-          await validateAndStoreClaimToken(claimName, headerName, token, jwtValidation);
+            if (headerName === HEADER_AUTH_ACCESS_PRIMARY && bearerToken && token === bearerToken) {
+              continue;
+            }
+
+            if (inferAssertionTypeFromHeaderName(headerName) === 'access') {
+              await validateAndStoreAccessToken(token, jwtValidation, headerName);
+            }
+
+            await validateAndStoreClaimToken(headerName, headerName, token, jwtValidation);
         }
 
-        console.log('SVR: proceeding with request');
+        if (inboundRequestAuthPolicy) {
+          const policyResult = normalisePolicyResult(await inboundRequestAuthPolicy());
+          if (policyResult.status >= 400 && policyResult.status < 500) {
+            return res.status(policyResult.status).json({
+              error: policyResult.message || 'Rejected by inbound request auth policy',
+            });
+          }
+        }
+
         // Continue processing within this context
         next();
       }

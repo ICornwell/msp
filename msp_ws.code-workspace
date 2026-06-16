@@ -53,6 +53,9 @@
 		"vitest.rootConfig": "",
 		"vitest.workspaceConfig": "${workspaceFolder}/..",
 		"js/ts.experimental.useTsgo": true,
-		"typescript.native-preview.tsdk": "msp_common/node_modules/@typescript/native-preview"
+		"typescript.native-preview.tsdk": "msp_common/node_modules/@typescript/native-preview",
+		"chat.tools.terminal.autoApprove": {
+			"yarn build:commons": true
+		}
 	}
 }

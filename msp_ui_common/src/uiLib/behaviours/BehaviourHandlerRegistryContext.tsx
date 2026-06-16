@@ -40,7 +40,7 @@ type BehaviourDispatchProviderProps = { children: ReactNode };
 
 export function BehaviourDispatchProvider({ children }: BehaviourDispatchProviderProps) {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
-  useUserSession({
+  const {loggedOut} = useUserSession({
     onLoggedIn: (sessionInfo: SessionInfo) => { setSessionInfo(sessionInfo); },
     onLoggedOut: () => { setSessionInfo(null); },
   });
@@ -48,7 +48,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
   const { dispatch: dispatchMenu } = useMenuDispatch();
   const { dispatch: dispatchPresentation } = usePresentationDispatch();
   const { dispatch: dispatchNavTree } = useNavTreeDispatch();
-  const { invalidate, save } = useDataDispatch();
+  const { invalidate, save, update } = useDataDispatch();
 
   function objectFromMaybeFunction(maybeFn: any, data: any): Object {
     try {
@@ -169,13 +169,24 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
         ],
         [
           'DataRequest',
-          (action, _eventWithDataCarrier, data) => {
+          (action, eventWithDataCarrier, data) => {
             const requestType = action.eventData?.requestType;
-            const viewDataIdentifier = action.eventData?.viewDataIndentifier;
+            const viewDataIdentifier =
+              paramFromMaybeFunction(action.eventData?.viewDataIdentifier, eventWithDataCarrier, undefined)
+              || action.eventData?.viewDataIndentifier;
             if (!requestType || !viewDataIdentifier) return;
 
             if (requestType === 'revert') {
               invalidate(viewDataIdentifier);
+            } else if (requestType === 'updateFromEventPayloadResult') {
+              const result = eventWithDataCarrier?.event?.payload?.result;
+              const mapResultToDataPatch = action.eventData?.mapResultToDataPatch;
+              const patch = typeof mapResultToDataPatch === 'function'
+                ? mapResultToDataPatch(result, eventWithDataCarrier)
+                : undefined;
+              if (patch && typeof patch === 'object') {
+                update(viewDataIdentifier, patch);
+              }
             } else {
               const nextData =
                 typeof action.eventData?.changeFn === 'function'
@@ -193,9 +204,18 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
           dispatchNavTree({ contextOwnerId, requestType: 'clearContextOwner' });
           dispatchPresentation({ contextOwnerId, requestType: 'clearContextOwner' });
         }],
+        ['SystemRequest', (action) => {
+          const requestType = action.eventData?.requestType;
+          if (!requestType) return;
+
+          if (requestType === 'logoutUser') {
+            loggedOut();
+            setSessionInfo(null);
+          }
+        }],
       ] as [string, ActionHandler][]),
       
-    [callActivity, dispatchMenu, dispatchPresentation, invalidate, save],
+    [callActivity, dispatchMenu, dispatchPresentation, invalidate, save, update],
   );
 
   return (

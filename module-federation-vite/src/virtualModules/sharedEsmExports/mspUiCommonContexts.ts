@@ -34,10 +34,10 @@ export function mspUiCommonContextsExportCode(): string {
     export const EventMessageTypeMapping = pick('EventMessageTypeMapping');
     export const MenuDispatchContext = pick('MenuDispatchContext');
     export const MenuDispatchProvider = pick('MenuDispatchProvider');
+    export const NavTreeDispatchContext = pick('NavTreeDispatchContext');
+    export const NavTreeDispatchProvider = pick('NavTreeDispatchProvider');
     export const PresentationDispatchContext = pick('PresentationDispatchContext');
     export const PresentationDispatchProvider = pick('PresentationDispatchProvider');
-    export const UiContentContext = pick('UiContentContext');
-    export const UiContentProvider = pick('UiContentProvider');
     export const UiEventContext = pick('UiEventContext');
     export const UiEventProvider = pick('UiEventProvider');
     export const UserSessionContext = pick('UserSessionContext');
@@ -46,14 +46,15 @@ export function mspUiCommonContextsExportCode(): string {
     export const useActivityDispatch = pick('useActivityDispatch');
     export const useDataCacheContext = pick('useDataCacheContext');
     export const useDataDispatch = pick('useDataDispatch');
-    export const useEventContext = pick('useEventContext');
     export const useMenuDispatch = pick('useMenuDispatch');
+    export const useNavTreeDispatch = pick('useNavTreeDispatch');
     export const usePresentationBladeState = pick('usePresentationBladeState');
     export const usePresentationCurrentTab = pick('usePresentationCurrentTab');
     export const usePresentationDispatch = pick('usePresentationDispatch');
     export const usePresentationTabSet = pick('usePresentationTabSet');
     export const useUiEventContext = pick('useUiEventContext');
     export const useUiEventPublisher = pick('useUiEventPublisher');
+    export const useUiEventReset = pick('useUiEventReset');
     export const useUserSessionContext = pick('useUserSessionContext');
   `;
 }

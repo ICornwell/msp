@@ -1,7 +1,7 @@
 import { constants } from 'crypto';
 import { createPublicKey, generateKeyPairSync, privateDecrypt, publicEncrypt, type KeyObject } from 'crypto';
 
-import { getUserId, getClientId } from '../als/claimHelpers.js';
+import { getUltimateRequesterId, getClientId } from '../als/assertionHelpers.js';
 import { runServiceActivity } from '../comms/serviceRequest.js';
 import type { ServiceRequestOptions, ServiceRequestResult } from 'msp_common';
 
@@ -110,7 +110,7 @@ const secretCache = new Map<string, CachedSecretEntry>();
 let cachedSecurityKey: CachedSecurityKeyEntry | undefined;
 
 function cacheKey(serviceId: string, secretName: string): string {
-  const identity = getUserId() || getClientId() || 'anonymous';
+  const identity = getUltimateRequesterId() || getClientId() || 'anonymous';
   return `${identity}::${serviceId}::${secretName}`;
 }
 

@@ -15,8 +15,6 @@ describe('ViewBuilder', () => {
       configSet: "main",
       dataType: {},
       rootKey: "accountNumber",
-      domain: undefined,
-      product: undefined,
       rootElement: {
         object: "accountObject",
         docPathName: "accountObject",

@@ -39,7 +39,8 @@ export type UiActivityEvent<T = any> = UiEventMessage<{
   namespace: string;
   activityName: string;
   version: string;
-  result: T;
+  activityResponse: Omit<T, 'result'>;
+  result?: T extends { result: infer R } ? R : never;
 }>;
 
 // Menu/UI interaction events

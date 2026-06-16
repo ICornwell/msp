@@ -5,19 +5,19 @@ import '@testing-library/jest-dom/vitest';
 import { EngineComponentProvider } from 'msp_ui_common/uiLib/renderEngine';
 import { ReProvider } from 'msp_ui_common/uiLib/renderEngine';
 import { UserSessionProvider } from 'msp_ui_common/uiLib/contexts';
-import { UiContentProvider } from 'msp_ui_common/uiLib/contexts';
+// import { UiContentProvider } from 'msp_ui_common/uiLib/contexts';
 
 // Create wrapper component for providers to use in tests
 const AllTheProviders: React.FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <UserSessionProvider>
-      <UiContentProvider>
+      
         <ReProvider>
           <EngineComponentProvider>
             {children}
           </EngineComponentProvider>
         </ReProvider>
-      </UiContentProvider>
+   
     </UserSessionProvider>
   );
 };

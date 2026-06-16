@@ -1,0 +1,239 @@
+import { useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import deepClone from 'safe-clone-deep'
+import { behaviourConfig, behaviourElement, BehaviourScopeId, BehaviourScopeLevel, BehaviourScopeTag } from './behaviourConfig.js';
+import { useEngineComponentsContext } from '../renderEngine/contexts/ReComponentsContext.js';
+import { useUiEventContext } from '../contexts/UiEventContext.js';
+// import { useDataCache } from '../hooks/useDataCache.js';
+import { useBehaviourHandlerRegistry } from './BehaviourHandlerRegistryContext.js';
+import { ViewDataIdentifier } from 'msp_common';
+import { UiEventMessage } from '../events/uiEvents.js';
+
+console.log('Loading Behaviour module');
+
+// ── Scope helpers ─────────────────────────────────────────────────────────────
+
+const SCOPE_RANK: Record<BehaviourScopeLevel, number> = {
+  DOMAIN: 0,
+  PRODUCT: 1,
+  SERVICE: 2,
+  FEATURE: 3,
+};
+
+/**
+ * Return true if a single ScopeItem from an event tag matches the expected
+ * ScopeItem from this behaviour's scopeId.
+ * - undefined myItem → wildcard, always matches.
+ * - name '*' → wildcard on the name field.
+ * - version / variantName: only compared when non-empty and not '*'.
+ * - undefined eventItem → event carries no tag at this level → accept.
+ */
+function scopeItemMatches(
+  eventItem: import('./behaviourConfig.js').ScopeItem | undefined,
+  myItem: import('./behaviourConfig.js').ScopeItem | undefined,
+): boolean {
+  if (!myItem || myItem.name === '*') return true;
+  if (!eventItem) return true;
+  if (eventItem.name !== myItem.name) return false;
+  if (myItem.version && myItem.version !== '*' && eventItem.version !== myItem.version) return false;
+  if (myItem.variantName && myItem.variantName !== '*' && eventItem.variantName !== myItem.variantName) return false;
+  return true;
+}
+
+/**
+ * Build the scope tag to stamp on an outbound dispatch.
+ * Includes ScopeItem objects for the levels up to (and including) the declared level.
+ */
+function buildScopeTag(scopeId: BehaviourScopeId, level: BehaviourScopeLevel): BehaviourScopeTag {
+  const rank = SCOPE_RANK[level];
+  return {
+    domain: scopeId.domain,
+    ...(rank >= SCOPE_RANK.PRODUCT && scopeId.product ? { product: scopeId.product } : {}),
+    ...(rank >= SCOPE_RANK.SERVICE && scopeId.service ? { service: scopeId.service } : {}),
+    ...(rank >= SCOPE_RANK.FEATURE && scopeId.feature ? { feature: scopeId.feature } : {}),
+  };
+}
+
+/**
+ * Return true if the event's scope tag matches the behaviour's own scopeId
+ * at the required filter level.  If the event carries no scope (legacy / platform
+ * events), it always passes — no behaviour should silently drop platform events.
+ */
+function scopeMatches(
+  eventScope: BehaviourScopeTag | undefined,
+  myId: BehaviourScopeId,
+  filterLevel: BehaviourScopeLevel
+): boolean {
+  if (!eventScope) return true;
+  const rank = SCOPE_RANK[filterLevel];
+  if (rank >= SCOPE_RANK.DOMAIN && !scopeItemMatches(eventScope.domain, myId.domain)) return false;
+  if (rank >= SCOPE_RANK.PRODUCT && !scopeItemMatches(eventScope.product, myId.product)) return false;
+  if (rank >= SCOPE_RANK.SERVICE && !scopeItemMatches(eventScope.service, myId.service)) return false;
+  if (rank >= SCOPE_RANK.FEATURE && !scopeItemMatches(eventScope.feature, myId.feature)) return false;
+  return true;
+}
+
+export type BehaviourArg<T> = T | (({ event, viewDataIdentifier, data }: { event: UiEventMessage<any>, viewDataIdentifier?: ViewDataIdentifier, data: any }) => T | undefined);
+
+type BehaviourProps = {
+  name?: string;
+  config: behaviourConfig;
+  initialData?: any;
+};
+
+export function Behaviour({name,  config, initialData }: BehaviourProps) {
+  const [startingUp, setStartingUp] = useState(true);
+  const { addComponent, removeComponent } = useEngineComponentsContext();
+  const { subscribe, unsubscribe } = useUiEventContext();
+  const registry = useBehaviourHandlerRegistry();
+  const [instanceId] = useState(uuidv4());
+  const data = initialData; // for now we will treat data as static - we can come back to this and decide if we want to support dynamic data in behaviours, and if so how we want to handle it.
+  // TODO: come back to this and decide if we want to support dynamic data in behaviours, and if so how we want to handle it.
+  // const data = useRef(initialData);
+
+  // useDataCache((dataEvent) => {
+  //   data.current = dataEvent;
+  //   // setData(dataEvent.payload)
+  // })
+
+  console.log(`Rendering Behaviour ${name} instance ${instanceId} with config:`, config, 'and initialData:', initialData);
+
+  useEffect(() => {
+    config.localCustomComponents.forEach(component => {
+      addComponent(component)
+    })
+
+    return () => {
+      config.localCustomComponents.forEach(component => {
+        removeComponent(component)
+      })
+    }
+
+  }, [addComponent, config.localCustomComponents, removeComponent])
+
+  useEffect(() => {
+    const subscriptions: string[] = [];
+
+    const registerElement = (element: behaviourElement<any, any>) => {
+      const subscriptionId = subscribe({
+        msgTypeFilter: (msg: UiEventMessage<any>) => msg?.messageType === element.eventType,
+        callback: (event: UiEventMessage<any>) => {
+
+          try {
+            // Scope filter — skip if the event's scope doesn't match ours at the declared level.
+            if (config.scopeId) {
+              const filterLevel = config.inboundScopeLevel ?? 'DOMAIN';
+              const eventScope = event.payload?.scope ?? event.payload?.context?.scope;
+              if (!scopeMatches(eventScope, config.scopeId, filterLevel)) {
+                return;
+              }
+            }
+
+            if (element.eventCondition && !element.eventCondition(event)) {
+              return;
+            }
+
+            const dataCarrier = event.payload.context || event.payload
+
+            const dataIndentifier = dataCarrier.viewDataIdentifier || dataCarrier.viewDataQueryIdentifier || dataCarrier.viewDataContent;
+            const dataContent = dataCarrier.viewDataContent || dataCarrier.viewData || dataCarrier.data;
+
+            if (element.dataCondition && !element.dataCondition(dataContent)) {
+              return;
+            }
+
+            if (element.dataIdentifierCondition && !element.dataIdentifierCondition(dataIndentifier)) {
+              return;
+            }
+            runElementActions(element, { event, data: dataContent, viewDataIdentifier: dataIndentifier });
+          } catch (_e) {
+            // if we failed it will be because the condition function threw an error.
+            // which is the same as them not being met
+            return
+          }
+          // If the Behaviour is not based on a dataCache update, but an event
+          // use payloadFromEvent to pull event data
+
+
+        },
+      });
+
+      subscriptions.push(subscriptionId);
+
+      // TODO: flat registration of inners will trigger them
+      // only on their own filters - but they shouls only trigger if parent filters are also met. 
+      for (const inner of element.innerElements || []) {
+        registerElement(inner);
+      }
+    };
+
+    for (const element of config.elements) {
+      if (element.eventType != 'Always') {
+        registerElement(element);
+      }
+    }
+    if (startingUp) {
+      console.log('Registered behaviour with subscriptions, running the whenStarted actions');
+      for (const element of config.elements) {
+        if (element.eventType === 'Always') {
+          runElementActions(element, {});
+        }
+      }
+      setStartingUp(false);
+    }
+
+    return () => {
+      subscriptions.forEach((id) => unsubscribe(id));
+
+      registry.get('clearContextOwner')?.(
+        {
+          eventType: 'clearContextOwner',
+          contextOwnerId: instanceId, eventData: {}, eventMsg: undefined as any, outboundScopeLevel: undefined
+        }, undefined, {});
+
+
+    };
+  }, []);
+
+
+
+  return null;
+
+  function runElementActions(element: any, eventWithDataCarrier: any) {
+    for (const action of element.actions || []) {
+      // action elements can be mutated as they are processed to resolve
+      // functions to values, so we create a copy of the action for each instance to avoid
+      // mutating the original action or other instances of it
+      const instanceAction = deepClone(action, 'circular');
+      instanceAction.contextOwnerId = instanceId;
+
+      // Stamp the outbound scope tag so handlers / activities carry full provenance.
+      if (config.scopeId && instanceAction.kind !== 'localEffect') {
+        const outboundLevel: BehaviourScopeLevel =
+          instanceAction.outboundScopeLevel ?? config.outboundScopeLevel ?? 'FEATURE';
+        instanceAction.eventData = instanceAction.eventData ?? {};
+        instanceAction.eventData.scope = buildScopeTag(config.scopeId, outboundLevel);
+      }
+
+      if (instanceAction.kind === 'localEffect') {
+        instanceAction.effect(eventWithDataCarrier, data);
+        continue;
+      }
+      Object.entries(instanceAction.eventData).forEach(([key, value]) => {
+        // FromEvent functions are handled seperately to update specific values
+        // keys ending with Func or Function are to be left as-is
+        // so functions can be passed as params without being resolved here
+        // all other values are resoled here
+        if (typeof value === 'function'
+          && !key.endsWith('FromEvent')
+          && !key.endsWith('Func')
+          && !key.endsWith('Function')) {
+          instanceAction.eventData[key] = value(eventWithDataCarrier, data);
+        }
+      });
+      console.log('Dispatching action for event', element.eventType, 'with data', instanceAction.eventData);
+      const handler = registry.get(action.eventType);
+      handler?.(instanceAction, eventWithDataCarrier, data);
+    }
+  }
+}

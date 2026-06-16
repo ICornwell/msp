@@ -30,7 +30,14 @@ export const useUserProfileBehaviour = () => {
             'viewVersion': '1.0.0',
             'viewRootEntityId': 'currentuser'}
           }
-        } as any)
+        })
+        .add({
+          id: 'logout-user',
+          label: 'Logout',
+          eventName: eventTypes.Navigation.ITEM_CLICK,
+          action: 'logoutUser',
+          menuTarget: 'profile'
+        })
         .endMenus()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
@@ -41,6 +48,12 @@ export const useUserProfileBehaviour = () => {
           ({viewDataIdentifier}) => viewDataIdentifier
         )
         .endPresentation()
+      .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+      .whenEventSatisfies((event) => event?.payload?.action === 'logoutUser')
+      .dispatch.toSystem
+        .logoutUser()
+        .endSystem()
+
     .build();
 
   return { config };

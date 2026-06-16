@@ -60,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         },
       }}
     >
+      <div style={{ display: 'flex', flexDirection: 'row', height: '100%', width: '100%' }}>
       <Box sx={{ 
         overflow: 'auto',
         marginTop: '64px', // Height of the AppBar
@@ -85,6 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               open={Boolean(settingsMenuAnchorEl)}
               onClose={handleSettingsMenuClose} />
         </Box>
+        </div>
     </Drawer>
     </div>
   );

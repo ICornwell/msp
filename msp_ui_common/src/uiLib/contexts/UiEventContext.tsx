@@ -1,6 +1,7 @@
-import { useContext, createContext, useRef } from 'react';
+import { useContext, createContext, useRef, useState } from 'react';
 import PubSub, { UiSubscription, UiPubSubMsg } from './UiPubSub.js'
 import { UiEventMessage } from '../events/uiEvents.js';
+import { v4 as uuidv4 } from 'uuid';
 
 export type UiEventContextType<ET = any> = {
   subscribe: (subscription:UiSubscription<UiEventMessage<ET>>) => string;
@@ -8,6 +9,7 @@ export type UiEventContextType<ET = any> = {
   /** @internal use raiseUiEvent / useUiEventPublisher from leaf components and subsystems */
   publish: (msg: UiEventMessage<ET>) => void
   active: boolean; // indicates if the context is active (i.e. if the provider is mounted)
+  reset: () => void; // resets the context (clears all subscriptions)
 }
 
 // Create context
@@ -15,7 +17,8 @@ export const UiEventContext = createContext<UiEventContextType>({
   subscribe:  (_subscription: UiSubscription<UiEventMessage>) => '',
   unsubscribe: (_subscriptionId: string) => {},
   publish: (_msg: UiEventMessage) => {},
-  active: false
+  active: false,
+  reset: () => {}
 });
 
 // UserSession provider component
@@ -25,7 +28,7 @@ export const UiEventProvider = ({ uiEventEnricher, children }
     uiEventEnricher = (msg: any) => msg; // default to identity function if no enricher provided
     }
   const pubSubRef = useRef<UiEventContextType>(PubSub<UiEventMessage<any>>());
-
+  const [_, resetApp] = useState(uuidv4()); // state to force re-render on reset
   const outerContext = useUiEventContext();
   if (outerContext && outerContext.active) {
     // pass through to the outer context, if there is one
@@ -36,13 +39,19 @@ export const UiEventProvider = ({ uiEventEnricher, children }
     pubSubRef.current.publish = (msg: any) => outerContext.publish(uiEventEnricher(msg));
   }
 
+  function reset() {
+    pubSubRef.current.reset();
+    resetApp(uuidv4()); // force re-render to reset context
+  }
+
   return (
     <UiEventContext.Provider value={
       {
         subscribe: pubSubRef.current.subscribe,
         unsubscribe: pubSubRef.current.unsubscribe,
         publish: pubSubRef.current.publish,
-        active: true
+        active: true,
+        reset
       }}>
      
         {children}
@@ -61,4 +70,9 @@ export const useUiEventContext: <ET = any>() => UiEventContextType<ET> = () => u
 export function useUiEventPublisher<ET extends UiPubSubMsg>(): { raiseUiEvent: (event: ET) => void } {
   const { publish }: {publish: (msg: UiEventMessage<ET>) => void} = useContext(UiEventContext);
   return { raiseUiEvent: publish } as { raiseUiEvent: (event: ET) => void };
+}
+
+export function useUiEventReset(): { reset: () => void } {
+  const {reset }: {reset: () => void} = useContext(UiEventContext);
+  return {reset } as { reset: () => void };
 }

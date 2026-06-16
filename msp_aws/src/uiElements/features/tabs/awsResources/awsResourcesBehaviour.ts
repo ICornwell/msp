@@ -1,4 +1,6 @@
 import { createBehaviour, eventTypes } from 'msp_ui_common/uiLib';
+import { matchesId } from 'msp_common';
+import { awsClusterSetupConfigView, awsResourceInventoryView } from '../../../../data/index.js';
 
 import { awsResourcesContent } from './awsResourcesContent.js';
 
@@ -29,7 +31,7 @@ export const useAwsResourcesBehaviour = () => {
       })
     .endActivity()
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-    .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'AwsResourceInventory' && !vid?.recordId)
+    .whenDataIdentifierSatisfies((vid) => matchesId(vid, awsResourceInventoryView.getViewIdentifier()) && !vid?.recordId)
     .dispatch.toPresentation
       .openTab(
         'AwsResourcesTab',
@@ -39,7 +41,7 @@ export const useAwsResourcesBehaviour = () => {
       )
       .endPresentation()
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-    .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'AwsClusterSetupConfig')
+        .whenDataIdentifierSatisfies((vid) => matchesId(vid, awsClusterSetupConfigView.getViewIdentifier()))
     .dispatch.toMenus
       .add({
         id: 'aws-save-setup-draft',
@@ -58,48 +60,6 @@ export const useAwsResourcesBehaviour = () => {
         context: defaultSetupContext,
       })
       .endMenus()
-    
-      // .callAsync({
-      //   id: 'refreshAwsWizardBootstrap',
-      //   action: 'aws/getAwsWizardBootstrap/1.0.0',
-      //   payloadFromEvent: (event) => ({
-      //     ...defaultSetupContext,
-      //     ...(event?.payload?.viewDataContent ?? {}),
-      //   }),
-      // })
-      // .callAsync({
-      //   id: 'refreshSetupConfigAfterConnect',
-      //   action: 'aws/readClusterSetupConfig/1.0.0',
-      //   payloadFromEvent: (event) => ({
-      //     ...defaultSetupContext,
-      //     setupId: event?.payload?.viewDataContent?.setupId ?? defaultSetupContext.setupId,
-      //     region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
-      //     clusterName: event?.payload?.viewDataContent?.clusterName ?? defaultSetupContext.clusterName,
-      //   }),
-      // })
-      // .callAsync({
-      //   id: 'refreshEksClustersFromWizardConnect',
-      //   action: 'aws/listEksClusters/1.0.0',
-      //   payloadFromEvent: (event) => ({
-      //     region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
-      //   }),
-      // })
-      // .callAsync({
-      //   id: 'refreshEcrReposFromWizardConnect',
-      //   action: 'aws/listEcrRepositories/1.0.0',
-      //   payloadFromEvent: (event) => ({
-      //     region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
-      //   }),
-      // })
-      // .callAsync({
-      //   id: 'refreshEcrReposFromWizardConnect',
-      //   action: 'aws/awsNetworkTopology/1.0.0',
-      //   payloadFromEvent: (event) => ({
-      //     region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
-      //   }),
-      // })
-    //.endActivity()
-
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
     .whenEventSatisfies((event) => event?.payload?.action === 'saveAwsSetupDraft')
     .dispatch.toActivity

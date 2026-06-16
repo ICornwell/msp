@@ -33,6 +33,104 @@ export interface ServiceActivityRegistration {
   activities: ServiceActivityFunction | ServiceActivityFunction[];
 }
 
+export type NameTriplet<
+  TName extends string = string,
+  TVersion extends string = string,
+  TVariantName extends string = string,
+> = {
+  name: TName;
+  version: TVersion;
+  variantName: TVariantName;
+};
+
+export type BusinessElementName<
+  TName extends string = string,
+  TVersion extends string = string,
+  TVariantName extends string = string,
+> = NameTriplet<TName, TVersion, TVariantName> & {
+  domain: {
+    name: string;
+    version: string;
+    variantName?: string;
+  };
+};
+
+export type OpsElementName<
+  TName extends string = string,
+  TVersion extends string = string,
+  TVariantName extends string = string,
+> = NameTriplet<TName, TVersion, TVariantName> & {
+  namespace: string;
+};
+
+type VersionedResourceIdLike = {
+  name: string;
+  version: string;
+  variantName?: string;
+  domain?: VersionedResourceIdLike;
+};
+
+type MatchableIdentifier = {
+  name?: string;
+  version?: string;
+  variantName?: string;
+  viewName?: string;
+  viewVersion?: string;
+  viewVariantName?: string;
+  namespace?: string;
+  viewDomain?: string;
+  domain?: VersionedResourceIdLike;
+};
+
+function normalizeIdentifier(value?: MatchableIdentifier): {
+  name?: string;
+  version?: string;
+  variantName?: string;
+  scope?: string | VersionedResourceIdLike;
+} {
+  return {
+    name: value?.name ?? value?.viewName,
+    version: value?.version ?? value?.viewVersion,
+    variantName: value?.variantName ?? value?.viewVariantName,
+    scope: value?.namespace ?? value?.viewDomain ?? value?.domain,
+  };
+}
+
+function matchesVersionedResourceId(a?: VersionedResourceIdLike, b?: VersionedResourceIdLike): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return a.name === b.name
+    && a.version === b.version
+    && a.variantName === b.variantName
+    && matchesVersionedResourceId(a.domain, b.domain);
+}
+
+export function matchesId(a?: MatchableIdentifier, b?: MatchableIdentifier): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+
+  const left = normalizeIdentifier(a);
+  const right = normalizeIdentifier(b);
+
+  if (left.name !== right.name || left.version !== right.version || left.variantName !== right.variantName) {
+    return false;
+  }
+
+  if (left.scope === undefined && right.scope === undefined) {
+    return true;
+  }
+
+  if (typeof left.scope === 'string' && typeof right.scope === 'string') {
+    return left.scope === right.scope;
+  }
+
+  if (typeof left.scope === 'object' && typeof right.scope === 'object') {
+    return matchesVersionedResourceId(left.scope, right.scope);
+  }
+
+  return false;
+}
+
 export type ViewIdentifier = {
   viewDomain: string;
   viewName: string;
@@ -66,9 +164,7 @@ export type ViewDataContent<D = any> = ViewDataQueryByIdIdentifier & {
 export function isViewDataContent_Matching_ViewDataIdentifier(content?: ViewDataContent, identifier?: ViewDataQueryIdentifier): boolean {
   if (!content && !identifier) return true;
   if (!content || !identifier) return false;
-  return content.viewDomain === identifier.viewDomain
-    && content.viewName === identifier.viewName
-    && content.viewVersion === identifier.viewVersion
+  return matchesId(content, identifier)
     && content.viewRootEntityId === identifier.viewRootEntityId
     && content.viewRootEntityHistoricTimestamp === identifier.viewRootEntityHistoricTimestamp
     && content.recordId === identifier.recordId;
@@ -77,9 +173,7 @@ export function isViewDataContent_Matching_ViewDataIdentifier(content?: ViewData
 export function viewDataIdentifier_Match(a?: ViewDataIdentifier, b?: ViewDataIdentifier): boolean {
   if (!a && !b) return true;
   if (!a || !b) return false;
-  return a.viewDomain === b.viewDomain
-    && a.viewName === b.viewName
-    && a.viewVersion === b.viewVersion
+  return matchesId(a, b)
     && a.viewRootEntityId === b.viewRootEntityId
     && a.viewRootEntityHistoricTimestamp === b.viewRootEntityHistoricTimestamp
     && a.recordId === b.recordId;

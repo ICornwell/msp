@@ -75,37 +75,40 @@ export function ActivityDispatchProvider({
       };
 
       try {
-        const result = await serviceRequest('activity', envelope);
+        const activityResponse = await serviceRequest('activity', envelope);
 
-        if (result.success && result.result) {
-          const raw = result.result;
+        if (activityResponse.success && activityResponse.result) {
+          const raw = activityResponse.result;
           // ViewDataContent[] convention: { data: [{ viewName, viewVersion, viewRootId, content }] }
           if (Array.isArray(raw?.data) && raw.data.length > 0 && raw.data[0]?.viewName !== undefined) {
             for (const item of raw.data as Array<ViewDataContent<any>>) {
               dataCache.submitData(item);
             }
           }
+          const responseWithoutResult = { ...activityResponse };
+          delete responseWithoutResult.result;
           raiseUiEvent({
             messageType: ActivityEvents.ACTIVITY_SUCCEEDED,
             payload: {
               namespace,
               activityName,
               version,
-              result
+              result: activityResponse.result,
+              activityResponse: responseWithoutResult,
             },
             correlationId,
             timestamp: Date.now(),
           });
         } else {
-          console.error('Activity execution failed:', result.message, result.error);
+          console.error('Activity execution failed:', activityResponse.message, activityResponse.error);
           raiseUiEvent({
             messageType: ActivityEvents.ACTIVITY_FAILED,
             payload: {
               namespace,
               activityName,
               version,
-              result: { error: result.message, 
-              details: result.error}
+              activityResponse: { error: activityResponse.message, 
+              details: activityResponse.error}
             },
             correlationId,
             timestamp: Date.now(),
@@ -120,7 +123,7 @@ export function ActivityDispatchProvider({
             namespace,
             activityName,
             version,
-            result: { error: err.message || 'Network error' },
+            activityResponse: { error: err.message || 'Network error' },
           },
           correlationId,
           timestamp: Date.now(),

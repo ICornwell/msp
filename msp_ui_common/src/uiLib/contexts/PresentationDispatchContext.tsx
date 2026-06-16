@@ -16,9 +16,11 @@ export type PresentationBladeState = ContextOwnedItem & {
   title?: string | ((context: any) => string);
   viewDataIdentifier?: ViewDataIdentifier;
   bladeWidthPreset?: 1 | 2 | 3 | 4 | 5 | 6;
+  updateWhenDataChanges?: boolean;
 };
 
 export type BladeParamOptions = keyof Omit<PresentationBladeState, 'open' | 'content' | 'contextOwnerId'>;
+export type TabParamOptions = 'title' | 'closable' | 'idSuffix' | 'updateWhenDataChanges';
 
 export type PresentationCurrentTab = {
   tab: Tab | null;
@@ -53,6 +55,7 @@ export const PresentationDispatchContext = createContext<PresentationDispatchCon
 export type TabContent = {
   uiPlan: ReUiPlan;
   viewDataIdentifier?: ViewDataIdentifier;
+  updateWhenDataChanges?: boolean;
 };
 
 export type TabPage = {
@@ -90,7 +93,8 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
     content: undefined,
     viewDataIdentifier: undefined,
     contextOwnerId: '',
-    bladeWidthPreset: undefined
+    bladeWidthPreset: undefined,
+    updateWhenDataChanges: false,
   });
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [currentTab, setCurrentTab] = useState<Tab | null>(null);
@@ -129,6 +133,7 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           viewDataIdentifier: request.params?.viewDataIdentifier,
           title: request.params?.title,
           bladeWidthPreset: request.params?.bladeWidthPreset,
+          updateWhenDataChanges: request.params?.updateWhenDataChanges ?? false,
           contextOwnerId: request.contextOwnerId,
         });
         break;
@@ -139,6 +144,7 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           viewDataIdentifier: undefined,
           title: undefined,
           bladeWidthPreset: undefined,
+          updateWhenDataChanges: false,
           contextOwnerId: ''
         });
         break;
@@ -159,7 +165,11 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
             contextOwnerId: request.contextOwnerId,
             title: request.params?.title || 'New Tab',
             isClosable: request.params?.closable ?? true,
-            content: { uiPlan: request.params?.content, viewDataIdentifier: request.params?.viewDataIdentifier },
+            content: {
+              uiPlan: request.params?.content,
+              viewDataIdentifier: request.params?.viewDataIdentifier,
+              updateWhenDataChanges: request.params?.updateWhenDataChanges ?? false,
+            },
             pages: initialPages,
           };
           setTimeout(() => setAndActivateTab(newTab), 0);
@@ -173,7 +183,11 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
           id: request.params?.pageId,
           title: request.params?.title ?? 'Page',
           icon: request.params?.icon,
-          content: { uiPlan: request.params?.content, viewDataIdentifier: request.params?.viewDataIdentifier },
+          content: {
+            uiPlan: request.params?.content,
+            viewDataIdentifier: request.params?.viewDataIdentifier,
+            updateWhenDataChanges: request.params?.updateWhenDataChanges ?? false,
+          },
           scrollEligible: request.params?.scrollEligible,
           isActive: false,
         };
@@ -217,7 +231,11 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
             contextOwnerId: request.contextOwnerId,
             title: request.params?.title || 'New Tab',
             isClosable: request.params?.closable ?? true,
-            content: { uiPlan: request.params?.content, viewDataIdentifier: request.params?.viewDataIdentifier },
+            content: {
+              uiPlan: request.params?.content,
+              viewDataIdentifier: request.params?.viewDataIdentifier,
+              updateWhenDataChanges: request.params?.updateWhenDataChanges ?? false,
+            },
           };
           setTimeout(() => {
             setAndActivateTab(newTab);
@@ -242,7 +260,14 @@ export function PresentationDispatchProvider({ children }: { children: ReactNode
         if (!request.contextOwnerId) break;
         setBladeState(prev =>
           prev.contextOwnerId === request.contextOwnerId
-            ? { open: false, content: undefined, viewDataIdentifier: undefined, title: undefined, contextOwnerId: '' }
+            ? {
+              open: false,
+              content: undefined,
+              viewDataIdentifier: undefined,
+              title: undefined,
+              updateWhenDataChanges: false,
+              contextOwnerId: ''
+            }
             : prev
         );
         setTabs(prev => {

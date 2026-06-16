@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
 import { TopBar } from './TopBar.js';
@@ -6,11 +6,12 @@ import { Sidebar } from './Sidebar.js';
 import { Blade } from './Blade.js';
 import { TabStrip } from './TabStrip.js';
 import { MainContent } from './MainContent.js';
-import { useEventContext } from '../contexts/UiContentContext.js';
+
+//import { useEventContext } from '../contexts/xx_UiContentContext.tsx.txt';
 import EngineComponents from './engineComponents.js';
 import { ReProvider } from '../renderEngine/contexts/ReEngineContext.js';
 import { EngineComponentProvider } from '../renderEngine/contexts/ReComponentsContext.js';
-import { ContextItem } from '../contexts/uiEventTypes.js';
+// import { ContextItem } from '../contexts/uiEventTypes.js';
 import { PageBar } from './index.js';
 
 const MainContainer = styled(Box)(({  }) => ({
@@ -30,18 +31,18 @@ const ContentContainer = styled(Box)(({  }) => ({
 export const AppShell: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   // const [isBladeOpen, setIsBladeOpen] = useState<boolean>(false);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  // const [activeTabId, setActiveTabId] = useState<string | null>(null);
   // const [configContent, setConfigContent] = useState<string | null>(null);
 
-  const { state } = useEventContext();
-  const { navItems, contextItems } = state;
+  // const { state } = useEventContext();
+  // const { navItems, contextItems } = state;
 
-  const tabs = contextItems.map((ci: ContextItem) => ({
-    id: ci.id,
-    label: ci.label,
-    eventName: ci.eventName || 'TAB',
-    content: null,
-  }));
+  // const tabs = contextItems.map((ci: ContextItem) => ({
+  //   id: ci.id,
+  //   label: ci.label,
+  //   eventName: ci.eventName || 'TAB',
+  //   content: null,
+  // }));
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -57,16 +58,16 @@ export const AppShell: React.FC = () => {
   //   setConfigContent(null);
   // };
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTabId(tabId);
-  };
+  // const handleTabChange = (tabId: string) => {
+  //   // setActiveTabId(tabId);
+  // };
 
-  useEffect(() => {
-    // Set first tab as active if tabs exist and no active tab
-    if (tabs.length > 0 && !activeTabId) {
-      setActiveTabId(tabs[0].id);
-    }
-  }, [tabs, activeTabId]);
+  // useEffect(() => {
+  //   // Set first tab as active if tabs exist and no active tab
+  //   if (tabs.length > 0 && !activeTabId) {
+  //     setActiveTabId(tabs[0].id);
+  //   }
+  // }, [tabs, activeTabId]);
 
   return (
     <ReProvider>
@@ -85,10 +86,10 @@ export const AppShell: React.FC = () => {
 
           <ContentContainer>
             <Sidebar
-              navItems={navItems}
+              navItems={[]}
               isCollapsed={isSidebarCollapsed}
-              activeTabId={activeTabId}
-              onTabSelect={handleTabChange}
+              activeTabId={null}
+              onTabSelect={()=>{}}
               
             />
 

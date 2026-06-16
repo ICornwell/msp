@@ -24,6 +24,10 @@ The platform's defining properties:
 - **Behaviour-first UI model.** In-browser UI logic is expressed as a typed,
   fluent DSL that compiles to wiring rules — not imperative component code.
 
+### Foundational Identifier Guidance
+
+- [Identifier Governance One-Pager](docs/IDENTIFIER_GOVERNANCE_ONE_PAGER.md)
+
 ---
 
 ## Four Priority Use Cases

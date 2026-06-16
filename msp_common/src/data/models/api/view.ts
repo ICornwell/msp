@@ -1,5 +1,6 @@
 import { DeepPartial, Flatten } from '../../fluent/builderUtils.js';
 import { DomainObject, versionedResourceId } from './data.js';
+import type { ViewDataIdentifier, ViewIdentifier } from '../../../types/index.js';
 
 export type SubElement = ViewElement<DomainObject<any, any>>; 
 
@@ -23,16 +24,17 @@ export interface ViewElement<
 
 export interface View<VT extends Flatten<any> = any>  {
     targetDataStore?: string;
+    namespace?: string;
     name: string;
     version: string;
     variantName?: string;
     configSet: string;
     rootKey: string;
     rootElement: SubElement;
-    domain?: versionedResourceId;  // Added when bound to product
-    product?: versionedResourceId;  // Added when bound to product
     dataType?: DeepPartial<VT> 
     viewDataIdentifier: versionedResourceId; // Serialisable reference to the viewDataIdentifier that will be used for this view's data at runtime
+    getViewIdentifier: () => ViewIdentifier;
+    getViewDataIdentifier: (dataKey: string, recordId?: string) => ViewDataIdentifier;
 
 }
 

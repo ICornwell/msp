@@ -4,19 +4,22 @@ import { createApp } from './api.js';
 import { ActivitySet, ServiceActivity } from '../service-manager/index.js';
 import { Config } from '../sharedconfig.js';
 import { SERVICE_TYPE } from './server.js';
+import { InboundRequestAuthPolicy } from '../als/authMiddleware.js';
 
 
 export function startMspDataServer(
   config: Partial<Config>,
   serviceType: SERVICE_TYPE = SERVICE_TYPE.DATA,
-  serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity) {
+  serviceActivities: ActivitySet | ServiceActivity[] | ServiceActivity,
+  inboundRequestAuthPolicy?: InboundRequestAuthPolicy,
+) {
 
   const PORT = Number.parseInt(config.myDataPort || '443', 10);
   console.log(`Starting MSP Data Server on port ${PORT} with service type ${serviceType}`);
 
 
   // Start the server
-  const app = createApp(config, serviceType, serviceActivities);
+  const app = createApp(config, serviceType, serviceActivities, inboundRequestAuthPolicy);
   const server = app.listen(PORT, () => {
     console.log(`\n🚀Data API server running on ${config.myDataUrl}`);
     console.log(`   - Health check: ${config.myDataUrl}/health`);

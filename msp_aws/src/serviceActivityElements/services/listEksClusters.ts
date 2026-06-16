@@ -1,5 +1,8 @@
 import type { DataObject, ViewDataContent } from 'msp_common';
 import { runDataActivity, type ServiceActivityResultBuilder } from 'msp_svr_common';
+import { awsResourceInventoryView } from '../../data/index.js';
+
+const inventoryViewIdentifier = awsResourceInventoryView.getViewIdentifier!();
 
 export type ListEksClustersPayload = {
   region?: string;
@@ -41,9 +44,10 @@ function normalizeEksRows(
     const endpoint = row.content.endpoint ?? '';
 
     return {
-      viewDomain: 'aws',
-      viewName: 'AwsResourceInventory',
-      viewVersion: '1.0.0',
+      viewDomain: inventoryViewIdentifier.viewDomain,
+      viewName: inventoryViewIdentifier.viewName,
+      viewVersion: inventoryViewIdentifier.viewVersion,
+      viewVariantName: inventoryViewIdentifier.viewVariantName,
       viewRootEntityType: 'eksCluster',
       viewRootEntityId: rowId,
       viewRootEntityBusKey: rowId,

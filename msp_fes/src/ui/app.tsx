@@ -1,31 +1,16 @@
 import { useEffect, useState } from 'react';
-// import * as uiComponentsNs from 'msp_ui_common/uiLib/components';
-// import * as uiContextsNs from 'msp_ui_common/uiLib/contexts';
-
 import defaultTheme from './theme.js';
-// import { styled } from '@mui/material/styles';
-
+import Spinner from './Spinner.js';
 import { AppUiFeatures } from './appUiFeatures.js';
-
-// type UiComponentsModule = typeof uiComponentsNs;
-// type UiContextsModule = typeof uiContextsNs;
-// type UiComponentsModuleWithDefault = UiComponentsModule & { default?: UiComponentsModule };
-// type UiContextsModuleWithDefault = UiContextsModule & { default?: UiContextsModule };
-
-// const uiComponents: UiComponentsModule = (uiComponentsNs as UiComponentsModuleWithDefault).default ?? uiComponentsNs;
-// const uiContexts: UiContextsModule = (uiContextsNs as UiContextsModuleWithDefault).default ?? uiContextsNs;
-// const { AppShell, CustomThemeProvider } = uiComponents;
-// const { UiContentProvider, UserSessionProvider } = uiContexts;
-
 import { AppShell, CustomThemeProvider } from 'msp_ui_common/uiLib/components';
-import { UiContentProvider, UserSessionProvider, UiEventProvider, DataCacheProvider } from 'msp_ui_common/uiLib/contexts';
+import { UserSessionProvider, UiEventProvider, DataCacheProvider } from 'msp_ui_common/uiLib/contexts';
 import {
   ActivityDispatchProvider,
   MenuDispatchProvider,
+  NavTreeDispatchProvider,
   PresentationDispatchProvider
 } from 'msp_ui_common/uiLib/contexts';
 import { BehaviourDispatchProvider } from 'msp_ui_common/uiLib/behaviours';
-
 import type { AuthenticationResult, AccountInfo } from '@azure/msal-browser'
 import { PublicClientApplication } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
@@ -46,6 +31,9 @@ const App: React.FC = () => {
       }
 
       if (navigator.serviceWorker.controller) {
+        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched'}, () => {
+          console.log('Service Worker sent cleared token message.');
+        });
         return true;
       }
 
@@ -56,6 +44,9 @@ const App: React.FC = () => {
       }
 
       if (navigator.serviceWorker.controller) {
+        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched'}, () => {
+          console.log('Service Worker sent cleared token message.');
+        });
         return true;
       }
 
@@ -98,6 +89,9 @@ const App: React.FC = () => {
         if (!isControlled) {
           console.warn('Service Worker registered but controller not active yet; continuing without strict SW gate.');
         }
+        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched'}, () => {
+          console.log('Service Worker sent cleared token message.');
+        }); 
         setSwRegistered(true);
       })
       .catch((error) => {
@@ -106,19 +100,52 @@ const App: React.FC = () => {
       });
   }, []);
 
+  function postServiceWorkerMessage(message: Record<string, unknown>, callback: () => void) {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      callback();
+      return;
+    }
+
+    const sw = (navigator as any).serviceWorker;
+    try {
+      if (sw?.controller?.postMessage) {
+        sw.controller.postMessage(message);
+        callback();
+        return;
+      }
+    } catch (error) {
+      console.warn('Error posting message to active service worker controller:', error);
+    }
+
+    if (sw && typeof sw.getRegistration === 'function') {
+      sw.getRegistration().then((registration: any) => {
+        const target = registration?.active ?? registration?.waiting ?? registration?.installing;
+        target?.postMessage?.(message);
+        callback();
+      }).catch((error: any) => {
+        console.error('Error fetching Service Worker registration:', error);
+        callback();
+      });
+      return;
+    }
+
+    callback();
+  }
+
   return (!swRegistered
     ? (
-      <>
-        Registering, please wait...
-      </>
+      <Spinner
+        text='MSP Initialising connections...'
+        hint='Preparing service worker and auth channels.'
+      />
     )
     : (<CustomThemeProvider theme={defaultTheme}>
 
-      <UiContentProvider>
         <UiEventProvider>
           <UserSessionProvider>
             <DataCacheProvider>
               <ActivityDispatchProvider serviceHubUrl='/api/v1'>
+                <NavTreeDispatchProvider>
                 <MenuDispatchProvider>
                   <PresentationDispatchProvider>
                     <BehaviourDispatchProvider>
@@ -127,11 +154,11 @@ const App: React.FC = () => {
                     </BehaviourDispatchProvider>
                   </PresentationDispatchProvider>
                 </MenuDispatchProvider>
+                </NavTreeDispatchProvider>
               </ActivityDispatchProvider>
             </DataCacheProvider>
           </UserSessionProvider>
         </UiEventProvider>
-      </UiContentProvider>
     </CustomThemeProvider>
 
     ));

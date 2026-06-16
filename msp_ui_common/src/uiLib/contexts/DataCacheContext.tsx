@@ -5,6 +5,7 @@ import { useUiEventContext } from './UiEventContext.js';
 import type { DataViewIdQueryEnvelope,  ViewDataContent,  ViewDataQueryIdentifier } from 'msp_common';
 import { v4 as uuid } from 'uuid';
 import { serviceRequest } from '../comms/serverRequests.js';
+import { useUserSession } from '../hooks/index.js';
 
 /**
  * UIEvent messageTypes raised by the DataCache subsystem.
@@ -37,6 +38,7 @@ export type DataRequest = DataRequestCommon & (
   | { type: 'LoadDataView', viewDataQueryIdentifier: ViewDataQueryIdentifier }
   | { type: 'RefreshDataView', viewDataContent: ViewDataContent<any> }
   | { type: 'UnloadDataView', viewDataContent: ViewDataContent<any> }
+  | { type: 'UpdateData', viewDataIdentifier: ViewDataQueryIdentifier, dataPatch: Partial<any> }
   | { type: 'PublishChange', viewDataContent: ViewDataContent<any>, changePath?: string[], changeValue?: any }
 );
 
@@ -118,11 +120,17 @@ export const DataCacheContext = createContext<DataCacheContextType>({
 export const DataCacheProvider = ({ children }: { children: any }) => {
   const requestPubSubRef = useRef(PubSub<DataCacheMsg>());
   const eventPubSubRef = useRef(PubSub<DataCacheMsg>());
-  const [cache] = useState(() => new Map<CacheKey, CachedView>());
-  const [entityIndex] = useState(() => new Map<string, Set<CacheKey>>());
-  const [inFlightRequests] = useState(() => new Map<CacheKey, Promise<void>>());
+  const [cache, clearCache] = useState(() => new Map<CacheKey, CachedView>());
+  const [entityIndex, clearEntityIndex] = useState(() => new Map<string, Set<CacheKey>>());
+  const [inFlightRequests, clearInFlightRequests] = useState(() => new Map<CacheKey, Promise<void>>());
 
   const { publish: raiseUiEvent } = useUiEventContext();
+
+  useUserSession({onLoggedOut: () => {
+    clearCache(new Map<CacheKey, CachedView>());
+    clearEntityIndex(new Map<string, Set<CacheKey>>());
+    clearInFlightRequests(new Map<CacheKey, Promise<void>>());
+  }, onLoggedIn: () => { return; }});
 
   // Publish to the private DataCache bus AND the UIEvent bus.
   // Behaviours see the UIEvent; render-engine containers subscribe to the private bus.
@@ -243,6 +251,33 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
         viewDataContent: msg.viewDataContent,
         correlationId: msg.correlationId,
       } as any);
+    } else if (msg.type === 'UpdateData') {
+      const key = toCacheKey(msg.viewDataIdentifier);
+      const cached = cache.get(key);
+      if (cached?.viewDataContent?.content && msg.dataPatch && typeof msg.dataPatch === 'object') {
+        const currentContent = cached.viewDataContent.content as any;
+        const recordId = msg.viewDataIdentifier.recordId;
+
+        if (Array.isArray(currentContent) && recordId) {
+          cached.viewDataContent.content = currentContent.map((entry: any) =>
+            entry?.id === recordId && entry && typeof entry === 'object'
+              ? { ...entry, ...msg.dataPatch }
+              : entry
+          );
+        } else if (currentContent && typeof currentContent === 'object' && !Array.isArray(currentContent)) {
+          cached.viewDataContent.content = { ...currentContent, ...msg.dataPatch };
+        }
+
+        const changedViewDataContent = fromViewData(cached.viewDataContent, msg.viewDataIdentifier)
+          ?? cached.viewDataContent;
+
+        dispatchDataEvent({
+          type: 'DataViewChanged',
+          viewDataContent: changedViewDataContent,
+          changeType: 'updated',
+          correlationId: msg.correlationId,
+        } as DataEvent);
+      }
     } else if (msg.type === 'PublishChange') {
       const key = toCacheKey(msg.viewDataContent);
       const cached = cache.get(key);
@@ -331,6 +366,7 @@ export const useDataCacheContext = () => useContext(DataCacheContext);
 export type DataDispatch = {
   invalidate: (viewDataContent: any, correlationId?: string) => void;
   save: (viewDataContent: any, changePath?: string[], changeValue?: any, correlationId?: string) => void;
+  update: (viewDataIdentifier: any, dataPatch: Partial<any>, correlationId?: string) => void;
 };
 
 /**
@@ -345,6 +381,9 @@ export function useDataDispatch(): DataDispatch {
     },
     save: (viewDataContent, changePath, changeValue, correlationId) => {
       context.publishRequest({ type: 'PublishChange', viewDataContent, changePath, changeValue, correlationId });
+    },
+    update: (viewDataIdentifier, dataPatch, correlationId) => {
+      context.publishRequest({ type: 'UpdateData', viewDataIdentifier, dataPatch, correlationId });
     },
   };
 }

@@ -1,7 +1,7 @@
 // Service Activity Registry
 // Uses ActivitySet for version matching and name matching
 
-import { View } from 'msp_common';
+import { View, matchesId } from 'msp_common';
 import { DataFeatureManifestSection, ActivityFeatureManifestSection, VersionedNamespaceResourceId } from 'msp_svr_common';
 
 
@@ -23,10 +23,11 @@ const directViews: ViewRegistration[] = [];
 
 function registrationForFeatureView(feature: ActivityFeatureManifestSection | DataFeatureManifestSection, view: View,
   service: ServiceManifestSection, manifest: Manifest, isDataFeature: boolean): ViewRegistration {
+  const viewNamespace = view.namespace || (view as any).domain?.name || manifest.namespace || service.namespace || 'default';
   return {
     viewIdentifier: {
       type: 'view',
-      namespace: view.domain?.name || 'default',
+      namespace: viewNamespace,
       name: view.name,
       version: view.version || '1.0.0',
       variantName: view.variantName || 'default',
@@ -48,10 +49,11 @@ function registrationForFeatureView(feature: ActivityFeatureManifestSection | Da
 function registrationForDirectView(owner: VersionedNamespaceResourceId, view: View,
   feature: ActivityFeatureManifestSection | DataFeatureManifestSection,
   service: ServiceManifestSection, manifest: Manifest, isWriteAllowed: boolean): ViewRegistration {
+  const viewNamespace = view.namespace || (view as any).domain?.name || manifest.namespace || service.namespace || 'default';
   return {
     viewIdentifier: {
       type: 'view',
-      namespace: view.domain?.name || 'default',
+      namespace: viewNamespace,
       name: view.name,
       version: view.version || '1.0.0',
       variantName: view.variantName || 'default',
@@ -109,10 +111,12 @@ export function findViewHandlingActivity(isWrite: boolean, namespace: string, vi
   const registrations = isWrite ? writeViews : readViews;
 
   const matchingRegistration = registrations.find(r =>
-    r.viewIdentifier.namespace === namespace &&
-    r.viewIdentifier.name === view &&
-    semver.satisfies(r.viewIdentifier.version ?? '1.0.0', version) &&
-    r.viewIdentifier.variantName === variantName
+    matchesId(r.viewIdentifier, {
+      namespace,
+      name: view,
+      version,
+      variantName,
+    }) && semver.satisfies(r.viewIdentifier.version ?? '1.0.0', version)
   );
 
   return matchingRegistration; // TODO: implement using serviceManager and registeredActivitySet
@@ -124,10 +128,12 @@ export function findDirectView(namespace: string, view: string, version: string,
   const registrations = directViews;
 
   const matchingRegistration = registrations.find(r =>
-    r.viewIdentifier.namespace === namespace &&
-    r.viewIdentifier.name === view &&
-    semver.satisfies(r.viewIdentifier.version ?? '1.0.0', version) &&
-    r.viewIdentifier.variantName === variantName
+    matchesId(r.viewIdentifier, {
+      namespace,
+      name: view,
+      version,
+      variantName,
+    }) && semver.satisfies(r.viewIdentifier.version ?? '1.0.0', version)
   );
 
   return matchingRegistration; // TODO: implement using serviceManager and registeredActivitySet

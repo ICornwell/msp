@@ -17,6 +17,7 @@ import {
   AlwaysBuilder,
   BehaviourActionFnContext,
   DispatchSurface,
+  SystemDispatchBuilder,
 } from './fluentBehaviour.js';
 import { BehaviourArg } from "./Behaviour.js";
 import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
@@ -103,6 +104,7 @@ function makeDispatchSurface<DT, E extends UiMsgNames, RT>(
     toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
     toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
     toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toSystem:       makeSystemDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
   };
 }
 
@@ -229,7 +231,38 @@ function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
       return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
+    updateFromEventPayloadResult: (viewDataIdentifier, mapResultToDataPatch) => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'DataRequest',
+        eventData: { requestType: 'updateFromEventPayloadResult', viewDataIdentifier, mapResultToDataPatch } as any,
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
+      };
+      element.actions.push(action);
+      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
+    },
+
     endData: () => returnBuilder
+  };
+}
+
+function makeSystemDispatchBuilder<DT, E extends UiMsgNames, RT>(
+  element: behaviourElement<DT, E>,
+  returnBuilder: RT,
+  scopeLevel?: BehaviourScopeLevel
+): SystemDispatchBuilder<DT, E, RT> {
+  return {
+    logoutUser: () => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'SystemRequest',
+        eventData: { requestType: 'logoutUser' } as any,
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
+      };
+      element.actions.push(action);
+      return makeSystemDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
+    },
+    endSystem: () => returnBuilder
   };
 }
 

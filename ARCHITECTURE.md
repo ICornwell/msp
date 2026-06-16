@@ -2,6 +2,12 @@
 
 ## System Overview
 
+## Foundational Identifier Guidance
+
+For the domain-vs-namespace model and mapping rationale, see:
+
+- [Identifier Governance One-Pager](docs/IDENTIFIER_GOVERNANCE_ONE_PAGER.md)
+
 **Multi-service platform** with pull-based discovery, event-driven behaviours, and module federation for micro-frontends.
 
 ```

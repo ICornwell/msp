@@ -1,8 +1,8 @@
-import { useRef, useContext, createContext, useEffect } from 'react';
+import { useRef, useContext, createContext, useEffect, } from 'react';
 import { AuthenticationResult, PublicClientApplication, AccountInfo } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react';
 import { v4 } from 'uuid';
-import { useUiEventPublisher } from './UiEventContext.js';
+import { useUiEventPublisher, useUiEventReset } from './UiEventContext.js';
 
 export type UserSessionEventsType = {
   USER_LOGGED_IN: 'USER_LOGGED_IN',
@@ -124,7 +124,10 @@ export const UserSessionContext = createContext<{
 // UserSession provider component
 export const UserSessionProvider = ({ children }: { children: any }) => {
   const { raiseUiEvent } = useUiEventPublisher();
+  const { reset } = useUiEventReset();
   const state = useRef(initialState);
+ 
+
   const tokenRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function clearTokenRefreshTimer() {
@@ -225,9 +228,9 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
 
   const loggedIn = (accountInfo: AccountInfo) => {
     clearTokenRefreshTimer();
-    if (state.current.isAuthenticated) {
-      raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
-    }
+    // if (state.current.isAuthenticated) {
+    //   raiseUiEvent({messageType: UserSessionEvents.USER_LOGGED_OUT, payload: state.current, timestamp: Date.now(), correlationId: v4()});
+    // }
     const pendingSessionState: UserSessionState = {
       isAuthenticated: true,
       userName: accountInfo.name,
@@ -257,6 +260,7 @@ export const UserSessionProvider = ({ children }: { children: any }) => {
       state.current = initialState;
       callHandlers();
     });
+    reset(); // reset the context to clear all subscriptions and state
   };
 
   // Check if we're in a browser environment
@@ -373,7 +377,9 @@ function deregisterTokenWithServiceWorker(state: UserSessionState,callback: () =
         loggedOut
       }}>
       <MsalProvider instance={msalInstance}>
-        {children}
+        <div key={state.current.userId}>
+          {children}
+        </div>
       </MsalProvider>
     </UserSessionContext.Provider>
   );

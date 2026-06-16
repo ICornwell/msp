@@ -12,6 +12,7 @@ const DEBUG_SW_LOGS = true;
 // Install event
 self.addEventListener('install', (event) => {
   console.log('[Service Worker] Installing...');
+  clearTokens('install');
   // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
@@ -123,7 +124,7 @@ self.addEventListener('fetch', (event) => {
           outgoingHeaders.set('Authorization', `Bearer ${currentAccessToken}`);
         }
         if (currentIdToken) {
-          outgoingHeaders.set('MSP-X-ACTOR-ID-CLAIM', currentIdToken);
+          outgoingHeaders.set('MSP-USER-ID-ASSERTION', currentIdToken);
         }
 
         const modifiedUrl = alias

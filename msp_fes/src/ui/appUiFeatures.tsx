@@ -23,6 +23,7 @@ const context = {
 
 export function AppUiFeatures() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [ redrawToggle, setRedrawToggle ] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const behaviourConfigRef = useRef<behaviourConfig[]>([]);
 
@@ -43,6 +44,7 @@ export function AppUiFeatures() {
 
     async function discoverAndLoadFeatures() {
       try {
+        setLoaded(false);
         const remotes = await getAvailableFeatures<UiRemoteRegistration>('discoverOpenUiFeatures', {
           product: context.product,
         }) as UiRemoteRegistration[];
@@ -75,6 +77,7 @@ export function AppUiFeatures() {
               loadedConfigs.push(...configs.map((config: behaviourConfig) => ({
                 ...config,
                 scopeId: remote.scope ?? config.scopeId,
+                name: `${remote.remoteName}/${remote.moduleName}`,
               })));
             }
           } catch (error) {
@@ -83,8 +86,13 @@ export function AppUiFeatures() {
         }
 
         if (!cancelled) {
-          behaviourConfigRef.current = loadedConfigs;
-          setLoaded(true);
+          console.log(`Loaded UI feature configs: ${loadedConfigs.length} for ${currentUser}, was ${behaviourConfigRef.current.length} before`);
+      //    if (behaviourConfigRef.current.length != loadedConfigs.length) {
+            behaviourConfigRef.current = loadedConfigs;
+            setLoaded(true);
+     //     }
+     //     setRedrawToggle((prev) => !prev); // Force a re-render to display the loaded features
+          
         }
       } catch (error) {
         console.error('Error discovering UI features:', error);
@@ -99,11 +107,18 @@ export function AppUiFeatures() {
     return () => {
       cancelled = true;
     };
-  }, [currentUser]);
+  }, [currentUser, (behaviourConfigRef.current.length == 0)]); // Re-run when the current user changes or the number of loaded configs changes
+
+  console.log(`Rendering AppUiFeatures for user: ${currentUser}, loaded: ${loaded}, redrawToggle: ${redrawToggle}, behaviourConfig length: ${behaviourConfigRef.current.length}`);
+
+  if (!loaded) {
+    return null;
+  }
+
   return (<>
     {loaded && behaviourConfigRef.current.map((behaviourConfig, index) => {
       return (
-        <Behaviour config={behaviourConfig} key={`fc_${index}_${currentUser}`} />
+        <Behaviour name={behaviourConfig.name} config={behaviourConfig} key={`fc_${index}`} />
       );
      
     }

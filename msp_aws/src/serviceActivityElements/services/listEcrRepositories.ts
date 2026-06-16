@@ -1,5 +1,8 @@
 import type { DataObject, ViewDataContent } from 'msp_common';
 import { runDataActivity, type ServiceActivityResultBuilder } from 'msp_svr_common';
+import { awsResourceInventoryView } from '../../data/index.js';
+
+const inventoryViewIdentifier = awsResourceInventoryView.getViewIdentifier();
 
 export type ListEcrRepositoriesPayload = {
   region?: string;
@@ -38,9 +41,10 @@ function normalizeRepositoryRows(
     const status = `${imageTagMutability}${scanOnPush ? ' (scan-on-push)' : ''}`;
 
     return {
-      viewDomain: 'aws',
-      viewName: 'AwsResourceInventory',
-      viewVersion: '1.0.0',
+      viewDomain: inventoryViewIdentifier.viewDomain,
+      viewName: inventoryViewIdentifier.viewName,
+      viewVersion: inventoryViewIdentifier.viewVersion,
+      viewVariantName: inventoryViewIdentifier.viewVariantName,
       viewRootEntityType: 'ecrRepository',
       viewRootEntityId: rowId,
       viewRootEntityBusKey: rowId,

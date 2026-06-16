@@ -4,7 +4,7 @@ import { privateDecrypt } from 'crypto';
 import { publicEncrypt } from 'crypto';
 import { constants } from 'crypto';
 
-import { getAllIdTokenClaims, getUserId } from 'msp_svr_common';
+import { getAllUserIdAssertionClaims, getUltimateRequesterId } from 'msp_svr_common';
 import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 
 export type StoreServiceSecretPayload = {
@@ -131,8 +131,8 @@ type VerifiedIdentity = {
 };
 
 function getVerifiedIdentity(): VerifiedIdentity {
-  const claims = getAllIdTokenClaims();
-  const subjectId = getUserId();
+  const claims = getAllUserIdAssertionClaims();
+  const subjectId = getUltimateRequesterId();
 
   // auth middleware sets this for explicit guest-mode bypass only. We reject here.
   if (!claims || !subjectId || subjectId === 'guest') {

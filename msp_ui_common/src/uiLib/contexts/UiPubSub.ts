@@ -5,6 +5,7 @@ export type UiSPubSub<MsgType = UiPubSubMsg> = {
   unsubscribe: (subscriberId: string) => void;
   publish: (msg: MsgType) => void;
   active: boolean; // indicates if the PubSub instance is active (i.e. if the provider is mounted)
+  reset: () => void; // resets the PubSub instance (clears all subscriptions)
 }
 
 export type UiPubSubMsg = {
@@ -50,10 +51,15 @@ export default function <MsgType = UiPubSubMsg>(): UiSPubSub<MsgType> {
     });
   }
 
+  function reset() {
+    subscribers.clear();
+  }
+
   return {
     subscribe,
     unsubscribe,
     publish,
-    active: true
+    active: true,
+    reset
   };
 }

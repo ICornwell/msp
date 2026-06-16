@@ -1,5 +1,12 @@
 // Outbound request handler with automatic token acquisition and claim propagation
-import { getRequestContext, setClaimStoreEntry, setRequestContext, type ClaimStoreEntry } from './context.js';
+import {
+  getAssertionStore,
+  getMetadataStoreEntry,
+  getRequestContext,
+  setMetadataStoreEntry,
+  setRequestContext,
+  type AssertionStoreEntry,
+} from './context.js';
 import { getTokenForService, clearTokenCahe } from '../auth/auth.js';
 import { getConfig } from '../configuredCommon.js';
 
@@ -8,15 +15,13 @@ export interface OutboundRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: any;
-  excludeClaims?: string[]; // Claim-store names to exclude from propagation
-  includeAllClaims?: boolean; // Default: true
+  excludeAssertions?: string[]; // Assertion names to exclude from propagation
+  includeAllAssertions?: boolean; // Default: true
   includeIdToken?: boolean; // Default: false
 }
 
-
-function toClaimHeaderName(claimName: string): string {
-  return `MSP-X-${claimName.split('-').map(part => part.toUpperCase()).join('-')}-CLAIM`;
-}
+const HEADER_CORRELATION_ID = 'msp-correlation-id';
+const HEADER_SERVICE_LINEAGE = 'msp-service-lc';
 
 function getServiceName(): string {
   const product = getConfig().product;
@@ -86,95 +91,58 @@ function buildNextServiceLineage(): string {
     serviceLineageCurrentPath: currentPath,
     serviceLineageChildCounter: nextIndex,
   });
-  setClaimStoreEntry('service-lc', {
-    name: 'service-lc',
-    headerName: 'MSP-X-SERVICE-LC',
-    kind: 'meta',
-    value: serialised,
-  });
+  setMetadataStoreEntry(HEADER_SERVICE_LINEAGE, serialised);
   return serialised;
 }
 
 function getOrCreateCorrelationId(): string {
   const context = getRequestContext();
-  const existing = context?.correlationId || context?.claimStore?.['correlation-id']?.value;
+  const existing = context?.correlationId || getMetadataStoreEntry(HEADER_CORRELATION_ID);
   if (existing) {
     return existing;
   }
 
   const next = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   setRequestContext({ correlationId: next });
-  setClaimStoreEntry('correlation-id', {
-    name: 'correlation-id',
-    headerName: 'MSP-X-CORRELATION-ID',
-    kind: 'meta',
-    value: next,
-  });
+  setMetadataStoreEntry(HEADER_CORRELATION_ID, next);
   return next;
 }
 
 
 /**
- * Get claim tokens to propagate as headers
+ * Get assertion tokens to propagate as headers
  */
-function getClaimHeaders(
-  includeAllClaims: boolean = true,
-  excludeClaims: string[] = []
+function getAssertionHeaders(
+  includeAllAssertions: boolean = true,
+  excludeAssertions: string[] = []
 ): Record<string, string> {
-  if (!includeAllClaims) {
+  if (!includeAllAssertions) {
     return {};
   }
-  
-  const claimStore = getRequestContext()?.claimStore ?? {};
+
+  const assertionStore = getAssertionStore();
   const headers: Record<string, string> = {};
 
-  for (const [claimName, entry] of Object.entries(claimStore) as Array<[string, ClaimStoreEntry]>) {
-    if (excludeClaims.includes(claimName)) {
+  for (const [assertionName, entry] of Object.entries(assertionStore) as Array<[string, AssertionStoreEntry]>) {
+    if (excludeAssertions.includes(assertionName)) {
       continue;
     }
 
-    if (claimName === 'correlation-id' || claimName === 'service-lc') {
+    if (!entry.token) {
       continue;
     }
 
-    const headerValue = entry.token ?? entry.value;
-    if (!headerValue) {
-      continue;
-    }
-
-    headers[entry.headerName || toClaimHeaderName(claimName)] = headerValue;
+    headers[entry.headerName] = entry.token;
   }
 
   return headers;
 }
 
 function collectResponsePropagationHeaders(response: Response): void {
-  const serviceLineage =
-    response.headers.get('MSP-X-SERVICE-LC') || response.headers.get('MSP-SERVICE-LC');
-  if (serviceLineage) {
-    const localEntries = parseServiceLineage(getRequestContext()?.serviceLineage);
-    const responseEntries = parseServiceLineage(serviceLineage);
-    const mergedByPath = new Map<string, { path: string; service: string; timestamp: string }>();
-
-    for (const entry of localEntries) {
-      mergedByPath.set(entry.path, entry);
-    }
-    for (const entry of responseEntries) {
-      mergedByPath.set(entry.path, entry);
-    }
-
-    const mergedEntries = sortServiceLineageEntries(Array.from(mergedByPath.values()));
-    const mergedLineage = serialiseServiceLineage(mergedEntries);
-
-    setRequestContext({
-      serviceLineage: mergedLineage,
-    });
-    setClaimStoreEntry('service-lc', {
-      name: 'service-lc',
-      headerName: 'MSP-X-SERVICE-LC',
-      kind: 'meta',
-      value: mergedLineage,
-    });
+  const correlationFromResponse = response.headers.get(HEADER_CORRELATION_ID);
+  if (correlationFromResponse) {
+    setRequestContext({ correlationId: correlationFromResponse });
+    setMetadataStoreEntry(HEADER_CORRELATION_ID, correlationFromResponse);
   }
 }
 
@@ -187,26 +155,24 @@ export async function makeAuthenticatedRequest(
   // Acquire access token
   const serviceToken = await getTokenForService(requestOptions.includeIdToken ?? false);
   
-  // Get claim headers
-  const claimHeaders = getClaimHeaders(
-    requestOptions.includeAllClaims ?? true,
-    requestOptions.excludeClaims || []
+  // Get assertion headers
+  const includeAllAssertions = requestOptions.includeAllAssertions ?? true;
+  const excludeAssertions = requestOptions.excludeAssertions ?? [];
+
+  const assertionHeaders = getAssertionHeaders(
+    includeAllAssertions,
+    excludeAssertions,
   );
   
   // Build headers
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${serviceToken.access}`,
     'Content-Type': 'application/json',
-    'MSP-X-CORRELATION-ID': getOrCreateCorrelationId(),
-    'MSP-X-SERVICE-LC': buildNextServiceLineage(),
-    ...claimHeaders,
+    [HEADER_CORRELATION_ID]: getOrCreateCorrelationId(),
+    [HEADER_SERVICE_LINEAGE]: buildNextServiceLineage(),
+    ...assertionHeaders,
     ...requestOptions.headers, // Allow override
   };
-
-  const requestContext = getRequestContext();
-  if (requestOptions.includeIdToken && requestContext?.idToken) {
-    headers['MSP-X-ACTOR-ID-CLAIM'] = requestContext.idToken;
-  }
   
   // Build fetch options
   const fetchOptions: RequestInit = {

@@ -36,7 +36,11 @@ export const Blade: React.FC<BladeProps> = ({
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const [title, setTitle] = React.useState<string>(simpleTitle(bladeState?.title, 'Details'));
 
-  let { isLoading, loadedData, clearState } = useDataLoading(bladeState?.viewDataIdentifier, setBladeTitle);
+  let { isLoading, loadedData, clearState } = useDataLoading(
+    bladeState?.viewDataIdentifier,
+    setBladeTitle,
+    bladeState?.updateWhenDataChanges ?? false,
+  );
 
   function setBladeTitle(data: any) {
     setIsOpen(bladeState.open)

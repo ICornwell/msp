@@ -3,6 +3,7 @@ import { createView } from 'msp_common';
 import { awsClusterSetupConfigObject, awsDesiredResourceConfigObject } from '../awsSetupObjectsAndRelations.js';
 
 export const awsClusterSetupConfigView = createView('aws-cluster-setup-config')
+  .withNamespace('aws')
   .withVersion('1.0')
   .withConfigSet('main')
   .withRootKey('id')
@@ -12,6 +13,7 @@ export const awsClusterSetupConfigView = createView('aws-cluster-setup-config')
   .build();
 
 export const awsDesiredResourceConfigView = createView('aws-desired-resource-config')
+  .withNamespace('aws')
   .withVersion('1.0')
   .withConfigSet('main')
   .withRootKey('id')

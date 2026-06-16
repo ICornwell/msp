@@ -6,7 +6,7 @@ import { BehaviourArg } from "./Behaviour.js";
 import { SessionInfo } from "../contexts/index.js";
 import { EventTypesByMsgName, UiMsgNames } from "../contexts/eventTypes.js";
 import type { BehaviourScopeLevel } from "./behaviourConfig.js";
-import { BladeParamOptions } from "../contexts/PresentationDispatchContext.js";
+import { BladeParamOptions, TabParamOptions } from "../contexts/PresentationDispatchContext.js";
 
 export type { BehaviourScopeLevel };
 
@@ -75,7 +75,7 @@ export interface PagedTabBuilder<DT, E extends UiMsgNames, RT> {
 export interface PresentationDispatchBuilder<DT, E extends UiMsgNames, RT> {
   openBlade:    (target: string, params?: BehaviourActionParams<DT, E, BladeParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   closeBlade:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  openTab:      (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  openTab:      (target: string, params?: BehaviourActionParams<DT, E, TabParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   /** Open a tab with a named set of pages. Fluently add pages via the returned PagedTabBuilder. */
   openPagedTab: (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PagedTabBuilder<DT, E, RT>;
   closeTab:     (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
@@ -94,7 +94,20 @@ export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
   invalidate: (dataId: ViewDataIdentifier) => DataDispatchBuilder<DT, E, RT>;
   /** Push a change via a transform function; data subsystem publishes DataChanged. */
   save: (dataId: ViewDataIdentifier, changeFn: (data: DT) => DT) => DataDispatchBuilder<DT, E, RT>;
+  /** Apply a partial patch to cached data using event.payload.result as source. */
+  updateFromEventPayloadResult: (
+    dataId: BehaviourArg<ViewDataIdentifier>,
+    mapResultToDataPatch: (result: any, context: BehaviourActionFnContext<DT, E>) => Partial<DT> | undefined
+  ) => DataDispatchBuilder<DT, E, RT>;
   endData: () => RT;
+}
+
+export interface SystemDispatchBuilder<DT, E extends UiMsgNames, RT> {
+  /** Log out the current user. */
+  logoutUser: () => SystemDispatchBuilder<DT, E, RT>;
+ 
+  
+  endSystem: () => RT;
 }
 
 // ── LocalEffect ───────────────────────────────────────────────────────────────
@@ -120,6 +133,8 @@ export interface DispatchSurface<DT, E extends UiMsgNames, RT> {
   toPresentation: PresentationDispatchBuilder<DT, E, RT>;
   /** Dispatch a call-to-action to the Data cache subsystem. */
   toData:         DataDispatchBuilder<DT, E, RT>;
+
+  toSystem:       SystemDispatchBuilder<DT, E, RT>;
 }
 
 

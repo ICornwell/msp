@@ -71,9 +71,8 @@ describe('Product Builder Integration', () => {
     expect(myProduct.views).toHaveLength(1);
     expect(myProduct.views[0].name).toBe('account-person-view');
     
-    // Check that view is bound to product
-    expect(myProduct.views[0].domain).toEqual({ name: 'banking', version: '1.0' });
-    expect(myProduct.views[0].product).toEqual({ name: 'account-mgmt', version: '1.0.0' });
+    // Check that view is bound to operational namespace
+    expect(myProduct.views[0].namespace).toBe('banking');
   });
 
   it('should support product version inheritance', () => {

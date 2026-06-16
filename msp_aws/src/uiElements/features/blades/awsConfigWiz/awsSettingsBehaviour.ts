@@ -1,6 +1,7 @@
 import { createBehaviour, eventTypes } from 'msp_ui_common/uiLib';
 
 import { awsSetupWizardContent } from './awsSetupWizardContent.js';
+import { awsClusterSetupConfigView } from '../../../../data/index.js';
 
 const defaultSetupContext = {
   setupId: 'aws-cluster-setup-default',
@@ -49,29 +50,59 @@ export const useAwsSettingsBehaviour = () => {
     .dispatch.toPresentation
       .openBlade(
         'AwsSetupWizardBlade',
-        { title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3 },
+        () => ({ title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3, updateWhenDataChanges: true }),
         awsSetupWizardContent(),
-        {
-          viewDomain: 'aws',
-          viewName: 'AwsClusterSetupConfig',
-          viewVersion: '1.0.0',
-          viewRootEntityId: defaultSetupContext.setupId,
-        },
+        awsClusterSetupConfigView.getViewDataIdentifier(defaultSetupContext.setupId)
       )
       .endPresentation()
     .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)
     .whenEventSatisfies(
       (event) =>
         event?.payload?.namespace === 'aws' &&
-        event?.payload?.activityName === 'connectAwsCredentials' &&
-        event?.payload?.result?.result?.connected === true,
+        event?.payload?.activityName === 'connectAwsCredentials',
+    )
+    .dispatch.toData
+      .updateFromEventPayloadResult(
+        ({ event }) => awsClusterSetupConfigView.getViewDataIdentifier(
+          event?.payload?.result?.setupId ?? defaultSetupContext.setupId,
+        ),
+        (result) => {
+          
+          const timestamp = new Date().toISOString();
+          return result.connected ? {
+            setupId: result.setupId ?? defaultSetupContext.setupId,
+            region: result.region ?? defaultSetupContext.region,
+            clusterName: result.clusterName ?? defaultSetupContext.clusterName,
+            accountId: result.accountId,
+            accountName: result.accountName,
+            connectionStatus: 'success',
+            connectionMessage: result.message ?? 'AWS credentials connected',
+            connectionCheckedAt: timestamp,
+            updatedAt: timestamp,
+            status: 'ready',
+          } : {
+            connectionStatus: 'failed',
+            connectionMessage: result.message ?? 'AWS credentials failed - unknown reason',
+            connectionCheckedAt: timestamp,
+          };
+        },
+      )
+      .endData()
+    .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)
+    .whenEventSatisfies(
+      (event) => {
+        const connectResult = (event?.payload?.result ?? {}) as Record<string, any>;
+        return event?.payload?.namespace === 'aws'
+          && event?.payload?.activityName === 'connectAwsCredentials'
+          && connectResult.connected === true;
+      },
     )
     .dispatch.toActivity
       .callAsync({
         id: 'refreshAwsWizardViewsAfterConnect',
         action: 'aws/refreshAwsWizardViews/1.0.0',
         payloadFromEvent: (event) => {
-          const connectResult = event?.payload?.result?.result ?? {};
+          const connectResult = (event?.payload?.result ?? {}) as Record<string, any>;
           return {
             ...defaultSetupContext,
             setupId: connectResult.setupId ?? defaultSetupContext.setupId,

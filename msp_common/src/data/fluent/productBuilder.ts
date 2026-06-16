@@ -74,11 +74,10 @@ export function createProduct(): ProductBuilder {
       // Extract view from builder if needed
       const view = isViewBuilder(viewInput) ? viewInput.__build() : viewInput;
       
-      // Bind view to product
+      // Bind view to an operational namespace if not already specified.
       const boundView: View = {
         ...view,
-        domain: product.domain,
-        product: product.id
+        namespace: view.namespace || product.domain?.name || 'default',
       };
       
       addedViews.push(boundView);

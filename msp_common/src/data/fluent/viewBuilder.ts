@@ -2,6 +2,7 @@ import { Flatten, MakeArray, JOIN, TrueFalse } from './builderUtils.js';
 import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO, versionedResourceId,
    PathOfDomainObject } from '../models/api/data.js';
 import { View, ViewElement, SubElement } from '../models/api/view.js';
+import type { NameTriplet, OpsElementName, ViewIdentifier, ViewDataIdentifier } from '../../types/index.js';
 
 
 
@@ -35,6 +36,35 @@ type PathOfSingleDomainObject<DO> = DO extends DomainObject<any, infer P, any, a
 function getBuilder<T>(context: CNTX<T, any>): T {
   const { data, ...builder } = context as any;
   return builder as T;
+}
+
+function attachViewIdentifierHelpers(view: View<any>): void {
+  const getViewIdentifier = (): ViewIdentifier => ({
+    viewDomain: view.namespace || 'default',
+    viewName: view.name,
+    viewVersion: view.version,
+    viewVariantName: view.variantName,
+  });
+
+  const getViewDataIdentifier = (dataKey: string, recordId?: string): ViewDataIdentifier => ({
+    ...getViewIdentifier(),
+    viewRootEntityId: dataKey,
+    recordId,
+  });
+
+  Object.defineProperty(view, 'getViewIdentifier', {
+    value: getViewIdentifier,
+    enumerable: false,
+    configurable: true,
+    writable: false,
+  });
+
+  Object.defineProperty(view, 'getViewDataIdentifier', {
+    value: getViewDataIdentifier,
+    enumerable: false,
+    configurable: true,
+    writable: false,
+  });
 }
 
 type RTOfRT<RT> = 
@@ -309,6 +339,7 @@ export interface ViewElementNonRecursive<
 // ============================================================================================================
 type RootEName = "__root";
 export interface ViewBuilder<RootDT = any> {
+  withNamespace: (namespace: string) => ViewBuilder<RootDT>;
   withVersion: (version: string) => ViewBuilder<RootDT>;
   withConfigSet: (configSet: string) => ViewBuilder<RootDT>;
   withRootKey: (rootKey: string) => ViewBuilder<RootDT>;
@@ -657,15 +688,19 @@ export function createViewElementNonRecursiveBuilder<
   return builderContext;
 }
 
-export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootDT> {
+export function createViewBuilder<RootDT = any>(
+  input: string | Partial<OpsElementName> | Partial<NameTriplet>
+): ViewBuilder<RootDT> {
+  const name = typeof input === 'string' ? input : (input.name || 'unnamed-view');
+
   const view: Partial<View> = {
     name: name,
-    version: '1.0',
+    version: typeof input === 'string' ? '1.0' : (input.version || '1.0'),
+    variantName: typeof input === 'string' ? undefined : input.variantName,
+    namespace: typeof input === 'string' ? undefined : ((input as Partial<OpsElementName>).namespace),
     configSet: 'main',
     rootKey: '',
     rootElement: undefined,
-    domain: undefined,
-    product: undefined
   };
 
   let rootElementBuilder: any;
@@ -673,6 +708,11 @@ export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootD
 
 
   const builder: ViewBuilder<RootDT> = {
+    withNamespace: function (namespace: string): ViewBuilder<RootDT> {
+      view.namespace = namespace;
+      return builder;
+    },
+
     withVersion: function (version: string): ViewBuilder<RootDT> {
       view.version = version;
       return builder;
@@ -726,8 +766,11 @@ export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootD
         view.rootElement = getBuilder(rootElementBuilder).build();
       }
       view.viewDataIdentifier = {name: view.name!, version: view.version!} as versionedResourceId; // In real implementation, would need to generate a proper identifier
-      
-      return view as View<any>;    },
+
+      const built = view as View<any>;
+      attachViewIdentifierHelpers(built);
+      return built;
+    },
   };
 
   const builderContext: CNTX<any, RootDT> = {
@@ -746,6 +789,6 @@ export function createViewBuilder<RootDT = any>(name: string): ViewBuilder<RootD
 // Convenience function
 // ============================================================================================================
 
- export function createView(name: string): ViewBuilder<any> {
-  return  createViewBuilder<{}>(name);
+export function createView(input: string | Partial<OpsElementName> | Partial<NameTriplet>): ViewBuilder<any> {
+  return  createViewBuilder<{}>(input);
 } 

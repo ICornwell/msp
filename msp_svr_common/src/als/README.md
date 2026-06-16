@@ -8,9 +8,9 @@ This module provides comprehensive JWT token validation, AsyncLocalStorage-based
 - ✅ Trusted issuer verification
 - ✅ Automatic JWKS key fetching and caching
 - ✅ AsyncLocalStorage for request-scoped data
-- ✅ Helper functions for claim retrieval
+- ✅ Helper functions for assertion claim retrieval
 - ✅ Automatic access token acquisition (client credentials)
-- ✅ Claim propagation via X-Context-Claim headers
+- ✅ Assertion propagation via msp-*-assertion headers
 
 ## Installation
 
@@ -65,31 +65,32 @@ app.use(async (req, res, next) => {
 });
 ```
 
-### 2. Retrieve Claims from ALS
+### 2. Retrieve Assertion Claims from ALS
 
 ```typescript
 import {
-  getUserId,
-  getUserName,
-  getUserEmail,
-  getUserRoles,
+  getUltimateRequesterId,
+  getUltimateRequesterName,
+  getUltimateRequesterEmail,
+  getUltimateRequesterRoles,
   hasRole,
-  getIdTokenClaim
+  resolveStandardizedClaim
 } from 'msp_svr_common';
 
 // In your route handler
 app.get('/api/profile', (req, res) => {
-  const userId = getUserId();
-  const userName = getUserName();
-  const email = getUserEmail();
-  const roles = getUserRoles();
+  const userId = getUltimateRequesterId();
+  const userName = getUltimateRequesterName();
+  const email = getUltimateRequesterEmail();
+  const roles = getUltimateRequesterRoles();
+  const resolved = resolveStandardizedClaim('ultimateRequesterId');
   
-  res.json({ userId, userName, email, roles });
+  res.json({ userId, userName, email, roles, resolvedBy: resolved?.strategyName });
 });
 
 // Role-based authorization
 app.post('/api/admin/action', (req, res) => {
-  if (!hasRole('Admin')) {
+  if (!hasRole('Admin', { assertionType: 'id', issPattern: 'login.microsoftonline.com' })) {
     return res.status(403).json({ error: 'Forbidden' });
   }
   
@@ -101,29 +102,18 @@ app.post('/api/admin/action', (req, res) => {
 
 ```typescript
 import {
-  makeAuthenticatedRequest,
   authenticatedGet,
-  authenticatedPost,
-  ClientCredentialsConfig
+  authenticatedPost
 } from 'msp_svr_common';
 
-// Configure client credentials for target service
-const serviceConfig: ClientCredentialsConfig = {
-  clientId: 'your-service-client-id',
-  clientSecret: process.env.CLIENT_SECRET!,
-  tenantId: 'your-tenant-id',
-  scope: 'api://target-service/.default',
-};
-
-// Make authenticated request with claim propagation
+// Make authenticated request with assertion propagation
 app.get('/api/data', async (req, res) => {
   try {
     // This automatically:
     // 1. Acquires access token using client credentials
     // 2. Adds Authorization: Bearer {token}
-    // 3. Propagates all claims from ALS as X-Context-Claim-{name} headers
+    // 3. Propagates stored assertion headers (msp-*-assertion)
     const response = await authenticatedGet(
-      serviceConfig,
       'https://other-service.com/api/data'
     );
     
@@ -134,17 +124,16 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// POST with selective claim exclusion
+// POST with selective assertion exclusion
 app.post('/api/process', async (req, res) => {
   const response = await authenticatedPost(
-    serviceConfig,
     'https://other-service.com/api/process',
     req.body,
     {
-      // Exclude sensitive claims from propagation
-      excludeClaims: ['email', 'phone_number'],
-      // Or disable claim propagation entirely
-      includeAllClaims: false,
+      // Exclude selected assertions from propagation
+      excludeAssertions: ['msp-user-id-assertion'],
+      // Or disable assertion propagation entirely
+      includeAllAssertions: false,
     }
   );
   
@@ -157,58 +146,29 @@ app.post('/api/process', async (req, res) => {
 
 ```typescript
 import {
-  validateAndStoreAccessToken,
-  runWithContext,
+  mspAuthMiddleware,
   getClientId,
-  getTenantId
+  getTenantId,
+  getCustomClaim
 } from 'msp_svr_common';
 
-// Middleware for service-to-service authentication
-app.use(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-  
-  try {
-    await runWithContext(
-      { requestId: req.id, timestamp: Date.now() },
-      async () => {
-        // Validate access token
-        await validateAndStoreAccessToken(token, {
-          trustedIssuers: [
-            'https://login.microsoftonline.com/{tenant-id}/v2.0'
-          ],
-          audience: 'api://your-service',
-        });
-        
-        // Extract propagated claims from headers
-        const customClaims: Record<string, any> = {};
-        for (const [key, value] of Object.entries(req.headers)) {
-          if (key.toLowerCase().startsWith('x-context-claim-')) {
-            const claimName = key.substring(16); // Remove prefix
-            customClaims[claimName] = value;
-          }
-        }
-        
-        // Store custom claims
-        setRequestContext({ customClaims });
-        
-        next();
-      }
-    );
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-});
+const config = {
+  jwtValidation: {
+    trustedIssuers: [
+      'https://login.microsoftonline.com/{tenant-id}/v2.0'
+    ],
+    audience: 'api://your-service',
+  },
+};
 
-// Access propagated claims
+// Middleware for service-to-service authentication
+app.use(mspAuthMiddleware(config));
+
+// Access validated assertion claims
 app.get('/api/service-endpoint', (req, res) => {
   const clientId = getClientId();
   const tenantId = getTenantId();
-  const originalUserId = getCustomClaim('sub'); // From propagated claim
+  const originalUserId = getCustomClaim('sub'); // From stored assertions
   
   res.json({ clientId, tenantId, originalUserId });
 });
@@ -230,28 +190,31 @@ app.get('/api/service-endpoint', (req, res) => {
 - `validateAndStoreIdToken(token, config)` - Validate and store in ALS
 - `validateAndStoreAccessToken(token, config)` - Validate and store in ALS
 
-### Claim Helpers
+### Assertion Helpers
 
-- `getUserId()` - Get user ID from ID token
-- `getUserName()` - Get user name
-- `getUserEmail()` - Get user email
-- `getUserRoles()` - Get user roles array
-- `hasRole(role)` - Check if user has role
-- `hasAnyRole(roles)` - Check if user has any of the roles
-- `hasAllRoles(roles)` - Check if user has all roles
-- `getIdTokenClaim(name)` - Get specific ID token claim
-- `getAccessTokenClaim(name)` - Get specific access token claim
-- `getCustomClaim(name)` - Get custom claim
-- `getAllClaims()` - Get all claims combined
+- `getUltimateRequesterId()` - Resolve requester ID via strategy priority
+- `getUltimateRequesterName()` - Resolve requester display name via strategy priority
+- `getUltimateRequesterEmail()` - Resolve requester email via strategy priority
+- `getUltimateRequesterRoles()` - Resolve requester roles via strategy priority
+- `resolveStandardizedClaim(field)` - Resolve any standardized field with provenance
+- `setClaimResolverStrategies(strategies)` - Replace resolver strategies
+- `registerClaimResolverStrategy(strategy)` - Add a resolver strategy plugin
+- `resetClaimResolverStrategies()` - Reset to default resolver strategy set
+- `getScopes(selector)` - Get scopes for matching assertion type and optional issuer/subject patterns
+- `hasScopes(scopes, selector)` - Check required scopes against matching assertions
+- `hasRole(role, selector)` - Check role against matching assertions
+- `hasAnyRole(roles, selector)` - Check if any role is present for matching assertions
+- `hasAllRoles(roles, selector)` - Check if all roles are present for matching assertions
+- `getCustomClaim(name)` - Get claim by name across stored assertions
 
 ### Outbound Requests
 
-- `makeAuthenticatedRequest(config, options)` - Make authenticated HTTP request
-- `authenticatedGet(config, url, options?)` - GET request
-- `authenticatedPost(config, url, body?, options?)` - POST request
-- `authenticatedPut(config, url, body?, options?)` - PUT request
-- `authenticatedDelete(config, url, options?)` - DELETE request
-- `authenticatedPatch(config, url, body?, options?)` - PATCH request
+- `makeAuthenticatedRequest(options)` - Make authenticated HTTP request
+- `authenticatedGet(url, options?)` - GET request
+- `authenticatedPost(url, body?, options?)` - POST request
+- `authenticatedPut(url, body?, options?)` - PUT request
+- `authenticatedDelete(url, options?)` - DELETE request
+- `authenticatedPatch(url, body?, options?)` - PATCH request
 
 ## Configuration
 
@@ -284,7 +247,7 @@ TENANT_ID=your-azure-tenant-id
 2. **Use HTTPS** - Always use HTTPS in production
 3. **Rotate secrets** - Regularly rotate client secrets
 4. **Validate audiences** - Always specify expected audiences
-5. **Exclude sensitive claims** - Use `excludeClaims` for sensitive data
+5. **Exclude sensitive assertions** - Use `excludeAssertions` for selective propagation
 6. **Clock tolerance** - Set reasonable clock tolerance (60s recommended)
 7. **Token caching** - Tokens are cached with 1-minute buffer before expiry
 

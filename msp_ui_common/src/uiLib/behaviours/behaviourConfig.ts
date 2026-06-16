@@ -28,6 +28,7 @@ export type BehaviourScopeId = {
 export type BehaviourScopeTag = Partial<BehaviourScopeId>;
 
 export type behaviourConfig = {
+  name?: string
   localCustomComponents: ComponentWrapper<any>[]
   elements: behaviourElement<any, any>[]
   /** Runtime identity stamped by appUiFeatures from service discovery. */

@@ -28,7 +28,11 @@ export const MainContent: React.FC<MainContentProps> = ({
   const { tab: currentTab, setTabTitle } = contextTab 
   || {currentTab :(tabs ?  tabs.find(tab => tab.id === activeTabId): undefined ),setTabTitle: () => null};
 
-  let { isLoading, loadedData } = useDataLoading(currentTab?.content.viewDataIdentifier, setTitle);
+  let { isLoading, loadedData } = useDataLoading(
+    currentTab?.content.viewDataIdentifier,
+    setTitle,
+    currentTab?.content.updateWhenDataChanges ?? false,
+  );
 
   function setTitle(data:any) {
     loadedData = data; // ensure we have the latest data for title generation - this is needed because the currentTab content may not have had the data when it was rendered, but will have it by the time we get here after loading  

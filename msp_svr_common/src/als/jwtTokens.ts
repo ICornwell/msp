@@ -1,7 +1,19 @@
 // JWT Token validation and verification using jose
 import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
-import { setClaimStoreEntry, setRequestContext } from './context.js';
+import {
+  canonicalHeaderName,
+  getRequestContext,
+  inferAssertionTypeFromHeaderName,
+  setAssertionStoreEntry,
+} from './context.js';
 import { JWTValidationConfig } from 'msp_common';
+import {
+  AUTH_ACCESS_PRIMARY_ASSERTION_HEADER,
+  AuthorizationAccessAssertionFromValidatedToken,
+  setNamedAuthorizationAccessAssertion,
+  setUserIdAssertion,
+  UserIdAssertionFromValidatedToken,
+} from './assertionHelpers.js';
 
 
 export interface ValidatedToken {
@@ -64,7 +76,6 @@ function decodeJWT(token: string): { header: any; payload: any } {
 
 type ValidationOptions = {
   validateAudience?: boolean;
-  includeApiAudienceAlias?: boolean;
   maxTokenAge?: number;
 };
 
@@ -111,7 +122,6 @@ export async function validateIdToken(
   try {
     return await validateJwtToken(token, config, {
       validateAudience: true,
-      includeApiAudienceAlias: true,
       maxTokenAge: config.maxTokenAge,
     });
   } catch (error) {
@@ -130,13 +140,8 @@ export async function validateAccessToken(
   try {
     return await validateJwtToken(token, config, {
       validateAudience: true,
-      includeApiAudienceAlias: true,
     });
   } catch (error) {
-            console.log(`SVR: failing auth: claim token validation error: ${error}`);
-        console.log(`for token: ${token}`);
-        console.log(`with config: ${JSON.stringify(config)}`);
-  
     throw new Error(`Access token validation failed: ${error}`);
   }
 }
@@ -162,20 +167,20 @@ export async function validateAndStoreIdToken(
   token: string,
   config: JWTValidationConfig
 ): Promise<void> {
-  // Special handling for guest token - skip validation and set minimal context
-  if (token === "!GuestToken!") {
-    setRequestContext({
-      idToken: token,
-      idTokenClaims: { sub: 'guest', name: 'Guest User', roles: ['guest'] },
-    });
+  const requestContext = getRequestContext();
+  if (!requestContext) {
+    console.warn('SVR: No active request context found to store ID token');
     return;
   }
-  const validated = await validateIdToken(token, config);
+ 
+  // Special handling for guest token - skip validation and set minimal context
+  if (token === "!GuestToken!") {
+    setUserIdAssertion(UserIdAssertionFromValidatedToken({ payload: { sub: 'guest' }, raw: token, header: {} }));
+    return;
+  }
+  const validated: ValidatedToken = await validateIdToken(token, config);
   
-  setRequestContext({
-    idToken: validated.raw,
-    idTokenClaims: validated.payload as any,
-  });
+  setUserIdAssertion(UserIdAssertionFromValidatedToken(validated))
 }
 
 /**
@@ -183,27 +188,28 @@ export async function validateAndStoreIdToken(
  */
 export async function validateAndStoreAccessToken(
   token: string,
-  config: JWTValidationConfig
+  config: JWTValidationConfig,
+  assertionHeaderName: string = AUTH_ACCESS_PRIMARY_ASSERTION_HEADER,
 ): Promise<void> {
   const validated = await validateAccessToken(token, config);
-  
-  setRequestContext({
-    accessToken: validated.raw,
-    accessTokenClaims: validated.payload as any,
-  });
+
+  const assertion = AuthorizationAccessAssertionFromValidatedToken(validated);
+  assertion.headerName = canonicalHeaderName(assertionHeaderName || assertion.headerName);
+  setNamedAuthorizationAccessAssertion(assertion.headerName, assertion);
 }
 
 export async function validateAndStoreClaimToken(
-  claimName: string,
+  assertionHeaderName: string,
   headerName: string,
   token: string,
   config: JWTValidationConfig,
 ): Promise<void> {
   const validated = await validateClaimToken(token, config);
-  setClaimStoreEntry(claimName, {
-    name: claimName,
-    headerName,
-    kind: 'jwt',
+  const canonical = canonicalHeaderName(assertionHeaderName || headerName);
+  setAssertionStoreEntry(canonical, {
+    assertionName: canonical,
+    assertionType: inferAssertionTypeFromHeaderName(canonical),
+    headerName: canonicalHeaderName(headerName),
     token: validated.raw,
     claims: validated.payload as Record<string, any>,
   });

@@ -11,7 +11,11 @@ export type DataLoadingResult = {
   clearState: () => void;
 }
 
-export function useDataLoading(viewDataIdentifier?: ViewDataIdentifier, callback?: (data: any) => void) {
+export function useDataLoading(
+  viewDataIdentifier?: ViewDataIdentifier,
+  callback?: (data: any) => void,
+  updateWhenDataChanges: boolean = false,
+) {
   const { loadData } = useDataCache();
   const [loadedData, setLoadedData] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -28,8 +32,7 @@ export function useDataLoading(viewDataIdentifier?: ViewDataIdentifier, callback
   }
 
   useDataCache((datamsg: DataCacheMsg) => {
-    if (datamsg.type === 'DataViewLoaded') {
-      console.log('DataViewLoaded event received in dataloader:', datamsg);
+    if (datamsg.type === 'DataViewLoaded' || (updateWhenDataChanges && datamsg.type === 'DataViewChanged')) {
       setLoadedData(datamsg.viewDataContent);
       setIsLoading(false);
       if (callback) {
@@ -39,9 +42,10 @@ export function useDataLoading(viewDataIdentifier?: ViewDataIdentifier, callback
       }
     }
 
-  }, (dataMsg: DataCacheMsg) => dataMsg.type === 'DataViewLoaded'
+  }, (dataMsg: DataCacheMsg) =>
+    (dataMsg.type === 'DataViewLoaded' || (updateWhenDataChanges && dataMsg.type === 'DataViewChanged'))
     && isViewDataContent_Matching_ViewDataIdentifier(dataMsg.viewDataContent, viewDataIdentifier),
-    [viewDataIdentifier]); // Re-subscribe if the blade's viewDataIdentifier changes
+    [viewDataIdentifier, updateWhenDataChanges]); // Re-subscribe if binding mode changes
 
   if (!isLoading && !loadedData && viewDataIdentifier) {
     setIsLoading(true);

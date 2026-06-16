@@ -18,7 +18,11 @@ function createAwsServiceBuilder(config?: any) {
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endUiFeature
-    
+    .withUiFeature('AwsSettingsFeature')
+      .withRemoteName('aws_remoteEntry.js')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endUiFeature
     addAwsActivityFeatures(service)
 
     addAwsDataFeatures(service);

@@ -8,6 +8,7 @@ export interface ContextOwnedElement {
 export interface EventState {
   navItems: NavTreeItem[];
   contextItems: ContextItem[];
+  sessionId: string | null;
 }
 
 export interface NavTreeItem extends ContextOwnedElement {
@@ -112,7 +113,8 @@ export type EventMsgForName<T extends UiChangeEventName> =
   typeof EventMessageTypeMapping[T] extends Partial<infer U> ? U : never;
 
 export type UiContentChangeEvent =
-  {
+  { type: 'LOGOUT' }
+  | {
     type: 'PROFILE_HOST';
     action: UiContentChangeAction;
     payload: MenuItem

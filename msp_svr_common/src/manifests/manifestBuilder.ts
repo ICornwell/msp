@@ -11,7 +11,7 @@ import {
   ViewsManifestSection
 } from './manifest.js'
 import { Config, ProductConfig } from '../sharedconfig.js'
-import { View } from 'msp_common';
+import { View, type NameTriplet } from 'msp_common';
 
 
 
@@ -33,16 +33,6 @@ type FlattenObject<T> = T extends (Object | undefined)
 
 type AnyTypedServiceSection = TypedServiceManifestSection<any, any>;
 type SeededServiceTypeVariants = ManifestTypeVariants<{}, {}, {}>;
-type NameTriplet<
-  TName extends string = string,
-  TVersion extends string = string,
-  TVariantName extends string = string,
-> = {
-  name: TName;
-  version: TVersion;
-  variantName: TVariantName;
-};
-
 type SeededServiceSection<TTriplet extends NameTriplet = NameTriplet> = TypedServiceManifestSection<
   TTriplet['name'],
   TTriplet['version'],
