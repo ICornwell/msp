@@ -9,7 +9,8 @@ import type { DomainValueObjectBuilder } from "./objectBuilder.js";
 import type { ViewBuilder } from "./viewBuilder.js";
 
 import type {Schema, SchemaProperty, DataObject, DomainObject,
-  DataOfSchema, PrefixedDataOfSchema
+  DataOfSchema, PrefixedDataOfSchema,
+  DataObjectMetaData
 } from "../models/api/data.js";
 
 import type {View, ViewElement} from "../models/api/view.js";
@@ -32,6 +33,7 @@ export type {
   Schema,
   SchemaProperty,
   DataObject,
+  DataObjectMetaData,
   DomainObject,
   DataOfSchema,
   PrefixedDataOfSchema,

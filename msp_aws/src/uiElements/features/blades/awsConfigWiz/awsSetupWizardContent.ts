@@ -163,7 +163,7 @@ export function awsSetupWizardContent() {
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('ECR Repositories')
-                  .withValueBinding((ctx) => (ctx.localData.desiredState?.ecr?.repositories ?? []).join(', '))
+                  .withValueBinding((ctx) => (ctx.localData.desiredState?.ecr?.repositories ?? []).map((repository) => repository.repositoryName).join(', '))
                 .endElement
               .end()
             .endElement

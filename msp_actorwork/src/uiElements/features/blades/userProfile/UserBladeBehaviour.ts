@@ -25,7 +25,7 @@ export const useUserProfileBehaviour = () => {
           action: 'openUserProfile',
           menuTarget: 'profile',
           context: { viewDataIdentifier: {
-            'viewDomain': 'actorwork',
+            'viewNamespace': 'actorwork',
             'viewName': 'UserProfile',
             'viewVersion': '1.0.0',
             'viewRootEntityId': 'currentuser'}

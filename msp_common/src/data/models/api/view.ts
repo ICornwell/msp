@@ -29,7 +29,7 @@ export interface View<VT extends Flatten<any> = any>  {
     version: string;
     variantName?: string;
     configSet: string;
-    rootKey: string;
+    rootKey: string | string[] | ((data: any) => string);
     rootElement: SubElement;
     dataType?: DeepPartial<VT> 
     viewDataIdentifier: versionedResourceId; // Serialisable reference to the viewDataIdentifier that will be used for this view's data at runtime

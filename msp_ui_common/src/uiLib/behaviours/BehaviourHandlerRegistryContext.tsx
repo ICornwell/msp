@@ -180,9 +180,9 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
               invalidate(viewDataIdentifier);
             } else if (requestType === 'updateFromEventPayloadResult') {
               const result = eventWithDataCarrier?.event?.payload?.result;
-              const mapResultToDataPatch = action.eventData?.mapResultToDataPatch;
-              const patch = typeof mapResultToDataPatch === 'function'
-                ? mapResultToDataPatch(result, eventWithDataCarrier)
+              const mapResultToDataFromEvent = action.eventData?.mapResultToDataFromEvent;
+              const patch = typeof mapResultToDataFromEvent === 'function'
+                ? mapResultToDataFromEvent(result, eventWithDataCarrier)
                 : undefined;
               if (patch && typeof patch === 'object') {
                 update(viewDataIdentifier, patch);

@@ -378,7 +378,7 @@ Apply same pattern to schema builder:
 
 ```typescript
 const schema = schemaBuilder()
-  .withId('person', '1.0')
+  .withFQId({name: 'person', version: '1.0'})
   .withProperty('firstName', { infoType: 'Text', ... })
   .withProperty('lastName', { infoType: 'Text', ... })
   .buildSchema();

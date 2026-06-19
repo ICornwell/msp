@@ -1,16 +1,23 @@
-import { DataRequestEnvelope, DataRequestResult,
-	 DataViewUpsertEnvelope, DataViewQueryEnvelope, View } from 'msp_common';
+import {
+	DataRequestEnvelope, DataRequestResult,
+	DataViewUpsertEnvelope, DataViewQueryEnvelope, View,
+	ViewElement, DataObjectMetaData
+} from 'msp_common';
 import { authenticatedPut } from 'msp_svr_common';
 import { getConfig } from 'msp_svr_common';
+import deepClone from 'safe-clone-deep';
+
 
 export type DataRequestOptions = {
 	baseUrl?: string;
 	endpointPath?: string;
 	timeoutMs?: number;
+	useBusinessKey?: boolean;
 	headers?: Record<string, string>;
 };
 
 const defaultEndpointPath = '/api/v1/data/';
+const viewEndpointPath = '/api/v1/view/'
 
 function trimTrailingSlash(value: string): string {
 	return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -37,15 +44,13 @@ function resolveUrl(baseUrl: string, endpointPath: string): string {
 	return `${trimTrailingSlash(baseUrl)}/${trimLeadingSlash(endpointPath)}`;
 }
 
-
-
-
 export async function WriteData(view: View, data: any, options?: DataRequestOptions) {
-	const id = data?.__entityId ?? '__noid__'
-	const baseUrl = resolveBaseUrl(options?.baseUrl);
-	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
+	populateBusinessKeysInViewData(view, data);
 
-	const url = resolveUrl(routeUrl, `/view/write/${id}`);
+	const baseUrl = resolveBaseUrl(options?.baseUrl);
+	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? viewEndpointPath);
+
+	const url = resolveUrl(routeUrl, `/write`);
 
 	const controller = new AbortController();
 	const timeoutMs = options?.timeoutMs;
@@ -59,20 +64,26 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 			data,
 		},
 	};
-  
+
 
 	try {
 		const creds = getConfig().clientCredentials;
 		if (!creds) throw new Error('Client credentials are required for authenticated requests');
-		const insertResponse = await authenticatedPut(
-			url,
-			body,
-			{ headers: { ...options?.headers }}
-		);
+		let insertResponse = {} as Response;
+		try {
+			insertResponse = await authenticatedPut(
+				url,
+				body,
+				{ headers: { ...options?.headers } }
+			);
+		} catch (error) {
+			console.error(`Error making authenticated request for WriteData to ${url}:`, error);
+			throw new Error(`Outbound request failed: ${error}`);
+		}
 
 		if (insertResponse.status !== 200) {
-            throw new Error(`Data request failed (${insertResponse.status}): ${insertResponse.statusText}`);
-        }
+			throw new Error(`Data request failed (${insertResponse.status}): ${insertResponse.statusText}`);
+		}
 
 		let result: any = undefined;
 		try {
@@ -83,11 +94,15 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 		const ids = result?.entity_ids;
 		// will only have these where new entities were created
 		if (ids) {
-			const eid = ids.find((id: { key: string, id: string }) => id.key === data?.[view.rootKey])?.id;
+			const eid = ids.find((id: { key: string, id: string }) => id.key === getBusinessKeyFromData(data, view.rootKey))?.id;
 
 			if (eid) result.entityId = eid; // Attach the resolved entity ID to the result for downstream use
 		}
 		return result;
+	} catch (error: any) {
+		if (error.name === 'AbortError') {
+			throw new Error(`Data request timed out after ${timeoutMs} ms`);
+		}
 	} finally {
 		if (timeoutHandle) {
 			clearTimeout(timeoutHandle);
@@ -96,11 +111,11 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 }
 
 export async function ReadData(view: View, id: string, options?: DataRequestOptions) {
-	
-	const baseUrl = resolveBaseUrl(options?.baseUrl);
-	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? defaultEndpointPath);
 
-	const url = resolveUrl(routeUrl, `/view/read/${id}`);
+	const baseUrl = resolveBaseUrl(options?.baseUrl);
+	const routeUrl = resolveUrl(baseUrl, options?.endpointPath ?? viewEndpointPath);
+
+	const url = resolveUrl(routeUrl, `/read`);
 
 	const controller = new AbortController();
 	const timeoutMs = options?.timeoutMs;
@@ -108,9 +123,16 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		? setTimeout(() => controller.abort(), timeoutMs)
 		: undefined;
 
+	const safeView = deepClone(view, {circular: true});
+	if (options?.useBusinessKey) {
+		safeView.rootKey = "__businessKey";
+	} else {
+		safeView.rootKey = "__entityId";
+	}
+
 	const body: DataViewQueryEnvelope = {
 		payload: {
-			view,
+			view: safeView,
 			id,
 		},
 	};
@@ -118,15 +140,21 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 	try {
 		const creds = getConfig().clientCredentials;
 		if (!creds) throw new Error('Client credentials are required for authenticated requests');
-		const queryResponse = await authenticatedPut(
-			url,
-			body,
-			{ headers: { ...options?.headers }}
-		);
-			
+		let queryResponse = {} as Response;
+		try {
+			queryResponse = await authenticatedPut(
+				url,
+				body,
+				{ headers: { ...options?.headers } }
+			);
+		} catch (error) {
+			console.error(`Error making authenticated request for ReadData to ${url}:`, error);
+			throw new Error(`Outbound request failed: ${error}`);
+		}
+
 		if (queryResponse.status !== 200) {
-            throw new Error(`Data request failed (${queryResponse.status}): ${queryResponse.statusText}`);
-        }
+			throw new Error(`Data request failed (${queryResponse.status}): ${queryResponse.statusText}`);
+		}
 
 		let result: any = undefined;
 		try {
@@ -134,23 +162,28 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		} catch {
 			result = undefined;
 		}
-		
+
 		return result;
+	} catch (error: any) {
+		if (error.name === 'AbortError') {
+			throw new Error(`Data request timed out after ${timeoutMs} ms`);
+		}
+
 	} finally {
 		if (timeoutHandle) {
 			clearTimeout(timeoutHandle);
 		}
 	}
-	
+
 }
 
 export type DataRequestResultBuilder = {
-    updatePayload: (payload: any) => DataRequestResultBuilder;
-    updateResult: (result: any) => DataRequestResultBuilder;
-    success: (result?: any) => DataRequestResultBuilder;
-    failed: (message?: string, error?: any) => DataRequestResultBuilder;
-    log: (message: string) => DataRequestResultBuilder;
-    currentResult: () => any;
+	updatePayload: (payload: any) => DataRequestResultBuilder;
+	updateResult: (result: any) => DataRequestResultBuilder;
+	success: (result?: any) => DataRequestResultBuilder;
+	failed: (message?: string, error?: any) => DataRequestResultBuilder;
+	log: (message: string) => DataRequestResultBuilder;
+	currentResult: () => any;
 }
 
 export async function DataRequest<TPayload = any, TResult = any>(
@@ -173,9 +206,14 @@ export async function DataRequest<TPayload = any, TResult = any>(
 	}
 
 	try {
-		const response = await authenticatedPut(url, request)
-
-
+		let response = {} as Response;
+		try {
+			response = await authenticatedPut(url, request, { headers: { ...options?.headers } });
+		} catch (error) {
+			console.error(`Error making authenticated request ${request.namespace}.${request.activityName}.${request.version}.${request.variantName} for ${url}:`, error);
+			throw new Error(`Outbound request failed: ${error}`);
+		}
+		
 		let body: any = undefined;
 		try {
 			body = await response.json();
@@ -188,11 +226,17 @@ export async function DataRequest<TPayload = any, TResult = any>(
 		}
 
 		return body as DataRequestResult<TResult>;
+	} catch (error: any) {
+		if (error.name === 'AbortError') {
+			throw new Error(`Data request timed out after ${timeoutMs} ms`);
+		}
+
 	} finally {
 		if (timeoutHandle) {
 			clearTimeout(timeoutHandle);
 		}
 	}
+	return { result: undefined, success: false, message: 'unknown error' } as DataRequestResult<TResult>;
 }
 
 export async function runDataActivity<TPayload = any, TResult = any>(
@@ -210,6 +254,50 @@ export async function runDataActivity<TPayload = any, TResult = any>(
 		variantName,
 		payload,
 	}, options);
+}
+
+function getBusinessKeyFromData(data: any, rootKey: string | string[] | ((data: any) => string)): string | null {
+	if (typeof rootKey === 'string') {
+		return data?.[rootKey];
+	} else if (Array.isArray(rootKey)) {
+		const key = rootKey.map(k => data?.[k]?.toString()).filter(s => s).join('|');
+		return key;
+	} else if (typeof rootKey === 'function') {
+		return rootKey(data);
+	}
+
+	return null
+}
+
+type AnyDataObject = { [key: string]: any } & DataObjectMetaData;
+
+function populateBusinessKeysInViewData(view: View, data: any): void {
+	const rootElement = view.rootElement;
+	if (!rootElement) {
+		throw new Error('View has no root element defined.');
+	}
+	return recursePopulateBusinessKeysInViewElementData(rootElement, data as AnyDataObject);
+}
+
+function recursePopulateBusinessKeysInViewElementData(viewElement: ViewElement, data: AnyDataObject): void {
+	if (!viewElement) {
+		return
+	}
+	if (viewElement.domainObject?.isEntity && viewElement.domainObject.businessKey) {
+		const businessKey = getBusinessKeyFromData(data, viewElement.domainObject.businessKey);
+		if (businessKey) {
+			if (!data.__metadata) {
+				data.__metadata = {} as DataObjectMetaData['__metadata'];
+			}
+			data.__metadata.__businessKey = businessKey;
+		}
+	}
+	for (const subElement of viewElement.subElements ?? []) {
+		const subData = data?.[subElement.docPathName ?? subElement.domainObjectId.name];
+		if (subData) {
+			recursePopulateBusinessKeysInViewElementData(subElement, subData as AnyDataObject);
+		}
+	}
 }
 
 

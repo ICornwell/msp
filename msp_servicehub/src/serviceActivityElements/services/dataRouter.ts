@@ -44,7 +44,7 @@ export async function tryDirectWriteViews(request:  DataViewIdUpsertEnvelope) {
   );
 
   if (activity && activity.isWriteAllowed) {
-      return await WriteData(activity.viewIdentifier.view, request.payload.data);
+      return await WriteData(activity.viewIdentifier.view, request.payload.data, request.payload.options?.dataRequestOptions);
   }  
   return
 }
@@ -58,7 +58,7 @@ export async function tryDirectReadViews(request:  DataViewIdQueryEnvelope) {
   );
 
   if (activity) {
-      return await ReadData(activity.viewIdentifier.view, request.payload.id);
+      return await ReadData(activity.viewIdentifier.view, request.payload.id, request.payload.options?.dataRequestOptions);
   }  
   return
 }

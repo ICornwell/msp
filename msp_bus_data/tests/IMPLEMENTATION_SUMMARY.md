@@ -55,7 +55,7 @@ Successfully implemented a complete fluent builder system for Products, Schemas,
 ### Define Schemas
 ```typescript
 const personSchema = schema<{ name: string; age: number }>()
-  .withId('person', '1.0')
+  .withFQId({name: 'person', version: '1.0'})
   .withProperty('name', {
     dictionaryId: { id: 'dict-name', version: '1.0' },
     infoType: 'Text',
@@ -84,7 +84,7 @@ const accountView = view('account-view')
 ```typescript
 const myProduct = product()
   .withName('Account Management')
-  .withId('account-mgmt', '1.0.0')
+  .withFQId({name: 'account-mgmt', version: '1.0.0'})
   .withDomain({ id: 'banking', version: '1.0' })
   .addView(accountView)  // Schemas automatically extracted
   .buildProduct();
@@ -93,7 +93,7 @@ const myProduct = product()
 ### Product Version Inheritance
 ```typescript
 const productV2 = product()
-  .withId('account-mgmt', '2.0.0')
+  .withFQId({name: 'account-mgmt', version: '2.0.0'})
   .inheritsFrom(productV1)  // Inherits all schemas and views
   .addView(newView)  // Add new views
   .overrideSchema(personSchemaV2)  // Override inherited schema

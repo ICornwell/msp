@@ -36,7 +36,7 @@ async function forwardDataFeaturesToDataHub(manifest: Manifest): Promise<number>
                 ...(Array.isArray(apiFeature?.information) ? apiFeature.information : []),
             ])),
         ];
-
+        console.log(`Service ${service.name} has ${serviceDataFeatures.length} data features to register.`);
         if (serviceDataFeatures.length > 0) {
             registrations.push({
                 manifestNamespace: manifest.namespace,
@@ -63,7 +63,7 @@ async function forwardDataFeaturesToDataHub(manifest: Manifest): Promise<number>
 }
 
 export async function registerManifest(payload: any, serviceResult: ServiceActivityResultBuilder) {
-  console.log(`Discovery registration received: ${JSON.stringify(payload)}`);
+  
   return await withSemaphore(
     {
       semaphoreBaseUrl: getConfig().semaphoresUrl || 'no-semaphores-url-configured',
@@ -74,8 +74,9 @@ export async function registerManifest(payload: any, serviceResult: ServiceActiv
     async () => {
       // payload can be single feature or array of features
       const manifest = (payload.manifest || payload) as Manifest; // Support both { manifest: {...} } and direct feature object(s)
-
+      console.log(`Registering manifest for namespace: ${manifest.namespace}, name: ${manifest.name}, version: ${manifest.version}, variant: ${manifest.variantName}`);
       if (manifest.services) {
+        console.log(`Manifest contains ${manifest.services.length} services to register features from.`);
         for (const service of manifest.services) {
           if (service.uiFeatures) {
             const uiFeatures = service.uiFeatures.map((feature: any) => ({
@@ -85,7 +86,7 @@ export async function registerManifest(payload: any, serviceResult: ServiceActiv
               serviceName: service.name,
             }));
             registerUiFeatures(manifest, service, uiFeatures);
-            console.log(`Registered ${service.uiFeatures.length} features from service ${service.name}`);
+            console.log(`Registered ${service.uiFeatures.length} UI features from service ${service.name}`);
           }
           if (service.activityFeatures) {
             const activityFeatures = service.activityFeatures.map((feature: any) => ({
@@ -95,7 +96,7 @@ export async function registerManifest(payload: any, serviceResult: ServiceActiv
               serviceName: service.name,
             }));
             registerActivityFeatures(manifest, service, activityFeatures);
-            console.log(`Registered ${service.activityFeatures.length} features from service ${service.name}`);
+            console.log(`Registered ${service.activityFeatures.length} activity features from service ${service.name}`);
           }
         }
       }

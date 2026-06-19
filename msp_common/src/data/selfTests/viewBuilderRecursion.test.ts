@@ -9,7 +9,7 @@ import { createRelations } from '../fluent/objectRelationsBuilder.js';
 describe('Declarative View Builder', () => {
 
     const userSchema = createSchema('user')
-    .withId('user', '1.0')
+    .withFQId({name: 'user', version: '1.0'})
     .withProperty('name')
       .forType<string>()
       .withDictionaryId('dict-user-name', '1.0')
@@ -25,7 +25,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
      const orgSchema = createSchema('org')
-    .withId('org', '1.0')
+    .withFQId({name: 'org', version: '1.0'})
     .withProperty('name')
       .forType<string>()
       .withDictionaryId('dict-org-name', '1.0')
@@ -42,7 +42,7 @@ describe('Declarative View Builder', () => {
 
 
     const teamSchema = createSchema('team')
-    .withId('team', '1.0')
+    .withFQId({name: 'team', version: '1.0'})
     .withProperty('name')
       .forType<string>()
       .withDictionaryId('dict-team-name', '1.0')
@@ -58,7 +58,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
    const linkSchema = createSchema('link')
-    .withId('link', '1.0')
+    .withFQId({name: 'link', version: '1.0'})
     .withProperty('name')
       .forType<string>()
       .withDictionaryId('dict-link-name', '1.0')
@@ -74,22 +74,22 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
     const userObject = createEntityObject('user', userSchema)
-        .withId('test-user', '1.0')
+        .withFQId({name: 'test-user', version: '1.0'})
         .forDomain({ name: 'recursion-test', version: '1.0' })
         .buildObject();
 
   const linkObject = createEntityObject('link', linkSchema)
-    .withId('test-link', '1.0')
+    .withFQId({name: 'test-link', version: '1.0'})
     .forDomain({ name: 'recursion-test', version: '1.0' })
     .buildObject();
 
   const teamObject = createEntityObject('team', teamSchema)
-      .withId('test-team', '1.0')
+      .withFQId({name: 'test-team', version: '1.0'})
       .forDomain({ name: 'recursion-test', version: '1.0' })
       .buildObject();
 
   const orgObject = createEntityObject('org', orgSchema)
-      .withId('test-org', '1.0')
+      .withFQId({name: 'test-org', version: '1.0'})
       .forDomain({ name: 'recursion-test', version: '1.0' })
       .buildObject();
 

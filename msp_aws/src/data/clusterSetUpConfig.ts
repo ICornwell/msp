@@ -1,12 +1,18 @@
 import { DataObject } from "msp_common";
 
+export type AwsClusterSetupRepository = {
+  repositoryName: string;
+  repositoryUri?: string;
+  region: string;
+} & Partial<DataObject>;
+
 export type AwsClusterSetupDesiredState = {
   eks?: {
     clusterVersion?: string;
     nodeCount?: number;
   };
   ecr?: {
-    repositories?: string[];
+    repositories?: AwsClusterSetupRepository[];
   };
   network?: {
     vpcCidr?: string;

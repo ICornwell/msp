@@ -10,7 +10,7 @@ type SchemaType = {};
   (T extends SchemaBuilder<infer D, any> ? D : never);
 
 export interface SchemaBuilder<D extends SchemaType, IS extends Schema<any, any> | undefined = undefined> {
-  withId: (id: string, version: string) => SchemaBuilder<D, IS>;
+  withFQId: (fqId: versionedResourceId) => SchemaBuilder<D, IS>;
   forDomain: (domain: versionedResourceId) => SchemaBuilder<D, IS>;
   forProduct: (product: versionedResourceId) => SchemaBuilder<D, IS>;
   inheritsFrom: <IS2 extends Schema<any, any>>(parentSchema: IS2) => SchemaBuilder<D, IS extends undefined ? IS2 : Schema<IS,IS2>>;
@@ -77,8 +77,7 @@ export function createPropertyBuilder<T,
 export function createSchemaBuilder<D extends SchemaType, IS extends Schema<any, any> | undefined = undefined>(name: string): SchemaBuilder<D, IS> {
   let schema: Partial<Schema<D, any>> = {
     name: name,
-    vid: { name: '', version: '1.0' },
-    domain: undefined,
+    vid: { name: '', version: '1.0', namespace: 'default', variantName: 'default' },
     product: undefined,
     inheritsFromSchema: undefined,
     properties: {} as any
@@ -87,13 +86,14 @@ export function createSchemaBuilder<D extends SchemaType, IS extends Schema<any,
   const propertyBuilders: PropertyBuilder<any, any, any, IS>[] = [];
 
   const builder: SchemaBuilder<D, IS> = {
-    withId: function (id: string, version: string): SchemaBuilder<D, IS> {
-      schema.vid = { name: id, version };
+    withFQId: function (fqId: versionedResourceId): SchemaBuilder<D, IS> {
+      schema.vid = fqId;
+      schema.name = fqId.name;
       return builder;
     },
 
-    forDomain: function (domain: versionedResourceId): SchemaBuilder<D, IS> {
-      schema.domain = domain;
+    forDomain: function (_domain: versionedResourceId): SchemaBuilder<D, IS> {
+      //unused for now, but could be used to validate that the schema is being built for the correct domain
       return builder;
     },
 

@@ -19,7 +19,7 @@ export type UserProfileData = {
 // Mock data for now - in real implementation this would query a database
 const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
   'user-123': {
-    viewDomain: 'actorwork',
+    viewNamespace: 'actorwork',
     viewName: 'UserProfile',
     viewVersion: '1.0.0',
     viewRootEntityType: 'UserProfile',
@@ -36,7 +36,7 @@ const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
     }
   },
   'user-456': {
-    viewDomain: 'actorwork',
+    viewNamespace: 'actorwork',
     viewName: 'UserProfile',
     viewVersion: '1.0.0',
     viewRootEntityType: 'UserProfile',
@@ -53,7 +53,7 @@ const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
     }
   },
   'ian@smallwalrus.com': {
-    viewDomain: 'actorwork',
+    viewNamespace: 'actorwork',
     viewName: 'UserProfile',
     viewVersion: '1.0.0',
     viewRootEntityType: 'UserProfile',

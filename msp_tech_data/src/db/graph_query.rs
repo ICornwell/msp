@@ -153,11 +153,13 @@ async fn read_data_internal(
         .iter()
         .find(|obj| obj.is_query_root);
 
+
+
     let response = match start {
         Some(query_object) => {
             let current_sql = vec![format!(
                 r#"WITH S1 AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
-                FROM vertices v1 WHERE __entityid = $1::varchar AND __isentity = true AND {}
+                FROM vertices v1 WHERE (__entityid = $1::varchar OR __businesskey = $1::varchar) AND __label = $2::varchar AND __isentity = true AND {}
                 )"#
                 ,
                 latest_vertex_filter("v1", query_timestamp)
@@ -181,9 +183,9 @@ async fn read_data_internal(
 
             let query_key = query_message.root_query_key_value.clone();
             let params: &[&(dyn ToSql + Sync)] = if query_timestamp > 0 {
-                &[&query_key, &query_timestamp]
+                &[&query_key, &query_object.label, &query_timestamp]
             } else {
-                &[&query_key]
+                &[&query_key, &query_object.label]
             };
             let result: Vec<tokio_postgres::Row> = client.query(&cte_sql, params).await?;
 
@@ -416,20 +418,20 @@ fn latest_vertex_filter(alias: &str, query_timestamp: i64) -> String {
         // been superseded by a newer version within the window, and must not have
         // been deleted (any supersededBy edge) within the window.
         format!(
-            r#"({alias}.__timestamp <= $2::bigint
+            r#"({alias}.__timestamp <= $3::bigint
              AND NOT EXISTS (
                  -- no newer version of the same logical entity within snapshot window
                  SELECT 1 FROM vertices newer
                  WHERE newer.__originalId = {alias}.__originalId
                    AND newer.__timestamp > {alias}.__timestamp
-                   AND newer.__timestamp <= $2::bigint
+                   AND newer.__timestamp <= $3::bigint
              )
              AND NOT EXISTS (
                  -- not deleted or replaced at or before the snapshot point
                  SELECT 1 FROM edges e
                  WHERE e.from_id = {alias}.id
                    AND e.__label = 'supersededBy'
-                   AND e.__timestamp <= $2::bigint
+                   AND e.__timestamp <= $3::bigint
              ))"#,
             alias = alias,
         )

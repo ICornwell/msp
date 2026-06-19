@@ -8,7 +8,7 @@ import { View } from '../../../index.js';
 
 // Define schemas for each entity
 export const accountSchema = createSchema('account')
-  .withId('acc-123', '1.0')
+  .withFQId({name: 'acc-123', version: '1.0'})
   .withProperty('accountNumber')
   .forType<string>()
   .withDictionaryId('dict-account-number', '1.0')
@@ -18,7 +18,7 @@ export const accountSchema = createSchema('account')
   .buildSchema();
 
 export const personSchema = createSchema('person')
-  .withId('person-123', '1.0')
+  .withFQId({name: 'person-123', version: '1.0'})
   .withProperty('name')
   .forType<string>()
   .withDictionaryId('dict-name', '1.0')
@@ -28,7 +28,7 @@ export const personSchema = createSchema('person')
   .buildSchema();
 
 export const addressSchema = createSchema('address')
-  .withId('address-123', '1.0')
+  .withFQId({name: 'address-123', version: '1.0'})
   .withProperty('street')
   .forType<string>()
   .withDictionaryId('dict-street', '1.0')
@@ -50,7 +50,7 @@ export const addressSchema = createSchema('address')
   .buildSchema();
 
 export const orderSchema = createSchema('order')
-  .withId('order-123', '1.0')
+  .withFQId({name: 'order-123', version: '1.0'})
   .withProperty('orderId')
   .forType<string>()
   .withDictionaryId('dict-order-id', '1.0')
@@ -60,7 +60,7 @@ export const orderSchema = createSchema('order')
   .buildSchema();
 
 export const orderItemSchema = createSchema('orderItem')
-  .withId('item-123', '1.0')
+  .withFQId({name: 'item-123', version: '1.0'})
   .withProperty('itemId')
   .forType<string>()
   .withDictionaryId('dict-item-id', '1.0')
@@ -76,7 +76,7 @@ export const orderItemSchema = createSchema('orderItem')
   .buildSchema();
 
 export const productSchema = createSchema('product')
-  .withId('product-123', '1.0')
+  .withFQId({name: 'product-123', version: '1.0'})
   .withProperty('productId')
   .forType<string>()
   .withDictionaryId('dict-product-id', '1.0')
@@ -92,32 +92,32 @@ export const productSchema = createSchema('product')
   .buildSchema();
 
 const accountObject = createEntityObject('accountObject', accountSchema)
-  .withId('acc-123', '1.0')
+  .withFQId({name: 'acc-123', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
 const personObject = createEntityObject('personObject', personSchema)
-  .withId('person-123', '1.0')
+  .withFQId({name: 'person-123', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
 const addressObject = createValueObject('addressObject', addressSchema)
-  .withId('address-123', '1.0')
+  .withFQId({name: 'address-123', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
 const orderObject = createValueObject('orderObject', orderSchema)
-  .withId('order-123', '1.0')
+  .withFQId({name: 'order-123', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
 const itemObject = createValueObject('itemObject', orderItemSchema)
-  .withId('item-123', '1.0')
+  .withFQId({name: 'item-123', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
 const productObject = createEntityObject('productObject', productSchema)
-  .withId('product-123', '1.0')
+  .withFQId({name: 'product-123', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
 
   .buildObject();

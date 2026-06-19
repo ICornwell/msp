@@ -62,7 +62,7 @@ export type DataCacheMsg = UiPubSubMsg & (DataRequest | DataEvent);
 // Cache Storage
 // ============================================================================
 
-type CacheKey = string; // serialized: `${viewDomain}|${viewName}|${viewRootEntityId}`
+type CacheKey = string; // serialized: `${viewNamespace}|${viewName}|${viewRootEntityId}`
 type CachedView = {
   viewDataContent?: ViewDataContent<any>;
   loadedAt: number;
@@ -70,8 +70,8 @@ type CachedView = {
 };
 
 function toCacheKey(viewDataContent: ViewDataQueryIdentifier): CacheKey {
-  const { viewDomain, viewName, viewRootEntityId } = viewDataContent;
-  return `${viewDomain}|${viewName}|${viewRootEntityId}`;
+  const { viewNamespace, viewName, viewRootEntityId, viewVersion, viewVariantName } = viewDataContent;
+  return `${viewNamespace}|${viewName}|${viewRootEntityId}|${viewVersion}|${viewVariantName}`;
 }
 
 function fromDataIdentifier(viewDataQueryIdentifier: ViewDataQueryIdentifier): CacheKey {
@@ -185,13 +185,20 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
       return;
     }
 
+    function isEmpty(value: any): boolean {
+      return value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
+    }
+
     const loadPromise = (async () => {
       try {
         // if we don't have the data - request it from the the server,
         // cache the results and publish a DataViewLoaded event
         const response = await serviceRequest<DataViewIdQueryEnvelope>('view-read', {
-          viewId: viewDataQueryIdentifier,
-          id: viewDataQueryIdentifier.recordId!,
+          payload: {
+            viewId: viewDataQueryIdentifier,
+            id: isEmpty(viewDataQueryIdentifier.viewRootEntityId) ? viewDataQueryIdentifier.recordId : viewDataQueryIdentifier.viewRootEntityId,
+            options: { dataRequestOptions: { useBusinessKey: true } }
+          }
         });
 
         if (response.success && response.result) {

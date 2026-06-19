@@ -6,7 +6,7 @@ export type SchemaOfDomainObjectBuilder<DOB extends DomainValueObjectBuilder<any
 
 
 export interface ObjectBuilder<RT, O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}> {
-  withId: (id: string, version: string) => RT;
+  withFQId: (fqId: versionedResourceId) => RT;
   forDomain: (domain: versionedResourceId) => RT;
   forProduct: (product: versionedResourceId) => RT;
   withDefaultPresentationLabel: (label: string) => RT;
@@ -50,36 +50,38 @@ type RTWithNewDefaultDocPathName<RT, P2 extends string> = RT extends ObjectBuild
   ? ObjectBuilder<R, O, P2, S, RelsTo, RelsFrom>
   : never;
 
-function createBaseBuilder<RT, O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
-  domainObj: DomainObject<any, any, any>) {
- const builder: Partial<ObjectBuilder<RT, O, P, S, RelsTo, RelsFrom>> =  {
-    withId: function (id: string, version: string): RT {
-      domainObj.vid = { domain: domainObj.domain, name: id, version };
-      return builder as unknown as RT;
+function createBaseBuilder<RT, O extends string, P extends string, S extends Schema<any, any>,
+ RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+  domainObj: DomainObject<any, any, any>, returnBuilder: RT) {
+ const baseBuilder: Partial<ObjectBuilder<RT, O, P, S, RelsTo, RelsFrom>> =  {
+    withFQId: function (fqId: versionedResourceId): RT {
+      domainObj.vid = fqId;
+      domainObj.name = fqId.name;
+      return returnBuilder;
     },
+      
 
     forDomain: function (domain: versionedResourceId): RT {
-      domainObj.domain = domain;
-      domainObj.vid.domain = domain;
+      // unused
       if (!domainObj.defaultDocPathName) domainObj.defaultDocPathName = domain.name;
-      return builder as unknown as RT;
+      return returnBuilder;
     },
 
     forProduct: function (product: versionedResourceId): RT {
       domainObj.product = product;
-      return builder as unknown as RT;
+      return returnBuilder;
     },
     withDefaultPresentationLabel: function (label: string): RT {
       domainObj.defaultPresentationLabel = label;
-      return builder as unknown as RT;
+      return returnBuilder;
     },
     withDefaultDocPathName: function <P2 extends string>(pathName: P2):  RTWithNewDefaultDocPathName<RT, P2> {
       domainObj.defaultDocPathName = pathName;
-      return builder as unknown as RTWithNewDefaultDocPathName<RT, P2>;
+      return returnBuilder as unknown as RTWithNewDefaultDocPathName<RT, P2>;
     },
     withDbStoreLabel: function (storeLabel: string): RT {
       domainObj.storeWithDBLabel = storeLabel;
-      return builder as unknown as RT;
+      return returnBuilder as unknown as RT;
     },
 
    
@@ -90,7 +92,7 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
       }
 
       addDomainObjectRelationTo(targetObject, name, domainObj, cascadeDeletes);
-      return builder as unknown as RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>>;
+      return returnBuilder as unknown as RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>>;
     },
 
     withRelationFrom<N extends string, SO extends DomainObject<any, any, any>>(name: N, sourceObject: SO, cascadeDeletes: TrueFalse)
@@ -100,14 +102,14 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
       }
 
       addDomainObjectRelationFrom(sourceObject, name, domainObj, cascadeDeletes);
-      return builder as unknown as RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
+      return returnBuilder as unknown as RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
     },
     buildObject: () =>domainObj as DomainObject<O,P,S>
 
     
   };
 
-  return builder;
+  return baseBuilder;
 }
 
 function createObject<S extends Schema<any, any>, O extends string, P extends string,
@@ -145,12 +147,14 @@ export function createValueDomainObject<S extends Schema<any, any>, O extends st
 
   const domainObj = createObject(name, schema);
   domainObj.isEntity = false;
-  const partialBuilder = createBaseBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>(domainObj);
+  const builder = {} as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+  const partialBuilder = createBaseBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>
+    (domainObj, builder as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>);
 
-  const builder: DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom> = { 
+  Object.assign(builder, { 
     ...partialBuilder,
-    buildObject: domainObj as DomainObject<O,P,S>
-  } as unknown as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+    buildObject: () =>domainObj as DomainObject<O,P,S>
+  } as unknown as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>);
 
   return builder;
 }
@@ -162,11 +166,13 @@ export function createEntityDomainObject<S extends Schema<any, any>, O extends s
 
   const domainObj = createObject(name, schema);
   domainObj.isEntity = true;
-  const partialBuilder = createBaseBuilder<DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>(domainObj);
+  const builder = {} as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+  const partialBuilder = createBaseBuilder<DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>
+    (domainObj, builder);
 
-  const builder: DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> = {
+  Object.assign(builder, {
      ...partialBuilder,
-       withUnqiueBusinessKey: function (uniqueBusinessKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
+       withUniqueBusinessKey: function (uniqueBusinessKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
           domainObj.businessKey = uniqueBusinessKey;
           return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
         },
@@ -174,7 +180,7 @@ export function createEntityDomainObject<S extends Schema<any, any>, O extends s
           domainObj.alternateKey = alternateKey;
           return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
         }
-    } as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+    } as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>);
 
   return builder;
 }

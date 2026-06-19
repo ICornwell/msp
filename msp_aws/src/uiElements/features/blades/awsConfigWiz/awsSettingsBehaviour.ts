@@ -52,7 +52,7 @@ export const useAwsSettingsBehaviour = () => {
         'AwsSetupWizardBlade',
         () => ({ title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3, updateWhenDataChanges: true }),
         awsSetupWizardContent(),
-        awsClusterSetupConfigView.getViewDataIdentifier(defaultSetupContext.setupId)
+        awsClusterSetupConfigView.getViewDataIdentifier('', defaultSetupContext.setupId)
       )
       .endPresentation()
     .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)
@@ -69,15 +69,15 @@ export const useAwsSettingsBehaviour = () => {
         (result) => {
           
           const timestamp = new Date().toISOString();
-          return result.connected ? {
+          return result.connection.connected ? {
             setupId: result.setupId ?? defaultSetupContext.setupId,
             region: result.region ?? defaultSetupContext.region,
             clusterName: result.clusterName ?? defaultSetupContext.clusterName,
-            accountId: result.accountId,
+            accountId: result.connection.accountId,
             accountName: result.accountName,
             connectionStatus: 'success',
-            connectionMessage: result.message ?? 'AWS credentials connected',
-            connectionCheckedAt: timestamp,
+            connectionMessage: result.connection.message ?? 'AWS credentials connected',
+            connectionCheckedAt: result.connection.checkedAt,
             updatedAt: timestamp,
             status: 'ready',
           } : {

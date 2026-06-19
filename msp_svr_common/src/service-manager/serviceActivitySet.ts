@@ -24,22 +24,24 @@ export type ServiceActivityResultBuilder = {
     currentResult: () => any;
 }
 
-export const defaultResult: ServiceActivityResult = {
-    activityName: '',
-    namespace: '',
-    version: '',
-    variantName: '',
-    updatedPayload: undefined,
-    success: false,
-    message: undefined,
-    error: undefined,
-    logs: [],
-    result: undefined
+export function getEmptyResult(): ServiceActivityResult {
+    return {
+        activityName: '',
+        namespace: '',
+        version: '',
+        variantName: '',
+        updatedPayload: undefined,
+        success: false,
+        message: undefined,
+        error: undefined,
+        logs: [],
+        result: undefined
+    }
 }
 
 export function CreateResultBuilder(result?: ServiceActivityResult): ServiceActivityResultBuilder {
     if (!result) {
-        result = { ...defaultResult };
+        result = { ...getEmptyResult()   };
     }
     return {
         updatePayload: function (payload: any) {
@@ -117,8 +119,8 @@ export type ActivitySet = {
 //the builder doesn't need handle or isEmpty, those are implemented in the final ActivitySet
 // for runtime use
 type ActivitySetBuilder = {
-     [P in keyof Omit<ActivitySet, 'handle' | 'isEmpty' | 'hasNamespace' | 'activities'>]-?:
-      (ActivitySet[P] extends (...args: any) => any ? (serviceActivity: ServiceActivityWithOptionals) => ActivitySetBuilder : ActivitySetBuilder)
+    [P in keyof Omit<ActivitySet, 'handle' | 'isEmpty' | 'hasNamespace' | 'activities'>]-?:
+    (ActivitySet[P] extends (...args: any) => any ? (serviceActivity: ServiceActivityWithOptionals) => ActivitySetBuilder : ActivitySetBuilder)
 } & {
     withNamespace: (namespace: string) => ActivitySetBuilder;
     withVersion: (version: string) => ActivitySetBuilder;

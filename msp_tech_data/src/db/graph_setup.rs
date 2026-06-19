@@ -40,6 +40,7 @@ pub async fn ensure_schema(db: &DbClientManager) -> Result<()> {
                 CREATE INDEX IF NOT EXISTS idx_vertices_entity_id ON docgraph.vertices(__entityId);
                 CREATE INDEX IF NOT EXISTS idx_vertices_is_entity ON docgraph.vertices(__isEntity);
                 CREATE INDEX IF NOT EXISTS idx_vertices_alternate_key ON docgraph.vertices(__alternateKey);
+                CREATE INDEX IF NOT EXISTS idx_vertices_business_key ON docgraph.vertices(__businessKey);
 
                 CREATE TABLE IF NOT EXISTS docgraph.edges (
                     id VARCHAR(36) PRIMARY KEY,

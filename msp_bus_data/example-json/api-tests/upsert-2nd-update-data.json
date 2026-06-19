@@ -1,6 +1,6 @@
 {
   "__entityId": "019bc231-b93b-71a2-8919-7a3b42a96e03",
-  "__metaData": {
+  "__metadata": {
     "__label": "account",
     "__originalId": "019bc231-b93b-71a2-8919-7a3b42a96e03",
     "__timeStamp": 1768489597,
@@ -14,7 +14,7 @@
   "order": [
     {
       "__entityId": "019bc231-b93b-71a2-8919-7a5bdfc54277",
-      "__metaData": {
+      "__metadata": {
         "__label": "order",
         "__originalId": "019bc231-b93b-71a2-8919-7a5bdfc54277",
         "__timeStamp": 1768489597,
@@ -27,7 +27,7 @@
       "orderItem": [
         {
           "__entityId": "019bc231-b93b-71a2-8919-7a67e4466968",
-          "__metaData": {
+          "__metadata": {
             "__label": "orderItem",
             "__originalId": "019bc231-b93b-71a2-8919-7a67e4466968",
             "__timeStamp": 1768489597,
@@ -38,7 +38,7 @@
           "id": "019bc231-b93b-71a2-8919-7a67e4466968",
           "product": {
             "__entityId": "019bc231-b93b-71a2-8919-7a752f33890d",
-            "__metaData": {
+            "__metadata": {
               "__label": "product",
               "__originalId": "019bc231-b93b-71a2-8919-7a752f33890d",
               "__timeStamp": 1768489597,
@@ -74,7 +74,7 @@
     },
     {
       "__entityId": "019bc231-b93b-71a2-8919-7aa69cecce11",
-      "__metaData": {
+      "__metadata": {
         "__label": "order",
         "__originalId": "019bc231-b93b-71a2-8919-7aa69cecce11",
         "__timeStamp": 1768489597,
@@ -87,7 +87,7 @@
       "orderItem": [
         {
           "__entityId": "019bc231-b93b-71a2-8919-7abf42e998c8",
-          "__metaData": {
+          "__metadata": {
             "__label": "orderItem",
             "__originalId": "019bc231-b93b-71a2-8919-7abf42e998c8",
             "__timeStamp": 1768489597,
@@ -98,7 +98,7 @@
           "id": "019bc231-b93b-71a2-8919-7abf42e998c8",
           "product": {
             "__entityId": "019bc231-b93b-71a2-8919-7ac8777b9595",
-            "__metaData": {
+            "__metadata": {
               "__label": "product",
               "__originalId": "019bc231-b93b-71a2-8919-7ac8777b9595",
               "__timeStamp": 1768489597,
@@ -115,7 +115,7 @@
         },
         {
           "__entityId": "019bc231-b93b-71a2-8919-7ad4b295dd56",
-          "__metaData": {
+          "__metadata": {
             "__label": "orderItem",
             "__originalId": "019bc231-b93b-71a2-8919-7ad4b295dd56",
             "__timeStamp": 1768489597,
@@ -126,7 +126,7 @@
           "id": "019bc231-b93b-71a2-8919-7ad4b295dd56",
           "product": {
             "__entityId": "019bc231-b93b-71a2-8919-7aeaee90e00d",
-            "__metaData": {
+            "__metadata": {
               "__label": "product",
               "__originalId": "019bc231-b93b-71a2-8919-7aeaee90e00d",
               "__timeStamp": 1768489597,
@@ -143,7 +143,7 @@
         },
         {
           "__entityId": "019bc231-b93b-71a2-8919-7af114513df7",
-          "__metaData": {
+          "__metadata": {
             "__label": "orderItem",
             "__originalId": "019bc231-b93b-71a2-8919-7af114513df7",
             "__timeStamp": 1768489597,
@@ -154,7 +154,7 @@
           "id": "019bc231-b93b-71a2-8919-7af114513df7",
           "product": {
             "__entityId": "019bc231-b93b-71a2-8919-7b074868900d",
-            "__metaData": {
+            "__metadata": {
               "__label": "product",
               "__originalId": "019bc231-b93b-71a2-8919-7b074868900d",
               "__timeStamp": 1768489597,
@@ -175,7 +175,7 @@
   ],
   "person": {
     "__entityId": "019bc231-b93b-71a2-8919-7a4dd623d079",
-    "__metaData": {
+    "__metadata": {
       "__label": "person",
       "__originalId": "019bc231-b93b-71a2-8919-7a4dd623d079",
       "__timeStamp": 1768491746,

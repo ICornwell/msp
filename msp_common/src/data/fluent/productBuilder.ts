@@ -95,7 +95,7 @@ export function createProduct(): ProductBuilder {
       // Bind schema to product
       const boundSchema: Schema<any, any> = {
         ...schema,
-        domain: product.domain,
+        //domain: product.domain,
         product: product.id
       };
       
@@ -110,7 +110,7 @@ export function createProduct(): ProductBuilder {
       // Bind schema to product
       const boundSchema: Schema<any, any> = {
         ...schema,
-        domain: product.domain,
+        //domain: product.domain,
         product: product.id
       };
       

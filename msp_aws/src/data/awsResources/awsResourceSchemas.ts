@@ -1,7 +1,7 @@
 import { createSchema } from 'msp_common';
 
 export const eksClusterSchema = createSchema('eksCluster')
-  .withId('eksCluster', '1.0')
+  .withFQId({name: 'eksCluster', version: '1.0'})
   .withProperty('clusterName')
   .forType<string>()
   .withDictionaryId('aws-eks-clusterName', '1.0')
@@ -29,7 +29,7 @@ export const eksClusterSchema = createSchema('eksCluster')
   .buildSchema();
 
 export const ecrRepositorySchema = createSchema('ecrRepository')
-  .withId('ecrRepository', '1.0')
+  .withFQId({name: 'ecrRepository', version: '1.0'})
   .withProperty('repositoryName')
   .forType<string>()
   .withDictionaryId('aws-ecr-repositoryName', '1.0')

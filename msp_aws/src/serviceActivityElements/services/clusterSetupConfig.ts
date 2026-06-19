@@ -14,7 +14,7 @@ function setupKey(region: string, clusterName: string, setupId?: string) {
 
 function seedSetup(region: string, clusterName: string, setupId: string = 'aws-cluster-setup-default') {
   const content: ViewDataContent<AwsClusterSetupConfig> = {
-    viewDomain: setupViewIdentifier.viewDomain,
+    viewNamespace: setupViewIdentifier.viewNamespace,
     viewName: setupViewIdentifier.viewName,
     viewVersion: setupViewIdentifier.viewVersion,
     viewVariantName: setupViewIdentifier.viewVariantName,
@@ -23,8 +23,6 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
     viewRootEntityBusKey: setupId,
     viewRootId: setupId,
     content: {
-      __entityId: setupId,
-      id: setupId,
       setupId,
       accountName: 'Unassigned',
       connectionStatus: 'unknown',
@@ -39,7 +37,15 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
           nodeCount: 2,
         },
         ecr: {
-          repositories: ['actorwork/runtime', 'actorwork/tools'],
+          repositories: [{
+            repositoryName: 'actorwork/tools',
+            repositoryUri: '000000000000.dkr.ecr.eu-west-2.amazonaws.com/actorwork/tools',
+            region: region,
+          }, {
+            repositoryName: 'actorwork/dev',
+            repositoryUri: '000000000000.dkr.ecr.eu-west-2.amazonaws.com/actorwork/dev',
+            region: region,
+          }],
         },
         network: {
           vpcCidr: '10.42.0.0/16',
@@ -66,7 +72,7 @@ function normalizeSetupRow(row: any): ViewDataContent<AwsClusterSetupConfig> | u
   if (row.content && row.setupId) {
     const setupId = row.setupId as string;
     return {
-      viewDomain: setupViewIdentifier.viewDomain,
+      viewNamespace: setupViewIdentifier.viewNamespace,
       viewName: setupViewIdentifier.viewName,
       viewVersion: setupViewIdentifier.viewVersion,
       viewVariantName: setupViewIdentifier.viewVariantName,
@@ -88,7 +94,7 @@ async function readSetup(payload: ReadClusterSetupConfigPayload): Promise<ViewDa
   const key = setupKey(region, clusterName, setupId);
 
   try {
-    const readResult = await ReadData(awsClusterSetupConfigView, key);
+    const readResult = await ReadData(awsClusterSetupConfigView, key, { useBusinessKey: true });
     const normalized = normalizeSetupRow(readResult?.data ?? readResult?.result?.data ?? readResult);
     if (normalized) {
       return [normalized];
@@ -104,7 +110,6 @@ async function mergeSetup(payload: WriteClusterSetupConfigPayload): Promise<View
   const region = payload.region ?? 'eu-west-2';
   const clusterName = payload.clusterName ?? 'msp-dev-eks';
   const setupId = payload.setupId ?? 'aws-cluster-setup-default';
-  const key = setupKey(region, clusterName, setupId);
   const existing = (await readSetup({ setupId, region, clusterName }))[0] ?? seedSetup(region, clusterName, setupId);
 
   const nextContent: ViewDataContent<AwsClusterSetupConfig> = {
@@ -112,8 +117,6 @@ async function mergeSetup(payload: WriteClusterSetupConfigPayload): Promise<View
     content: {
       ...existing.content,
       ...payload,
-      __entityId: setupId,
-      id: setupId,
       setupId,
       region,
       clusterName,
@@ -139,8 +142,6 @@ async function mergeSetup(payload: WriteClusterSetupConfigPayload): Promise<View
 
   const persistedPayload = {
     ...nextContent.content,
-    __entityId: key,
-    id: key,
   };
 
   await WriteData(awsClusterSetupConfigView, persistedPayload);
@@ -230,8 +231,6 @@ export async function reconcileClusterSetupConfigHandler(
   if (!payload.dryRun) {
     await WriteData(awsClusterSetupConfigView, {
       ...reconciled.content,
-      __entityId: setupKey(region, clusterName, setupId),
-      id: setupKey(region, clusterName, setupId),
     });
   }
 

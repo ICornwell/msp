@@ -2,6 +2,7 @@ import type { ViewDataContent } from 'msp_common';
 import { runServiceActivity, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import type { AwsSetupWizardDraftUi } from '../models/awsUiModels.js';
+import type { AwsClusterSetupDesiredState } from '../../data/clusterSetUpConfig.js';
 
 export type GetAwsWizardBootstrapPayload = {
   setupCaseId?: string;
@@ -19,14 +20,7 @@ type AwsClusterSetupRecord = {
   clusterName?: string;
   wizardVersion?: string;
   status?: 'draft' | 'ready' | 'applied' | 'drifted';
-  desiredState?: {
-    ecr?: { repositories?: string[] };
-    network?: {
-      vpcCidr?: string;
-      publicSubnetCount?: number;
-      privateSubnetCount?: number;
-    };
-  };
+  desiredState?: AwsClusterSetupDesiredState;
   updatedAt?: string;
 };
 
@@ -140,7 +134,7 @@ export async function getAwsWizardBootstrapHandler(
     },
     resourceNaming: {
       clusterName: setup?.clusterName ?? clusterName,
-      repositoryNames: setup?.desiredState?.ecr?.repositories ?? [],
+      repositoryNames: (setup?.desiredState?.ecr?.repositories ?? []).map((repository) => repository.repositoryName),
       namingConventionMode: 'default',
     },
     review: {
@@ -159,7 +153,7 @@ export async function getAwsWizardBootstrapHandler(
   };
 
   const row: ViewDataContent<typeof bootstrapDraft> = {
-    viewDomain: 'aws',
+    viewNamespace: 'aws',
     viewName: 'AwsWizardBootstrap',
     viewVersion: '1.0.0',
     viewRootEntityType: 'awsWizardBootstrap',

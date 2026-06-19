@@ -3,14 +3,16 @@ import { createEntityObject, createRelations } from 'msp_common';
 import { ecrRepositorySchema, eksClusterSchema } from './awsResourceSchemas.js';
 
 export const eksClusterObject = createEntityObject('eksCluster', eksClusterSchema)
-  .withId('eksCluster', '1.0')
+  .withFQId({name: 'eksCluster', version: '1.0'})
   .forDomain({ name: 'aws', version: '1.0' })
+  .withUniqueBusinessKey((data) => `${data.region}::${data.clusterName}`)
 
   .buildObject();
 
 export const ecrRepositoryObject = createEntityObject('ecrRepository', ecrRepositorySchema)
-  .withId('ecrRepository', '1.0')
+  .withFQId({name: 'ecrRepository', version: '1.0'})
   .forDomain({ name: 'aws', version: '1.0' })
+  .withUniqueBusinessKey((data) => `${data.region}::${data.repositoryName}`)
 
   .buildObject();
 

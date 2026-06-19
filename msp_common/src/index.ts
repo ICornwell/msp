@@ -12,10 +12,6 @@ export * from './comms/dataRequest.js'
 
 export * from './types/index.js';
 
-export * from './types/index.js';
-
-export * from './types/index.js';
-
 export * from './comms/ui/UiRemoteRegistration.js'
 
 export * from './data/fluent/index.js';

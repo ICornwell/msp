@@ -1,7 +1,126 @@
 import { createSchema } from 'msp_common';
 
+export type AwsClusterSetupRepository = {
+  repositoryName: string;
+  repositoryUri?: string;
+  region: string;
+};
+
+export type AwsClusterSetupEksDesiredState = {
+  clusterVersion?: string;
+  nodeCount?: number;
+};
+
+export type AwsClusterSetupEcrDesiredState = {
+  repositories?: AwsClusterSetupRepository[];
+};
+
+export type AwsClusterSetupNetworkDesiredState = {
+  vpcCidr?: string;
+  publicSubnetCount?: number;
+  privateSubnetCount?: number;
+};
+
+export type AwsClusterSetupDesiredState = {
+  eks?: AwsClusterSetupEksDesiredState;
+  ecr?: AwsClusterSetupEcrDesiredState;
+  network?: AwsClusterSetupNetworkDesiredState;
+};
+
+export const awsClusterSetupRepositorySchema = createSchema('awsClusterSetupRepository')
+  .withFQId({name: 'awsClusterSetupRepository', version: '1.0'})
+  .withProperty('repositoryName')
+  .forType<string>()
+  .withDictionaryId('aws-setup-repository-name', '1.0')
+  .withInfoType('Text')
+  .withDefaultLabel('Repository Name')
+  .endProperty()
+  .withProperty('repositoryUri')
+  .forType<string>()
+  .withDictionaryId('aws-setup-repository-uri', '1.0')
+  .withInfoType('Text')
+  .withDefaultLabel('Repository URI')
+  .endProperty()
+  .withProperty('region')
+  .forType<string>()
+  .withDictionaryId('aws-setup-repository-region', '1.0')
+  .withInfoType('Text')
+  .withDefaultLabel('Region')
+  .endProperty()
+  .buildSchema();
+
+export const awsClusterSetupEksDesiredStateSchema = createSchema('awsClusterSetupEksDesiredState')
+  .withFQId({name: 'awsClusterSetupEksDesiredState', version: '1.0'})
+  .withProperty('clusterVersion')
+  .forType<string>()
+  .withDictionaryId('aws-setup-eks-cluster-version', '1.0')
+  .withInfoType('Text')
+  .withDefaultLabel('Cluster Version')
+  .endProperty()
+  .withProperty('nodeCount')
+  .forType<number>()
+  .withDictionaryId('aws-setup-eks-node-count', '1.0')
+  .withInfoType('Integer')
+  .withDefaultLabel('Node Count')
+  .endProperty()
+  .buildSchema();
+
+export const awsClusterSetupEcrDesiredStateSchema = createSchema('awsClusterSetupEcrDesiredState')
+  .withFQId({name: 'awsClusterSetupEcrDesiredState', version: '1.0'})
+  .withProperty('repositories')
+  .forType<AwsClusterSetupRepository[]>()
+  .withDictionaryId('aws-setup-ecr-repositories', '1.0')
+  .withInfoType('Json')
+  .withDefaultLabel('Repositories')
+  .endProperty()
+  .buildSchema();
+
+export const awsClusterSetupNetworkDesiredStateSchema = createSchema('awsClusterSetupNetworkDesiredState')
+  .withFQId({name: 'awsClusterSetupNetworkDesiredState', version: '1.0'})
+  .withProperty('vpcCidr')
+  .forType<string>()
+  .withDictionaryId('aws-setup-network-vpc-cidr', '1.0')
+  .withInfoType('Text')
+  .withDefaultLabel('VPC CIDR')
+  .endProperty()
+  .withProperty('publicSubnetCount')
+  .forType<number>()
+  .withDictionaryId('aws-setup-network-public-subnet-count', '1.0')
+  .withInfoType('Integer')
+  .withDefaultLabel('Public Subnet Count')
+  .endProperty()
+  .withProperty('privateSubnetCount')
+  .forType<number>()
+  .withDictionaryId('aws-setup-network-private-subnet-count', '1.0')
+  .withInfoType('Integer')
+  .withDefaultLabel('Private Subnet Count')
+  .endProperty()
+  .buildSchema();
+
+export const awsClusterSetupDesiredStateSchema = createSchema('awsClusterSetupDesiredState')
+  .withFQId({name: 'awsClusterSetupDesiredState', version: '1.0'})
+  .withProperty('eks')
+  .forType<AwsClusterSetupEksDesiredState>()
+  .withDictionaryId('aws-setup-desired-eks', '1.0')
+  .withInfoType('Json')
+  .withDefaultLabel('EKS')
+  .endProperty()
+  .withProperty('ecr')
+  .forType<AwsClusterSetupEcrDesiredState>()
+  .withDictionaryId('aws-setup-desired-ecr', '1.0')
+  .withInfoType('Json')
+  .withDefaultLabel('ECR')
+  .endProperty()
+  .withProperty('network')
+  .forType<AwsClusterSetupNetworkDesiredState>()
+  .withDictionaryId('aws-setup-desired-network', '1.0')
+  .withInfoType('Json')
+  .withDefaultLabel('Network')
+  .endProperty()
+  .buildSchema();
+
 export const awsClusterSetupConfigSchema = createSchema('awsClusterSetupConfig')
-  .withId('awsClusterSetupConfig', '1.0')
+  .withFQId({name: 'awsClusterSetupConfig', version: '1.0'})
   .withProperty('setupId')
   .forType<string>()
   .withDictionaryId('aws-setup-setup-id', '1.0')
@@ -63,7 +182,7 @@ export const awsClusterSetupConfigSchema = createSchema('awsClusterSetupConfig')
   .withDefaultLabel('Status')
   .endProperty()
   .withProperty('desiredState')
-  .forType<any>()
+  .forType<AwsClusterSetupDesiredState>()
   .withDictionaryId('aws-setup-desired-state', '1.0')
   .withInfoType('Text')
   .withDefaultLabel('Desired State')
@@ -77,7 +196,7 @@ export const awsClusterSetupConfigSchema = createSchema('awsClusterSetupConfig')
   .buildSchema();
 
 export const awsDesiredResourceConfigSchema = createSchema('awsDesiredResourceConfig')
-  .withId('awsDesiredResourceConfig', '1.0')
+  .withFQId({name: 'awsDesiredResourceConfig', version: '1.0'})
   .withProperty('setupCaseId')
   .forType<string>()
   .withDictionaryId('aws-desired-case-id', '1.0')

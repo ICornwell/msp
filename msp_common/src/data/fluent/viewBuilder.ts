@@ -40,7 +40,7 @@ function getBuilder<T>(context: CNTX<T, any>): T {
 
 function attachViewIdentifierHelpers(view: View<any>): void {
   const getViewIdentifier = (): ViewIdentifier => ({
-    viewDomain: view.namespace || 'default',
+    viewNamespace: view.namespace || 'default',
     viewName: view.name,
     viewVersion: view.version,
     viewVariantName: view.variantName,
@@ -458,6 +458,7 @@ export function createViewElementRecursiveEndBuilder<
     queryObjectId: queryObjectId,
     isEntity: domainObject.isEntity ?? false,
     domainObjectId: domainObject.vid,
+    domainObject: domainObject,
     isCollection: isCollection,
     relationFromParent: undefined,
     subElements: undefined,
@@ -526,6 +527,7 @@ export function createViewElementRecursiveBuilder<
     queryObjectId: queryObjectId,
     isEntity: domainObject.isEntity ?? false,
     domainObjectId: domainObject.vid,
+    domainObject: domainObject,
     isCollection: isCollection,
     relationFromParent: undefined,
     subElements: undefined,
@@ -615,6 +617,7 @@ export function createViewElementNonRecursiveBuilder<
     queryObjectId: queryObjectId,
     isEntity: domainObject.isEntity ?? false,
     domainObjectId: domainObject.vid,
+    domainObject: domainObject,
     isCollection: isCollection,
     relationFromParent: undefined,
     subElements: undefined,
@@ -778,6 +781,7 @@ export function createViewBuilder<RootDT = any>(
     data: {} as Flatten<RootDT>,
     build: function (): View<Flatten<RootDT>> {
       const view = builder.__build();
+      view.rootKey = view.rootElement.domainObject?.businessKey ?? view.rootKey
       return view as View<Flatten<RootDT>>;
     }
   };

@@ -1,17 +1,17 @@
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
-import type { DataObject, ViewDataContent } from 'msp_common';
+import type { DataObject, ViewDataNewContent } from 'msp_common';
 import { ReadData, WriteData, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import { resolveAwsCredentials } from './awsCredentialResolver.js';
 import { awsDesiredResourceConfigView } from '../../data/index.js';
 
-type AwsReadPayload = {
+export type AwsReadPayload = {
   accountId?: string;
   region?: string;
   useMock?: boolean;
 };
 
-type AwsDesiredConfigPayload = {
+export type AwsDesiredConfigPayload = {
   setupCaseId: string;
   setupRunId: string;
   region: string;
@@ -39,7 +39,7 @@ export type AwsValidateCredentialsPayload = {
   sessionToken?: string;
 };
 
-type AwsConnectionStatusRecord = {
+export type AwsConnectionStatusRecord = {
   accountId?: string;
   region: string;
   connected: boolean;
@@ -49,7 +49,7 @@ type AwsConnectionStatusRecord = {
   checkedAt: string;
 } & Partial<DataObject>;
 
-type AwsSdkEksCluster = {
+export type AwsSdkEksCluster = {
   accountId?: string;
   arn?: string;
   name: string;
@@ -61,7 +61,7 @@ type AwsSdkEksCluster = {
   tags?: Record<string, string>;
 } & Partial<DataObject>;
 
-type AwsSdkEcrRepository = {
+export type AwsSdkEcrRepository = {
   accountId?: string;
   repositoryArn?: string;
   repositoryName: string;
@@ -71,7 +71,7 @@ type AwsSdkEcrRepository = {
   scanOnPush?: boolean;
 } & Partial<DataObject>;
 
-type AwsSdkIamRole = {
+export type AwsSdkIamRole = {
   accountId?: string;
   arn?: string;
   roleName: string;
@@ -83,7 +83,7 @@ type AwsSdkIamRole = {
   }>;
 } & Partial<DataObject>;
 
-type AwsSdkNetworkShape = {
+export type AwsSdkNetworkShape = {
   accountId?: string;
   region: string;
   vpcId: string;
@@ -93,7 +93,7 @@ type AwsSdkNetworkShape = {
   routeShape?: string;
 } & Partial<DataObject>;
 
-type AwsSdkInventorySnapshot = {
+export type AwsSdkInventorySnapshot = {
   accountId?: string;
   region: string;
   collectedAt: string;
@@ -105,7 +105,7 @@ type AwsSdkInventorySnapshot = {
   };
 } & Partial<DataObject>;
 
-type AwsDesiredResourceConfigRecord = {
+export type AwsDesiredResourceConfigRecord = {
   setupCaseId: string;
   setupRunId: string;
   region: string;
@@ -129,8 +129,10 @@ function getAccountId(payload?: AwsReadPayload) {
 function readEksClustersFromAws(payload: AwsReadPayload): AwsSdkEksCluster[] {
   return [
     {
-      __entityId: 'eks:msp-dev-eks',
-      id: 'eks:msp-dev-eks',
+      // don't use __entityId here, it is set internally by the data layer
+      //  rule is: don't add/change/remove with any props beginning with __,
+      //  they are reserved for internal use by the data layer
+      //  and are not part of the AWS SDK response shape
       accountId: getAccountId(payload),
       arn: 'arn:aws:eks:eu-west-2:000000000000:cluster/msp-dev-eks',
       name: 'msp-dev-eks',
@@ -147,8 +149,6 @@ function readEksClustersFromAws(payload: AwsReadPayload): AwsSdkEksCluster[] {
 function readEcrRepositoriesFromAws(payload: AwsReadPayload): AwsSdkEcrRepository[] {
   return [
     {
-      __entityId: 'ecr:actorwork-dev',
-      id: 'ecr:actorwork-dev',
       accountId: getAccountId(payload),
       repositoryArn: 'arn:aws:ecr:eu-west-2:000000000000:repository/actorwork/dev',
       repositoryName: 'actorwork/dev',
@@ -163,8 +163,9 @@ function readEcrRepositoriesFromAws(payload: AwsReadPayload): AwsSdkEcrRepositor
 function readIamRolesFromAws(payload: AwsReadPayload): AwsSdkIamRole[] {
   return [
     {
-      __entityId: 'iam:msp-eks-control-plane',
-      id: 'iam:msp-eks-control-plane',
+      // don't use __entityId here, it is set internally by the data layer
+      //  rule is: don't add/change/remove with any props beginning with __,
+      //  they are reserved for internal use by the data layer
       accountId: getAccountId(payload),
       arn: 'arn:aws:iam::000000000000:role/msp-eks-control-plane',
       roleName: 'msp-eks-control-plane',
@@ -182,8 +183,7 @@ function readIamRolesFromAws(payload: AwsReadPayload): AwsSdkIamRole[] {
 function readNetworkShapesFromAws(payload: AwsReadPayload): AwsSdkNetworkShape[] {
   return [
     {
-      __entityId: 'vpc:msp-dev-main',
-      id: 'vpc:msp-dev-main',
+      // don't use __entityId here, it is set internally by the data layer
       accountId: getAccountId(payload),
       region: getRegion(payload),
       vpcId: 'vpc-0011223344556677',
@@ -199,20 +199,17 @@ function toViewData<T extends Partial<DataObject>>(
   viewName: string,
   entityType: string,
   row: T,
-  rowId: string,
-): ViewDataContent<T> {
+): ViewDataNewContent<T> {
   return {
-    viewDomain: 'aws',
+    viewNamespace: 'aws',
     viewName,
     viewVersion: '1.0.0',
     viewRootEntityType: entityType,
-    viewRootEntityId: rowId,
-    viewRootEntityBusKey: rowId,
-    viewRootId: rowId,
+    // viewRootEntityId: rowId, only use this if not using the ViewRootEntityBusKey and ViewRootId props below
+    // viewRootEntityBusKey: 'id',
+    // viewRootId: rowId,
     content: {
       ...row,
-      __entityId: row.__entityId ?? rowId,
-      id: row.id ?? rowId,
     },
   };
 }
@@ -223,8 +220,7 @@ export async function awsEksClustersHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
   const rows = readEksClustersFromAws({ ...payload, region: creds.region, accountId: creds.accessKeyId }).map((cluster) => {
-    const rowId = makeRecordId('eks', cluster.region, cluster.name);
-    return toViewData('AwsSdkEksClusters', 'eksCluster', cluster, rowId);
+    return toViewData('AwsSdkEksClusters', 'eksCluster', cluster);
   });
 
   resultBuilder.log(`Data layer: returning ${rows.length} EKS cluster record(s) for region=${creds.region}.`);
@@ -237,8 +233,7 @@ export async function awsEcrRepositoriesHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
   const rows = readEcrRepositoriesFromAws({ ...payload, region: creds.region }).map((repo) => {
-    const rowId = makeRecordId('ecr', repo.region, repo.repositoryName);
-    return toViewData('AwsSdkEcrRepositories', 'ecrRepository', repo, rowId);
+    return toViewData('AwsSdkEcrRepositories', 'ecrRepository', repo);
   });
 
   resultBuilder.log(`Data layer: returning ${rows.length} ECR repository record(s) for region=${creds.region}.`);
@@ -251,8 +246,7 @@ export async function awsIamRolesHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
   const rows = readIamRolesFromAws({ ...payload, region: creds.region }).map((role) => {
-    const rowId = makeRecordId('iam', role.region, role.roleName);
-    return toViewData('AwsSdkIamRoles', 'iamRole', role, rowId);
+    return toViewData('AwsSdkIamRoles', 'iamRole', role);
   });
 
   resultBuilder.log(`Data layer: returning ${rows.length} IAM role record(s) for region=${creds.region}.`);
@@ -265,8 +259,7 @@ export async function awsNetworkTopologyHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
   const rows = readNetworkShapesFromAws({ ...payload, region: creds.region }).map((net) => {
-    const rowId = makeRecordId('network', net.region, net.vpcId);
-    return toViewData('AwsSdkNetworkTopology', 'networkShape', net, rowId);
+    return toViewData('AwsSdkNetworkTopology', 'networkShape', net);
   });
 
   resultBuilder.log(`Data layer: returning ${rows.length} network topology record(s) for region=${creds.region}.`);
@@ -283,8 +276,6 @@ export async function awsInventorySnapshotHandler(
   const net = readNetworkShapesFromAws(payload);
 
   const snapshot: AwsSdkInventorySnapshot = {
-    __entityId: makeRecordId('inventory', getRegion(payload), 'latest'),
-    id: makeRecordId('inventory', getRegion(payload), 'latest'),
     accountId: getAccountId(payload),
     region: getRegion(payload),
     collectedAt: new Date().toISOString(),
@@ -300,7 +291,6 @@ export async function awsInventorySnapshotHandler(
     'AwsSdkInventorySnapshot',
     'awsInventorySnapshot',
     snapshot,
-    String(snapshot.id),
   );
 
   resultBuilder.log('Data layer: returning aggregated AWS inventory snapshot.');
@@ -313,27 +303,21 @@ export async function writeAwsDesiredResourceConfigHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const key = `${payload.setupCaseId}::${payload.setupRunId}`;
   const now = new Date().toISOString();
-  const rowId = makeRecordId('desired-config', payload.region, key);
 
   const record = toViewData<AwsDesiredResourceConfigRecord>(
     'AwsDesiredResourceConfig',
     'awsDesiredResourceConfig',
     {
-      __entityId: rowId,
-      id: rowId,
       setupCaseId: payload.setupCaseId,
       setupRunId: payload.setupRunId,
       region: payload.region,
       resources: payload.resources,
       updatedAt: now,
     },
-    rowId,
   );
 
   await WriteData(awsDesiredResourceConfigView, {
     ...record.content,
-    __entityId: rowId,
-    id: rowId,
   });
 
   resultBuilder.log(`Data layer: stored desired config for ${key}.`);
@@ -348,16 +332,15 @@ export async function readAwsDesiredResourceConfigHandler(
   const rowId = makeRecordId('desired-config', payload.region, key);
 
   try {
-    const readResult = await ReadData(awsDesiredResourceConfigView, rowId);
+    const readResult = await ReadData(awsDesiredResourceConfigView, rowId, { useBusinessKey: true });
     const found = readResult?.data ?? readResult?.result?.data ?? readResult;
     if (found) {
       const normalized = found.content
-        ? (found as ViewDataContent<AwsDesiredResourceConfigRecord>)
+        ? (found as ViewDataNewContent<AwsDesiredResourceConfigRecord>)
         : toViewData<AwsDesiredResourceConfigRecord>(
             'AwsDesiredResourceConfig',
             'awsDesiredResourceConfig',
             found as AwsDesiredResourceConfigRecord,
-            String((found as any)?.id ?? rowId),
           );
 
       resultBuilder.log(`Data layer: found desired config for ${key}.`);
@@ -371,15 +354,12 @@ export async function readAwsDesiredResourceConfigHandler(
     'AwsDesiredResourceConfig',
     'awsDesiredResourceConfig',
     {
-      __entityId: rowId,
-      id: rowId,
       setupCaseId: payload.setupCaseId,
       setupRunId: payload.setupRunId,
       region: payload.region,
       resources: [],
       updatedAt: new Date().toISOString(),
     },
-    rowId,
   );
 
   resultBuilder.log(`Data layer: returning empty desired config for ${key}.`);
@@ -405,14 +385,11 @@ export async function awsValidateCredentialsHandler(
 
     const response = await client.send(new GetCallerIdentityCommand({}));
     const accountId = response.Account;
-    const rowId = makeRecordId('aws-connection', region, accountId || 'unknown');
 
     const row = toViewData<AwsConnectionStatusRecord>(
       'AwsConnectionStatus',
       'awsConnectionStatus',
       {
-        __entityId: rowId,
-        id: rowId,
         accountId,
         region,
         connected: true,
@@ -421,28 +398,23 @@ export async function awsValidateCredentialsHandler(
         message: 'Connected to AWS STS successfully.',
         checkedAt,
       },
-      rowId,
     );
 
     resultBuilder.log(`Data layer: AWS credential validation succeeded for region=${region}.`);
     return resultBuilder.success({ data: [row] });
   } catch (error: any) {
     const message = error?.message || 'AWS SDK connection failed.';
-    const rowId = makeRecordId('aws-connection', region, 'failed');
 
     const row = toViewData<AwsConnectionStatusRecord>(
       'AwsConnectionStatus',
       'awsConnectionStatus',
       {
-        __entityId: rowId,
-        id: rowId,
         accountId: payload.accountId,
         region,
         connected: false,
         message,
         checkedAt,
       },
-      rowId,
     );
 
     resultBuilder.log(`Data layer: AWS credential validation failed for region=${region}: ${message}`);

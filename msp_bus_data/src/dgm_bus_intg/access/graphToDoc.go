@@ -7,7 +7,7 @@ import (
 
 func graphToDoc(viewSpec apiMessages.ViewQuery, graphObjects jsonDoc.JsonDoc, rootKey string, includeMetaData bool) jsonDoc.JsonDoc {
 	// kick off the recursice doc hierarchy builder
-	doc, ok := recursiveGraphToDoc(viewSpec.RootElement, graphObjects, "__entityId", rootKey, includeMetaData)
+	doc, ok := recursiveGraphToDoc(viewSpec.RootElement, graphObjects, viewSpec.RootKey, rootKey, includeMetaData)
 
 	if !ok {
 		return jsonDoc.JsonDoc{}
@@ -30,7 +30,7 @@ func recursiveGraphToDoc(viewSpec apiMessages.ViewElement, graphObjects jsonDoc.
 	// find the item we're working on - nb first time in this is the top of the hierarchy
 	// if we are searching by an _entityId, then make sure we have the isEntity version
 	// after that we're just getting the next one by id (found from a parent edge)
-	if (keyProp == "__entityId") {
+	if (keyProp == "__entityId" || keyProp == "__businessKey")  {
 		rootVertices = jsonDoc.JsonObjsByValue(rootVertices, "__isEntity", true)
 		if len(rootVertices) == 0 {
 			return nil, false

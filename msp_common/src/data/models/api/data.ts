@@ -1,17 +1,13 @@
 import { JOIN, Flatten, TrueFalse, ReKey } from '../../fluent/builderUtils.js';
 
 export type versionedResourceId = {
-  domain?: versionedResourceId;
+  namespace?: string;
   name: string;
   version: string;
   variantName?: string;
 };
 
-export type DataObject = {
-  id: string,
-  __entityId: string,
-  __tmpId: string,
-  __metadata: {
+export type DataObjectMetaData = {__metadata: {
     "__label": string,
     "__objectType": versionedResourceId,
     "__schema": versionedResourceId
@@ -20,11 +16,19 @@ export type DataObject = {
     "__timeStamp": number,
     "__transactionId": string,
     "__viewType": string,
+    "__businessKey": string,
     "__signature": {
       signerId: string,
       signature: string
     }
   }
+}
+
+export type DataObject = DataObjectMetaData & {
+  id: string,
+  __entityId: string,
+  __tmpId: string,
+  
 }
 
 export type InheritedPropertiesOf<T extends Schema<any, any>> =
@@ -75,7 +79,6 @@ export type SchemaPropertiesFor<D> = {
 export type Schema<D, IS extends Schema<any, any> | undefined = undefined> = {
   vid: versionedResourceId;
   name?: string
-  domain?: versionedResourceId;  // Optional until bound to product
   product?: versionedResourceId;  // Optional until bound to product
   inheritsFromSchema?: IS;
   properties: Partial<Flatten<SchemaPropertiesFor<Partial<D>> & (IS extends Schema<infer ID> ? Partial<SchemaPropertiesFor<ID>> : {})>>;

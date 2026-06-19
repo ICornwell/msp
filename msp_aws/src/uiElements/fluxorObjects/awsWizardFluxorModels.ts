@@ -21,7 +21,11 @@ export type AwsSetupWizardDraftFluxorRow = {
       nodeCount?: number;
     };
     ecr?: {
-      repositories?: string[];
+      repositories?: {
+        repositoryName: string;
+        repositoryUri?: string;
+        region: string;
+      }[];
     };
     network?: {
       vpcCidr?: string;

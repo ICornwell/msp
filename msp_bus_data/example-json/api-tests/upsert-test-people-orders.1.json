@@ -44,7 +44,7 @@
         "__entityId": "ex23",
         "accountNumber": "acc-001",
         "id": "ac001",
-        "__metaData": {
+        "__metadata": {
             "__label": "account",
             "__timeStamp": 2000,
             "__transactionId": "tx12",
@@ -55,7 +55,7 @@
             {
                 "__entityId": "ex23",
                 "id": "ord01",
-                "__metaData": {
+                "__metadata": {
                     "__label": "order",
                     "__timeStamp": 2000,
                     "__transactionId": "tx12",
@@ -66,7 +66,7 @@
                     {
                         "__entityId": "ex23",
                         "id": "orditem01",
-                        "__metaData": {
+                        "__metadata": {
                             "__label": "orderItem",
                             "__timeStamp": 2000,
                             "__transactionId": "tx12",
@@ -75,7 +75,7 @@
                         "product": {
                             "__entityId": "p1",
                             "id": "prod01",
-                            "__metaData": {
+                            "__metadata": {
                                 "__label": "product",
                                 "__timeStamp": 500,
                                 "__transactionId": "tx01",
@@ -90,7 +90,7 @@
                     {
                         "__entityId": "ex23",
                         "id": "orditem02",
-                        "__metaData": {
+                        "__metadata": {
                             "__label": "orderItem",
                             "__timeStamp": 2000,
                             "__transactionId": "tx12",
@@ -99,7 +99,7 @@
                         "product": {
                             "__entityId": "p2",
                             "id": "prod02",
-                            "__metaData": {
+                            "__metadata": {
                                 "__label": "product",
                                 "__timeStamp": 500,
                                 "__transactionId": "tx01",
@@ -117,7 +117,7 @@
             {
                 "__entityId": "ex23",
                 "id": "ord02",
-                "__metaData": {
+                "__metadata": {
                     "__label": "order",
                     "__timeStamp": 3000,
                     "__transactionId": "tx22",
@@ -128,7 +128,7 @@
                     {
                         "__entityId": "ex23",
                         "id": "orditem04",
-                        "__metaData": {
+                        "__metadata": {
                             "__label": "orderItem",
                             "__timeStamp": 3000,
                             "__transactionId": "tx22",
@@ -137,7 +137,7 @@
                         "product": {
                             "__entityId": "p3",
                             "id": "prod03",
-                            "__metaData": {
+                            "__metadata": {
                                 "__label": "product",
                                 "__timeStamp": 500,
                                 "__transactionId": "tx01",
@@ -152,7 +152,7 @@
                     {
                         "__entityId": "ex23",
                         "id": "orditem03",
-                        "__metaData": {
+                        "__metadata": {
                             "__label": "orderItem",
                             "__timeStamp": 3000,
                             "__transactionId": "tx22",
@@ -161,7 +161,7 @@
                         "product": {
                             "__entityId": "p1",
                             "id": "prod01",
-                            "__metaData": {
+                            "__metadata": {
                                 "__label": "product",
                                 "__timeStamp": 500,
                                 "__transactionId": "tx01",
@@ -181,7 +181,7 @@
             "__entityId": "ex83",
             "age": 26,
             "id": "px001",
-            "__metaData": {
+            "__metadata": {
                 "__label": "person",
                 "__timeStamp": 2000,
                 "__transactionId": "tx12",

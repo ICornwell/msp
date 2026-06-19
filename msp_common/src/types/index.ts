@@ -67,19 +67,19 @@ type VersionedResourceIdLike = {
   name: string;
   version: string;
   variantName?: string;
-  domain?: VersionedResourceIdLike;
+  namespace?: string;
 };
 
 type MatchableIdentifier = {
+  namespace?: string;
   name?: string;
   version?: string;
   variantName?: string;
   viewName?: string;
   viewVersion?: string;
   viewVariantName?: string;
-  namespace?: string;
-  viewDomain?: string;
-  domain?: VersionedResourceIdLike;
+  viewNamespace?: string;
+
 };
 
 function normalizeIdentifier(value?: MatchableIdentifier): {
@@ -92,7 +92,7 @@ function normalizeIdentifier(value?: MatchableIdentifier): {
     name: value?.name ?? value?.viewName,
     version: value?.version ?? value?.viewVersion,
     variantName: value?.variantName ?? value?.viewVariantName,
-    scope: value?.namespace ?? value?.viewDomain ?? value?.domain,
+    scope: value?.namespace ?? value?.viewNamespace
   };
 }
 
@@ -102,7 +102,7 @@ function matchesVersionedResourceId(a?: VersionedResourceIdLike, b?: VersionedRe
   return a.name === b.name
     && a.version === b.version
     && a.variantName === b.variantName
-    && matchesVersionedResourceId(a.domain, b.domain);
+    && a.namespace === b.namespace;
 }
 
 export function matchesId(a?: MatchableIdentifier, b?: MatchableIdentifier): boolean {
@@ -132,7 +132,7 @@ export function matchesId(a?: MatchableIdentifier, b?: MatchableIdentifier): boo
 }
 
 export type ViewIdentifier = {
-  viewDomain: string;
+  viewNamespace: string;
   viewName: string;
   viewVariantName?: string;
   viewVersion?: string;
@@ -160,6 +160,10 @@ export type ViewDataContent<D = any> = ViewDataQueryByIdIdentifier & {
   viewRootEntityBusKey: string,
   content: D
 }
+
+// if handcrafted new data to be saved as a view, key and timestamps will not be present
+export type ViewDataNewContent<D = any> = Omit<ViewDataContent<D>, 'viewRootEntityId' | 
+  'viewRootId' | 'viewRootEntityBusKey' | 'viewRootEntityHistoricTimestamp' | 'recordId'> 
 
 export function isViewDataContent_Matching_ViewDataIdentifier(content?: ViewDataContent, identifier?: ViewDataQueryIdentifier): boolean {
   if (!content && !identifier) return true;

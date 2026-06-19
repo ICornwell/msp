@@ -70,9 +70,9 @@ func isArray(value interface{}) bool {
 }
 
 func addIsEntityMetadata(value map[string]interface{}) {
-	if value["__metaData"] == nil {
-		value["__metaData"] = map[string]interface{}{}
+	if value["__metadata"] == nil {
+		value["__metadata"] = map[string]interface{}{}
 	}
-	metaData := value["__metaData"].(map[string]interface{})
+	metaData := value["__metadata"].(map[string]interface{})
 	metaData["__isEntity"] = true
 }

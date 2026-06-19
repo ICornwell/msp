@@ -8,7 +8,7 @@ describe('Declarative View Builder - Type Safety', () => {
   it('should provide type-safe sub-element names', () => {
     // Define schemas
     const accountSchema = createSchema('account')
-      .withId('account', '1.0')
+      .withFQId({name: 'account', version: '1.0'})
       .withProperty('accountId')
         .forType<string>()
         .withDictionaryId('dict-account-id', '1.0')
@@ -18,7 +18,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const personSchema = createSchema('person')
-      .withId('person', '1.0')
+      .withFQId({name: 'person', version: '1.0'})
       .withProperty('name')
         .forType<string>()
         .withDictionaryId('dict-name', '1.0')
@@ -28,7 +28,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const orderSchema = createSchema('order')
-      .withId('order', '1.0')
+      .withFQId({name: 'order', version: '1.0'})
       .withProperty('orderId')
         .forType<string>()
         .withDictionaryId('dict-order-id', '1.0')
@@ -38,7 +38,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const itemSchema = createSchema('item')
-      .withId('item', '1.0')
+      .withFQId({name: 'item', version: '1.0'})
       .withProperty('itemId')
         .forType<string>()
         .withDictionaryId('dict-item-id', '1.0')
@@ -48,18 +48,18 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const accountObject = createValueObject('account', accountSchema)
-      .withId('account-123', '1.0')
+      .withFQId({name: 'account-123', version: '1.0'})
       .buildObject();
 
     const personObject = createValueObject('person', personSchema)
-      .withId('person-456', '1.0')
+      .withFQId({name: 'person-456', version: '1.0'})
       .buildObject();
 
     const orderObject = createValueObject('order', orderSchema)
-      .withId('order-789', '1.0')
+      .withFQId({name: 'order-789', version: '1.0'})
       .buildObject();
     const itemObject = createValueObject('item', itemSchema)
-      .withId('item-101', '1.0')
+      .withFQId({name: 'item-101', version: '1.0'})
       .buildObject();
 
     const relsObjs = createRelations()
@@ -114,7 +114,7 @@ describe('Declarative View Builder - Type Safety', () => {
 
   it('should work with deeply nested structures', () => {
     const level1Schema = createSchema('level1')
-      .withId('level1', '1.0')
+      .withFQId({name: 'level1', version: '1.0'})
       .withProperty('id1')
         .forType<string>()
         .withDictionaryId('dict-id1', '1.0')
@@ -124,7 +124,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const level2Schema = createSchema('level2')
-      .withId('level2', '1.0')
+      .withFQId({name: 'level2', version: '1.0'})
       .withProperty('id2')
         .forType<string>()
         .withDictionaryId('dict-id2', '1.0')
@@ -134,7 +134,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const level3Schema = createSchema('level3')
-      .withId('level3', '1.0')
+      .withFQId({name: 'level3', version: '1.0'})
       .withProperty('id3')
         .forType<string>()
         .withDictionaryId('dict-id3', '1.0')
@@ -144,7 +144,7 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const level4Schema = createSchema('level4')
-      .withId('level4', '1.0')
+      .withFQId({name: 'level4', version: '1.0'})
       .withProperty('id4')
         .forType<string>()
         .withDictionaryId('dict-id4', '1.0')
@@ -154,19 +154,19 @@ describe('Declarative View Builder - Type Safety', () => {
       .buildSchema();
 
     const level1Object = createValueObject('level1', level1Schema)
-      .withId('l1-123', '1.0')
+      .withFQId({name: 'l1-123', version: '1.0'})
       .buildObject();
 
     const level2Object = createValueObject('level2', level2Schema)
-      .withId('l2-123', '1.0')
+      .withFQId({name: 'l2-123', version: '1.0'})
       .buildObject();
 
     const level3Object = createValueObject('level3', level3Schema)
-      .withId('l3-123', '1.0')
+      .withFQId({name: 'l3-123', version: '1.0'})
       .buildObject();
 
     const level4Object = createValueObject('level4', level4Schema)
-      .withId('l4-123', '1.0')
+      .withFQId({name: 'l4-123', version: '1.0'})
       .buildObject(); 
 
     const testview = createView('deep-view')

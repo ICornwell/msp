@@ -10,7 +10,7 @@ describe('Product Builder Integration', () => {
   it('should build a complete product with schemas and views', () => {
     // Define schemas
     const personSchema = createSchema('personSchema')
-      .withId('person', '1.0')
+      .withFQId({name: 'person', version: '1.0'})
       .withProperty('name')
         .withDictionaryId('dict-name', '1.0')
         .withInfoType('Text')
@@ -24,7 +24,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const accountSchema = createSchema('accountSchema')
-      .withId('account', '1.0')
+      .withFQId({name: 'account', version: '1.0'})
       .withProperty('accountNumber')
         .withDictionaryId('dict-account-num', '1.0')
         .withInfoType('Text')
@@ -33,11 +33,11 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const personObject = createValueObject('person', personSchema)
-      .withId('person-789', '1.0')
+      .withFQId({name: 'person-789', version: '1.0'})
       .buildObject();
 
     const accountObject = createValueObject('account', accountSchema)
-      .withId('account-789', '1.0')
+      .withFQId({name: 'account-789', version: '1.0'})
       .buildObject();
 
     const relObjs = createRelations()
@@ -59,7 +59,7 @@ describe('Product Builder Integration', () => {
     // Build a product
     const myProduct = product()
       .withName('Account Management')
-      .withId('account-mgmt', '1.0.0')
+      .withFQId({name: 'account-mgmt', version: '1.0.0'})
       .withDomain({ name: 'banking', version: '1.0' })
       .addView(accountView)
       .buildProduct();
@@ -78,7 +78,7 @@ describe('Product Builder Integration', () => {
   it('should support product version inheritance', () => {
     // Version 1.0
     const personSchemaV1 = createSchema('personSchema')
-      .withId('person', '1.0')
+      .withFQId({name: 'person', version: '1.0'})
       .withProperty('name')
         .withDictionaryId('dict-name', '1.0')
         .withInfoType('Text')
@@ -86,7 +86,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const domainObjectV1 = createValueObject('person', personSchemaV1)
-      .withId('person-001', '1.0')
+      .withFQId({name: 'person-001', version: '1.0'})
       .buildObject();
 
     const viewV1 = createView('person-view')
@@ -99,13 +99,13 @@ describe('Product Builder Integration', () => {
 
     const productV1 = product()
       .withName('Person Management')
-      .withId('person-mgmt', '1.0.0')
+      .withFQId({name: 'person-mgmt', version: '1.0.0'})
       .addView(viewV1)
       .buildProduct();
 
     // Version 1.1 - inherits from 1.0 and adds new schema
     const addressSchema = createSchema('addressSchema')
-      .withId('address', '1.0')
+      .withFQId({name: 'address', version: '1.0'})
       .withProperty('street')
         .withDictionaryId('dict-street', '1.0')
         .withInfoType('Text')
@@ -117,7 +117,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const addressObject = createValueObject('address', addressSchema)
-      .withId('address-001', '1.0')
+      .withFQId({name: 'address-001', version: '1.0'})
       .buildObject();
 
     const addressView = createView('address-view')
@@ -130,7 +130,7 @@ describe('Product Builder Integration', () => {
 
     const productV1_1 = product()
       .withName('Person Management')
-      .withId('person-mgmt', '1.1.0')
+      .withFQId({name: 'person-mgmt', version: '1.1.0'})
       .inheritsFrom(productV1)
       .addView(addressView)
       .buildProduct();
@@ -145,7 +145,7 @@ describe('Product Builder Integration', () => {
   it('should generate correct ViewObjectType', () => {
     // Define schemas
     const orderSchema = createSchema('orderSchema')
-      .withId('order', '1.0')
+      .withFQId({name: 'order', version: '1.0'})
       .withProperty('orderId')
         .forType<string>()
         .withDictionaryId('dict-order-id', '1.0')
@@ -158,7 +158,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const itemSchema = createSchema('itemSchema')
-      .withId('item', '1.0')
+      .withFQId({name: 'item', version: '1.0'})
       .withProperty('itemName')
         .forType<string>()
         .withDictionaryId('dict-item-name', '1.0')
@@ -172,11 +172,11 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const orderObject = createValueObject('order', orderSchema)
-      .withId('order-123', '1.0')
+      .withFQId({name: 'order-123', version: '1.0'})
       .buildObject();
 
     const itemObject = createValueObject('item', itemSchema)
-      .withId('item-456', '1.0')
+      .withFQId({name: 'item-456', version: '1.0'})
       .buildObject();
 
     const relObjs = createRelations()

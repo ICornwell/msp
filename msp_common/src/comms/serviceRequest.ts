@@ -31,6 +31,9 @@ export type ServiceRequestOptions = {
 	timeoutMs?: number;
 	headers?: Record<string, string>;
 	includeIdClaim?: boolean;
+	dataRequestOptions?: {
+		useBusinessKey?: boolean;
+	};
 };
 
 export type ServiceRequestResult<TResult = any> = ServiceActivityResult & {

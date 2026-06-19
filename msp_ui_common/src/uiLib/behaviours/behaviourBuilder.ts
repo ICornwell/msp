@@ -231,10 +231,10 @@ function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
       return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
-    updateFromEventPayloadResult: (viewDataIdentifier, mapResultToDataPatch) => {
+    updateFromEventPayloadResult: (viewDataIdentifier, mapResultToDataFromEvent) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'DataRequest',
-        eventData: { requestType: 'updateFromEventPayloadResult', viewDataIdentifier, mapResultToDataPatch } as any,
+        eventData: { requestType: 'updateFromEventPayloadResult', viewDataIdentifier, mapResultToDataFromEvent } as any,
         eventMsg: undefined as any,
         outboundScopeLevel: scopeLevel,
       };

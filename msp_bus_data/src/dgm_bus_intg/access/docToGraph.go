@@ -69,6 +69,15 @@ func RunUpsert(uq apiMessages.UpsertQuery, key string, callType string, transact
 		}, fmt.Errorf("upsert failed with error: %s", err2.Error())
 	}
 
+	if !graphUpdateResponse.IsSuccess {
+		return apiMessages.UpsertResponse{
+			IsSuccess: false,
+			Message:   graphUpdateResponse.Message,
+			EntityIds: []apiMessages.KeyIdPair{{Key: "__none__", Id: "__none__"}},
+			Request:   request,
+		}, fmt.Errorf("upsert failed with error: %s", graphUpdateResponse.Message)
+	}
+
 	return apiMessages.UpsertResponse{
 		IsSuccess: true,
 		Message:   "success",
@@ -146,9 +155,9 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 
 		if diffs.IsNewObject(idString) {
 			primaryBusinessKey := ""
-			//parentViewElement will be nil if this is the root object
-			if parentViewElement == nil && viewElement.IsEntity && rootKeyName != "" {
-				primaryBusinessKey = strippedContent[rootKeyName].(string)
+			// get the precalculated business key from the new data, if it is an entity
+			if viewElement.IsEntity {
+				primaryBusinessKey = jsonDoc.FromMetaData[string](newData, "__businessKey")
 			}
 
 			if viewElement.IsEntity || currentEntityId == "" {

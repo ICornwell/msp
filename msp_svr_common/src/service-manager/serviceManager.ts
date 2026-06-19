@@ -1,7 +1,7 @@
 import type { ServiceActivityResult } from "msp_common";
 import type { ActivitySet, ServiceActivity } from './serviceActivitySet.js';
 //import { isMatch } from './isMatch.js';
-import { CreateResultBuilder, defaultResult, emptyActivitySet } from './serviceActivitySet.js';
+import { CreateResultBuilder, getEmptyResult, emptyActivitySet } from './serviceActivitySet.js';
 
 export function serviceManager() {
     const activities: ActivitySet = emptyActivitySet()
@@ -21,7 +21,7 @@ export function serviceManager() {
 
         runAllMatches: async function (namespace: string, activityName: string, version: string, variantName: string, payload: any): Promise<ServiceActivityResult> {
             const result = {
-                ...defaultResult,
+                ...getEmptyResult(),
                 namespace: namespace,
                 activityName:  activityName,
                 version: version,

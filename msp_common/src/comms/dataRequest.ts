@@ -31,6 +31,7 @@ export type DataRequestOptions = {
 	endpointPath?: string;
 	timeoutMs?: number;
 	headers?: Record<string, string>;
+    useBusinessKey?: boolean;
 };
 
 export type DataRequestResult<TResult = any> = DataActivityResult & {

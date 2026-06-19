@@ -36,15 +36,15 @@ function normalizeEksRows(
   rows: ViewDataContent<AwsSdkEksClusterData>[] = [],
 ): ViewDataContent<EksClusterData>[] {
   return rows.map((row) => {
-    const rowId = String(row.content.id ?? row.content.__entityId ?? row.viewRootEntityId ?? row.viewRootId);
     const region = row.content.region ?? 'unknown';
-    const clusterName = row.content.name ?? rowId;
+    const clusterName = row.content.name ?? row.viewRootEntityId ?? row.viewRootId ?? 'unknown';
+    const rowId = `${region}::${clusterName}`;
     const status = row.content.status ?? 'UNKNOWN';
     const version = row.content.version ?? 'unknown';
     const endpoint = row.content.endpoint ?? '';
 
     return {
-      viewDomain: inventoryViewIdentifier.viewDomain,
+      viewNamespace: inventoryViewIdentifier.viewNamespace,
       viewName: inventoryViewIdentifier.viewName,
       viewVersion: inventoryViewIdentifier.viewVersion,
       viewVariantName: inventoryViewIdentifier.viewVariantName,
@@ -53,8 +53,6 @@ function normalizeEksRows(
       viewRootEntityBusKey: rowId,
       viewRootId: rowId,
       content: {
-        __entityId: rowId,
-        id: rowId,
         clusterName,
         region,
         status,

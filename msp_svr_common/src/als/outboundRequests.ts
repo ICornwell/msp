@@ -9,6 +9,7 @@ import {
 } from './context.js';
 import { getTokenForService, clearTokenCahe } from '../auth/auth.js';
 import { getConfig } from '../configuredCommon.js';
+import deepClone from 'safe-clone-deep'
 
 export interface OutboundRequestOptions {
   url: string;
@@ -181,9 +182,13 @@ export async function makeAuthenticatedRequest(
   };
   
   if (requestOptions.body && (requestOptions.method !== 'GET')) {
+    // views and data may contain circular references
+    // Using safeCloneDeep safely clones the body and avoiding mutating the original object
+    // and ensures that the body can be stringified without circular reference errors
+    function safeBody(body: any) { return deepClone(body, { circular: true }); } // Avoid mutating original body
     fetchOptions.body = typeof requestOptions.body === 'string'
       ? requestOptions.body
-      : JSON.stringify(requestOptions.body);
+      : JSON.stringify(safeBody(requestOptions.body));
   }
   
   // Make the request

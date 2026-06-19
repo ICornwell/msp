@@ -34,7 +34,7 @@ func DocElementFromObject(obj JsonDoc, includeMetaData bool) JsonDoc {
 		metaDataObj["__timeStamp"] = obj["__timeStamp"]
 		metaDataObj["__transactionId"] = obj["__transactionId"]
 		metaDataObj["__viewType"] = obj["__viewType"]
-		outElement["__metaData"] = metaDataObj
+		outElement["__metadata"] = metaDataObj
 	}
 	return outElement
 }

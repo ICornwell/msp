@@ -33,15 +33,15 @@ function normalizeRepositoryRows(
   rows: ViewDataContent<AwsSdkEcrRepositoryData>[] = [],
 ): ViewDataContent<EcrRepositoryData>[] {
   return rows.map((row) => {
-    const rowId = String(row.content.id ?? row.content.__entityId ?? row.viewRootEntityId ?? row.viewRootId);
     const region = row.content.region ?? 'unknown';
-    const repositoryName = row.content.repositoryName ?? rowId;
+    const repositoryName = row.content.repositoryName ?? row.viewRootEntityId ?? row.viewRootId ?? 'unknown';
+    const rowId = `${region}::${repositoryName}`;
     const imageTagMutability = row.content.imageTagMutability ?? 'UNKNOWN';
     const scanOnPush = Boolean(row.content.scanOnPush);
     const status = `${imageTagMutability}${scanOnPush ? ' (scan-on-push)' : ''}`;
 
     return {
-      viewDomain: inventoryViewIdentifier.viewDomain,
+      viewNamespace: inventoryViewIdentifier.viewNamespace,
       viewName: inventoryViewIdentifier.viewName,
       viewVersion: inventoryViewIdentifier.viewVersion,
       viewVariantName: inventoryViewIdentifier.viewVariantName,
@@ -50,8 +50,6 @@ function normalizeRepositoryRows(
       viewRootEntityBusKey: rowId,
       viewRootId: rowId,
       content: {
-        __entityId: rowId,
-        id: rowId,
         repositoryName,
         region,
         imageTagMutability,

@@ -16,7 +16,7 @@ type JsonPrimatives interface {
 }
 
 func FromMetaData[T JsonPrimatives](obj map[string]interface{}, key string) T {
-	meta, ok := obj["__metaData"]
+	meta, ok := obj["__metadata"]
 	if ok {
 		md := meta.(map[string]interface{})
 		val, ok := md[key].(T)
