@@ -40,10 +40,10 @@ function getBuilder<T>(context: CNTX<T, any>): T {
 
 function attachViewIdentifierHelpers(view: View<any>): void {
   const getViewIdentifier = (): ViewIdentifier => ({
-    viewNamespace: view.namespace || 'default',
-    viewName: view.name,
-    viewVersion: view.version,
-    viewVariantName: view.variantName,
+    namespace: view.namespace || 'default',
+    name: view.name,
+    version: view.version,
+    variantName: view.variantName,
   });
 
   const getViewDataIdentifier = (dataKey: string, recordId?: string): ViewDataIdentifier => ({

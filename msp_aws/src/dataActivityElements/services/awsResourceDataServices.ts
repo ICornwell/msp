@@ -196,14 +196,14 @@ function readNetworkShapesFromAws(payload: AwsReadPayload): AwsSdkNetworkShape[]
 }
 
 function toViewData<T extends Partial<DataObject>>(
-  viewName: string,
+  name: string,
   entityType: string,
   row: T,
 ): ViewDataNewContent<T> {
   return {
-    viewNamespace: 'aws',
-    viewName,
-    viewVersion: '1.0.0',
+    namespace: 'aws',
+    name,
+    version: '1.0.0',
     viewRootEntityType: entityType,
     // viewRootEntityId: rowId, only use this if not using the ViewRootEntityBusKey and ViewRootId props below
     // viewRootEntityBusKey: 'id',

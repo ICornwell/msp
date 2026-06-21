@@ -62,9 +62,6 @@ pub struct QueryMessage {
     #[oai(rename = "queryDate")]
     pub query_date: String,
     pub view: String,
-    #[serde(rename = "viewVersion")]
-    #[oai(rename = "viewVersion")]
-    pub view_version: String,
     #[serde(rename = "rootQueryKeyProperty")]
     #[oai(rename = "rootQueryKeyProperty")]
     pub root_query_key_property: String,

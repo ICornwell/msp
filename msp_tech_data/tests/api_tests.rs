@@ -202,7 +202,6 @@ async fn test_api_query_graph() -> Result<()> {
         "user": "test",
         "queryDate": "2023-10-15",
         "view": "default",
-        "viewVersion": "1.0",
         "rootQueryKeyProperty": "id",
         "rootQueryKeyValue": person.entity_id,
         "rootQueryKeyTypes": "all",

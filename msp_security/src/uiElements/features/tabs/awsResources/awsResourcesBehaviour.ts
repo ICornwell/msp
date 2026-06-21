@@ -18,7 +18,7 @@ export const useAwsResourcesBehaviour = () => {
     })
     .endActivity()
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-    .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'AwsResourceInventory' && !vid?.recordId)
+    .whenDataIdentifierSatisfies((vid) => vid?.name === 'AwsResourceInventory' && !vid?.recordId)
     .dispatch.toPresentation
     .openTab(
       'AwsResourcesTab',

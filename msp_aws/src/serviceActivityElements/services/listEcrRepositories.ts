@@ -41,10 +41,10 @@ function normalizeRepositoryRows(
     const status = `${imageTagMutability}${scanOnPush ? ' (scan-on-push)' : ''}`;
 
     return {
-      viewNamespace: inventoryViewIdentifier.viewNamespace,
-      viewName: inventoryViewIdentifier.viewName,
-      viewVersion: inventoryViewIdentifier.viewVersion,
-      viewVariantName: inventoryViewIdentifier.viewVariantName,
+      namespace: inventoryViewIdentifier.namespace,
+      name: inventoryViewIdentifier.name,
+      version: inventoryViewIdentifier.version,
+      variantName: inventoryViewIdentifier.variantName,
       viewRootEntityType: 'ecrRepository',
       viewRootEntityId: rowId,
       viewRootEntityBusKey: rowId,

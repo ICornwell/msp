@@ -62,8 +62,8 @@ export declare type UiFeatureManifestSection<N extends string = string, VR exten
 }
 
 export declare type ActivityFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> =  ManifestCommon<N, VR, VN> &{
-  useForViewReads: View[]; 
-  useForViewWrites: View[]; 
+  useForViewRead: View[]; 
+  useForViewWrite: View[]; 
   remotePath: string;
    
 }
@@ -73,8 +73,8 @@ export declare type ApiFeatureManifestSection<N extends string = string, VR exte
 }
 
 export declare type DataFeatureManifestSection<N extends string = string, VR extends string = string, VN extends string = string> = ManifestCommon<N, VR, VN> & {
-  useForViewReads: View[]; 
-  useForViewWrites: View[]; 
+  useForViewRead: View[]; 
+  useForViewWrite: View[]; 
   remotePath: string;
 }
 

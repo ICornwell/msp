@@ -1,4 +1,5 @@
 import type { ManifestServiceBuilder } from 'msp_svr_common';
+import { awsClusterSetupConfigView } from '../data/index.js';
 
 export function addAwsActivityFeatures(service: ManifestServiceBuilder<any, any>)
 { 
@@ -14,6 +15,7 @@ export function addAwsActivityFeatures(service: ManifestServiceBuilder<any, any>
     .withActivityFeature('readClusterSetupConfig', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .useForViewRead(awsClusterSetupConfigView)
       .endActivityFeature
     .withActivityFeature('writeClusterSetupConfig', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])

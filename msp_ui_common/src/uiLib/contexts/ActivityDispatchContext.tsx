@@ -79,8 +79,8 @@ export function ActivityDispatchProvider({
 
         if (activityResponse.success && activityResponse.result) {
           const raw = activityResponse.result;
-          // ViewDataContent[] convention: { data: [{ viewName, viewVersion, viewRootId, content }] }
-          if (Array.isArray(raw?.data) && raw.data.length > 0 && raw.data[0]?.viewName !== undefined) {
+          // ViewDataContent[] convention: { data: [{ name, version, viewRootId, content }] }
+          if (Array.isArray(raw?.data) && raw.data.length > 0 && raw.data[0]?.name !== undefined) {
             for (const item of raw.data as Array<ViewDataContent<any>>) {
               dataCache.submitData(item);
             }

@@ -240,7 +240,6 @@ async fn test_full_lifecycle() -> Result<()> {
         "user": "test",
         "queryDate": "2023-10-15",
         "view": "default",
-        "viewVersion": "1.0",
         "rootQueryKeyProperty": "id",
         "rootQueryKeyValue": product_key,
         "rootQueryKeyTypes": "all",

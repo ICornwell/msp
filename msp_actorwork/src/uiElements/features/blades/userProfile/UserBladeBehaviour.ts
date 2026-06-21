@@ -16,7 +16,7 @@ export const useUserProfileBehaviour = () => {
         .endActivity()
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
+      .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserProfile')
       .dispatch.toMenus
         .add({
           id: 'user-profile-menu',
@@ -25,9 +25,9 @@ export const useUserProfileBehaviour = () => {
           action: 'openUserProfile',
           menuTarget: 'profile',
           context: { viewDataIdentifier: {
-            'viewNamespace': 'actorwork',
-            'viewName': 'UserProfile',
-            'viewVersion': '1.0.0',
+            'namespace': 'actorwork',
+            'name': 'UserProfile',
+            'version': '1.0.0',
             'viewRootEntityId': 'currentuser'}
           }
         })
@@ -40,7 +40,7 @@ export const useUserProfileBehaviour = () => {
         })
         .endMenus()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserProfile')
+      .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserProfile')
       .dispatch.toPresentation
         .openBlade('UserProfileBlade',
           {title: 'User Profile'},

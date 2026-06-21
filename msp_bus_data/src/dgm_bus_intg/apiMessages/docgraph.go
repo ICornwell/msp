@@ -8,7 +8,7 @@ type DgQuery struct {
 	User                 string      `json:"user"`
 	QueryDate            string      `json:"queryDate,omitempty"`
 	View                 string      `json:"view"`
-	ViewVersion          string      `json:"viewVersion"`
+	ViewVersion          string      `json:"version"`
 	RootQueryKeyProperty string      `json:"rootQueryKeyProperty,omitempty"`
 	RootQueryKeyValue    string      `json:"rootQueryKeyValue,omitempty"`
 	RootQueryKeyTypes    string      `json:"rootQueryKeyTypes"`

@@ -257,7 +257,8 @@ export interface ManifestServiceBuilder<
   withApiFeature<TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version?: TFeatureVersion, variantName?: TFeatureVariantName): ManifestApiFeatureBuilder<TManifest, TService, TypedFeatureManifestSection<ApiFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>>
   withActivityFeature<TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version?: TFeatureVersion, variantName?: TFeatureVariantName): ManifestActivityFeatureBuilder<TManifest, TService, TypedFeatureManifestSection<ActivityFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>>
   withDataFeature<TFeatureName extends string, TFeatureVersion extends string = '1.0.0', TFeatureVariantName extends string = 'default'>(name: TFeatureName, version?: TFeatureVersion, variantName?: TFeatureVariantName): ManifestDataFeatureBuilder<TManifest, TService, TypedFeatureManifestSection<DataFeatureManifestSection<TFeatureName, TFeatureVersion, TFeatureVariantName>>>
-
+  withView: (view: View, allowWrites: boolean) => ManifestServiceBuilder<TManifest, TService>
+  
 
   endService: ManifestBuilder<UPSERTServiceToManifest<TManifest, TService>>
   build(config?: Partial<Config>): ServiceManifestSection<NameFrom<TService>, VersionFrom<TService>, VariantNameFrom<TService>>
@@ -446,7 +447,7 @@ export interface ManifestActivityFeatureBuilder<
   forProducts(product: Partial<ProductConfig>[]): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   useForViewRead(view: View): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   useForViewWrite(view: View): ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
-  withView: (view: View) => ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  withView: (view: View, allowWrites: boolean) => ManifestActivityFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   endActivityFeature: ManifestServiceBuilder<
     UPSERTServiceToManifest<TReturnManifest, UPSERTActivityFeatureToService<TReturnService, TReturnFeature>>,
     UPSERTActivityFeatureToService<TReturnService, TReturnFeature>
@@ -468,7 +469,7 @@ export interface ManifestDataFeatureBuilder<
   forProducts(product: Partial<ProductConfig>[]): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   useForViewRead(view: View): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   useForViewWrite(view: View): ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
-  withView: (view: View) => ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
+  withView: (view: View, allowWrites: boolean) => ManifestDataFeatureBuilder<TReturnManifest, TReturnService, TReturnFeature>
   endDataFeature: ManifestServiceBuilder<
     UPSERTServiceToManifest<TReturnManifest, UPSERTDataFeatureToService<TReturnService, TReturnFeature>>,
     UPSERTDataFeatureToService<TReturnService, TReturnFeature>

@@ -30,6 +30,8 @@ export async function WriteData(view: View, data: any) {
   }
 }
 
+// TODO: if we can fully infer the DomainObject type, we can use it's getBusinessKEy method
+// and can avoid the duplication here. Leaving for now as not most critical item.
 function getBusinessKeyFromData(data: any, rootKey: string | string[] | ((data: any) => string)): string |null {
 	if (typeof rootKey === 'string') {
 		return data?.[rootKey];

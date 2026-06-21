@@ -16,9 +16,9 @@ export type UserWorkData = Partial<UserWorkListProps> & Partial<DataObject>;
 const mockUserData: Record<string, ViewDataContent<UserWorkData[]>> = {
  
   'ian@smallwalrus.com': {
-    viewNamespace: 'actorwork',
-    viewName: 'UserWorkList',
-    viewVersion: '1.0.0',
+    namespace: 'actorwork',
+    name: 'UserWorkList',
+    version: '1.0.0',
     viewRootEntityType: 'Actor',
     viewRootEntityId: 'ian@smallwalrus.com',
     viewRootEntityBusKey: 'ian@smallwalrus.com',

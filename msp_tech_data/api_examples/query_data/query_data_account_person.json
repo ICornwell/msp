@@ -4,7 +4,7 @@
     "user": "test@testing.com",
     "queryDate": "2024-06-25T21:17:00Z",
     "view": "testView",
-    "viewVersion": "0.0.0",
+    "version": "0.0.0",
     "rootQueryKeyProperty": "accountNumber",
     "rootQueryKeyValue": "xx12",
     "rootQueryKeyTypes": "Text",

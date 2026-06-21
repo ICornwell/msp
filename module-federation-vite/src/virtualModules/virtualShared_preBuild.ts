@@ -89,20 +89,25 @@ export function writeLoadShareModuleESM(pkg: string, shareItem: ShareItem, comma
   loadShareCacheMap[pkg].writeSync(`
 
     ${prebuildWarmupImport}
-    import {loadShare} from "@module-federation/runtime"
-    const {initPromise} = await import("${virtualRuntimeInitStatus.getImportId()}")
-    const res = initPromise.then(_ => loadShare(${JSON.stringify(pkg)}, {
-    customShareInfo: {shareConfig:{
-      singleton: ${shareItem.shareConfig.singleton},
-      strictVersion: ${shareItem.shareConfig.strictVersion},
-      requiredVersion: ${JSON.stringify(shareItem.shareConfig.requiredVersion)}
-    }}}))
-    // No fallback import in serve mode: awaiting the prebuild chunk would
-    // create a circular TLA deadlock (prebuild re-imports this same package
-    // via the MF alias → back to this module mid-evaluation).
-    // loadShare always succeeds for host-registered shared deps.
-    const moduleFactory = await res
-      .then(factoryOrModule => typeof factoryOrModule === 'function' ? factoryOrModule() : factoryOrModule)
+    const isServerRuntime = typeof document === 'undefined';
+    let moduleFactory;
+    if (isServerRuntime) {
+      // In BFF/proxy SSR paths, initPromise may never resolve. Use Node resolution directly.
+      const { createRequire } = await import('node:module');
+      const nodeRequire = createRequire(import.meta.url);
+      moduleFactory = nodeRequire(${JSON.stringify(pkg)});
+    } else {
+      const {loadShare} = await import("@module-federation/runtime")
+      const {initPromise} = await import("${virtualRuntimeInitStatus.getImportId()}")
+      const res = initPromise.then(_ => loadShare(${JSON.stringify(pkg)}, {
+      customShareInfo: {shareConfig:{
+        singleton: ${shareItem.shareConfig.singleton},
+        strictVersion: ${shareItem.shareConfig.strictVersion},
+        requiredVersion: ${JSON.stringify(shareItem.shareConfig.requiredVersion)}
+      }}}))
+      const sharedModuleOrFactory = await res
+      moduleFactory = typeof sharedModuleOrFactory === 'function' ? sharedModuleOrFactory() : sharedModuleOrFactory
+    }
     // ESM re-export instead of module.exports
     ${exportCode}
   `);

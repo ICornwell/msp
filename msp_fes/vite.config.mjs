@@ -18,6 +18,7 @@ export default defineConfig({
     mix.default({ handler: './uiApiProxyHandler.ts' }),  // BFF disabled
     federation({
       name: 'host',
+      implementation: path.resolve(__dirname, '../node_modules/@module-federation/runtime/dist/index.esm.js'),
       shared: { ...common.sharedDeps }
     }),
     react({
@@ -96,6 +97,8 @@ export default defineConfig({
     // as transitive deps and need esbuild interop are listed separately.
     include: [
       ...Object.keys(common.sharedDeps),
+      // Required by __mf__virtual loadShare modules; prebundle to keep SSR ESM-safe.
+      '@module-federation/runtime',
       // dev-only React runtime (not in sharedDeps, only used in dev mode)
       'react/jsx-dev-runtime',
       // CJS transitive deps of @emotion & React that esbuild must interop
@@ -137,6 +140,14 @@ export default defineConfig({
         '.ts': 'ts'
       }
     }
+  },
+  ssr: {
+    // FES is not an SSR app; this only protects Vite's internal module-runner
+    // paths used by plugins/virtual modules from evaluating raw CJS files.
+    noExternal: [
+      '@module-federation/runtime',
+      '@module-federation/sdk',
+    ],
   },
   logLevel: 'info',
   clearScreen: true,

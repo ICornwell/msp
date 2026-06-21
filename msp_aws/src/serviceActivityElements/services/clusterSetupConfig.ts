@@ -4,20 +4,16 @@ import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload,
   WriteClusterSetupConfigPayload, ReconcileClusterSetupConfigPayload,
    ClusterSetupPlanStep, 
    AwsResourceConfigStatus} from '../../data/clusterSetUpConfig.js';
-import { awsClusterSetupConfigView } from '../../data/index.js';
+import { awsClusterSetupConfigObject, awsClusterSetupConfigView } from '../../data/index.js';
 
 const setupViewIdentifier = awsClusterSetupConfigView.getViewIdentifier!();
 
-function setupKey(region: string, clusterName: string, setupId?: string) {
-  return `${setupId ?? 'default'}::${region}::${clusterName}`;
-}
-
 function seedSetup(region: string, clusterName: string, setupId: string = 'aws-cluster-setup-default') {
   const content: ViewDataContent<AwsClusterSetupConfig> = {
-    viewNamespace: setupViewIdentifier.viewNamespace,
-    viewName: setupViewIdentifier.viewName,
-    viewVersion: setupViewIdentifier.viewVersion,
-    viewVariantName: setupViewIdentifier.viewVariantName,
+    namespace: setupViewIdentifier.namespace,
+    name: setupViewIdentifier.name,
+    version: setupViewIdentifier.version,
+    variantName: setupViewIdentifier.variantName,
     viewRootEntityType: 'awsClusterSetupConfig',
     viewRootEntityId: setupId,
     viewRootEntityBusKey: setupId,
@@ -72,10 +68,10 @@ function normalizeSetupRow(row: any): ViewDataContent<AwsClusterSetupConfig> | u
   if (row.content && row.setupId) {
     const setupId = row.setupId as string;
     return {
-      viewNamespace: setupViewIdentifier.viewNamespace,
-      viewName: setupViewIdentifier.viewName,
-      viewVersion: setupViewIdentifier.viewVersion,
-      viewVariantName: setupViewIdentifier.viewVariantName,
+      namespace: setupViewIdentifier.namespace,
+      name: setupViewIdentifier.name,
+      version: setupViewIdentifier.version,
+      variantName: setupViewIdentifier.variantName,
       viewRootEntityType: 'awsClusterSetupConfig',
       viewRootEntityId: setupId,
       viewRootEntityBusKey: setupId,
@@ -91,9 +87,12 @@ async function readSetup(payload: ReadClusterSetupConfigPayload): Promise<ViewDa
   const region = payload.region ?? 'eu-west-2';
   const clusterName = payload.clusterName ?? 'msp-dev-eks';
   const setupId = payload.setupId ?? 'aws-cluster-setup-default';
-  const key = setupKey(region, clusterName, setupId);
+  const key = awsClusterSetupConfigObject.getBusinessKey({ setupId, region, clusterName });
 
   try {
+    if (!key) {
+      throw new Error('Missing required key fields for AWS cluster setup config');
+    }
     const readResult = await ReadData(awsClusterSetupConfigView, key, { useBusinessKey: true });
     const normalized = normalizeSetupRow(readResult?.data ?? readResult?.result?.data ?? readResult);
     if (normalized) {

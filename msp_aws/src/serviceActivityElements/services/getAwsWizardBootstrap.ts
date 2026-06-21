@@ -153,9 +153,9 @@ export async function getAwsWizardBootstrapHandler(
   };
 
   const row: ViewDataContent<typeof bootstrapDraft> = {
-    viewNamespace: 'aws',
-    viewName: 'AwsWizardBootstrap',
-    viewVersion: '1.0.0',
+    namespace: 'aws',
+    name: 'AwsWizardBootstrap',
+    version: '1.0.0',
     viewRootEntityType: 'awsWizardBootstrap',
     viewRootEntityId: setupRunId,
     viewRootEntityBusKey: setupRunId,

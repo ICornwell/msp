@@ -8,7 +8,7 @@ export async function tryViewActivities(isWrite: boolean, request: DataViewIdQue
     request.payload.viewId.namespace,
     request.payload.viewId.name,
     request.payload.viewId.version,
-    request.payload.viewId.variant || 'default'
+    request.payload.viewId.variantName || 'default'
   );
 
   if (activity && activity.owner.type === 'feature' && activity.owner.isDataFeature) {
@@ -40,7 +40,7 @@ export async function tryDirectWriteViews(request:  DataViewIdUpsertEnvelope) {
     request.payload.viewId.namespace,
     request.payload.viewId.name,
     request.payload.viewId.version,
-    request.payload.viewId.variant || 'default'
+    request.payload.viewId.variantName || 'default'
   );
 
   if (activity && activity.isWriteAllowed) {
@@ -54,7 +54,7 @@ export async function tryDirectReadViews(request:  DataViewIdQueryEnvelope) {
     request.payload.viewId.namespace,
     request.payload.viewId.name,
     request.payload.viewId.version,
-    request.payload.viewId.variant || 'default'
+    request.payload.viewId.variantName || 'default'
   );
 
   if (activity) {

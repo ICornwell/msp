@@ -29,6 +29,10 @@ type VersionInfo = {
 // ─── Shared package registry ──────────────────────────────────────────────────
 
 export const sharedVersions: Record<string, VersionInfo> = {
+  'semver' :{
+    version: '*', isEsm: false,
+    gen: { mode: 'imports', sentinel: 'satisfies' },
+  },
   'react': {
     version: '*', isEsm: false,
     gen: { mode: 'list', defaultDepth: 3, sentinel: 'createContext' },

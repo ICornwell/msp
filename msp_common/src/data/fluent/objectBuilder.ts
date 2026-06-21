@@ -1,5 +1,5 @@
 import { TrueFalse, stringifyObject } from '../fluent/builderUtils.js';
-import { DomainObject, DomainObjectRelation, Schema, SchemaPropertiesFor, RelsTypes, AddRel, versionedResourceId, DOWithNewToRels, DOWithNewFromRels, NameOfDomainObject, GETRELSFORNAME, DataOfSchema } from '../models/api/data.js';
+import { DomainObject, DomainObjectRelation, Schema, SchemaPropertiesFor, RelsTypes, AddRel, versionedResourceId, DOWithNewToRels, DOWithNewFromRels, NameOfDomainObject, GETRELSFORNAME, DataOfSchema, PropsOfSchema } from '../models/api/data.js';
 
 export type SchemaOfDomainObjectBuilder<DOB extends DomainValueObjectBuilder<any, any, any>> =
   (DOB extends DomainValueObjectBuilder<any, any, infer S> ? S : never);
@@ -10,7 +10,7 @@ export interface ObjectBuilder<RT, O extends string, P extends string, S extends
   forDomain: (domain: versionedResourceId) => RT;
   forProduct: (product: versionedResourceId) => RT;
   withDefaultPresentationLabel: (label: string) => RT;
-  withDefaultDocPathName: <P2 extends string>(pathName: P2) =>  RTWithNewDefaultDocPathName<RT, P2>;
+  withDefaultDocPathName: <P2 extends string>(pathName: P2) => RTWithNewDefaultDocPathName<RT, P2>;
   withDbStoreLabel: (dbStoreLabel: string) => RT;
   withRelationTo: <N extends string, T extends DomainObject<any, any, any>>(
     name: N,
@@ -26,12 +26,12 @@ export interface ObjectBuilder<RT, O extends string, P extends string, S extends
 }
 
 export interface DomainValueObjectBuilder<O extends string, P extends string, S extends Schema<any, any>,
- RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>
-   extends ObjectBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom> {
+  RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>
+  extends ObjectBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom> {
 }
 
 export interface DomainEntityObjectBuilder<O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>
-   extends ObjectBuilder<DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom> {
+  extends ObjectBuilder<DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom> {
 
   withUniqueBusinessKey: (businessKey: string | string[] | ((data: DataOfSchema<S>) => string)) => DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
   withAlternateKey?: (businessKey: string | string[] | ((data: DataOfSchema<S>) => string)) => DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
@@ -51,15 +51,15 @@ type RTWithNewDefaultDocPathName<RT, P2 extends string> = RT extends ObjectBuild
   : never;
 
 function createBaseBuilder<RT, O extends string, P extends string, S extends Schema<any, any>,
- RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
-  domainObj: DomainObject<any, any, any>, returnBuilder: RT) {
- const baseBuilder: Partial<ObjectBuilder<RT, O, P, S, RelsTo, RelsFrom>> =  {
+  RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+    domainObj: DomainObject<any, any, any>, returnBuilder: RT) {
+  const baseBuilder: Partial<ObjectBuilder<RT, O, P, S, RelsTo, RelsFrom>> = {
     withFQId: function (fqId: versionedResourceId): RT {
       domainObj.vid = fqId;
       domainObj.name = fqId.name;
       return returnBuilder;
     },
-      
+
 
     forDomain: function (domain: versionedResourceId): RT {
       // unused
@@ -75,7 +75,7 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
       domainObj.defaultPresentationLabel = label;
       return returnBuilder;
     },
-    withDefaultDocPathName: function <P2 extends string>(pathName: P2):  RTWithNewDefaultDocPathName<RT, P2> {
+    withDefaultDocPathName: function <P2 extends string>(pathName: P2): RTWithNewDefaultDocPathName<RT, P2> {
       domainObj.defaultDocPathName = pathName;
       return returnBuilder as unknown as RTWithNewDefaultDocPathName<RT, P2>;
     },
@@ -84,7 +84,7 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
       return returnBuilder as unknown as RT;
     },
 
-   
+
     withRelationTo<N extends string, TO extends DomainObject<any, any, any>>(name: N, targetObject: TO, cascadeDeletes: TrueFalse)
       : RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>> {
       if (!domainObj.allowedRelationsTo) {
@@ -104,22 +104,22 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
       addDomainObjectRelationFrom(sourceObject, name, domainObj, cascadeDeletes);
       return returnBuilder as unknown as RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
     },
-    buildObject: () =>domainObj as DomainObject<O,P,S>
+    buildObject: () => domainObj as DomainObject<O, P, S>
 
-    
+
   };
 
   return baseBuilder;
 }
 
 function createObject<S extends Schema<any, any>, O extends string, P extends string,
- RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
-  name: O,
-  schema: S): DomainObject<O, P, S, RelsTo, RelsFrom> { // default path of domain object is the same as its name, but can be overridden with withDefaultDocPathName
+  RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
+    name: O,
+    schema: S): DomainObject<O, P, S, RelsTo, RelsFrom> { // default path of domain object is the same as its name, but can be overridden with withDefaultDocPathName
   let domainObj: DomainObject<O, P, S, RelsTo, RelsFrom> = {
     name: name,
     defaultDocPathName: name as unknown as P,
-    vid: {  name: '', version: '1.0' },
+    vid: { name: '', version: '1.0' },
     domain: undefined,
     product: undefined,
     isEntity: undefined,
@@ -128,6 +128,22 @@ function createObject<S extends Schema<any, any>, O extends string, P extends st
     _allowedRelationsFromNames: {} as RelsFrom,
     _allowedRelationsToNames: {} as RelsTo,
     schemaProperties: schema.properties as SchemaPropertiesFor<S>,
+    schema: schema as S,
+    getBusinessKey: function (data: Partial<PropsOfSchema<S>>,
+       failOptions?: { neverThrow?: boolean, throwMessage?: string, fallback?: string }): string | null {
+
+      const key = getDerivedValueFromData(data, domainObj.businessKey, failOptions);
+
+      return key;
+    },
+    getAlternateKey: function (data: Partial<PropsOfSchema<S>>,
+       failOptions?: { neverThrow?: boolean, throwMessage?: string, fallback?: string }): string | null {
+
+      const key = getDerivedValueFromData(data, domainObj.alternateKey, failOptions);
+
+      return key;
+    },
+    DataType: {} as Partial<PropsOfSchema<S>>,
     relationsTo: function <ToDO extends DomainObject>(domainObject: ToDO): GETRELSFORNAME<RelsTo, NameOfDomainObject<ToDO>> {
       return this.allowedRelationsTo.filter(rel => rel.relatedObject == domainObject) as GETRELSFORNAME<RelsTo, NameOfDomainObject<ToDO>>;
     },
@@ -139,11 +155,47 @@ function createObject<S extends Schema<any, any>, O extends string, P extends st
   return domainObj;
 }
 
+function getDerivedValueFromData(data: any, rootKey: string | string[] | ((data: any) => string) | undefined,
+  failOptions?: { neverThrow?: boolean, throwMessage?: string, fallback?: string }): string | null {
+
+  if (!rootKey) {
+    if (failOptions?.neverThrow) {
+      return failOptions?.fallback ?? null;
+    } else {
+      throw new Error(failOptions?.throwMessage ?? 'No business key defined for domain object.');
+    }
+  }
+  let derivedValue: string | null = null;
+  try {
+    if (typeof rootKey === 'string') {
+      derivedValue = data![rootKey].toString();
+    } else if (Array.isArray(rootKey)) {
+      derivedValue = rootKey.map(k => data![k]!.toString()).filter(s => s).join('|');
+    } else if (typeof rootKey === 'function') {
+      derivedValue = rootKey(data) ?? (() => { throw new Error('Business key function returned undefined or null.'); })();
+    }
+  } catch (error) {
+    if (failOptions?.neverThrow) {
+      return failOptions?.fallback ?? null;
+    } else {
+      throw new Error(failOptions?.throwMessage ?? `Error while getting business key from data. (${error})`);
+    }
+  }
+  if (!derivedValue) {
+    if (failOptions?.neverThrow) {
+      return failOptions?.fallback ?? null;
+    } else {
+      throw new Error(failOptions?.throwMessage ?? 'Business key derived value is undefined or null.');
+    }
+  }
+  return derivedValue;
+}
+
 
 export function createValueDomainObject<S extends Schema<any, any>, O extends string, P extends string = O, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
   name: O,
-  schema: S): DomainValueObjectBuilder<O, P,S, RelsTo, RelsFrom> {
-  
+  schema: S): DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom> {
+
 
   const domainObj = createObject(name, schema);
   domainObj.isEntity = false;
@@ -151,9 +203,9 @@ export function createValueDomainObject<S extends Schema<any, any>, O extends st
   const partialBuilder = createBaseBuilder<DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>, O, P, S, RelsTo, RelsFrom>
     (domainObj, builder as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>);
 
-  Object.assign(builder, { 
+  Object.assign(builder, {
     ...partialBuilder,
-    buildObject: () =>domainObj as DomainObject<O,P,S>
+    buildObject: () => domainObj as DomainObject<O, P, S>
   } as unknown as DomainValueObjectBuilder<O, P, S, RelsTo, RelsFrom>);
 
   return builder;
@@ -162,7 +214,7 @@ export function createValueDomainObject<S extends Schema<any, any>, O extends st
 export function createEntityDomainObject<S extends Schema<any, any>, O extends string, P extends string = O, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
   name: O,
   schema: S): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
-  
+
 
   const domainObj = createObject(name, schema);
   domainObj.isEntity = true;
@@ -171,16 +223,16 @@ export function createEntityDomainObject<S extends Schema<any, any>, O extends s
     (domainObj, builder);
 
   Object.assign(builder, {
-     ...partialBuilder,
-       withUniqueBusinessKey: function (uniqueBusinessKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
-          domainObj.businessKey = uniqueBusinessKey;
-          return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
-        },
-       withAlternateKey: function (alternateKey: string | string[] | ((data: DataOfSchema<S>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
-          domainObj.alternateKey = alternateKey;
-          return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
-        }
-    } as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>);
+    ...partialBuilder,
+    withUniqueBusinessKey: function (uniqueBusinessKey: string | string[] | ((data: Partial<PropsOfSchema<S>>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
+      domainObj.businessKey = uniqueBusinessKey;
+      return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+    },
+    withAlternateKey: function (alternateKey: string | string[] | ((data: Partial<PropsOfSchema<S>>) => string)): DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom> {
+      domainObj.alternateKey = alternateKey;
+      return builder as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>;
+    }
+  } as unknown as DomainEntityObjectBuilder<O, P, S, RelsTo, RelsFrom>);
 
   return builder;
 }
@@ -203,7 +255,7 @@ export function addDomainObjectRelationFrom<SO extends DomainObject,
   }
   sourceObject.allowedRelationsFrom?.push({ name, relatedObject: targetObject, relatedObjectId: (targetObject as any).vid, cascadeDeletes });
 
-    // if not already present, add reverse relation to target object's allowedRelationsTo
+  // if not already present, add reverse relation to target object's allowedRelationsTo
   if (!targetObject.allowedRelationsTo) {
     targetObject.allowedRelationsTo = [];
   }
@@ -222,7 +274,7 @@ export function addDomainObjectRelationTo<TO extends DomainObject,
   }
   targetObject.allowedRelationsTo?.push({ name, relatedObject: sourceObject, relatedObjectId: (sourceObject as any).vid, cascadeDeletes });
 
-    // if not already present, add reverse relation to target object's allowedRelationsTo
+  // if not already present, add reverse relation to target object's allowedRelationsTo
   if (!sourceObject.allowedRelationsFrom) {
     sourceObject.allowedRelationsFrom = [];
   }
@@ -236,7 +288,7 @@ function addNamedRelations<SO extends DomainObject,
   N extends string,
   TO extends DomainObject>(sourceObject: SO, targetObject: TO, name: N, _cascadeDeletes: boolean)
   : { target: DOWithNewToRels<TO, N, NameOfDomainObject<SO>>, source: DOWithNewFromRels<SO, N, NameOfDomainObject<TO>> } {
-   let toArr = targetObject._allowedRelationsFromNames as any;
+  let toArr = targetObject._allowedRelationsFromNames as any;
   let fromArr = sourceObject._allowedRelationsToNames as any;
   if (!toArr) {
     targetObject._allowedRelationsFromNames = {} as any;
@@ -245,18 +297,18 @@ function addNamedRelations<SO extends DomainObject,
   if (!fromArr) {
     sourceObject._allowedRelationsToNames = {} as any;
     fromArr = sourceObject._allowedRelationsToNames as any;
-  } 
+  }
 
   toArr[targetObject.name as string] = join(toArr[targetObject.name as string], name);
   fromArr[sourceObject.name as string] = join(fromArr[sourceObject.name as string], name);
- 
-  
 
-  const s: DOWithNewFromRels<SO, N, NameOfDomainObject<TO>> = sourceObject as any as DOWithNewFromRels<typeof sourceObject, N, NameOfDomainObject<typeof targetObject>>; ;
-  const t: DOWithNewToRels<typeof targetObject, N, NameOfDomainObject<SO>> = targetObject as any as DOWithNewToRels<typeof targetObject, N, NameOfDomainObject<typeof sourceObject>>; ;
-  
 
-  return { source : s,target: t };
+
+  const s: DOWithNewFromRels<SO, N, NameOfDomainObject<TO>> = sourceObject as any as DOWithNewFromRels<typeof sourceObject, N, NameOfDomainObject<typeof targetObject>>;;
+  const t: DOWithNewToRels<typeof targetObject, N, NameOfDomainObject<SO>> = targetObject as any as DOWithNewToRels<typeof targetObject, N, NameOfDomainObject<typeof sourceObject>>;;
+
+
+  return { source: s, target: t };
 }
 
 function join(psv: string, newValue: string): string {

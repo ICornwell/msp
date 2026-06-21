@@ -147,7 +147,7 @@ function searchPackageVersion(sharedName: string): string | undefined {
       }
       potentialPackageJsonDir = path.dirname(potentialPackageJsonDir);
     }
-  } catch (_) {}
+  } catch (_) { }
   return undefined;
 }
 
@@ -156,15 +156,15 @@ function normalizeShareItem(
   shareItem:
     | string
     | {
-        name: string;
-        import: sharePlugin.SharedConfig['import'];
-        version?: string;
-        shareScope?: string;
-        singleton?: boolean;
-        requiredVersion?: string;
-        strictVersion?: boolean;
-        isEsm?: boolean;
-      }
+      name: string;
+      import: sharePlugin.SharedConfig['import'];
+      version?: string;
+      shareScope?: string;
+      singleton?: boolean;
+      requiredVersion?: string;
+      strictVersion?: boolean;
+      isEsm?: boolean;
+    }
 ): ShareItem {
   let version: string | undefined;
   try {
@@ -219,17 +219,17 @@ function normalizeShared(
   shared:
     | string[]
     | Record<
-        string,
-        | string
-        | {
-            name?: string;
-            version?: string;
-            shareScope?: string;
-            singleton?: boolean;
-            requiredVersion?: string;
-            strictVersion?: boolean;
-          }
-      >
+      string,
+      | string
+      | {
+        name?: string;
+        version?: string;
+        shareScope?: string;
+        singleton?: boolean;
+        requiredVersion?: string;
+        strictVersion?: boolean;
+      }
+    >
     | undefined
 ): NormalizedShared {
   if (!shared) return {};
@@ -294,21 +294,21 @@ export type ModuleFederationOptions = {
    */
   bundleAllCSS?: boolean;
   shared?:
-    | string[]
-    | Record<
-        string,
-        | string
-        | {
-            name?: string;
-            version?: string;
-            shareScope?: string;
-            singleton?: boolean;
-            requiredVersion?: string;
-            strictVersion?: boolean;
-            import?: sharePlugin.SharedConfig['import'];
-          }
-      >
-    | undefined;
+  | string[]
+  | Record<
+    string,
+    | string
+    | {
+      name?: string;
+      version?: string;
+      shareScope?: string;
+      singleton?: boolean;
+      requiredVersion?: string;
+      strictVersion?: boolean;
+      import?: sharePlugin.SharedConfig['import'];
+    }
+  >
+  | undefined;
   runtimePlugins?: string[];
   getPublicPath?: string;
   implementation?: string;
@@ -407,8 +407,8 @@ export function normalizeModuleFederationOptions(
   if (options.virtualModuleDir && options.virtualModuleDir.includes('/')) {
     throw new Error(
       `Invalid virtualModuleDir: "${options.virtualModuleDir}". ` +
-        `The virtualModuleDir option cannot contain slashes (/). ` +
-        `Please use a single directory name like '__mf__virtual__your_app_name'.`
+      `The virtualModuleDir option cannot contain slashes (/). ` +
+      `Please use a single directory name like '__mf__virtual__your_app_name'.`
     );
   }
 
@@ -423,7 +423,10 @@ export function normalizeModuleFederationOptions(
     shareScope: options.shareScope || 'default',
     shared: normalizeShared(options.shared),
     runtimePlugins: options.runtimePlugins || [],
-    implementation: options.implementation || require.resolve('@module-federation/runtime'),
+    // Use the ESM runtime by default. The CJS entry breaks when Vite's
+    // module-runner evaluates it as inlined ESM during dev server SSR paths.
+    implementation:
+      options.implementation || require.resolve('@module-federation/runtime/dist/index.esm.js'),
     manifest: normalizeManifest(options.manifest),
     dev: options.dev,
     dts: options.dts,

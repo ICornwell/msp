@@ -47,7 +47,7 @@ export type MakeArray<T, IC extends TrueFalse> = IC extends true ? T[] : T;
 
 function objectReplacer(key: string, value: any) {
   // Exclude circular references
-  if (['relatedObject','schema', 'serialise', 'domainObj'].includes(key)) {
+  if (['relatedObject','schema', 'serialise', 'domainObj', 'DataType'].includes(key)) {
     return undefined;
   }
   return value;

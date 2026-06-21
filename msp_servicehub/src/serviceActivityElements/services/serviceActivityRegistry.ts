@@ -7,6 +7,7 @@ import type { ActivitySet } from 'msp_svr_common';
 import type {ProductConfig} from 'msp_svr_common';
 import { ActivityFeatureManifestSection, Manifest, ServiceManifestSection } from 'msp_svr_common';
 import { expandFeatureProducts } from './productsListExpander.js';
+import { registerViews } from './viewRegistry.js';
 
 export type ServiceActivityRegistration = {
   namespace: string;
@@ -96,6 +97,7 @@ export function registerFeatures(manifest: Manifest, service: ServiceManifestSec
     });
     console.log(`Registered activity: ${registration.namespace}/${registration.activityName}@${registration.version} (${matchingVersionRange}) -> ${registration.serviceUrl}`);
   }
+  registerViews(manifest, service, Array.isArray(features) ? features : [features], false);
 }
 
 // Use the ActivitySet's handle method which has fancy version matching and name matching

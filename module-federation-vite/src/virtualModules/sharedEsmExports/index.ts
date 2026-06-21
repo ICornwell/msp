@@ -1,4 +1,5 @@
 import { defaultExportCode } from './defaultExport';
+import { emotionCacheExportCode } from './emotionCache';
 import { emotionReactExportCode } from './emotionReact';
 import { emotionStyledExportCode } from './emotionStyled';
 import { msalBrowserExportCode } from './msalBrowser';
@@ -13,12 +14,14 @@ import { mspUiCommonHooksExportCode } from './mspUiCommonHooks';
 import { mspUiCommonRenderEngineExportCode } from './mspUiCommonRenderEngine';
 import { muiIconsMaterialExportCode } from './muiIconsMaterial';
 import { muiMaterialExportCode } from './muiMaterial';
+import { muiStyledEngineExportCode } from './muiStyledEngine';
 import { muiSystemExportCode } from './muiSystem';
 import { reactDomClientExportCode } from './reactDomClient';
 import { reactDomExportCode } from './reactDom';
 import { reactExportCode } from './react';
 import { reactJsxDevRuntimeExportCode } from './reactJsxDevRuntime';
 import { reactJsxRuntimeExportCode } from './reactJsxRuntime';
+import { semverExportCode } from './semver';
 
 type ExportCodeFactory = () => string;
 
@@ -45,6 +48,9 @@ const exportCodeByPackage: Record<string, ExportCodeFactory> = {
   'msp_ui_common/uiLib/contexts': mspUiCommonContextsExportCode,
   'msp_ui_common/uiLib/hooks': mspUiCommonHooksExportCode,
   'msp_ui_common/uiLib/renderEngine': mspUiCommonRenderEngineExportCode,
+  'semver': semverExportCode,
+  '@emotion/cache': emotionCacheExportCode,
+  '@mui/styled-engine': muiStyledEngineExportCode,
 };
 
 export function getSharedEsmExportCode(pkg: string): string {

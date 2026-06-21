@@ -508,7 +508,6 @@ fn query_payload_for_commerce(root_entity_id: &str, timestamp: i64) -> serde_jso
         "user": "test",
         "queryDate": "2026-01-01",
         "view": "commerce",
-        "viewVersion": "1.0",
         "rootQueryKeyProperty": "id",
         "rootQueryKeyValue": root_entity_id,
         "rootQueryKeyTypes": "all",

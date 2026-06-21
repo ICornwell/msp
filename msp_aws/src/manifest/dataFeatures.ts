@@ -1,6 +1,5 @@
 import type { ManifestServiceBuilder } from 'msp_svr_common';
 
-
 export function addAwsDataFeatures(service: ManifestServiceBuilder<any, any>)
 { 
   return service

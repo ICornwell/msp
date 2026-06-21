@@ -28,15 +28,14 @@ const simpleViewActivitySet: ActivitySet = buildActivitySet()
             }
             const data = result as any as DataObject
             const resultData: ViewDataContent<typeof view.dataType> = {
-                    viewNamespace: view.namespace ?? 'default',
-                    viewVersion: view.version,
-                    viewName: view.name,
-                    viewVariantName: view.variantName,
+                    namespace: view.namespace ?? 'default',
+                    version: view.version,
+                    name: view.name,
+                    variantName: view.variantName,
                     viewRootEntityId: data.__entityId,
                     viewRootId: id,
                     viewRootEntityType: view.rootElement.domainObject?.name ?? 'unknown',
                     viewRootEntityHistoricTimestamp: (new Date(data.__metadata.__timeStamp)).toISOString(),
-                    recordId: data.__metadata.__businessKey ?? data.id,
                     viewRootEntityBusKey: data.__metadata.__businessKey,
                     content: result
                 }

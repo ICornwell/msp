@@ -2,7 +2,7 @@ import { useContext, createContext, useRef, useState } from 'react';
 import PubSub, { UiPubSubMsg } from './UiPubSub.js';
 import { useUiEventContext } from './UiEventContext.js';
 //import { DataIdentifier } from './Data.js';
-import type { DataViewIdQueryEnvelope,  ViewDataContent,  ViewDataQueryIdentifier } from 'msp_common';
+import type { DataViewIdQueryEnvelope, ViewDataContent, ViewDataQueryByKeyIdentifier, ViewDataQueryIdentifier } from 'msp_common';
 import { v4 as uuid } from 'uuid';
 import { serviceRequest } from '../comms/serverRequests.js';
 import { useUserSession } from '../hooks/index.js';
@@ -62,21 +62,27 @@ export type DataCacheMsg = UiPubSubMsg & (DataRequest | DataEvent);
 // Cache Storage
 // ============================================================================
 
-type CacheKey = string; // serialized: `${viewNamespace}|${viewName}|${viewRootEntityId}`
+type CacheKey = string; // serialized: `${namespace}|${name}|${viewRootEntityId}`
 type CachedView = {
   viewDataContent?: ViewDataContent<any>;
   loadedAt: number;
   locked?: boolean;
 };
 
-function toCacheKey(viewDataContent: ViewDataQueryIdentifier): CacheKey {
-  const { viewNamespace, viewName, viewRootEntityId, viewVersion, viewVariantName } = viewDataContent;
-  return `${viewNamespace}|${viewName}|${viewRootEntityId}|${viewVersion}|${viewVariantName}`;
+function toCacheKey(viewDataContent: ViewDataQueryIdentifier, forBusKey?: boolean): CacheKey {
+  const {
+    namespace,
+    name,
+    version,
+    variantName,
+    viewRootEntityId,
+    viewRootBusKey } = viewDataContent as ViewDataQueryByKeyIdentifier;
+  return `${namespace}|${name}|${version}|${variantName}|||${forBusKey ? viewRootBusKey : viewRootEntityId}`;
 }
 
-function fromDataIdentifier(viewDataQueryIdentifier: ViewDataQueryIdentifier): CacheKey {
-  return toCacheKey(viewDataQueryIdentifier);
-}
+// function fromDataIdentifier(viewDataQueryIdentifier: ViewDataQueryIdentifier): CacheKey {
+//   return toCacheKey(viewDataQueryIdentifier);
+// }
 
 // ============================================================================
 // Context Type
@@ -121,16 +127,87 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   const requestPubSubRef = useRef(PubSub<DataCacheMsg>());
   const eventPubSubRef = useRef(PubSub<DataCacheMsg>());
   const [cache, clearCache] = useState(() => new Map<CacheKey, CachedView>());
+  // the entityIndex tracks different view of the same entity,
+  //  so that when an entity is updated, all views of it can be invalidated
+  // will extend to all objects!
   const [entityIndex, clearEntityIndex] = useState(() => new Map<string, Set<CacheKey>>());
   const [inFlightRequests, clearInFlightRequests] = useState(() => new Map<CacheKey, Promise<void>>());
 
   const { publish: raiseUiEvent } = useUiEventContext();
 
-  useUserSession({onLoggedOut: () => {
-    clearCache(new Map<CacheKey, CachedView>());
-    clearEntityIndex(new Map<string, Set<CacheKey>>());
-    clearInFlightRequests(new Map<CacheKey, Promise<void>>());
-  }, onLoggedIn: () => { return; }});
+  useUserSession({
+    onLoggedOut: () => {
+      clearCache(new Map<CacheKey, CachedView>());
+      clearEntityIndex(new Map<string, Set<CacheKey>>());
+      clearInFlightRequests(new Map<CacheKey, Promise<void>>());
+    }, onLoggedIn: () => { return; }
+  });
+
+  function cacheHas(key: ViewDataQueryIdentifier): boolean {
+    return cache.has(toCacheKey(key)) || cache.has(toCacheKey(key, true));
+  }
+
+  function cacheGet(key: ViewDataQueryIdentifier): CachedView | undefined {
+    return cache.get((key as ViewDataQueryByKeyIdentifier).viewRootBusKey ? toCacheKey(key, true) : toCacheKey(key));
+  }
+
+  function cacheSet(key: ViewDataQueryIdentifier, value: CachedView): void {
+    if ((key as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+      cache.set(toCacheKey(key, true), value);
+    }
+    if (key.viewRootEntityId) {
+      cache.set(toCacheKey(key), value);
+    }
+  }
+
+  function cacheDelete(key: ViewDataQueryIdentifier): boolean {
+    const eid = cache.delete(toCacheKey(key))
+    const bkey = cache.delete(toCacheKey(key, true));
+    return eid || bkey;
+  }
+
+  function entityIndexHas(key: ViewDataQueryIdentifier): boolean {
+    return entityIndex.has(toCacheKey(key)) || entityIndex.has(toCacheKey(key, true));
+  }
+
+  function entityIndexGet(key: ViewDataQueryIdentifier): Set<CacheKey> | undefined {
+    return entityIndex.get((key as ViewDataQueryByKeyIdentifier).viewRootBusKey ? toCacheKey(key, true) : toCacheKey(key));
+  }
+
+  function entityIndexSet(key: ViewDataQueryIdentifier, value: Set<CacheKey>): void {
+    if ((key as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+      entityIndex.set(toCacheKey(key, true), value);
+    }
+    if (key.viewRootEntityId) {
+      entityIndex.set(toCacheKey(key), value);
+    }
+  }
+
+  function entityIndexDelete(key: ViewDataQueryIdentifier): boolean {
+    const eid = entityIndex.delete(toCacheKey(key))
+    const bkey = entityIndex.delete(toCacheKey(key, true));
+    return eid || bkey;
+  }
+
+  function inFlightRequestsHas(key: ViewDataQueryIdentifier): boolean {
+    return inFlightRequests.has(toCacheKey(key)) || inFlightRequests.has(toCacheKey(key, true));
+  }
+
+  function inFlightRequestsSet(key: ViewDataQueryIdentifier, value: Promise<void>): boolean {
+    if ((key as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+      inFlightRequests.set(toCacheKey(key, true), value);
+    }
+    if (key.viewRootEntityId) {
+      inFlightRequests.set(toCacheKey(key), value);
+    }
+    return true;
+  }
+
+  function inFlightRequestsDelete(key: ViewDataQueryIdentifier): boolean {
+    const eid = inFlightRequests.delete(toCacheKey(key))
+    const bkey = inFlightRequests.delete(toCacheKey(key, true));
+    return eid || bkey;
+  }
 
   // Publish to the private DataCache bus AND the UIEvent bus.
   // Behaviours see the UIEvent; render-engine containers subscribe to the private bus.
@@ -172,15 +249,15 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   }
 
   async function loadData(viewDataQueryIdentifier: ViewDataQueryIdentifier, forceRefresh = false, correlationId?: string): Promise<void> {
-    const key = toCacheKey(viewDataQueryIdentifier);
 
-    if (inFlightRequests.has(key)) {
+
+    if (inFlightRequestsHas(viewDataQueryIdentifier)) {
       return;
     }
 
-    if (!forceRefresh && cache.has(key)) {
-      const cached = cache.get(key)!;
-      const data = fromViewData(cached.viewDataContent as ViewDataContent<any>, viewDataQueryIdentifier)
+    if (!forceRefresh && cacheHas(viewDataQueryIdentifier)) {
+      const cached = cacheGet(viewDataQueryIdentifier);
+      const data = fromViewData(cached!.viewDataContent as ViewDataContent<any>, viewDataQueryIdentifier)
       dispatchDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: true, correlationId } as any);
       return;
     }
@@ -204,18 +281,23 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
         if (response.success && response.result) {
           const raw = response.result;
           for (const data of (Array.isArray(raw?.data) ? raw.data : [raw.data]) as Array<ViewDataContent<any>>) {
-            const viewDataContent = data?.viewName !== undefined
+            const viewDataContent = data?.name !== undefined
               ? fromViewData(data as ViewDataContent<any>, viewDataQueryIdentifier)
               : undefined;
             if (viewDataContent) {
-              cache.set(key, { viewDataContent, loadedAt: Date.now() });
+              cacheSet(viewDataQueryIdentifier, { viewDataContent, loadedAt: Date.now() });
 
-              if (!entityIndex.has(viewDataQueryIdentifier.viewRootEntityId)) {
-                entityIndex.set(viewDataQueryIdentifier.viewRootEntityId, new Set());
+              if (!entityIndexHas(viewDataQueryIdentifier)) {
+                entityIndexSet(viewDataQueryIdentifier, new Set());
               }
             }
-            entityIndex.get(viewDataQueryIdentifier.viewRootEntityId)!.add(key);
-
+            if (viewDataQueryIdentifier.viewRootEntityId) {
+              entityIndexGet(viewDataQueryIdentifier)!.add(viewDataQueryIdentifier.viewRootEntityId);
+            }
+            if ((viewDataQueryIdentifier as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+              entityIndexGet(viewDataQueryIdentifier)!
+                .add((viewDataQueryIdentifier as ViewDataQueryByKeyIdentifier).viewRootBusKey);
+            }
 
             dispatchDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: false, correlationId } as any);
           }
@@ -229,11 +311,11 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
           payload: { error: error?.message || 'Load failed' },
         } as any);
       } finally {
-        inFlightRequests.delete(key);
+        inFlightRequestsDelete(viewDataQueryIdentifier);
       }
     })();
 
-    inFlightRequests.set(key, loadPromise);
+    inFlightRequestsSet(viewDataQueryIdentifier, loadPromise);
     await loadPromise;
   }
 
@@ -243,13 +325,21 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     } else if (msg.type === 'RefreshDataView') {
       loadData(msg.viewDataContent, true, msg.correlationId);
     } else if (msg.type === 'UnloadDataView') {
-      const key = toCacheKey(msg.viewDataContent);
-      cache.delete(key);
 
-      const indexSet = entityIndex.get(msg.viewDataContent.viewRootId);
+      cacheDelete(msg.viewDataContent);
+
+      const indexSet = entityIndexGet({
+        ...msg.viewDataContent,
+        viewRootEntityId: msg.viewDataContent.viewRootId,
+        viewRootBusKey: undefined
+      });
       if (indexSet) {
-        indexSet.delete(key);
-        if (indexSet.size === 0) entityIndex.delete(msg.viewDataContent.viewRootId);
+        indexSet.delete(msg.viewDataContent.viewRootEntityId);
+        if (indexSet.size === 0) entityIndexDelete({
+          ...msg.viewDataContent,
+          viewRootEntityId: msg.viewDataContent.viewRootId,
+          viewRootBusKey: undefined
+        });
       }
 
       eventPubSubRef.current.publish({
@@ -286,8 +376,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
         } as DataEvent);
       }
     } else if (msg.type === 'PublishChange') {
-      const key = toCacheKey(msg.viewDataContent);
-      const cached = cache.get(key);
+      const cached = cacheGet(msg.viewDataContent);
 
       if (cached) {
         if (msg.changePath && msg.changeValue !== undefined) {
@@ -318,17 +407,15 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     publishEvent: (event) => dispatchDataEvent(event),
 
     queryData: (viewDataQueryIdentifier) => {
-      const key = toCacheKey(viewDataQueryIdentifier);
-      return cache.get(key)?.viewDataContent?.content;
+      return cacheGet(viewDataQueryIdentifier)?.viewDataContent?.content;
     },
     queryDataByIdentifier: (id) => {
-      const key = fromDataIdentifier(id);
-      return cache.get(key)?.viewDataContent?.content;
+
+      return cacheGet(id)?.viewDataContent?.content;
     },
 
     submitData: (viewDataContent: ViewDataContent<any>, correlationId?: string) => {
-      const key = toCacheKey(viewDataContent);
-      const cached = cache.get(key);
+      const cached = cacheGet(viewDataContent);
       if (cached && cached.viewDataContent) {
         cached.viewDataContent.content = viewDataContent.content;
         dispatchDataEvent({
@@ -338,7 +425,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
           correlationId,
         } as DataEvent);
       } else {
-        cache.set(key, { viewDataContent, loadedAt: Date.now() });
+        cacheSet(viewDataContent, { viewDataContent, loadedAt: Date.now() });
         dispatchDataEvent({
           type: 'DataViewLoaded',
           viewDataContent,
@@ -349,8 +436,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
     },
 
     isLocked: (viewDataQueryIdentifier) => {
-      const key = toCacheKey(viewDataQueryIdentifier);
-      return cache.get(key)?.locked ?? false;
+      return cacheGet(viewDataQueryIdentifier)?.locked ?? false;
     },
 
     _cache: cache,

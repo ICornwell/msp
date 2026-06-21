@@ -7,7 +7,7 @@ export const useUserWorkDetailBehaviour = () => {
     
     // Show tab when requested
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
-      .whenDataIdentifierSatisfies((vid) => vid?.viewName === 'UserWorkList' && !!vid?.recordId)
+      .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserWorkList' && !!vid?.recordId)
       .dispatch.toPresentation
         .openTab('UserDetailTab',
           {title: ({viewDataIdentifier, event}) => `WD-${viewDataIdentifier?.recordId} ${event.payload}`,

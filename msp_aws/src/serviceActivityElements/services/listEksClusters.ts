@@ -44,10 +44,10 @@ function normalizeEksRows(
     const endpoint = row.content.endpoint ?? '';
 
     return {
-      viewNamespace: inventoryViewIdentifier.viewNamespace,
-      viewName: inventoryViewIdentifier.viewName,
-      viewVersion: inventoryViewIdentifier.viewVersion,
-      viewVariantName: inventoryViewIdentifier.viewVariantName,
+      namespace: inventoryViewIdentifier.namespace,
+      name: inventoryViewIdentifier.name,
+      version: inventoryViewIdentifier.version,
+      variantName: inventoryViewIdentifier.variantName,
       viewRootEntityType: 'eksCluster',
       viewRootEntityId: rowId,
       viewRootEntityBusKey: rowId,

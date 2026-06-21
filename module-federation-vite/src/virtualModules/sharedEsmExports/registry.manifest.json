@@ -531,6 +531,25 @@
       "namedExports": [
         "Re"
       ]
+    },
+    {
+      "package": "semver",
+      "module": "./semver",
+      "factory": "semverExportCode",
+      "namedExports": [
+        "gt",
+        "satisfies"
+      ]
+    },
+    {
+      "package": "@emotion/cache",
+      "module": "./emotionCache",
+      "factory": "emotionCacheExportCode"
+    },
+    {
+      "package": "@mui/styled-engine",
+      "module": "./muiStyledEngine",
+      "factory": "muiStyledEngineExportCode"
     }
   ]
 }

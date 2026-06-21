@@ -147,8 +147,15 @@ export type DomainObject<N extends string = string, P extends string = N, S exte
   isEntity?: TrueFalse;
   defaultPresentationLabel?: string;
   defaultDocPathName: P;
+  // data is 'any' here as it is a contra-variant type that can't be 
+  // Partial<PropsOfSchema<S>> as it breaks the relation building type mutations
   businessKey?: string | string[] | ((data: any) => string);
   alternateKey?: string | string[] | ((data: any) => string);
+  DataType: Partial<PropsOfSchema<S>>;
+  getBusinessKey: (data: any,
+    failOptions?: { neverThrow?: boolean, throwMessage?: string, fallback?: string }) => string | null;
+  getAlternateKey: (data: any,
+    failOptions?: { neverThrow?: boolean, throwMessage?: string, fallback?: string }) => string | null;
   storeWithDBLabel?: string;
   allowedRelationsTo: DomainObjectRelation<string, any>[];
   allowedRelationsFrom: DomainObjectRelation<string, any>[];

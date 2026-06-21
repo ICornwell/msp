@@ -1,3 +1,5 @@
+import {satisfies} from 'semver';
+
 export interface ClientCredentialsConfig {
   clientId: string;
   clientSecret: string;
@@ -75,34 +77,31 @@ type MatchableIdentifier = {
   name?: string;
   version?: string;
   variantName?: string;
-  viewName?: string;
-  viewVersion?: string;
-  viewVariantName?: string;
-  viewNamespace?: string;
-
 };
 
-function normalizeIdentifier(value?: MatchableIdentifier): {
-  name?: string;
-  version?: string;
-  variantName?: string;
-  scope?: string | VersionedResourceIdLike;
-} {
+function normalizeIdentifier(value?: MatchableIdentifier): VersionedResourceIdLike {
   return {
-    name: value?.name ?? value?.viewName,
-    version: value?.version ?? value?.viewVersion,
-    variantName: value?.variantName ?? value?.viewVariantName,
-    scope: value?.namespace ?? value?.viewNamespace
+    name: value?.name ?? '*',
+    version: value?.version ?? '1.0.0',
+    variantName: value?.variantName ?? 'default',
+    namespace: value?.namespace ?? 'default',
   };
+}
+
+function equalOrEquivalent(a?: string, b?: string): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  if (a === '*' || b === '*') return true;
+  return a === b;
 }
 
 function matchesVersionedResourceId(a?: VersionedResourceIdLike, b?: VersionedResourceIdLike): boolean {
   if (!a && !b) return true;
   if (!a || !b) return false;
-  return a.name === b.name
-    && a.version === b.version
-    && a.variantName === b.variantName
-    && a.namespace === b.namespace;
+  return equalOrEquivalent(a.name, b.name)
+    && (equalOrEquivalent(a.version, b.version) || satisfies(a.version, b.version))
+    && equalOrEquivalent(a.variantName, b.variantName)
+    && equalOrEquivalent(a.namespace, b.namespace);
 }
 
 export function matchesId(a?: MatchableIdentifier, b?: MatchableIdentifier): boolean {
@@ -112,30 +111,14 @@ export function matchesId(a?: MatchableIdentifier, b?: MatchableIdentifier): boo
   const left = normalizeIdentifier(a);
   const right = normalizeIdentifier(b);
 
-  if (left.name !== right.name || left.version !== right.version || left.variantName !== right.variantName) {
-    return false;
-  }
-
-  if (left.scope === undefined && right.scope === undefined) {
-    return true;
-  }
-
-  if (typeof left.scope === 'string' && typeof right.scope === 'string') {
-    return left.scope === right.scope;
-  }
-
-  if (typeof left.scope === 'object' && typeof right.scope === 'object') {
-    return matchesVersionedResourceId(left.scope, right.scope);
-  }
-
-  return false;
+  return matchesVersionedResourceId(left, right);
 }
 
 export type ViewIdentifier = {
-  viewNamespace: string;
-  viewName: string;
-  viewVariantName?: string;
-  viewVersion?: string;
+  namespace: string;
+  name: string;
+  variantName?: string;
+  version?: string;
 }
 
 export type ViewDataIdentifier = ViewIdentifier & {
@@ -162,8 +145,8 @@ export type ViewDataContent<D = any> = ViewDataQueryByIdIdentifier & {
 }
 
 // if handcrafted new data to be saved as a view, key and timestamps will not be present
-export type ViewDataNewContent<D = any> = Omit<ViewDataContent<D>, 'viewRootEntityId' | 
-  'viewRootId' | 'viewRootEntityBusKey' | 'viewRootEntityHistoricTimestamp' | 'recordId'> 
+export type ViewDataNewContent<D = any> = Omit<ViewDataContent<D>, 'viewRootEntityId' |
+  'viewRootId' | 'viewRootEntityBusKey' | 'viewRootEntityHistoricTimestamp' | 'recordId'>
 
 export function isViewDataContent_Matching_ViewDataIdentifier(content?: ViewDataContent, identifier?: ViewDataQueryIdentifier): boolean {
   if (!content && !identifier) return true;

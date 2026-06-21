@@ -4,10 +4,7 @@
 import { View, matchesId } from 'msp_common';
 import { DataFeatureManifestSection, ActivityFeatureManifestSection, VersionedNamespaceResourceId } from 'msp_svr_common';
 
-
 import { Manifest, ServiceManifestSection } from 'msp_svr_common';
-
-import semver from 'semver/preload.js';
 
 export type ViewRegistration = {
   viewIdentifier: VersionedNamespaceResourceId & { view: View };
@@ -23,11 +20,11 @@ const directViews: ViewRegistration[] = [];
 
 function registrationForFeatureView(feature: ActivityFeatureManifestSection | DataFeatureManifestSection, view: View,
   service: ServiceManifestSection, manifest: Manifest, isDataFeature: boolean): ViewRegistration {
-  const viewNamespace = view.namespace || (view as any).domain?.name || manifest.namespace || service.namespace || 'default';
+  const namespace = view.namespace || (view as any).domain?.name || manifest.namespace || service.namespace || 'default';
   return {
     viewIdentifier: {
       type: 'view',
-      namespace: viewNamespace,
+      namespace: namespace,
       name: view.name,
       version: view.version || '1.0.0',
       variantName: view.variantName || 'default',
@@ -49,11 +46,11 @@ function registrationForFeatureView(feature: ActivityFeatureManifestSection | Da
 function registrationForDirectView(owner: VersionedNamespaceResourceId, view: View,
   feature: ActivityFeatureManifestSection | DataFeatureManifestSection,
   service: ServiceManifestSection, manifest: Manifest, isWriteAllowed: boolean): ViewRegistration {
-  const viewNamespace = view.namespace || (view as any).domain?.name || manifest.namespace || service.namespace || 'default';
+  const namespace = view.namespace || (view as any).domain?.name || manifest.namespace || service.namespace || 'default';
   return {
     viewIdentifier: {
       type: 'view',
-      namespace: viewNamespace,
+      namespace: namespace,
       name: view.name,
       version: view.version || '1.0.0',
       variantName: view.variantName || 'default',
@@ -78,12 +75,12 @@ export function registerViews(manifest: Manifest, service: ServiceManifestSectio
   // Store registration for tracking
   for (const feature of features) {
 
-    for (const view of feature.useForViewReads) {
+    for (const view of feature.useForViewRead ?? []) {
       const registration: ViewRegistration = registrationForFeatureView(feature, view, service, manifest, isDataFeature);
       readViews.push(registration);
     }
 
-    for (const view of feature.useForViewWrites) {
+    for (const view of feature.useForViewWrite ?? []) {
       const registration: ViewRegistration = registrationForFeatureView(feature, view, service, manifest, isDataFeature);
       registration.isWriteAllowed = true;
       writeViews.push(registration);
@@ -116,7 +113,7 @@ export function findViewHandlingActivity(isWrite: boolean, namespace: string, vi
       name: view,
       version,
       variantName,
-    }) && semver.satisfies(r.viewIdentifier.version ?? '1.0.0', version)
+    })
   );
 
   return matchingRegistration; // TODO: implement using serviceManager and registeredActivitySet
@@ -133,7 +130,7 @@ export function findDirectView(namespace: string, view: string, version: string,
       name: view,
       version,
       variantName,
-    }) && semver.satisfies(r.viewIdentifier.version ?? '1.0.0', version)
+    })
   );
 
   return matchingRegistration; // TODO: implement using serviceManager and registeredActivitySet
