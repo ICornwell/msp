@@ -149,7 +149,7 @@ const config = useMemo(() =>
       .whenEventSatisfies(e => e.payload?.x)    // optional guard
       .whenDataSatisfies(d => !!d)              // optional data guard
       .dispatch.toActivity
-        .callAsync({ id, action: 'ns/name/ver', payloadFromEvent })
+        .withoutWaiting({ id, action: 'ns/name/ver', payloadFromEvent })
         .end()
     .whenEventRaised('AnotherEvent')
       .dispatch.toMenus.add(menuItem).end()

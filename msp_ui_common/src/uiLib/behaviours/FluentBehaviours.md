@@ -39,7 +39,7 @@ createBehaviour()
 
     // dispatch to a subsystem — builder is fluent, `.end()` unwinds the stack
     .dispatch.toActivity
-      .callAsync({ id, action, payloadFromEvent, contextFromEvent })
+      .withoutWaiting({ id, action, payloadFromEvent, contextFromEvent })
       .end()
 
     // or dispatch to menus
@@ -152,7 +152,7 @@ export const useUserProfileBehaviour = () => {
     // 1. Fetch user data when the user changes
     .whenEventRaised('UserChanged')
       .dispatch.toActivity
-        .callAsync({
+        .withoutWaiting({
           id: 'getUserProfile',
           action: 'actorwork/GetUserProfileData/1.0.0',
           payloadFromEvent: (e: any) => ({ userId: e.payload?.userId }),

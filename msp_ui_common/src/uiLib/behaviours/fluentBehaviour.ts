@@ -36,18 +36,18 @@ export type ActivityCallDefinition<E extends UiMsgNames = any> = {
 
 export interface ActivityDispatchBuilder<DT, E extends UiMsgNames, RT> {
   /** Dispatch an async activity call to the service layer. */
-  callAsync: (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
-  callSync:  (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
+  withoutWaiting: (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
+  withWaiting:  (activity: ActivityCallDefinition<E> | MenuItem) => ActivityDispatchBuilder<DT, E, RT>;
   endActivity: () => RT;
 }
 
 // ── Menu subsystem ────────────────────────────────────────────────────────────
 
 export interface MenuDispatchBuilder<DT, E extends UiMsgNames, RT> {
-  add:     (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
-  remove:  (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
-  enable:  (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
-  disable: (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  toAdd:     (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  toRemove:  (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  toEnable:  (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
+  toDisable: (menu: Omit<MenuItem, 'contextOwnerId'>) => MenuDispatchBuilder<DT, E, RT>;
   endMenus: () => RT;
 }
 
@@ -73,16 +73,16 @@ export interface PagedTabBuilder<DT, E extends UiMsgNames, RT> {
 }
 
 export interface PresentationDispatchBuilder<DT, E extends UiMsgNames, RT> {
-  openBlade:    (target: string, params?: BehaviourActionParams<DT, E, BladeParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
-  closeBlade:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
-  openTab:      (target: string, params?: BehaviourActionParams<DT, E, TabParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  toOpenBlade:    (target: string, params?: BehaviourActionParams<DT, E, BladeParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
+  toCloseBlade:   (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  toOpenTab:      (target: string, params?: BehaviourActionParams<DT, E, TabParamOptions> | ((context: BehaviourActionFnContext<DT, E>) => any), content?: any, viewDataIdentifier?: BehaviourArg<ViewDataIdentifier>) => PresentationDispatchBuilder<DT, E, RT>;
   /** Open a tab with a named set of pages. Fluently add pages via the returned PagedTabBuilder. */
-  openPagedTab: (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PagedTabBuilder<DT, E, RT>;
-  closeTab:     (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
+  toOpenPagedTab: (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PagedTabBuilder<DT, E, RT>;
+  toCloseTab:     (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
   /** Add a page to an already-open tab. */
-  addTabPage:   (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => PresentationDispatchBuilder<DT, E, RT>;
+  toAddTabPage:   (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => PresentationDispatchBuilder<DT, E, RT>;
   /** Remove a page from an already-open tab by page id. */
-  closeTabPage: (tabTarget: string, pageId: string) => PresentationDispatchBuilder<DT, E, RT>;
+  toCloseTabPage: (tabTarget: string, pageId: string) => PresentationDispatchBuilder<DT, E, RT>;
   navigate:     (target: string, params?: BehaviourActionParams<DT, E> | ((context: BehaviourActionFnContext<DT, E>) => any)) => PresentationDispatchBuilder<DT, E, RT>;
   endPresentation: () => RT;
 }
@@ -97,7 +97,7 @@ export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
   /** Apply a partial patch to cached data using event.payload.result as source. */
   updateFromEventPayloadResult: (
     dataId: BehaviourArg<ViewDataIdentifier>,
-    mapResultToDataFromEvent: (result: any, context: BehaviourActionFnContext<DT, E>) => Partial<DT> | undefined
+    mapResultToDataFromEvent: <D extends Partial<any> = any>(result: any, data: D) => D
   ) => DataDispatchBuilder<DT, E, RT>;
   endData: () => RT;
 }
@@ -146,7 +146,7 @@ export interface AlwaysBuilder<DT, E extends UiMsgNames, RT> {
    * Only Behaviours dispatch; the subsystem owns what happens next and
    * will raise zero-or-more UIEvents when it is done.
    */
-  dispatch: DispatchSurface<DT, E, RT>;
+  makeRequest: DispatchSurface<DT, E, RT>;
 
   /**
    * Run a side-effect directly in this component without traversing any bus.

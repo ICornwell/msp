@@ -6,8 +6,8 @@ import { SessionInfo } from 'msp_ui_common/uiLib/contexts';
 export const useUserProfileBehaviour = () => {
   const config = createBehaviour()
     .whenStarted()
-      .dispatch.toActivity
-        .callAsync({
+      .makeRequest.toActivity
+        .withoutWaiting({
           id: 'getUserProfile',
           label: 'Get User Profile',
           action: 'actorwork/getUserProfileData/1.0.0',
@@ -17,8 +17,8 @@ export const useUserProfileBehaviour = () => {
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
       .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserProfile')
-      .dispatch.toMenus
-        .add({
+      .makeRequest.toMenus
+        .toAdd({
           id: 'user-profile-menu',
           label: 'See User Profile',
           eventName: eventTypes.Navigation.ITEM_CLICK,
@@ -31,7 +31,7 @@ export const useUserProfileBehaviour = () => {
             'viewRootEntityId': 'currentuser'}
           }
         })
-        .add({
+        .toAdd({
           id: 'logout-user',
           label: 'Logout',
           eventName: eventTypes.Navigation.ITEM_CLICK,
@@ -41,8 +41,8 @@ export const useUserProfileBehaviour = () => {
         .endMenus()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserProfile')
-      .dispatch.toPresentation
-        .openBlade('UserProfileBlade',
+      .makeRequest.toPresentation
+        .toOpenBlade('UserProfileBlade',
           {title: 'User Profile'},
           UserInfoLayout(),
           ({viewDataIdentifier}) => viewDataIdentifier
@@ -50,7 +50,7 @@ export const useUserProfileBehaviour = () => {
         .endPresentation()
       .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'logoutUser')
-      .dispatch.toSystem
+      .makeRequest.toSystem
         .logoutUser()
         .endSystem()
 

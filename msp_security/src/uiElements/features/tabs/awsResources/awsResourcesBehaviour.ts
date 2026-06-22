@@ -6,12 +6,12 @@ export const useAwsResourcesBehaviour = () => {
   const config = createBehaviour()
     .whenStarted()
     .dispatch.toActivity
-    .callAsync({
+    .withoutWaiting({
       id: 'getEksClusters',
       action: 'aws/listEksClusters/1.0.0',
       payload: { region: 'eu-west-2' },
     })
-    .callAsync({
+    .withoutWaiting({
       id: 'getEcrRepositories',
       action: 'aws/listEcrRepositories/1.0.0',
       payload: { region: 'eu-west-2' },

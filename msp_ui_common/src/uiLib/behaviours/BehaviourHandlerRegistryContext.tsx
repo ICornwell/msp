@@ -5,7 +5,7 @@ import { useNavTreeDispatch } from '../contexts/NavTreeDispatchContext.js';
 import { usePresentationDispatch } from '../contexts/PresentationDispatchContext.js';
 import { useDataDispatch } from '../contexts/DataCacheContext.js';
 import type { RequestAction } from './behaviourConfig.js';
-import { useUserSession } from '../hooks/index.js';
+import { useDataCache, useUserSession } from '../hooks/index.js';
 import { SessionInfo } from '../contexts/UserSessionContext.js';
 
 /**
@@ -40,7 +40,7 @@ type BehaviourDispatchProviderProps = { children: ReactNode };
 
 export function BehaviourDispatchProvider({ children }: BehaviourDispatchProviderProps) {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
-  const {loggedOut} = useUserSession({
+  const { loggedOut } = useUserSession({
     onLoggedIn: (sessionInfo: SessionInfo) => { setSessionInfo(sessionInfo); },
     onLoggedOut: () => { setSessionInfo(null); },
   });
@@ -49,6 +49,8 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
   const { dispatch: dispatchPresentation } = usePresentationDispatch();
   const { dispatch: dispatchNavTree } = useNavTreeDispatch();
   const { invalidate, save, update } = useDataDispatch();
+
+  const { queryDataByIdentifier, isLocked} = useDataCache()
 
   function objectFromMaybeFunction(maybeFn: any, data: any): Object {
     try {
@@ -120,7 +122,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             });
           },
         ],
-         [
+        [
           'NavTreeRequest',
           (action, eventWithDataCarrier) => {
             const navItem = action.eventData?.navItem || {};
@@ -159,33 +161,38 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
             })
 
             params.content = action.eventData?.content;
-            params.viewDataIdentifier =  eventWithDataCarrier?.viewDataIdentifier 
+            params.viewDataIdentifier = eventWithDataCarrier?.viewDataIdentifier
               || action.eventData?.viewDataIdentifier; // the event is the preferred source for viewDataIdentifier,
-              //  as it allows it to be dynamic based on the triggering event
-              //  and action.eventData.viewDataIdentifier is replaced later 
+            //  as it allows it to be dynamic based on the triggering event
+            //  and action.eventData.viewDataIdentifier is replaced later 
 
             dispatchPresentation({ requestType, target, params, contextOwnerId: action.contextOwnerId ?? 'global' });
           },
         ],
-        [
-          'DataRequest',
+        ['DataRequest',
           (action, eventWithDataCarrier, data) => {
             const requestType = action.eventData?.requestType;
             const viewDataIdentifier =
               paramFromMaybeFunction(action.eventData?.viewDataIdentifier, eventWithDataCarrier, undefined)
               || action.eventData?.viewDataIndentifier;
             if (!requestType || !viewDataIdentifier) return;
-
+          
             if (requestType === 'revert') {
               invalidate(viewDataIdentifier);
             } else if (requestType === 'updateFromEventPayloadResult') {
+
               const result = eventWithDataCarrier?.event?.payload?.result;
               const mapResultToDataFromEvent = action.eventData?.mapResultToDataFromEvent;
+              const mapVid = mapResultToDataFromEvent?.viewDataIdentifier || action.eventData?.viewDataIdentifier;
+              const vid = paramFromMaybeFunction(mapVid, eventWithDataCarrier, undefined);
+              if (!vid || isLocked(vid)) return;
+              const dataForUpdate = queryDataByIdentifier(vid);
+              if (!dataForUpdate) return;
               const patch = typeof mapResultToDataFromEvent === 'function'
-                ? mapResultToDataFromEvent(result, eventWithDataCarrier)
+                ? mapResultToDataFromEvent(result, dataForUpdate)
                 : undefined;
               if (patch && typeof patch === 'object') {
-                update(viewDataIdentifier, patch);
+                update(vid, patch, eventWithDataCarrier.event.correlationId);
               }
             } else {
               const nextData =
@@ -214,7 +221,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
           }
         }],
       ] as [string, ActionHandler][]),
-      
+
     [callActivity, dispatchMenu, dispatchPresentation, invalidate, save, update],
   );
 

@@ -31,7 +31,7 @@ const App: React.FC = () => {
       }
 
       if (navigator.serviceWorker.controller) {
-        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched'}, () => {
+        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched' }, () => {
           console.log('Service Worker sent cleared token message.');
         });
         return true;
@@ -44,7 +44,7 @@ const App: React.FC = () => {
       }
 
       if (navigator.serviceWorker.controller) {
-        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched'}, () => {
+        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched' }, () => {
           console.log('Service Worker sent cleared token message.');
         });
         return true;
@@ -89,9 +89,9 @@ const App: React.FC = () => {
         if (!isControlled) {
           console.warn('Service Worker registered but controller not active yet; continuing without strict SW gate.');
         }
-        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched'}, () => {
+        postServiceWorkerMessage({ type: 'CLEAR_TOKENS', reason: 'App Launched' }, () => {
           console.log('Service Worker sent cleared token message.');
-        }); 
+        });
         setSwRegistered(true);
       })
       .catch((error) => {
@@ -141,11 +141,11 @@ const App: React.FC = () => {
     )
     : (<CustomThemeProvider theme={defaultTheme}>
 
-        <UiEventProvider>
-          <UserSessionProvider>
-            <DataCacheProvider>
-              <ActivityDispatchProvider serviceHubUrl='/api/v1'>
-                <NavTreeDispatchProvider>
+      <UiEventProvider>
+        <UserSessionProvider>
+          <DataCacheProvider>
+            <ActivityDispatchProvider serviceHubUrl='/api/v1'>
+              <NavTreeDispatchProvider>
                 <MenuDispatchProvider>
                   <PresentationDispatchProvider>
                     <BehaviourDispatchProvider>
@@ -154,11 +154,11 @@ const App: React.FC = () => {
                     </BehaviourDispatchProvider>
                   </PresentationDispatchProvider>
                 </MenuDispatchProvider>
-                </NavTreeDispatchProvider>
-              </ActivityDispatchProvider>
-            </DataCacheProvider>
-          </UserSessionProvider>
-        </UiEventProvider>
+              </NavTreeDispatchProvider>
+            </ActivityDispatchProvider>
+          </DataCacheProvider>
+        </UserSessionProvider>
+      </UiEventProvider>
     </CustomThemeProvider>
 
     ));

@@ -114,7 +114,7 @@ function makeAlwaysBuilder<DT, E extends UiMsgNames, RT>(
 ): AlwaysBuilder<DT, E, RT> {
   return {
    
-    dispatch: makeDispatchSurface(element, returnBuilder),
+    makeRequest: makeDispatchSurface(element, returnBuilder),
 
     localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void): LocalEffectBuilder<DT, E, RT> => {
       const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
@@ -152,7 +152,7 @@ function makeActivityDispatchBuilder<DT, E extends UiMsgNames, RT>(
   scopeLevel?: BehaviourScopeLevel
 ): ActivityDispatchBuilder<DT, E, RT> {
   return {
-    callAsync: (activity: ActivityCallDefinition<E> | MenuItem) => {
+    withoutWaiting: (activity: ActivityCallDefinition<E> | MenuItem) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'ServiceCallRequest',
         eventData: { requestType: 'async', activity } as any,
@@ -163,7 +163,7 @@ function makeActivityDispatchBuilder<DT, E extends UiMsgNames, RT>(
       return makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
-    callSync: (activity: ActivityCallDefinition<E> | MenuItem) => {
+    withWaiting: (activity: ActivityCallDefinition<E> | MenuItem) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'ServiceCallRequest',
         eventData: { requestType: 'sync', activity } as any,
@@ -195,10 +195,10 @@ function makeMenuDispatchBuilder<DT, E extends UiMsgNames, RT>(
   };
 
   return {
-    add:     (menu) => withMenuAction('add', menu as MenuItem),
-    remove:  (menu) => withMenuAction('remove', menu as MenuItem),
-    enable:  (menu) => withMenuAction('enable', menu as MenuItem),
-    disable: (menu) => withMenuAction('disable', menu as MenuItem),
+    toAdd:     (menu) => withMenuAction('add', menu as MenuItem),
+    toRemove:  (menu) => withMenuAction('remove', menu as MenuItem),
+    toEnable:  (menu) => withMenuAction('enable', menu as MenuItem),
+    toDisable: (menu) => withMenuAction('disable', menu as MenuItem),
     endMenus: () => returnBuilder
   };
 }
@@ -319,13 +319,13 @@ function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
   };
 
   return {
-    openBlade:  (target, params, content, viewDataIdentifier) => withAction('openBlade', target, params, content, viewDataIdentifier),
-    closeBlade: (target, params) => withAction('closeBlade', target, params),
-    openTab:    (target, params, content, viewDataIdentifier) => withAction('openTab', target, params, content, viewDataIdentifier),
-    openPagedTab: (target, params?) =>
-      makePagedTabBuilder(element, returnBuilder, target, params ?? {}, [], scopeLevel),
-    closeTab:     (target, params) => withAction('closeTab', target, params),
-    addTabPage: (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => {
+    toOpenBlade:  (target, params, content, viewDataIdentifier) => withAction('openBlade', target, params, content, viewDataIdentifier),
+    toCloseBlade: (target, params) => withAction('closeBlade', target, params),
+    toOpenTab:    (target, params, content, viewDataIdentifier) => withAction('openTab', target, params, content, viewDataIdentifier),
+    toOpenPagedTab: (target, params?) =>
+    makePagedTabBuilder(element, returnBuilder, target, params ?? {}, [], scopeLevel),
+    toCloseTab:     (target, params) => withAction('closeTab', target, params),
+    toAddTabPage: (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'PresentationRequest',
         eventData: { requestType: 'addTabPage', target: tabTarget, params: { ...page, pageId: page.id, activate: opts?.activate } } as any,
@@ -335,7 +335,7 @@ function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
       element.actions.push(action);
       return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
-    closeTabPage: (tabTarget: string, pageId: string) => {
+    toCloseTabPage: (tabTarget: string, pageId: string) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'PresentationRequest',
         eventData: { requestType: 'closeTabPage', target: tabTarget, params: { pageId } } as any,

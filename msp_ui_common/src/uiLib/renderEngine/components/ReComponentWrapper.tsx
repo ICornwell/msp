@@ -1,4 +1,4 @@
-import { ComponentType, ReactNode, useState } from 'react';
+import { ComponentType, ReactNode, useEffect, useState } from 'react';
 import { useEngineComponentsContext } from '../contexts/ReComponentsContext.js';
 import FormHelperText from '@mui/material/FormHelperText';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -32,6 +32,10 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
 
   const [ dataValue, setDataValue ] = useState(value);
   const [redrawToggle, setRedrawToggle] = useState(false);
+
+  useEffect(() => {
+    triggerRedraw();
+  }, [rootData, localData]);
 
   function triggerRedraw() {
     setDataValue(getter ? getter() : value);
