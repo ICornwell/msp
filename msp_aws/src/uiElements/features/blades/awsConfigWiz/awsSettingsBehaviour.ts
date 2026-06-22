@@ -52,7 +52,7 @@ export const useAwsSettingsBehaviour = () => {
         'AwsSetupWizardBlade',
         () => ({ title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3, updateWhenDataChanges: true }),
         awsSetupWizardContent(),
-        awsClusterSetupConfigView.getViewDataIdentifier('', defaultSetupContext.setupId)
+        awsClusterSetupConfigView.getViewDataIdentifier(defaultSetupContext.setupId)
       )
       .endPresentation()
     .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)

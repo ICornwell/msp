@@ -47,7 +47,7 @@ function normalizeRepositoryRows(
       variantName: inventoryViewIdentifier.variantName,
       viewRootEntityType: 'ecrRepository',
       viewRootEntityId: rowId,
-      viewRootEntityBusKey: rowId,
+      viewRootBusinessKey: rowId,
       viewRootId: rowId,
       content: {
         repositoryName,

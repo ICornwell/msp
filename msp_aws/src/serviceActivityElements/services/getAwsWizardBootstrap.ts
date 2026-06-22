@@ -158,7 +158,7 @@ export async function getAwsWizardBootstrapHandler(
     version: '1.0.0',
     viewRootEntityType: 'awsWizardBootstrap',
     viewRootEntityId: setupRunId,
-    viewRootEntityBusKey: setupRunId,
+    viewRootBusinessKey: setupRunId,
     viewRootId: setupRunId,
     content: bootstrapDraft,
   };

@@ -13,7 +13,7 @@ import {
 export const awsClusterSetupConfigObject = createEntityObject('awsClusterSetupConfig', awsClusterSetupConfigSchema)
   .withFQId({ namespace: 'aws', version: '1.0'})
   .forDomain({ name: 'aws', version: '1.0' })
-  .withUniqueBusinessKey((data) => `${data.setupId}::${data.region}::${data.clusterName}`)
+  .withUniqueBusinessKey((data) => `${data.setupId}`)
   .buildObject();
 
 export const awsClusterSetupDesiredStateObject = createValueObject('awsClusterSetupDesiredState', awsClusterSetupDesiredStateSchema)
@@ -44,7 +44,7 @@ export const awsClusterSetupRepositoryObject = createValueObject('awsClusterSetu
 export const awsDesiredResourceConfigObject = createEntityObject('awsDesiredResourceConfig', awsDesiredResourceConfigSchema)
   .withFQId({ namespace: 'aws', version: '1.0'})
   .forDomain({ name: 'aws', version: '1.0' })
-  .withUniqueBusinessKey((data) => `${data.setupCaseId}::${data.setupRunId}::${data.region}`)
+  .withUniqueBusinessKey((data) => `${data.setupCaseId}`)
   .buildObject();
 
 export const relatedAwsSetupObjects = createRelations()

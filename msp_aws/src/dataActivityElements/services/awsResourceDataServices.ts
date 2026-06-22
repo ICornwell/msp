@@ -3,7 +3,8 @@ import type { DataObject, ViewDataNewContent } from 'msp_common';
 import { ReadData, WriteData, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
 import { resolveAwsCredentials } from './awsCredentialResolver.js';
-import { awsDesiredResourceConfigView } from '../../data/index.js';
+import { awsDesiredResourceConfigView, eksClusterObject, ecrRepositoryObject } from '../../data/index.js';
+
 
 export type AwsReadPayload = {
   accountId?: string;
@@ -205,9 +206,8 @@ function toViewData<T extends Partial<DataObject>>(
     name,
     version: '1.0.0',
     viewRootEntityType: entityType,
-    // viewRootEntityId: rowId, only use this if not using the ViewRootEntityBusKey and ViewRootId props below
-    // viewRootEntityBusKey: 'id',
-    // viewRootId: rowId,
+ //   viewRootEntityId: rowId.__entityId,
+    viewRootBusinessKey: row.__businessKey!,
     content: {
       ...row,
     },
@@ -220,6 +220,8 @@ export async function awsEksClustersHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
   const rows = readEksClustersFromAws({ ...payload, region: creds.region, accountId: creds.accessKeyId }).map((cluster) => {
+    const busKey =  eksClusterObject.getBusinessKey(cluster); // ensure business key is generated for the cluster object
+    cluster.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data
     return toViewData('AwsSdkEksClusters', 'eksCluster', cluster);
   });
 
@@ -232,7 +234,10 @@ export async function awsEcrRepositoriesHandler(
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
+    
   const rows = readEcrRepositoriesFromAws({ ...payload, region: creds.region }).map((repo) => {
+    const busKey =  ecrRepositoryObject.getBusinessKey(repo); // ensure business key is generated for the cluster object
+    repo.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data
     return toViewData('AwsSdkEcrRepositories', 'ecrRepository', repo);
   });
 
@@ -246,6 +251,9 @@ export async function awsIamRolesHandler(
 ): Promise<ServiceActivityResultBuilder> {
   const creds = await resolveAwsCredentials(payload.region);
   const rows = readIamRolesFromAws({ ...payload, region: creds.region }).map((role) => {
+    // no roles object defined yet
+    /* const busKey =  awsSdkroleObject.getBusinessKey(role); // ensure business key is generated for the cluster object
+    role.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data */
     return toViewData('AwsSdkIamRoles', 'iamRole', role);
   });
 

@@ -11,6 +11,7 @@ export type DataActivityResult = {
     message?: string;
     error?: any;
     logs?: string[];
+    noCacheData?: boolean;
     result?: any;
 }
 

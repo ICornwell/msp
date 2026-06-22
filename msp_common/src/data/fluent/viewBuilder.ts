@@ -48,7 +48,8 @@ function attachViewIdentifierHelpers(view: View<any>): void {
 
   const getViewDataIdentifier = (dataKey: string, recordId?: string): ViewDataIdentifier => ({
     ...getViewIdentifier(),
-    viewRootEntityId: dataKey,
+    viewRootEntityId: view.rootKey === '__entityId' ? dataKey : undefined,
+    viewRootBusinessKey: view.rootKey === '__businessKey' ? dataKey : undefined,
     recordId,
   });
 
@@ -343,7 +344,7 @@ export interface ViewBuilder<RootDT = any> {
   withVersion: (version: string) => ViewBuilder<RootDT>;
   withConfigSet: (configSet: string) => ViewBuilder<RootDT>;
   withRootKey: (rootKey: string) => ViewBuilder<RootDT>;
-
+  useBusinessKey: () => ViewBuilder<RootDT>;
   withRootElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(domainObject: NDO, isCollection: IC) =>
     NEXC<
       ViewElementNonRecursive<
@@ -702,7 +703,7 @@ export function createViewBuilder<RootDT = any>(
     variantName: typeof input === 'string' ? undefined : input.variantName,
     namespace: typeof input === 'string' ? undefined : ((input as Partial<OpsElementName>).namespace),
     configSet: 'main',
-    rootKey: '',
+    rootKey: '__entityId',
     rootElement: undefined,
   };
 
@@ -728,6 +729,11 @@ export function createViewBuilder<RootDT = any>(
 
     withRootKey: function (rootKey: string): ViewBuilder<RootDT> {
       view.rootKey = rootKey;
+      return builder;
+    },
+
+    useBusinessKey: function (): ViewBuilder<RootDT> {
+      view.rootKey = '__businessKey';
       return builder;
     },
 

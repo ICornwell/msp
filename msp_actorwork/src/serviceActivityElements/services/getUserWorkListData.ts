@@ -21,7 +21,7 @@ const mockUserData: Record<string, ViewDataContent<UserWorkData[]>> = {
     version: '1.0.0',
     viewRootEntityType: 'Actor',
     viewRootEntityId: 'ian@smallwalrus.com',
-    viewRootEntityBusKey: 'ian@smallwalrus.com',
+    viewRootBusinessKey: 'ian@smallwalrus.com',
     viewRootId: 'ian@smallwalrus.com',
     content: [{
       __entityId: 'ian@smallwalrus.com',

@@ -39,8 +39,8 @@ export async function routeServiceActivity(
     version,
     variantName,
     success: false,
-    message: `No service found for activity: ${namespace}/${activityName}@${version}-${variantName}`,
-    error: { code: 'ACTIVITY_NOT_FOUND' },
+    message: registeredActivityResults.message ?? `No service found for activity: ${namespace}/${activityName}@${version}-${variantName}`,
+    error: registeredActivityResults.error ?? { code: 'ACTIVITY_NOT_FOUND' },
     logs: [
       ...(localResults.logs || []),
       ...(registeredActivityResults.logs || [])
@@ -72,8 +72,8 @@ export async function routeDataActivity(
     version,
     variantName,
     success: false,
-    message: `No service found for activity: ${namespace}/${activityName}@${version}-${variantName}`,
-    error: { code: 'ACTIVITY_NOT_FOUND' },
+    message: registeredActivityResults.message ?? `No service found for activity: ${namespace}/${activityName}@${version}-${variantName}`,
+    error: registeredActivityResults.error ?? { code: 'ACTIVITY_NOT_FOUND' },
     logs: [
       ...(registeredActivityResults.logs || [])
     ]

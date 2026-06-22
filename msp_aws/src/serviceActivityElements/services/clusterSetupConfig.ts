@@ -16,7 +16,7 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
     variantName: setupViewIdentifier.variantName,
     viewRootEntityType: 'awsClusterSetupConfig',
     viewRootEntityId: setupId,
-    viewRootEntityBusKey: setupId,
+    viewRootBusinessKey: setupId,
     viewRootId: setupId,
     content: {
       setupId,
@@ -74,7 +74,7 @@ function normalizeSetupRow(row: any): ViewDataContent<AwsClusterSetupConfig> | u
       variantName: setupViewIdentifier.variantName,
       viewRootEntityType: 'awsClusterSetupConfig',
       viewRootEntityId: setupId,
-      viewRootEntityBusKey: setupId,
+      viewRootBusinessKey: setupId,
       viewRootId: setupId,
       content: row as AwsClusterSetupConfig,
     };
@@ -102,7 +102,11 @@ async function readSetup(payload: ReadClusterSetupConfigPayload): Promise<ViewDa
     // Seed fallback path below.
   }
 
-  return [seedSetup(region, clusterName, setupId)];
+  const firstSetup = seedSetup(region, clusterName, setupId);
+  const firstKey = awsClusterSetupConfigObject.getBusinessKey(firstSetup.content);
+  firstSetup.viewRootBusinessKey = firstKey!
+
+  return [firstSetup];
 }
 
 async function mergeSetup(payload: WriteClusterSetupConfigPayload): Promise<ViewDataContent<AwsClusterSetupConfig>> {

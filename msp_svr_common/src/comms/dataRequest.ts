@@ -180,9 +180,11 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 export type DataRequestResultBuilder = {
 	updatePayload: (payload: any) => DataRequestResultBuilder;
 	updateResult: (result: any) => DataRequestResultBuilder;
-	success: (result?: any) => DataRequestResultBuilder;
+	success: (result?: any, message?: string) => DataRequestResultBuilder;
+	successfullyFailed: (result?: any,message?: string, error?: any) => DataRequestResultBuilder;
 	failed: (message?: string, error?: any) => DataRequestResultBuilder;
 	log: (message: string) => DataRequestResultBuilder;
+	setNoCacheDataFlag: () => DataRequestResultBuilder;
 	currentResult: () => any;
 }
 

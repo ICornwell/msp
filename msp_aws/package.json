@@ -10,7 +10,7 @@
     "data": "node ./distApi/dataActivityElements/server.js --inspect & vite",
     "start:data": "node ./distApi/dataActivityElements/server.js",
     "dev": "vite",
-    "build": "yarn clear_mf_cache && tsgo -b && vite build",
+    "build": "yarn clear_mf_cache && rm -rf ./distApi && tsgo -b && vite build",
     "build:server": "tsgo -b",
     "preview": "vite preview",
     "test": "vitest run",

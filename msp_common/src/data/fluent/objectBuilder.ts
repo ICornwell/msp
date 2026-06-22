@@ -133,7 +133,6 @@ function createObject<S extends Schema<any, any>, O extends string, P extends st
        failOptions?: { neverThrow?: boolean, throwMessage?: string, fallback?: string }): string | null {
 
       const key = getDerivedValueFromData(data, domainObj.businessKey, failOptions);
-
       return key;
     },
     getAlternateKey: function (data: Partial<PropsOfSchema<S>>,

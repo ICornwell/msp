@@ -96,3 +96,5 @@ let f: Flatten<folder> = {
         ]
     }
 }
+
+console.log (src, f)

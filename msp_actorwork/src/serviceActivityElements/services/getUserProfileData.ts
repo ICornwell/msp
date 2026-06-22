@@ -24,7 +24,7 @@ const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
     version: '1.0.0',
     viewRootEntityType: 'UserProfile',
     viewRootEntityId: 'currentuser',
-    viewRootEntityBusKey: 'user-123',
+    viewRootBusinessKey: 'user-123',
     viewRootId: 'user-123',
     content: {
       __entityId: 'currentuser',
@@ -41,7 +41,7 @@ const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
     version: '1.0.0',
     viewRootEntityType: 'UserProfile',
     viewRootEntityId: 'currentuser',
-    viewRootEntityBusKey: 'user-456',
+    viewRootBusinessKey: 'user-456',
     viewRootId: 'user-456',
     content: {
       __entityId: 'currentuser',
@@ -58,7 +58,7 @@ const mockUserData: Record<string, ViewDataContent<UserProfileData>> = {
     version: '1.0.0',
     viewRootEntityType: 'UserProfile',
     viewRootEntityId: 'currentuser',
-    viewRootEntityBusKey: 'ian@smallwalrus.com',
+    viewRootBusinessKey: 'ian@smallwalrus.com',
     viewRootId: 'currentuser',
     content: {
       __entityId: 'currentuser',

@@ -18,9 +18,11 @@ export type ServiceActivity = {
 export type ServiceActivityResultBuilder = {
     updatePayload: (payload: any) => ServiceActivityResultBuilder;
     updateResult: (result: any) => ServiceActivityResultBuilder;
-    success: (result?: any) => ServiceActivityResultBuilder;
+    success: (result?: any, message?: string) => ServiceActivityResultBuilder;
+    successfullyFailed: (result?: any,message?: string, error?: any) => ServiceActivityResultBuilder;
     failed: (message?: string, error?: any) => ServiceActivityResultBuilder;
     log: (message: string) => ServiceActivityResultBuilder;
+    setNoCacheDataFlag: () => ServiceActivityResultBuilder;
     currentResult: () => any;
 }
 
@@ -35,6 +37,7 @@ export function getEmptyResult(): ServiceActivityResult {
         message: undefined,
         error: undefined,
         logs: [],
+        noCacheData: false,
         result: undefined
     }
 }
@@ -52,10 +55,27 @@ export function CreateResultBuilder(result?: ServiceActivityResult): ServiceActi
             result.result = value;
             return this;
         },
-        success: function (value?: any) {
+        success: function (value?: any, message?: string) {
             result.success = true;
             if (value) {
                 result.result = value;
+            }
+            result.error = undefined;
+            if (message) {
+                result.message = message;
+            }
+            return this;
+        },
+        successfullyFailed: function (value?: any,message?: string, error?: any) {
+            result.success = true;
+            if (value) {
+                result.result = value;
+            }
+            if (message) {
+                result.message = message;
+            }
+            if (error) {
+                result.error = error;
             }
             return this;
         },
@@ -74,6 +94,10 @@ export function CreateResultBuilder(result?: ServiceActivityResult): ServiceActi
                 result.logs = [];
             }
             result.logs.push(message);
+            return this;
+        },
+        setNoCacheDataFlag: function () {
+            result.noCacheData = true;
             return this;
         },
         currentResult: function () {

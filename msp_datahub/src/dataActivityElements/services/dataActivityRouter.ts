@@ -25,8 +25,8 @@ export async function routeDataActivity(
     activityName,
     version,
     success: false,
-    message: `No service found for activity: ${namespace}/${activityName}@${version}`,
-    error: { code: 'ACTIVITY_NOT_FOUND' },
+    message: registeredActivityResults.message ?? `No service found for activity: ${namespace}/${activityName}@${version}`,
+    error: registeredActivityResults.error ?? { code: 'ACTIVITY_NOT_FOUND' },
     logs: [
       ...(registeredActivityResults.logs || [])
     ]

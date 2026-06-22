@@ -93,6 +93,9 @@ export async function connectAwsCredentialsHandler(
   payload: ConnectAwsCredentialsPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
+
+  resultBuilder.setNoCacheDataFlag();
+
   const setupId = required(payload.setupId) ?? 'aws-cluster-setup-default';
   const region = required(payload.region) ?? 'eu-west-2';
   const clusterName = required(payload.clusterName) ?? 'msp-dev-eks';
@@ -103,9 +106,27 @@ export async function connectAwsCredentialsHandler(
   const sessionToken = required(payload.sessionToken);
 
   if (!accountId || !accessKeyId || !secretAccessKey) {
-    return resultBuilder.failed('accountId, accessKeyId and secretAccessKey are required to connect.', {
-      code: 'INVALID_INPUT',
-    });
+    resultBuilder.log('Missing required AWS credentials: accountId, accessKeyId and secretAccessKey are required.');
+    return resultBuilder.successfullyFailed({
+      connected: false,
+      connection: {
+        connected: false,
+        accountId: 'unknown',
+        callerArn: 'unknown',
+        callerUserId: 'unknown',
+        checkedAt: (new Date(Date.now())).toISOString(),
+        message: 'Missing required AWS credentials: accountId, accessKeyId and secretAccessKey are required.',
+      },
+      data: {},
+      accountId,
+      accountName,
+      region,
+      setupId,
+      clusterName,
+    }, 'accountId, accessKeyId and secretAccessKey are required to connect.',
+      {
+        code: 'INVALID_INPUT',
+      })
   }
 
   const connection = await validateAwsConnectionViaDataActivity(

@@ -2,7 +2,7 @@ import { useContext, createContext, useRef, useState } from 'react';
 import PubSub, { UiPubSubMsg } from './UiPubSub.js';
 import { useUiEventContext } from './UiEventContext.js';
 //import { DataIdentifier } from './Data.js';
-import type { DataViewIdQueryEnvelope, ViewDataContent, ViewDataQueryByKeyIdentifier, ViewDataQueryIdentifier } from 'msp_common';
+import type { DataViewIdQueryEnvelope, ViewDataContent, ViewDataQueryIdentifier } from 'msp_common';
 import { v4 as uuid } from 'uuid';
 import { serviceRequest } from '../comms/serverRequests.js';
 import { useUserSession } from '../hooks/index.js';
@@ -76,8 +76,8 @@ function toCacheKey(viewDataContent: ViewDataQueryIdentifier, forBusKey?: boolea
     version,
     variantName,
     viewRootEntityId,
-    viewRootBusKey } = viewDataContent as ViewDataQueryByKeyIdentifier;
-  return `${namespace}|${name}|${version}|${variantName}|||${forBusKey ? viewRootBusKey : viewRootEntityId}`;
+    viewRootBusinessKey } = viewDataContent;
+  return `${namespace}|${name}|${version}|${variantName}|||${forBusKey ? viewRootBusinessKey : viewRootEntityId}`;
 }
 
 // function fromDataIdentifier(viewDataQueryIdentifier: ViewDataQueryIdentifier): CacheKey {
@@ -148,11 +148,11 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   }
 
   function cacheGet(key: ViewDataQueryIdentifier): CachedView | undefined {
-    return cache.get((key as ViewDataQueryByKeyIdentifier).viewRootBusKey ? toCacheKey(key, true) : toCacheKey(key));
+    return cache.get(key.viewRootBusinessKey ? toCacheKey(key, true) : toCacheKey(key));
   }
 
   function cacheSet(key: ViewDataQueryIdentifier, value: CachedView): void {
-    if ((key as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+    if (key.viewRootBusinessKey) {
       cache.set(toCacheKey(key, true), value);
     }
     if (key.viewRootEntityId) {
@@ -171,11 +171,11 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   }
 
   function entityIndexGet(key: ViewDataQueryIdentifier): Set<CacheKey> | undefined {
-    return entityIndex.get((key as ViewDataQueryByKeyIdentifier).viewRootBusKey ? toCacheKey(key, true) : toCacheKey(key));
+    return entityIndex.get(key.viewRootBusinessKey ? toCacheKey(key, true) : toCacheKey(key));
   }
 
   function entityIndexSet(key: ViewDataQueryIdentifier, value: Set<CacheKey>): void {
-    if ((key as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+    if (key.viewRootBusinessKey) {
       entityIndex.set(toCacheKey(key, true), value);
     }
     if (key.viewRootEntityId) {
@@ -194,7 +194,7 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
   }
 
   function inFlightRequestsSet(key: ViewDataQueryIdentifier, value: Promise<void>): boolean {
-    if ((key as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+    if (key.viewRootBusinessKey) {
       inFlightRequests.set(toCacheKey(key, true), value);
     }
     if (key.viewRootEntityId) {
@@ -270,11 +270,13 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
       try {
         // if we don't have the data - request it from the the server,
         // cache the results and publish a DataViewLoaded event
+        const entityId = viewDataQueryIdentifier.viewRootEntityId
+        const busKey = viewDataQueryIdentifier.viewRootBusinessKey;
         const response = await serviceRequest<DataViewIdQueryEnvelope>('view-read', {
           payload: {
             viewId: viewDataQueryIdentifier,
-            id: isEmpty(viewDataQueryIdentifier.viewRootEntityId) ? viewDataQueryIdentifier.recordId : viewDataQueryIdentifier.viewRootEntityId,
-            options: { dataRequestOptions: { useBusinessKey: true } }
+            id: isEmpty(entityId) ? busKey : entityId,
+            options: { dataRequestOptions: { useBusinessKey: isEmpty(entityId) } }
           }
         });
 
@@ -294,9 +296,9 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
             if (viewDataQueryIdentifier.viewRootEntityId) {
               entityIndexGet(viewDataQueryIdentifier)!.add(viewDataQueryIdentifier.viewRootEntityId);
             }
-            if ((viewDataQueryIdentifier as ViewDataQueryByKeyIdentifier).viewRootBusKey) {
+            if (viewDataQueryIdentifier.viewRootBusinessKey) {
               entityIndexGet(viewDataQueryIdentifier)!
-                .add((viewDataQueryIdentifier as ViewDataQueryByKeyIdentifier).viewRootBusKey);
+                .add(viewDataQueryIdentifier.viewRootBusinessKey);
             }
 
             dispatchDataEvent({ type: 'DataViewLoaded', viewDataContent: data, fromCache: false, correlationId } as any);
@@ -331,15 +333,21 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
       const indexSet = entityIndexGet({
         ...msg.viewDataContent,
         viewRootEntityId: msg.viewDataContent.viewRootId,
-        viewRootBusKey: undefined
+        viewRootBusinessKey: undefined
       });
       if (indexSet) {
-        indexSet.delete(msg.viewDataContent.viewRootEntityId);
+        if (msg.viewDataContent.viewRootEntityId) {
+          indexSet.delete(msg.viewDataContent.viewRootEntityId);
+        }
+        if (msg.viewDataContent.viewRootBusinessKey) {
+          indexSet.delete(msg.viewDataContent.viewRootBusinessKey);
+        }
         if (indexSet.size === 0) entityIndexDelete({
           ...msg.viewDataContent,
           viewRootEntityId: msg.viewDataContent.viewRootId,
-          viewRootBusKey: undefined
+          viewRootBusinessKey: undefined
         });
+
       }
 
       eventPubSubRef.current.publish({
@@ -349,20 +357,20 @@ export const DataCacheProvider = ({ children }: { children: any }) => {
         correlationId: msg.correlationId,
       } as any);
     } else if (msg.type === 'UpdateData') {
-      const key = toCacheKey(msg.viewDataIdentifier);
-      const cached = cache.get(key);
+      const cached = cacheGet(msg.viewDataIdentifier);
       if (cached?.viewDataContent?.content && msg.dataPatch && typeof msg.dataPatch === 'object') {
         const currentContent = cached.viewDataContent.content as any;
         const recordId = msg.viewDataIdentifier.recordId;
 
         if (Array.isArray(currentContent) && recordId) {
-          cached.viewDataContent.content = currentContent.map((entry: any) =>
+          const updatedContent = currentContent.map((entry: any) =>
             entry?.id === recordId && entry && typeof entry === 'object'
-              ? { ...entry, ...msg.dataPatch }
+              ? msg.dataPatch
               : entry
           );
+          cacheSet(msg.viewDataIdentifier, { ...cached, viewDataContent: { ...cached.viewDataContent, content: updatedContent } });
         } else if (currentContent && typeof currentContent === 'object' && !Array.isArray(currentContent)) {
-          cached.viewDataContent.content = { ...currentContent, ...msg.dataPatch };
+          cacheSet(msg.viewDataIdentifier, { ...cached, viewDataContent: { ...cached.viewDataContent, content: msg.dataPatch } });
         }
 
         const changedViewDataContent = fromViewData(cached.viewDataContent, msg.viewDataIdentifier)

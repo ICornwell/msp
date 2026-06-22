@@ -8,14 +8,14 @@ import { serviceRequest } from '../comms/serverRequests.js';
 
 export type ActivityEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
-  ACTIVITY_SUCCEEDED:  'ACTIVITY_SUCCEEDED',
+  ACTIVITY_SUCCEEDED: 'ACTIVITY_SUCCEEDED',
   /** Raised when a cached data view is mutated via save(). */
   ACTIVITY_FAILED: 'ACTIVITY_FAILED',
 }
 
 export const ActivityEvents: ActivityEventsType = {
   /** Raised when a data view arrives from a service call or is replayed from cache. */
-  ACTIVITY_SUCCEEDED:  'ACTIVITY_SUCCEEDED',
+  ACTIVITY_SUCCEEDED: 'ACTIVITY_SUCCEEDED',
   /** Raised when a cached data view is mutated via save(). */
   ACTIVITY_FAILED: 'ACTIVITY_FAILED',
 } as const;
@@ -34,7 +34,7 @@ export type ActivityDispatchContextType = {
 };
 
 export const ActivityDispatchContext = createContext<ActivityDispatchContextType>({
-  callActivity: () => {},
+  callActivity: () => { },
 });
 
 export type ActivityDispatchProviderProps = {
@@ -80,9 +80,11 @@ export function ActivityDispatchProvider({
         if (activityResponse.success && activityResponse.result) {
           const raw = activityResponse.result;
           // ViewDataContent[] convention: { data: [{ name, version, viewRootId, content }] }
-          if (Array.isArray(raw?.data) && raw.data.length > 0 && raw.data[0]?.name !== undefined) {
-            for (const item of raw.data as Array<ViewDataContent<any>>) {
-              dataCache.submitData(item);
+          if (!activityResponse.noCacheData) {
+            if (Array.isArray(raw?.data) && raw.data.length > 0 && raw.data[0]?.name !== undefined) {
+              for (const item of raw.data as Array<ViewDataContent<any>>) {
+                dataCache.submitData(item);
+              }
             }
           }
           const responseWithoutResult = { ...activityResponse };
@@ -107,8 +109,10 @@ export function ActivityDispatchProvider({
               namespace,
               activityName,
               version,
-              activityResponse: { error: activityResponse.message, 
-              details: activityResponse.error}
+              activityResponse: {
+                error: activityResponse.message,
+                details: activityResponse.error
+              }
             },
             correlationId,
             timestamp: Date.now(),
@@ -116,7 +120,7 @@ export function ActivityDispatchProvider({
         }
       } catch (err: any) {
         console.error('Activity call error:', err);
-       
+
         raiseUiEvent({
           messageType: ActivityEvents.ACTIVITY_FAILED,
           payload: {

@@ -50,7 +50,7 @@ function normalizeEksRows(
       variantName: inventoryViewIdentifier.variantName,
       viewRootEntityType: 'eksCluster',
       viewRootEntityId: rowId,
-      viewRootEntityBusKey: rowId,
+      viewRootBusinessKey: rowId,
       viewRootId: rowId,
       content: {
         clusterName,

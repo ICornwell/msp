@@ -8,6 +8,7 @@ export type ServiceActivityResult = {
     message?: string;
     error?: any;
     logs?: string[];
+		noCacheData?: boolean;
     result?: any;
 }
 

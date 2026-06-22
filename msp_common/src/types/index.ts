@@ -122,38 +122,31 @@ export type ViewIdentifier = {
 }
 
 export type ViewDataIdentifier = ViewIdentifier & {
-  viewRootEntityId: string,
+  viewRootEntityId?: string,
+  viewRootBusinessKey?: string,
   viewRootEntityHistoricTimestamp?: string
   recordId?: string; // Optional recordId for intra array lookup, if applicable
 }
 
-export type ViewDataQueryByIdIdentifier = ViewDataIdentifier & {
-  // place holder for any additional properties specific to ID-based queries if needed in the future
-}
 
-export type ViewDataQueryByKeyIdentifier = ViewDataIdentifier & {
-  viewRootBusKey: string,
-}
+export type ViewDataQueryIdentifier = ViewDataIdentifier
 
-export type ViewDataQueryIdentifier = ViewDataQueryByIdIdentifier | ViewDataQueryByKeyIdentifier;
-
-export type ViewDataContent<D = any> = ViewDataQueryByIdIdentifier & {
-  viewRootId: string,
+export type ViewDataContent<D = any> = ViewDataIdentifier & {
   viewRootEntityType: string,
-  viewRootEntityBusKey: string,
+  viewRootId: string,
   content: D
 }
 
 // if handcrafted new data to be saved as a view, key and timestamps will not be present
 export type ViewDataNewContent<D = any> = Omit<ViewDataContent<D>, 'viewRootEntityId' |
-  'viewRootId' | 'viewRootEntityBusKey' | 'viewRootEntityHistoricTimestamp' | 'recordId'>
+  'viewRootId' | 'viewRootEntityHistoricTimestamp' | 'recordId'>
 
 export function isViewDataContent_Matching_ViewDataIdentifier(content?: ViewDataContent, identifier?: ViewDataQueryIdentifier): boolean {
   if (!content && !identifier) return true;
   if (!content || !identifier) return false;
   return matchesId(content, identifier)
-    && content.viewRootEntityId === identifier.viewRootEntityId
-    && content.viewRootEntityHistoricTimestamp === identifier.viewRootEntityHistoricTimestamp
+    && (content.viewRootEntityId === identifier.viewRootEntityId
+    || content.viewRootBusinessKey === identifier.viewRootBusinessKey)
     && content.recordId === identifier.recordId;
 }
 
@@ -161,7 +154,8 @@ export function viewDataIdentifier_Match(a?: ViewDataIdentifier, b?: ViewDataIde
   if (!a && !b) return true;
   if (!a || !b) return false;
   return matchesId(a, b)
-    && a.viewRootEntityId === b.viewRootEntityId
+    && (a.viewRootEntityId === b.viewRootEntityId
+    || a.viewRootBusinessKey === b.viewRootBusinessKey)
     && a.viewRootEntityHistoricTimestamp === b.viewRootEntityHistoricTimestamp
     && a.recordId === b.recordId;
 }

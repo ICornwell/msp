@@ -30,8 +30,8 @@ export async function routeServiceActivity(
     version,
     variantName,
     success: false,
-    message: `No service found for activity: ${namespace}/${activityName}@${version}#${variantName}`,
-    error: { code: 'ACTIVITY_NOT_FOUND' },
+    message: localResults.message ?? `No service found for activity: ${namespace}/${activityName}@${version}#${variantName}`,
+    error: localResults.error ?? { code: 'ACTIVITY_NOT_FOUND' },
     logs: [
       ...(localResults.logs || [])
     ]
