@@ -214,122 +214,168 @@ function toViewData<T extends Partial<DataObject>>(
   };
 }
 
+function toErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim().length > 0) {
+      return message;
+    }
+  }
+  return fallback;
+}
+
 export async function awsEksClustersHandler(
   payload: AwsReadPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const creds = await resolveAwsCredentials(payload.region);
-  const rows = readEksClustersFromAws({ ...payload, region: creds.region, accountId: creds.accessKeyId }).map((cluster) => {
-    const busKey =  eksClusterObject.getBusinessKey(cluster); // ensure business key is generated for the cluster object
-    cluster.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data
-    return toViewData('AwsSdkEksClusters', 'eksCluster', cluster);
-  });
+  try {
+    const creds = await resolveAwsCredentials(payload.region);
+    const rows = readEksClustersFromAws({ ...payload, region: creds.region, accountId: creds.accessKeyId }).map((cluster) => {
+      const busKey =  eksClusterObject.getBusinessKey(cluster); // ensure business key is generated for the cluster object
+      cluster.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data
+      return toViewData('AwsSdkEksClusters', 'eksCluster', cluster);
+    });
 
-  resultBuilder.log(`Data layer: returning ${rows.length} EKS cluster record(s) for region=${creds.region}.`);
-  return resultBuilder.success({ data: rows });
+    resultBuilder.log(`Data layer: returning ${rows.length} EKS cluster record(s) for region=${creds.region}.`);
+    return resultBuilder.success({ data: rows });
+  } catch (error) {
+    const message = toErrorMessage(error, 'Failed to read EKS clusters from AWS SDK.');
+    resultBuilder.log(`Data layer: AWS EKS read failed: ${message}`);
+    return resultBuilder.successfullyFailed({ data: [] }, message, { code: 'AWS_EKS_READ_FAILED' });
+  }
 }
 
 export async function awsEcrRepositoriesHandler(
   payload: AwsReadPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const creds = await resolveAwsCredentials(payload.region);
-    
-  const rows = readEcrRepositoriesFromAws({ ...payload, region: creds.region }).map((repo) => {
-    const busKey =  ecrRepositoryObject.getBusinessKey(repo); // ensure business key is generated for the cluster object
-    repo.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data
-    return toViewData('AwsSdkEcrRepositories', 'ecrRepository', repo);
-  });
+  try {
+    const creds = await resolveAwsCredentials(payload.region);
 
-  resultBuilder.log(`Data layer: returning ${rows.length} ECR repository record(s) for region=${creds.region}.`);
-  return resultBuilder.success({ data: rows });
+    const rows = readEcrRepositoriesFromAws({ ...payload, region: creds.region }).map((repo) => {
+      const busKey =  ecrRepositoryObject.getBusinessKey(repo); // ensure business key is generated for the cluster object
+      repo.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data
+      return toViewData('AwsSdkEcrRepositories', 'ecrRepository', repo);
+    });
+
+    resultBuilder.log(`Data layer: returning ${rows.length} ECR repository record(s) for region=${creds.region}.`);
+    return resultBuilder.success({ data: rows });
+  } catch (error) {
+    const message = toErrorMessage(error, 'Failed to read ECR repositories from AWS SDK.');
+    resultBuilder.log(`Data layer: AWS ECR read failed: ${message}`);
+    return resultBuilder.successfullyFailed({ data: [] }, message, { code: 'AWS_ECR_READ_FAILED' });
+  }
 }
 
 export async function awsIamRolesHandler(
   payload: AwsReadPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const creds = await resolveAwsCredentials(payload.region);
-  const rows = readIamRolesFromAws({ ...payload, region: creds.region }).map((role) => {
-    // no roles object defined yet
-    /* const busKey =  awsSdkroleObject.getBusinessKey(role); // ensure business key is generated for the cluster object
-    role.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data */
-    return toViewData('AwsSdkIamRoles', 'iamRole', role);
-  });
+  try {
+    const creds = await resolveAwsCredentials(payload.region);
+    const rows = readIamRolesFromAws({ ...payload, region: creds.region }).map((role) => {
+      // no roles object defined yet
+      /* const busKey =  awsSdkroleObject.getBusinessKey(role); // ensure business key is generated for the cluster object
+      role.__businessKey = busKey ?? undefined; // assign the business key to the cluster object for use in the view data */
+      return toViewData('AwsSdkIamRoles', 'iamRole', role);
+    });
 
-  resultBuilder.log(`Data layer: returning ${rows.length} IAM role record(s) for region=${creds.region}.`);
-  return resultBuilder.success({ data: rows });
+    resultBuilder.log(`Data layer: returning ${rows.length} IAM role record(s) for region=${creds.region}.`);
+    return resultBuilder.success({ data: rows });
+  } catch (error) {
+    const message = toErrorMessage(error, 'Failed to read IAM roles from AWS SDK.');
+    resultBuilder.log(`Data layer: AWS IAM read failed: ${message}`);
+    return resultBuilder.successfullyFailed({ data: [] }, message, { code: 'AWS_IAM_READ_FAILED' });
+  }
 }
 
 export async function awsNetworkTopologyHandler(
   payload: AwsReadPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const creds = await resolveAwsCredentials(payload.region);
-  const rows = readNetworkShapesFromAws({ ...payload, region: creds.region }).map((net) => {
-    return toViewData('AwsSdkNetworkTopology', 'networkShape', net);
-  });
+  try {
+    const creds = await resolveAwsCredentials(payload.region);
+    const rows = readNetworkShapesFromAws({ ...payload, region: creds.region }).map((net) => {
+      return toViewData('AwsSdkNetworkTopology', 'networkShape', net);
+    });
 
-  resultBuilder.log(`Data layer: returning ${rows.length} network topology record(s) for region=${creds.region}.`);
-  return resultBuilder.success({ data: rows });
+    resultBuilder.log(`Data layer: returning ${rows.length} network topology record(s) for region=${creds.region}.`);
+    return resultBuilder.success({ data: rows });
+  } catch (error) {
+    const message = toErrorMessage(error, 'Failed to read network topology from AWS SDK.');
+    resultBuilder.log(`Data layer: AWS network topology read failed: ${message}`);
+    return resultBuilder.successfullyFailed({ data: [] }, message, { code: 'AWS_NETWORK_READ_FAILED' });
+  }
 }
 
 export async function awsInventorySnapshotHandler(
   payload: AwsReadPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const eks = readEksClustersFromAws(payload);
-  const ecr = readEcrRepositoriesFromAws(payload);
-  const iam = readIamRolesFromAws(payload);
-  const net = readNetworkShapesFromAws(payload);
+  try {
+    const eks = readEksClustersFromAws(payload);
+    const ecr = readEcrRepositoriesFromAws(payload);
+    const iam = readIamRolesFromAws(payload);
+    const net = readNetworkShapesFromAws(payload);
 
-  const snapshot: AwsSdkInventorySnapshot = {
-    accountId: getAccountId(payload),
-    region: getRegion(payload),
-    collectedAt: new Date().toISOString(),
-    counts: {
-      eksClusters: eks.length,
-      ecrRepositories: ecr.length,
-      iamRoles: iam.length,
-      networkShapes: net.length,
-    },
-  };
+    const snapshot: AwsSdkInventorySnapshot = {
+      accountId: getAccountId(payload),
+      region: getRegion(payload),
+      collectedAt: new Date().toISOString(),
+      counts: {
+        eksClusters: eks.length,
+        ecrRepositories: ecr.length,
+        iamRoles: iam.length,
+        networkShapes: net.length,
+      },
+    };
 
-  const row = toViewData(
-    'AwsSdkInventorySnapshot',
-    'awsInventorySnapshot',
-    snapshot,
-  );
+    const row = toViewData(
+      'AwsSdkInventorySnapshot',
+      'awsInventorySnapshot',
+      snapshot,
+    );
 
-  resultBuilder.log('Data layer: returning aggregated AWS inventory snapshot.');
-  return resultBuilder.success({ data: [row] });
+    resultBuilder.log('Data layer: returning aggregated AWS inventory snapshot.');
+    return resultBuilder.success({ data: [row] });
+  } catch (error) {
+    const message = toErrorMessage(error, 'Failed to build AWS inventory snapshot.');
+    resultBuilder.log(`Data layer: inventory snapshot failed: ${message}`);
+    return resultBuilder.successfullyFailed({ data: [] }, message, { code: 'AWS_INVENTORY_READ_FAILED' });
+  }
 }
 
 export async function writeAwsDesiredResourceConfigHandler(
   payload: AwsDesiredConfigPayload,
   resultBuilder: ServiceActivityResultBuilder,
 ): Promise<ServiceActivityResultBuilder> {
-  const key = `${payload.setupCaseId}::${payload.setupRunId}`;
-  const now = new Date().toISOString();
+  try {
+    const key = `${payload.setupCaseId}::${payload.setupRunId}`;
+    const now = new Date().toISOString();
 
-  const record = toViewData<AwsDesiredResourceConfigRecord>(
-    'AwsDesiredResourceConfig',
-    'awsDesiredResourceConfig',
-    {
-      setupCaseId: payload.setupCaseId,
-      setupRunId: payload.setupRunId,
-      region: payload.region,
-      resources: payload.resources,
-      updatedAt: now,
-    },
-  );
+    const record = toViewData<AwsDesiredResourceConfigRecord>(
+      'AwsDesiredResourceConfig',
+      'awsDesiredResourceConfig',
+      {
+        setupCaseId: payload.setupCaseId,
+        setupRunId: payload.setupRunId,
+        region: payload.region,
+        resources: payload.resources,
+        updatedAt: now,
+      },
+    );
 
-  await WriteData(awsDesiredResourceConfigView, {
-    ...record.content,
-  });
+    await WriteData(awsDesiredResourceConfigView, {
+      ...record.content,
+    });
 
-  resultBuilder.log(`Data layer: stored desired config for ${key}.`);
-  return resultBuilder.success({ data: [record] });
+    resultBuilder.log(`Data layer: stored desired config for ${key}.`);
+    return resultBuilder.success({ data: [record] });
+  } catch (error) {
+    const message = toErrorMessage(error, 'Failed to store desired AWS resource configuration.');
+    resultBuilder.log(`Data layer: desired config write failed: ${message}`);
+    return resultBuilder.successfullyFailed({ data: [] }, message, { code: 'AWS_DESIRED_CONFIG_WRITE_FAILED' });
+  }
 }
 
 export async function readAwsDesiredResourceConfigHandler(
@@ -384,6 +430,9 @@ export async function awsValidateCredentialsHandler(
   try {
     const client = new STSClient({
       region,
+      // Force a concrete defaults mode to avoid environment/provider chain issues
+      // in long-lived dev processes where smithy config resolution can intermittently fail.
+      defaultsMode: 'standard',
       credentials: {
         accessKeyId: payload.accessKeyId || '',
         secretAccessKey: payload.secretAccessKey || '',
