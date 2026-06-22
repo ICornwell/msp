@@ -4,7 +4,7 @@ describe('Declarative View Builder', () => {
 
   it('should build a schema', () => {
     const accountSchema = createSchema('account')
-    .withFQId({name: 'account', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('accountNumber')
       .forType<string>()
       .withDictionaryId('dict-account-number', '1.0')
@@ -20,7 +20,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
     expect(accountSchema.name).toBe('account');
-    expect(accountSchema.vid).toEqual({ name: 'account', version: '1.0' });
+    expect(accountSchema.vid).toEqual({ namespace: 'test', name: 'account', version: '1.0' });
     expect(accountSchema.properties).toHaveProperty('accountNumber');
 
     expect(accountSchema.properties['accountNumber']).toEqual({
@@ -35,7 +35,7 @@ describe('Declarative View Builder', () => {
 
   it('should build a schema with inheritance', () => {
   const personSchema1 = createSchema('person')
-    .withFQId({name: 'person', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('name').withDictionaryId('dict-account-number', '1.0')
       .forType<string>()
       .withInfoType('Text')
@@ -44,7 +44,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const personSchema2 = createSchema('person')
-      .withFQId({name: 'person2', version: '1.2'})
+      .withFQId({ namespace: 'test', version: '1.2'})
       .inheritsFrom(personSchema1)
       .withProperty('age').withDictionaryId('dict-age', '1.2')
         .forType<number>()

@@ -8,9 +8,9 @@ import { SchemaBuilder } from './schemaBuilder.js';
 // Product - represents a complete Product with schemas and views
 // ============================================================================================================
 
-export interface Product {
+export interface Product<N extends string = string> {
   id: versionedResourceId;
-  name: string;
+  name: N;
   domain: versionedResourceId;
   inheritsFrom?: versionedResourceId;
   schemas: Map<string, Schema<any, any>>;  // Full snapshot (schema.vid.id -> schema)
@@ -22,8 +22,7 @@ export interface Product {
 // ============================================================================================================
 
 export interface ProductBuilder {
-  withName: (name: string) => ProductBuilder;
-  withId: (id: string, version: string) => ProductBuilder;
+  withFQId: (fqid: Omit<versionedResourceId, 'name'>) => ProductBuilder;
   withDomain: (domain: versionedResourceId) => ProductBuilder;
   inheritsFrom: (parentProduct: Product) => ProductBuilder;
   addView: (view: View | ViewBuilder<any>) => ProductBuilder;
@@ -32,10 +31,10 @@ export interface ProductBuilder {
   buildProduct: () => Product;
 }
 
-export function createProduct(): ProductBuilder {
-  const product: Partial<Product> = {
-    id: { name: '', version: '1.0.0' },
-    name: '',
+export function createProduct<N extends string>(name: N): ProductBuilder {
+  const product: Partial<Product<N>> = {
+    id: { name, version: '1.0.0' },
+    name,
     domain: { name: 'prototype', version: '1.0' },
     inheritsFrom: undefined,
     schemas: new Map(),
@@ -49,13 +48,13 @@ export function createProduct(): ProductBuilder {
   const addedViews: View[] = [];
 
   const builder: ProductBuilder = {
-    withName: function (name: string): ProductBuilder {
-      product.name = name;
-      return builder;
-    },
+   
 
-    withId: function (id: string, version: string): ProductBuilder {
-      product.id = { name: id, version };
+    withFQId: function (fqid: Partial<Omit<versionedResourceId, 'name'> >): ProductBuilder {
+      product.id = { 
+        name: product.name! as string,
+        version: product.id?.version || '1.0.0',
+         ...fqid };
       return builder;
     },
 
@@ -207,6 +206,6 @@ function extractSchemasFromElement(
 }
 
 // Convenience function to start building a product
-export function product(): ProductBuilder {
-  return createProduct();
+export function product<N extends string>(name: N): ProductBuilder {
+  return createProduct(name);
 }

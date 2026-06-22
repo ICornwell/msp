@@ -28,7 +28,7 @@ export type AwsClusterSetupDesiredState = {
 };
 
 export const awsClusterSetupRepositorySchema = createSchema('awsClusterSetupRepository')
-  .withFQId({name: 'awsClusterSetupRepository', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('repositoryName')
   .forType<string>()
   .withDictionaryId('aws-setup-repository-name', '1.0')
@@ -50,7 +50,7 @@ export const awsClusterSetupRepositorySchema = createSchema('awsClusterSetupRepo
   .buildSchema();
 
 export const awsClusterSetupEksDesiredStateSchema = createSchema('awsClusterSetupEksDesiredState')
-  .withFQId({name: 'awsClusterSetupEksDesiredState', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('clusterVersion')
   .forType<string>()
   .withDictionaryId('aws-setup-eks-cluster-version', '1.0')
@@ -66,7 +66,7 @@ export const awsClusterSetupEksDesiredStateSchema = createSchema('awsClusterSetu
   .buildSchema();
 
 export const awsClusterSetupEcrDesiredStateSchema = createSchema('awsClusterSetupEcrDesiredState')
-  .withFQId({name: 'awsClusterSetupEcrDesiredState', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('repositories')
   .forType<AwsClusterSetupRepository[]>()
   .withDictionaryId('aws-setup-ecr-repositories', '1.0')
@@ -76,7 +76,7 @@ export const awsClusterSetupEcrDesiredStateSchema = createSchema('awsClusterSetu
   .buildSchema();
 
 export const awsClusterSetupNetworkDesiredStateSchema = createSchema('awsClusterSetupNetworkDesiredState')
-  .withFQId({name: 'awsClusterSetupNetworkDesiredState', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('vpcCidr')
   .forType<string>()
   .withDictionaryId('aws-setup-network-vpc-cidr', '1.0')
@@ -98,7 +98,7 @@ export const awsClusterSetupNetworkDesiredStateSchema = createSchema('awsCluster
   .buildSchema();
 
 export const awsClusterSetupDesiredStateSchema = createSchema('awsClusterSetupDesiredState')
-  .withFQId({name: 'awsClusterSetupDesiredState', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('eks')
   .forType<AwsClusterSetupEksDesiredState>()
   .withDictionaryId('aws-setup-desired-eks', '1.0')
@@ -120,7 +120,7 @@ export const awsClusterSetupDesiredStateSchema = createSchema('awsClusterSetupDe
   .buildSchema();
 
 export const awsClusterSetupConfigSchema = createSchema('awsClusterSetupConfig')
-  .withFQId({name: 'awsClusterSetupConfig', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('setupId')
   .forType<string>()
   .withDictionaryId('aws-setup-setup-id', '1.0')
@@ -196,7 +196,7 @@ export const awsClusterSetupConfigSchema = createSchema('awsClusterSetupConfig')
   .buildSchema();
 
 export const awsDesiredResourceConfigSchema = createSchema('awsDesiredResourceConfig')
-  .withFQId({name: 'awsDesiredResourceConfig', version: '1.0'})
+  .withFQId({ namespace: 'aws', version: '1.0'})
   .withProperty('setupCaseId')
   .forType<string>()
   .withDictionaryId('aws-desired-case-id', '1.0')

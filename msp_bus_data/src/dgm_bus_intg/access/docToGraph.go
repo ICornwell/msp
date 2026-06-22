@@ -157,7 +157,7 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 			primaryBusinessKey := ""
 			// get the precalculated business key from the new data, if it is an entity
 			if viewElement.IsEntity {
-				primaryBusinessKey = jsonDoc.FromMetaData[string](newData, "__businessKey")
+				primaryBusinessKey = jsonDoc.FromContent[string](newData, "__businessKey")
 			}
 
 			if viewElement.IsEntity || currentEntityId == "" {

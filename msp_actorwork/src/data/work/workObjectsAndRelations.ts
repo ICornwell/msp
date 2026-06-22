@@ -5,22 +5,22 @@ import { userActorObject, systemActorObject, groupActorObject } from "../actors/
 import { create } from "node:domain";
 
 export const workObject = createEntityObject('work', workSchema)
-          .withFQId({name: 'work', version: '1.0'})
+          .withFQId({namespace: 'actorWork', version: '1.0'})
           .forDomain({ name: 'actorWork', version: '1.0' })
           .buildObject();
 
 export const actorWorkLinkObject = createEntityObject('actorWorkLink', linkSchema)
-          .withFQId({name: 'actorWorkLink', version: '1.0'})
+          .withFQId({namespace: 'actorWork', version: '1.0'})
           .forDomain({ name: 'actorWork', version: '1.0' })
           .buildObject();
 
 export const actorActorLinkObject = createEntityObject('actorActorLink', linkSchema)
-          .withFQId({name: 'actorActorLink', version: '1.0'})
+          .withFQId({namespace: 'actorWork', version: '1.0'})
           .forDomain({ name: 'actorWork', version: '1.0' })
           .buildObject();
 
 export const workWorkLinkObject = createEntityObject('workWorkLink', linkSchema)
-          .withFQId({name: 'workWorkLink', version: '1.0'})
+          .withFQId({namespace: 'actorWork', version: '1.0'})
           .forDomain({ name: 'actorWork', version: '1.0' })
           .buildObject();
 

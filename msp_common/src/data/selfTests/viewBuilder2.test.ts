@@ -9,7 +9,7 @@ import { createRelations } from '../fluent/objectRelationsBuilder.js';
 describe('Declarative View Builder', () => {
 
     const accountSchema = createSchema('account')
-    .withFQId({name: 'account', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('accountNumber')
       .forType<string>()
       .withDictionaryId('dict-account-number', '1.0')
@@ -25,7 +25,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const personSchema = createSchema('person')
-    .withFQId({name: 'person', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('name').withDictionaryId('dict-account-number', '1.0')
       .forType<string>()
       .withInfoType('Text')
@@ -34,7 +34,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const orderSchema = createSchema('order')
-    .withFQId({name: 'order', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('orderId')
       .forType<string>()
       .withDictionaryId('dict-order-id', '1.0')
@@ -44,7 +44,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const orderItemSchema = createSchema('orderItem')
-    .withFQId({name: 'orderItem', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('itemId')
       .forType<string>()
       .withDictionaryId('dict-item-id', '1.0')
@@ -54,7 +54,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const productSchema = createSchema('product')
-    .withFQId({name: 'product', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('productId')
       .forType<string>()
       .withDictionaryId('dict-product-id', '1.0')
@@ -70,31 +70,31 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const accountObject = createEntityObject('accountObject', accountSchema)
-    .withFQId({name: 'acc-123', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .forDomain({ name: 'banking', version: '1.0' })
   
     .buildObject();
 
   const personObject = createEntityObject('personObject', personSchema)
-    .withFQId({name: 'person-123', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .forDomain({ name: 'banking', version: '1.0' })
   
     .buildObject();
 
   const orderObject = createEntityObject('orderObject', orderSchema)
-    .withFQId({name: 'order-123', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .forDomain({ name: 'banking', version: '1.0' })
   
     .buildObject();
 
   const orderItemObject = createEntityObject('orderItemObject', orderItemSchema)
-    .withFQId({name: 'orderItem-123', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .forDomain({ name: 'banking', version: '1.0' })
 
     .buildObject();
 
   const productObject = createEntityObject('productObject', productSchema)
-    .withFQId({name: 'product-123', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .forDomain({ name: 'banking', version: '1.0' })
 
     .buildObject();
@@ -307,7 +307,7 @@ describe('Declarative View Builder', () => {
     // Define schemas
       const accountSchema2 = createSchema('account2')
         .inheritsFrom(accountSchema)
-        .withFQId({name: 'account', version: '2.0'})
+        .withFQId({ namespace: 'test', version: '2.0'})
           .withProperty('creditLimit')
           .forType<number>()
           .withDictionaryId('dict-credit-limit', '1.0')
@@ -317,7 +317,7 @@ describe('Declarative View Builder', () => {
         .buildSchema();
 
       const personSchema2 = createSchema('person')
-        .withFQId({name: 'person', version: '2.0'})
+        .withFQId({ namespace: 'test', version: '2.0'})
         .inheritsFrom(personSchema)
         .withProperty('country').withDictionaryId('dict-country', '1.0')
           .forType<string>()
@@ -327,12 +327,12 @@ describe('Declarative View Builder', () => {
         .buildSchema();
 
      const accountObject2 = createEntityObject('accountObject2', accountSchema2)
-      .withFQId({name: 'acc-456', version: '2.0'})
+      .withFQId({ namespace: 'test', version: '2.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .buildObject();
       
     const personObject2 = createEntityObject('personObject2', personSchema2)
-      .withFQId({name: 'person-456', version: '2.0'})
+      .withFQId({ namespace: 'test', version: '2.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .buildObject();
 
@@ -381,7 +381,7 @@ describe('Declarative View Builder', () => {
 
   it('should work with simpler structures', () => {
     const userSchema = createSchema('userSchema')
-      .withFQId({name: 'user', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('userId')
         .forType<string>()
         .withDictionaryId('dict-user-id', '1.0')
@@ -397,7 +397,7 @@ describe('Declarative View Builder', () => {
       .buildSchema();
 
     const postSchema = createSchema('postSchema')
-      .withFQId({name: 'post', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('postId')
         .forType<string>()
         .withDictionaryId('dict-post-id', '1.0')
@@ -413,12 +413,12 @@ describe('Declarative View Builder', () => {
       .buildSchema();
 
     const userObject = createEntityObject('userObject', userSchema)
-      .withFQId({name: 'user-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'social', version: '1.0' })
       .buildObject();
       
     const postObject = createEntityObject('postObject', postSchema)
-      .withFQId({name: 'post-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'social', version: '1.0' })
       .buildObject();
 
@@ -451,7 +451,7 @@ describe('Declarative View Builder', () => {
 
   it('should allow configuring sub-elements after definition', () => {
     const accountSchema = createSchema('accountSchema')
-      .withFQId({name: 'account', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('accountNumber')
         .forType<string>()
         .withDictionaryId('dict-account-number', '1.0')
@@ -461,7 +461,7 @@ describe('Declarative View Builder', () => {
       .buildSchema();
 
     const orderSchema = createSchema('orderSchema')
-      .withFQId({name: 'order', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('orderId')
         .forType<string>()
         .withDictionaryId('dict-order-id', '1.0')
@@ -471,7 +471,7 @@ describe('Declarative View Builder', () => {
       .buildSchema();
 
     const itemSchema = createSchema('itemSchema')
-      .withFQId({name: 'item', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('itemId')
         .forType<string>()
         .withDictionaryId('dict-item-id', '1.0')
@@ -481,7 +481,7 @@ describe('Declarative View Builder', () => {
       .buildSchema();
 
     const productSchema = createSchema('productSchema')
-      .withFQId({name: 'product', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('productId')
         .forType<string>()
         .withDictionaryId('dict-product-id', '1.0')
@@ -497,22 +497,22 @@ describe('Declarative View Builder', () => {
       .buildSchema();
 
     const accountObject = createEntityObject('accountObject', accountSchema)
-      .withFQId({name: 'acc-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'sales', version: '1.0' })
       .buildObject();
 
     const orderObject = createEntityObject('orderObject', orderSchema)
-      .withFQId({name: 'order-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'sales', version: '1.0' })
       .buildObject();
 
     const itemObject = createEntityObject('itemObject', itemSchema)
-      .withFQId({name: 'item-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'sales', version: '1.0' })
       .buildObject();
 
     const productObject = createEntityObject('productObject', productSchema)
-      .withFQId({name: 'product-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'sales', version: '1.0' })
       .buildObject();
 

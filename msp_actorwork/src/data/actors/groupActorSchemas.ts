@@ -1,7 +1,7 @@
 import {createSchema} from 'msp_common'
 
 export const groupActorSchema = createSchema('groupActor')
-  .withFQId({name: 'groupActor', version: '1.0'})
+  .withFQId({ namespace: 'actorWork', version: '1.0'})
   .withProperty('name')
     .forType<string>()
     .withDictionaryId('workActor-actors-groupName', '1.0')

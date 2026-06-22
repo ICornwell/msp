@@ -1,7 +1,7 @@
 import {createSchema} from 'msp_common'
 
 export const workSchema = createSchema('work')
-  .withFQId({name: 'work', version: '1.0'})
+  .withFQId({ namespace: 'actorWork', version: '1.0'})
   .withProperty('workreference')
     .forType<string>()
     .withDictionaryId('workActor-work-workreference', '1.0')

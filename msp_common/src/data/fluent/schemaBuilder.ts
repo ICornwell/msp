@@ -10,7 +10,7 @@ type SchemaType = {};
   (T extends SchemaBuilder<infer D, any> ? D : never);
 
 export interface SchemaBuilder<D extends SchemaType, IS extends Schema<any, any> | undefined = undefined> {
-  withFQId: (fqId: versionedResourceId) => SchemaBuilder<D, IS>;
+  withFQId: (fqId: Omit<versionedResourceId, 'name'>) => SchemaBuilder<D, IS>;
   forDomain: (domain: versionedResourceId) => SchemaBuilder<D, IS>;
   forProduct: (product: versionedResourceId) => SchemaBuilder<D, IS>;
   inheritsFrom: <IS2 extends Schema<any, any>>(parentSchema: IS2) => SchemaBuilder<D, IS extends undefined ? IS2 : Schema<IS,IS2>>;
@@ -86,9 +86,8 @@ export function createSchemaBuilder<D extends SchemaType, IS extends Schema<any,
   const propertyBuilders: PropertyBuilder<any, any, any, IS>[] = [];
 
   const builder: SchemaBuilder<D, IS> = {
-    withFQId: function (fqId: versionedResourceId): SchemaBuilder<D, IS> {
-      schema.vid = fqId;
-      schema.name = fqId.name;
+    withFQId: function (fqId: Omit<versionedResourceId, 'name'>): SchemaBuilder<D, IS> {
+      schema.vid = { name: schema.name ?? 'unknown', ...fqId };
       return builder;
     },
 

@@ -50,8 +50,6 @@ func ViewToQuery(vq apiMessages.ViewQuery, key string) apiMessages.DgQuery {
 		QueryDate:            time.Now().UTC().String(),
 		Objects:              []apiMessages.QueryObject{},
 		Relations:            []apiMessages.QueryRelation{},
-		View:                 vq.Name,
-		ViewVersion:          vq.Version,
 		RootQueryKeyProperty: "accountNumber", // should come from a metadata lookup for the rootElement type key def.
 		RootQueryKeyValue:    key,
 		IsLatestOnly:         true,

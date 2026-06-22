@@ -44,14 +44,14 @@ describe('Insert then update - transactions commit', () => {
     const r1 = await WriteData(view, initialData, txn.token);
     const eid = r1.entityId;
 
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     if (readBack?.order?.[0]?.orderItem?.[0]) {
       readBack.order[0].orderItem[0].numberOfUnits = 7;
     }
 
     await WriteData(view, readBack, txn.token);
 
-    const before_commit_unc = await ReadData(view, eid, txn.token);
+    const before_commit_unc = await ReadData(view, eid, false, txn.token);
     const before_commit_c = await ReadData(view, eid);
     
     const before_commit_unc_units = before_commit_unc?.order?.[0]?.orderItem?.[0]?.numberOfUnits;
@@ -75,7 +75,7 @@ describe('Insert then update - transactions commit', () => {
     const r1 = await WriteData(view, initialData, txn.token);
     const eid = r1.entityId;
 
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     readBack.order[0].orderItem.push(
       { itemId: "ITEM-X", numberOfUnits: 9, product: { productId: "PROD-X", name: "Extra" } }
     );
@@ -110,7 +110,7 @@ describe('Insert then update - transactions commit', () => {
     // ── Phase 2: begin transaction, remove ITEM-OLD-1, add ITEM-NEW-1 and ITEM-NEW-2 ──
     const txn = await BeginTransaction();
 
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     readBack.order[0].orderItem.shift(); // remove ITEM-OLD-1
     readBack.order[0].orderItem.push(
       { itemId: "ITEM-NEW-1", numberOfUnits: 6, product: { productId: "PROD-NEW-1", name: "New Product 1" } },
@@ -127,7 +127,7 @@ describe('Insert then update - transactions commit', () => {
     expect(outsideIds).not.toContain("ITEM-NEW-1");
 
     // ── Phase 4: read WITH token - new 3 items visible, OLD-1 gone ───────
-    const insideView = await ReadData(view, eid, txn.token);
+    const insideView = await ReadData(view, eid, false, txn.token);
     expect(insideView?.order?.[0]?.orderItem?.length).toBe(3);
     const insideIds: string[] = insideView?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(insideIds).toContain("ITEM-OLD-2");
@@ -147,7 +147,7 @@ describe('Insert then update - transactions commit', () => {
     expect(afterCommitIds).toContain("ITEM-NEW-2");
     expect(afterCommitIds).not.toContain("ITEM-OLD-1");
 
-    const afterCommitWithToken = await ReadData(view, eid, txn.token);
+    const afterCommitWithToken = await ReadData(view, eid, false, txn.token);
     expect(afterCommitWithToken?.order?.[0]?.orderItem?.length).toBe(3);
     const afterCommitTokenIds: string[] = afterCommitWithToken?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(afterCommitTokenIds).not.toContain("ITEM-OLD-1");
@@ -165,7 +165,7 @@ describe('Insert then update - transactions commit', () => {
     // ── Phase 2: begin a transaction and remove ITEM-B ────────────────────
     const txn = await BeginTransaction();
 
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     readBack.order[0].orderItem.splice(1, 1); // remove ITEM-B (index 1)
     await WriteData(view, readBack, txn.token);
 
@@ -176,7 +176,7 @@ describe('Insert then update - transactions commit', () => {
     expect(outsideItemIds).toContain("ITEM-B");
 
     // ── Phase 4: read WITH token (read-uncommitted) - ITEM-B should be gone ──
-    const uncommittedInsideView = await ReadData(view, eid, txn.token);
+    const uncommittedInsideView = await ReadData(view, eid, false, txn.token);
     expect(uncommittedInsideView?.order?.[0]?.orderItem?.length).toBe(2);
     const insideItemIds: string[] = uncommittedInsideView?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(insideItemIds).not.toContain("ITEM-B");
@@ -193,7 +193,7 @@ describe('Insert then update - transactions commit', () => {
     expect(afterCommitItemIds).not.toContain("ITEM-B");
 
     // Read with token post-commit also reflects the committed state
-    const afterCommitWithToken = await ReadData(view, eid, txn.token);
+    const afterCommitWithToken = await ReadData(view, eid, false, txn.token);
     expect(afterCommitWithToken?.order?.[0]?.orderItem?.length).toBe(2);
     const afterCommitTokenItemIds: string[] = afterCommitWithToken?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(afterCommitTokenItemIds).not.toContain("ITEM-B");
@@ -215,7 +215,7 @@ describe('Insert then update - transactions rollback', () => {
     const eid = r1.entityId;
 
     // Readable inside the transaction
-    const insideTxn = await ReadData(view, eid, txn.token);
+    const insideTxn = await ReadData(view, eid, false, txn.token);
     expect(insideTxn).toBeTruthy();
 
     await RollbackTransaction(txn.token);
@@ -237,12 +237,12 @@ describe('Insert then update - transactions rollback', () => {
 
     // Begin txn, update units
     const txn = await BeginTransaction();
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     readBack.order[0].orderItem[0].numberOfUnits = 999;
     await WriteData(view, readBack, txn.token);
 
     // Inside txn the new value is visible
-    const insideTxn = await ReadData(view, eid, txn.token);
+    const insideTxn = await ReadData(view, eid, false, txn.token);
     expect(insideTxn?.order?.[0]?.orderItem?.[0]?.numberOfUnits).toBe(999);
 
     // Outside txn the original value is still visible
@@ -278,7 +278,7 @@ describe('Insert then update - transactions rollback', () => {
     // ── Phase 2: begin transaction, remove ITEM-OLD-1, add ITEM-NEW-1 and ITEM-NEW-2 ──
     const txn = await BeginTransaction();
 
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     readBack.order[0].orderItem.shift(); // remove ITEM-OLD-1
     readBack.order[0].orderItem.push(
       { itemId: "ITEM-NEW-1", numberOfUnits: 6, product: { productId: "PROD-NEW-1", name: "New Product 1" } },
@@ -295,7 +295,7 @@ describe('Insert then update - transactions rollback', () => {
     expect(outsideIds).not.toContain("ITEM-NEW-1");
 
     // ── Phase 4: read WITH token - new state visible inside transaction ───
-    const insideView = await ReadData(view, eid, txn.token);
+    const insideView = await ReadData(view, eid, false, txn.token);
     expect(insideView?.order?.[0]?.orderItem?.length).toBe(3);
     const insideIds: string[] = insideView?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(insideIds).toContain("ITEM-OLD-2");
@@ -314,7 +314,7 @@ describe('Insert then update - transactions rollback', () => {
     expect(afterRollbackIds).not.toContain("ITEM-NEW-1");
     expect(afterRollbackIds).not.toContain("ITEM-NEW-2");
 
-    const afterRollbackWithToken = await ReadData(view, eid, txn.token);
+    const afterRollbackWithToken = await ReadData(view, eid, false, txn.token);
     expect(afterRollbackWithToken?.order?.[0]?.orderItem?.length).toBe(2);
     const afterRollbackTokenIds: string[] = afterRollbackWithToken?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(afterRollbackTokenIds).toContain("ITEM-OLD-1");
@@ -333,7 +333,7 @@ describe('Insert then update - transactions rollback', () => {
     // ── Phase 2: begin a transaction and remove ITEM-B ────────────────────
     const txn = await BeginTransaction();
 
-    let readBack = await ReadData(view, eid, txn.token);
+    let readBack = await ReadData(view, eid, false, txn.token);
     readBack.order[0].orderItem.splice(1, 1); // remove ITEM-B (index 1)
     await WriteData(view, readBack, txn.token);
 
@@ -344,7 +344,7 @@ describe('Insert then update - transactions rollback', () => {
     expect(outsideItemIds).toContain("ITEM-B");
 
     // ── Phase 4: read WITH token (read-uncommitted) - ITEM-B should be gone ──
-    const uncommittedInsideView = await ReadData(view, eid, txn.token);
+    const uncommittedInsideView = await ReadData(view, eid, false, txn.token);
     expect(uncommittedInsideView?.order?.[0]?.orderItem?.length).toBe(2);
     const insideItemIds: string[] = uncommittedInsideView?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(insideItemIds).not.toContain("ITEM-B");
@@ -361,7 +361,7 @@ describe('Insert then update - transactions rollback', () => {
     expect(afterRollbackItemIds).toContain("ITEM-C");
 
     // Reading with the (now-rolled-back) token also shows full set
-    const afterRollbackWithToken = await ReadData(view, eid, txn.token);
+    const afterRollbackWithToken = await ReadData(view, eid, false, txn.token);
     expect(afterRollbackWithToken?.order?.[0]?.orderItem?.length).toBe(3);
     const afterRollbackTokenItemIds: string[] = afterRollbackWithToken?.order?.[0]?.orderItem?.map((i: any) => i.itemId) ?? [];
     expect(afterRollbackTokenItemIds).toContain("ITEM-B");

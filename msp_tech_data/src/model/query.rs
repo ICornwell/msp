@@ -56,12 +56,12 @@ impl QueryRelation {
 
 #[derive(Debug, Deserialize, Clone, Object)]
 pub struct QueryMessage {
+    pub name: String,
     pub version: String,
     pub user: String,
     #[serde(rename = "queryDate")]
     #[oai(rename = "queryDate")]
     pub query_date: String,
-    pub view: String,
     #[serde(rename = "rootQueryKeyProperty")]
     #[oai(rename = "rootQueryKeyProperty")]
     pub root_query_key_property: String,
@@ -117,6 +117,15 @@ impl QueryResponse {
         Self {
             success: true,
             data: Some(data),
+            message: None,
+        }
+    }
+
+    /// Create a successful response without data
+    pub fn success_empty() -> Self {
+        Self {
+            success: true,
+            data: None,
             message: None,
         }
     }

@@ -10,6 +10,18 @@ import { config } from 'dotenv';
 import { setConfig, Ports } from 'msp_svr_common';
 import { registerForBff } from './register.js';
 import { resolveConfig} from './config.js';
+
+import {
+  testData,
+  accountsPeopleOrdersItemsProductsView,
+  AccountsPeopleOrdersItemsProductsData,
+} from '../../../msp_common/dist/data/testResources/views/accounts-people-orders-items-products.1.0.js';
+//import { WriteData, ReadData, BeginTransaction, CommitTransaction, RollbackTransaction } from './integratedTestsSdk.js';
+
+console.log('Test data:', testData());
+console.log('View data type:', accountsPeopleOrdersItemsProductsView.dataType);
+console.log('View data type (inferred):', {} as AccountsPeopleOrdersItemsProductsData);
+
 // Load environment variables
 config();
 setConfig(resolveConfig());

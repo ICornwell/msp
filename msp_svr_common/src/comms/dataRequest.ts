@@ -286,10 +286,8 @@ function recursePopulateBusinessKeysInViewElementData(viewElement: ViewElement, 
 	if (viewElement.domainObject?.isEntity && viewElement.domainObject.businessKey) {
 		const businessKey = getBusinessKeyFromData(data, viewElement.domainObject.businessKey);
 		if (businessKey) {
-			if (!data.__metadata) {
-				data.__metadata = {} as DataObjectMetaData['__metadata'];
-			}
-			data.__metadata.__businessKey = businessKey;
+			
+			data.__businessKey = businessKey;
 		}
 	}
 	for (const subElement of viewElement.subElements ?? []) {

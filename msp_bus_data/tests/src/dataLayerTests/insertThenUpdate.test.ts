@@ -18,7 +18,8 @@ describe('Insert then update test', () => {
     const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, eid)
 
     // Step 2: Update the inserted record
-    let orderItem = readBackData?.order?.[0]?.orderItem?.[0]
+    let orderItem = 
+    readBackData?.order?.[0]?.orderItem?.[0]
     if (orderItem) {
       orderItem.numberOfUnits = 4; // Update the number of units
     }

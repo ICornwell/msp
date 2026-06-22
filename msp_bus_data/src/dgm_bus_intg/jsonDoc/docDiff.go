@@ -9,7 +9,7 @@ func recursiveDiffDocs(newDoc JsonDoc, oldDoc JsonDoc, results DiffResult, entit
 	// go through all the members of the new doc element
 	processed := false
 	for newK, newV := range newDoc {
-		if newK != "__metadata" {
+		if newK != "__metadata" && newK != "__businessKey" {
 			oldV, ok := oldDoc[newK] // get the matching member from the old doc, if there is one
 			if ok {
 				// member is in both old and new doc

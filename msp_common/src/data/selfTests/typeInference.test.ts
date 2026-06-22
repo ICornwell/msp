@@ -7,7 +7,7 @@ describe('Type Inference Tests', () => {
   it('should demonstrate type inference at various levels', () => {
     // Define schemas
     const personSchema = createSchema('person')
-      .withFQId({name: 'person', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('name')
       .forType<string>()
       .withDictionaryId('dict-name', '1.0')
@@ -17,7 +17,7 @@ describe('Type Inference Tests', () => {
       .buildSchema();
 
     const addressSchema = createSchema('address')
-      .withFQId({name: 'address', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('street')
       .forType<string>()
       .withDictionaryId('dict-street', '1.0')
@@ -32,7 +32,7 @@ describe('Type Inference Tests', () => {
       .endProperty()
       .buildSchema();
     const phoneSchema = createSchema('phone')
-      .withFQId({name: 'phone', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('number')
       .forType<string>()
       .withDictionaryId('dict-number', '1.0')

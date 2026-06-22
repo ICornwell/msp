@@ -16,7 +16,6 @@ export type DataObjectMetaData = {__metadata: {
     "__timeStamp": number,
     "__transactionId": string,
     "__viewType": string,
-    "__businessKey": string,
     "__signature": {
       signerId: string,
       signature: string
@@ -27,6 +26,7 @@ export type DataObjectMetaData = {__metadata: {
 export type DataObject = DataObjectMetaData & {
   id: string,
   __entityId: string,
+  __businessKey: string,
   __tmpId: string,
   
 }

@@ -36,7 +36,7 @@ const simpleViewActivitySet: ActivitySet = buildActivitySet()
                     viewRootId: id,
                     viewRootEntityType: view.rootElement.domainObject?.name ?? 'unknown',
                     viewRootEntityHistoricTimestamp: (new Date(data.__metadata.__timeStamp)).toISOString(),
-                    viewRootEntityBusKey: data.__metadata.__businessKey,
+                    viewRootEntityBusKey: data.__businessKey,
                     content: result
                 }
             return serviceResult.success({

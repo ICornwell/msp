@@ -4,11 +4,9 @@ import "dgm_bus_intg/jsonDoc"
 
 type DgQuery struct {
 	Name                 string      `json:"name,omitempty"`
-	Version              string      `json:"version,omitempty"`
+	Version              string      `json:"version"`
 	User                 string      `json:"user"`
 	QueryDate            string      `json:"queryDate,omitempty"`
-	View                 string      `json:"view"`
-	ViewVersion          string      `json:"version"`
 	RootQueryKeyProperty string      `json:"rootQueryKeyProperty,omitempty"`
 	RootQueryKeyValue    string      `json:"rootQueryKeyValue,omitempty"`
 	RootQueryKeyTypes    string      `json:"rootQueryKeyTypes"`

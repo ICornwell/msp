@@ -13,7 +13,7 @@ export function getDefaultMockOptions(
     shareScope: 'default',
     shared: {},
     runtimePlugins: [],
-    implementation: require.resolve('@module-federation/runtime'),
+    implementation: require.resolve('@module-federation/runtime/dist/index.esm.js'),
     manifest: false,
     shareStrategy: 'loaded-first',
     virtualModuleDir: '__mf__virtual',

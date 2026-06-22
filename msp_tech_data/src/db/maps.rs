@@ -1,6 +1,17 @@
 use crate::model::{Edge, Vertex};
 
 pub fn vertex_from_row(row: &tokio_postgres::Row) -> Vertex {
+    let business_key = row
+        .get::<usize, Option<String>>(9)
+        .unwrap_or_default()
+        .trim_end()
+        .to_string();
+    let alternate_key = row
+        .get::<usize, Option<String>>(10)
+        .unwrap_or_default()
+        .trim_end()
+        .to_string();
+
     Vertex {
         id: row.get::<usize, String>(1).trim_end().to_string(),
         tmp_id: "".to_string(),      // used for inbound updates only
@@ -11,8 +22,8 @@ pub fn vertex_from_row(row: &tokio_postgres::Row) -> Vertex {
         is_entity: row.get::<usize, bool>(6),
         view_type: row.get::<usize, String>(7).trim_end().to_string(),
         timestamp: row.get(8),
-        business_key: row.get::<usize, String>(9).trim_end().to_string(),
-        alternate_key: row.get::<usize, String>(10).trim_end().to_string(),
+        business_key,
+        alternate_key,
         content: row.get(11),
         view_managed_edges: Vec::new(),
     }

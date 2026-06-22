@@ -5,7 +5,7 @@ import { createRelations } from '../fluent/objectRelationsBuilder.js';
 
 describe('Declarative View Builder', () => {
   const accountSchema = createSchema('account')
-    .withFQId({name: 'account', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('accountNumber')
       .forType<string>()
       .withDictionaryId('dict-account-number', '1.0')
@@ -21,7 +21,7 @@ describe('Declarative View Builder', () => {
     .buildSchema();
 
   const personSchema = createSchema('person')
-    .withFQId({name: 'person', version: '1.0'})
+    .withFQId({ namespace: 'test', version: '1.0'})
     .withProperty('name').withDictionaryId('dict-account-number', '1.0')
       .forType<string>()
       .withInfoType('Text')
@@ -34,25 +34,25 @@ describe('Declarative View Builder', () => {
   it('should build related objects', () => {
     
     const personObject_noRels = createEntityObject('personObject', personSchema)
-      .withFQId({name: 'person-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .buildObject();
 
     const accountObject_noRels = createEntityObject('accountObject', accountSchema)
-      .withFQId({name: 'acc-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'banking', version: '1.0' })
     
       // .withRelationFrom('owner', personObject_noRels, true)
       .buildObject();
 
     const relatedObjs = createRelations()
-    .allowRelationFrom('owner', personObject_noRels, accountObject_noRels, true)
-    .allowRelationFrom('admin', personObject_noRels, accountObject_noRels, true)
-    .allowRelationTo('test', accountObject_noRels, personObject_noRels, true)
+    .allowRelationFromTo('owner', personObject_noRels, accountObject_noRels, true)
+    .allowRelationFromTo('admin', personObject_noRels, accountObject_noRels, true)
+    .allowRelationToFrom('test', accountObject_noRels, personObject_noRels, true)
 
-    .allowRelationFrom('hasAccount', accountObject_noRels, personObject_noRels, true)
-  //  .allowRelationFrom('payer', personObject_noRels, accountObject_noRels, true)
-  //  .allowRelationFrom('hasAccount', personObject_noRels, accountObject_noRels, true)
+    .allowRelationFromTo('hasAccount', accountObject_noRels, personObject_noRels, true)
+  //  .allowRelationFromTo('payer', personObject_noRels, accountObject_noRels, true)
+  //  .allowRelationFromTo('hasAccount', personObject_noRels, accountObject_noRels, true)
     .buildRelatedObjects()
 
     type xxa = typeof relatedObjs.accountObject
@@ -94,7 +94,7 @@ describe('Declarative View Builder', () => {
 
 
     expect(accountObject.name).toBe('accountObject');
-    expect(accountObject.vid).toEqual({domain: {"name": "banking","version": "1.0"}, name: 'acc-123', version: '1.0' });
+    expect(accountObject.vid).toEqual({namespace: 'test', name: 'accountObject', version: '1.0' });
     expect(accountObject.domain).toEqual({ name: 'banking', version: '1.0' });
     expect(accountObject.isEntity).toBe(true);
     expect(accountObject.allowedRelationsTo).toHaveLength(3);
@@ -106,7 +106,7 @@ describe('Declarative View Builder', () => {
     expect(accountObject.allowedRelationsFrom[0].relatedObject).toBe(personObject);
 
     expect(personObject.name).toBe('personObject');
-    expect(personObject.vid).toEqual({domain: {"name": "banking","version": "1.0"}, name: 'person-123', version: '1.0' });
+    expect(personObject.vid).toEqual({namespace: 'test', name: 'personObject', version: '1.0' });
     expect(personObject.domain).toEqual({ name: 'banking', version: '1.0' });
     expect(personObject.isEntity).toBe(true);
     expect(personObject.allowedRelationsTo).toHaveLength(1);
@@ -121,12 +121,12 @@ describe('Declarative View Builder', () => {
    it('should serialise without circular references', () => {
     
     const personObject = createEntityObject('personObject', personSchema)
-      .withFQId({name: 'person-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .buildObject();
 
     const accountObject = createEntityObject('accountObject', accountSchema)
-      .withFQId({name: 'acc-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .withRelationTo('owner', personObject, true)
       .buildObject();
@@ -141,12 +141,12 @@ describe('Declarative View Builder', () => {
    it('should expose valid relations', () => {
     
     const personObject = createEntityObject('personObject', personSchema)
-      .withFQId({name: 'person-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .buildObject();
 
     const accountObject = createEntityObject('accountObject', accountSchema)
-      .withFQId({name: 'acc-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .forDomain({ name: 'banking', version: '1.0' })
       .withRelationTo('owner', personObject, true)
       .buildObject();

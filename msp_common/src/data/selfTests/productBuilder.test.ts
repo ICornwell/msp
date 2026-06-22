@@ -10,7 +10,7 @@ describe('Product Builder Integration', () => {
   it('should build a complete product with schemas and views', () => {
     // Define schemas
     const personSchema = createSchema('personSchema')
-      .withFQId({name: 'person', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('name')
         .withDictionaryId('dict-name', '1.0')
         .withInfoType('Text')
@@ -24,7 +24,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const accountSchema = createSchema('accountSchema')
-      .withFQId({name: 'account', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('accountNumber')
         .withDictionaryId('dict-account-num', '1.0')
         .withInfoType('Text')
@@ -33,15 +33,15 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const personObject = createValueObject('person', personSchema)
-      .withFQId({name: 'person-789', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .buildObject();
 
     const accountObject = createValueObject('account', accountSchema)
-      .withFQId({name: 'account-789', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .buildObject();
 
     const relObjs = createRelations()
-        .allowRelationFrom('belongsTo', accountObject, personObject, true)
+        .allowRelationFromTo('belongsTo', accountObject, personObject, true)
         .buildRelatedObjects();
 
     // Build a view
@@ -57,16 +57,15 @@ describe('Product Builder Integration', () => {
       .build();
 
     // Build a product
-    const myProduct = product()
-      .withName('Account Management')
-      .withFQId({name: 'account-mgmt', version: '1.0.0'})
+    const myProduct = product('Account Management')
+      .withFQId({ namespace: 'test', version: '1.0.0'})
       .withDomain({ name: 'banking', version: '1.0' })
       .addView(accountView)
       .buildProduct();
 
     // Assertions
     expect(myProduct.name).toBe('Account Management');
-    expect(myProduct.id).toEqual({name: 'account-mgmt', version: '1.0.0' });
+    expect(myProduct.id).toEqual({name: 'Account Management', namespace: 'test', version: '1.0.0' });
     expect(myProduct.domain).toEqual({ name: 'banking', version: '1.0' });
     expect(myProduct.views).toHaveLength(1);
     expect(myProduct.views[0].name).toBe('account-person-view');
@@ -78,7 +77,7 @@ describe('Product Builder Integration', () => {
   it('should support product version inheritance', () => {
     // Version 1.0
     const personSchemaV1 = createSchema('personSchema')
-      .withFQId({name: 'person', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('name')
         .withDictionaryId('dict-name', '1.0')
         .withInfoType('Text')
@@ -86,7 +85,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const domainObjectV1 = createValueObject('person', personSchemaV1)
-      .withFQId({name: 'person-001', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .buildObject();
 
     const viewV1 = createView('person-view')
@@ -97,15 +96,14 @@ describe('Product Builder Integration', () => {
       .endView()
       .build();
 
-    const productV1 = product()
-      .withName('Person Management')
-      .withFQId({name: 'person-mgmt', version: '1.0.0'})
+    const productV1 = product('Person Management')
+      .withFQId({ namespace: 'test', version: '1.0.0'})
       .addView(viewV1)
       .buildProduct();
 
     // Version 1.1 - inherits from 1.0 and adds new schema
     const addressSchema = createSchema('addressSchema')
-      .withFQId({name: 'address', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('street')
         .withDictionaryId('dict-street', '1.0')
         .withInfoType('Text')
@@ -117,7 +115,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const addressObject = createValueObject('address', addressSchema)
-      .withFQId({name: 'address-001', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .buildObject();
 
     const addressView = createView('address-view')
@@ -128,9 +126,8 @@ describe('Product Builder Integration', () => {
       .endView()
       .build();
 
-    const productV1_1 = product()
-      .withName('Person Management')
-      .withFQId({name: 'person-mgmt', version: '1.1.0'})
+    const productV1_1 = product('Person Management')
+      .withFQId({ namespace: 'test', version: '1.1.0'})
       .inheritsFrom(productV1)
       .addView(addressView)
       .buildProduct();
@@ -139,13 +136,13 @@ describe('Product Builder Integration', () => {
     expect(productV1_1.views).toHaveLength(2); // Inherited + new
     expect(productV1_1.views[0].name).toBe('person-view'); // Inherited
     expect(productV1_1.views[1].name).toBe('address-view'); // New
-    expect(productV1_1.inheritsFrom).toEqual({ name: 'person-mgmt', version: '1.0.0' });
+    expect(productV1_1.inheritsFrom).toEqual({ name: 'Person Management', namespace: 'test', version: '1.0.0' });
   });
 
   it('should generate correct ViewObjectType', () => {
     // Define schemas
     const orderSchema = createSchema('orderSchema')
-      .withFQId({name: 'order', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('orderId')
         .forType<string>()
         .withDictionaryId('dict-order-id', '1.0')
@@ -158,7 +155,7 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const itemSchema = createSchema('itemSchema')
-      .withFQId({name: 'item', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .withProperty('itemName')
         .forType<string>()
         .withDictionaryId('dict-item-name', '1.0')
@@ -172,15 +169,15 @@ describe('Product Builder Integration', () => {
       .buildSchema();
 
     const orderObject = createValueObject('order', orderSchema)
-      .withFQId({name: 'order-123', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .buildObject();
 
     const itemObject = createValueObject('item', itemSchema)
-      .withFQId({name: 'item-456', version: '1.0'})
+      .withFQId({ namespace: 'test', version: '1.0'})
       .buildObject();
 
     const relObjs = createRelations()
-        .allowRelationFrom('hasItem', orderObject, itemObject, true)
+        .allowRelationFromTo('hasItem', orderObject, itemObject, true)
         .buildRelatedObjects();
 
     const orderViewBuilder = createView('order-items-view')

@@ -6,7 +6,7 @@ export type SchemaOfDomainObjectBuilder<DOB extends DomainValueObjectBuilder<any
 
 
 export interface ObjectBuilder<RT, O extends string, P extends string, S extends Schema<any, any>, RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}> {
-  withFQId: (fqId: versionedResourceId) => RT;
+  withFQId: (fqId: Omit<versionedResourceId, 'name'>) => RT;
   forDomain: (domain: versionedResourceId) => RT;
   forProduct: (product: versionedResourceId) => RT;
   withDefaultPresentationLabel: (label: string) => RT;
@@ -54,16 +54,16 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
   RelsTo extends RelsTypes = {}, RelsFrom extends RelsTypes = {}>(
     domainObj: DomainObject<any, any, any>, returnBuilder: RT) {
   const baseBuilder: Partial<ObjectBuilder<RT, O, P, S, RelsTo, RelsFrom>> = {
-    withFQId: function (fqId: versionedResourceId): RT {
-      domainObj.vid = fqId;
-      domainObj.name = fqId.name;
+    withFQId: function (fqId: Omit<versionedResourceId, 'name'>): RT {
+      domainObj.vid = { name: domainObj.name, ...fqId };
       return returnBuilder;
     },
 
 
     forDomain: function (domain: versionedResourceId): RT {
       // unused
-      if (!domainObj.defaultDocPathName) domainObj.defaultDocPathName = domain.name;
+      domainObj.domain = domain
+    //  if (!domainObj.defaultDocPathName) domainObj.defaultDocPathName = domain.name;
       return returnBuilder;
     },
 
