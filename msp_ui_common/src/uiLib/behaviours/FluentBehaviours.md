@@ -10,7 +10,7 @@ executed at runtime by the `Behaviour` React component.
 
 The DSL declares **When → Then** rules:
 - **When** — a UIEvent of a given type is raised (with optional guards)
-- **Then** — dispatch a call-to-action to one subsystem, or run a local side-effect
+- **Then** — makeRequest a call-to-action to one subsystem, or run a local side-effect
 
 ---
 
@@ -19,12 +19,12 @@ The DSL declares **When → Then** rules:
 | Pattern | What it is | Who publishes | Who subscribes |
 |---|---|---|---|
 | **UIEvent** | "Something happened" alert | Any leaf component or subsystem provider | Only `Behaviour` components |
-| **Dispatch** | "Do this" call-to-action | Only `Behaviour` (via DSL) | The target subsystem provider |
+| **makeRequest** | "Do this" call-to-action | Only `Behaviour` (via DSL) | The target subsystem provider |
 | **Private context** | Subsystem-internal state | Subsystem provider | Same provider's consumers |
 | **localEffect** | Direct side-effect on co-located React state | `Behaviour` (via DSL) | n/a — no bus |
 
 > **Rule:** Leaf components and subsystems only _publish_ UIEvents — they never
-> subscribe. Only Behaviours subscribe, and only Behaviours dispatch.
+> subscribe. Only Behaviours subscribe, and only Behaviours makeRequest.
 
 ---
 
@@ -37,25 +37,25 @@ createBehaviour()
     .whenEventSatisfies(e => ...)          // optional: event payload guard
     .whenDataSatisfies(d => ...)           // optional: local data guard
 
-    // dispatch to a subsystem — builder is fluent, `.end()` unwinds the stack
-    .dispatch.toActivity
+    // makeRequest to a subsystem — builder is fluent, `.end()` unwinds the stack
+    .makeRequest.toActivity
       .withoutWaiting({ id, action, payloadFromEvent, contextFromEvent })
       .end()
 
-    // or dispatch to menus
-    .dispatch.toMenus
+    // or makeRequest to menus
+    .makeRequest.toMenus
       .add({ id, label, eventName, action })
       .remove(...)  .enable(...)  .disable(...)
       .end()
 
-    // or dispatch to presentation
-    .dispatch.toPresentation
+    // or makeRequest to presentation
+    .makeRequest.toPresentation
       .openBlade('MyBladeName', paramsOrFactory)
       .closeBlade(...)  .openTab(...)  .closeTab(...)  .navigate(...)
       .end()
 
-    // or dispatch to data cache
-    .dispatch.toData
+    // or makeRequest to data cache
+    .makeRequest.toData
       .invalidate(dataId)          // evict from cache
       .save(dataId, changeFn)      // apply transform + notify
       .end()
@@ -87,8 +87,8 @@ type ActivityCallDefinition<E> = {
 };
 ```
 
-The `BehaviourDispatchProvider` splits `action` on `/` to produce
-`namespace / activityName / version` for the `ActivityDispatchProvider`.
+The `BehaviourmakeRequestProvider` splits `action` on `/` to produce
+`namespace / activityName / version` for the `ActivitymakeRequestProvider`.
 
 ---
 
@@ -102,7 +102,7 @@ The `<Behaviour config={config} initialData={data} />` React component:
 4. For each action in `element.actions`:
    - `kind === 'localEffect'` → calls `action.effect(event, data)` directly.
    - Otherwise → looks up `action.eventType` in the `BehaviourHandlerRegistry` and
-     calls the handler, which dispatches to the appropriate subsystem provider.
+     calls the handler, which makeRequestes to the appropriate subsystem provider.
 
 ---
 
@@ -113,15 +113,15 @@ Behaviours need the subsystem providers to be mounted above them:
 ```
 UiEventProvider
   DataCacheProvider
-    ActivityDispatchProvider
-      MenuDispatchProvider
-        PresentationDispatchProvider
-          BehaviourDispatchProvider   ← wires subsystem hooks into the handler registry
+    ActivitymakeRequestProvider
+      MenumakeRequestProvider
+        PresentationmakeRequestProvider
+          BehaviourmakeRequestProvider   ← wires subsystem hooks into the handler registry
             <feature components / Behaviour instances>
 ```
 
-`BehaviourDispatchProvider` is the **only** place the subsystem dispatch hooks
-(`useActivityDispatch`, `useMenuDispatch`, `usePresentationDispatch`, `useDataDispatch`)
+`BehaviourmakeRequestProvider` is the **only** place the subsystem makeRequest hooks
+(`useActivitymakeRequest`, `useMenumakeRequest`, `usePresentationmakeRequest`, `useDatamakeRequest`)
 are called. It builds the handler registry that `Behaviour.ts` reads.
 
 For sub-tree overrides use `BehaviourHandlerRegistryProvider` — it merges
@@ -133,11 +133,11 @@ additional handlers on top of the parent registry.
 
 | File | Role |
 |---|---|
-| `fluentBehaviour.ts` | Interface contracts for the DSL (`FluentBehaviour`, `EventHandlerBuilder`, `DispatchSurface`, subsystem builders) |
+| `fluentBehaviour.ts` | Interface contracts for the DSL (`FluentBehaviour`, `EventHandlerBuilder`, `makeRequestSurface`, subsystem builders) |
 | `behaviourBuilder.ts` | Concrete factory — `createBehaviour()` entry point |
 | `behaviourConfig.ts` | Runtime config types (`behaviourConfig`, `behaviourElement`, `behaviourAction`) |
 | `Behaviour.ts` | React component — subscribes to UIEventbus and fan-outs to handlers |
-| `BehaviourHandlerRegistryContext.tsx` | `BehaviourDispatchProvider` builds the handler Map; `BehaviourHandlerRegistryProvider` for sub-tree overrides |
+| `BehaviourHandlerRegistryContext.tsx` | `BehaviourmakeRequestProvider` builds the handler Map; `BehaviourHandlerRegistryProvider` for sub-tree overrides |
 
 ---
 
@@ -151,7 +151,7 @@ export const useUserProfileBehaviour = () => {
   const config = useMemo(() => createBehaviour()
     // 1. Fetch user data when the user changes
     .whenEventRaised('UserChanged')
-      .dispatch.toActivity
+      .makeRequest.toActivity
         .withoutWaiting({
           id: 'getUserProfile',
           action: 'actorwork/GetUserProfileData/1.0.0',
@@ -166,13 +166,13 @@ export const useUserProfileBehaviour = () => {
     // 3. Add a menu entry
     .whenEventRaised('DataLoaded')
       .whenEventSatisfies((e: any) => e.payload?.dataType === 'GetUserProfileData')
-      .dispatch.toMenus
+      .makeRequest.toMenus
         .add({ id: 'user-profile-menu', label: 'See User Profile', eventName: 'MENU', action: 'openUserProfile' } as any)
         .end()
     // 4. Open the blade on menu click
     .whenEventRaised('MenuItemClick')
       .whenEventSatisfies((e: any) => e.payload?.menuId === 'user-profile-menu')
-      .dispatch.toPresentation
+      .makeRequest.toPresentation
         .openBlade('UserProfileBlade', (e: any) => ({ context: e.payload?.context }))
         .end()
     // 5. Sync blade open/close state locally

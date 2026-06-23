@@ -12,7 +12,7 @@ const defaultSetupContext = {
 
 export const useAwsResourcesBehaviour = () => {
   const config = createBehaviour()
-    .whenStarted()
+  .whenStarted()
     .makeRequest.toActivity
       .withoutWaiting({
         id: 'getEksClusters',
@@ -29,8 +29,9 @@ export const useAwsResourcesBehaviour = () => {
         action: 'aws/readClusterSetupConfig/1.0.0',
         payload: defaultSetupContext,
       })
-    .endActivity()
-    .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
+      .endActivity()
+    .endHandler()
+  .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
     .whenDataIdentifierSatisfies((vid) => matchesId(vid, awsResourceInventoryView.getViewIdentifier()) && !vid?.recordId)
     .makeRequest.toPresentation
       .toOpenTab(
@@ -40,8 +41,9 @@ export const useAwsResourcesBehaviour = () => {
         ({ viewDataIdentifier }) => viewDataIdentifier,
       )
       .endPresentation()
-    .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
-        .whenDataIdentifierSatisfies((vid) => matchesId(vid, awsClusterSetupConfigView.getViewIdentifier()))
+    .endHandler() 
+  .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
+    .whenDataIdentifierSatisfies((vid) => matchesId(vid, awsClusterSetupConfigView.getViewIdentifier()))
     .makeRequest.toMenus
       .toAdd({
         id: 'aws-save-setup-draft',
@@ -60,7 +62,8 @@ export const useAwsResourcesBehaviour = () => {
         context: defaultSetupContext,
       })
       .endMenus()
-    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+    .endHandler()
+  .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
     .whenEventSatisfies((event) => event?.payload?.action === 'saveAwsSetupDraft')
     .makeRequest.toActivity
       .withoutWaiting({
@@ -73,7 +76,8 @@ export const useAwsResourcesBehaviour = () => {
         }),
       })
       .endActivity()
-    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+    .endHandler()
+  .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
     .whenEventSatisfies((event) => event?.payload?.action === 'dryRunAwsSetup')
     .makeRequest.toActivity
       .withoutWaiting({
@@ -86,7 +90,8 @@ export const useAwsResourcesBehaviour = () => {
         }),
       })
       .endActivity()
-    .build();
+    .endHandler()
+  .build();
 
   return { config };
 };

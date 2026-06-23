@@ -179,7 +179,7 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
           
             if (requestType === 'revert') {
               invalidate(viewDataIdentifier);
-            } else if (requestType === 'updateFromEventPayloadResult') {
+            } else if (requestType === 'toUpdateFromEventResult') {
 
               const result = eventWithDataCarrier?.event?.payload?.result;
               const mapResultToDataFromEvent = action.eventData?.mapResultToDataFromEvent;

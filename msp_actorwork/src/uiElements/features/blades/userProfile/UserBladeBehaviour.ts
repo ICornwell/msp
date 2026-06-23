@@ -14,6 +14,7 @@ export const useUserProfileBehaviour = () => {
           payloadFromSession: (sessionInfo: SessionInfo) => ({ userId: sessionInfo?.userId }),
         })
         .endActivity()
+      .endHandler()
     // Add menu entry once data has arrived
     .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
       .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserProfile')
@@ -39,6 +40,7 @@ export const useUserProfileBehaviour = () => {
           menuTarget: 'profile'
         })
         .endMenus()
+      .endHandler()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenDataIdentifierSatisfies((vid) => vid?.name === 'UserProfile')
       .makeRequest.toPresentation
@@ -48,12 +50,13 @@ export const useUserProfileBehaviour = () => {
           ({viewDataIdentifier}) => viewDataIdentifier
         )
         .endPresentation()
-      .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+      .endHandler()
+    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'logoutUser')
       .makeRequest.toSystem
-        .logoutUser()
+        .toLogoutUser()
         .endSystem()
-
+      .endHandler()
     .build();
 
   return { config };

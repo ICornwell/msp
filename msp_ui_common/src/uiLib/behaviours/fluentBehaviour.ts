@@ -91,11 +91,11 @@ export interface PresentationDispatchBuilder<DT, E extends UiMsgNames, RT> {
 
 export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
   /** Evict the identified data from the cache (marks it stale). */
-  invalidate: (dataId: ViewDataIdentifier) => DataDispatchBuilder<DT, E, RT>;
+  toInvalidate: (dataId: ViewDataIdentifier) => DataDispatchBuilder<DT, E, RT>;
   /** Push a change via a transform function; data subsystem publishes DataChanged. */
-  save: (dataId: ViewDataIdentifier, changeFn: (data: DT) => DT) => DataDispatchBuilder<DT, E, RT>;
+  toSave: (dataId: ViewDataIdentifier, changeFn: (data: DT) => DT) => DataDispatchBuilder<DT, E, RT>;
   /** Apply a partial patch to cached data using event.payload.result as source. */
-  updateFromEventPayloadResult: (
+  toUpdateFromEventResult: (
     dataId: BehaviourArg<ViewDataIdentifier>,
     mapResultToDataFromEvent: <D extends Partial<any> = any>(result: any, data: D) => D
   ) => DataDispatchBuilder<DT, E, RT>;
@@ -104,7 +104,7 @@ export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
 
 export interface SystemDispatchBuilder<DT, E extends UiMsgNames, RT> {
   /** Log out the current user. */
-  logoutUser: () => SystemDispatchBuilder<DT, E, RT>;
+  toLogoutUser: () => SystemDispatchBuilder<DT, E, RT>;
  
   
   endSystem: () => RT;
@@ -140,31 +140,39 @@ export interface DispatchSurface<DT, E extends UiMsgNames, RT> {
 
 // ── AlwaysBuilder (dispatch only) ───────────────────────────────────────
 
-export interface AlwaysBuilder<DT, E extends UiMsgNames, RT> {
+export interface AlwaysBuilder<DT, E extends UiMsgNames,  HRT> {
   /**
    * Dispatch a call-to-action to a subsystem.
    * Only Behaviours dispatch; the subsystem owns what happens next and
    * will raise zero-or-more UIEvents when it is done.
    */
-  makeRequest: DispatchSurface<DT, E, RT>;
+  makeRequest: DispatchSurface<DT, E, AlwaysBuilder<DT, E, HRT>>;
 
   /**
    * Run a side-effect directly in this component without traversing any bus.
    * Use this to update co-located React state (e.g. setBladeOpen, setUserData).
    * State-setter references from useState are stable and safe to close over.
    */
-  localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void) => LocalEffectBuilder<DT, E, RT>;
+  localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void) => LocalEffectBuilder<DT, E, AlwaysBuilder<DT, E, HRT>>;
+  then: () =>AlwaysBuilder<DT, E, HRT>
+  endHandler: () => HRT;
 }
 
 // ── EventHandlerBuilder (guards + dispatch)─────────────────────────────────
 
-export interface EventHandlerBuilder<DT, E extends UiMsgNames, RT> extends AlwaysBuilder<DT, E, RT> {
+export interface EventHandlerBuilder<DT, E extends UiMsgNames, HRT>  {
   /** Guard: only proceed if the current data snapshot satisfies this predicate. */
-  whenDataSatisfies:  (condition: (data: DT) => boolean) => EventHandlerBuilder<DT, E, RT>;
-  whenDataIdentifierSatisfies:  (condition: (dataIdentifier: ViewDataIdentifier) => boolean) => EventHandlerBuilder<DT, E, RT>;
+  whenDataSatisfies:  (condition: (data: DT) => boolean) => EventHandlerBuilder<DT, E, HRT>;
+  whenDataIdentifierSatisfies:  (condition: (dataIdentifier: ViewDataIdentifier) => boolean) => EventHandlerBuilder<DT, E, HRT>;
   /** Guard: only proceed if the triggering UIEvent satisfies this predicate. */
-  whenEventSatisfies: (condition: (event: EventTypesByMsgName<E>) => boolean) => EventHandlerBuilder<DT, E, RT>;
+  whenEventSatisfies: (condition: (event: EventTypesByMsgName<E>) => boolean) => EventHandlerBuilder<DT, E, HRT>;
+  makeRequest: DispatchSurface<DT, E, EventHandlerBuilder<DT, E, HRT>>;
 
+  localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void) => LocalEffectBuilder<DT, E, EventHandlerBuilder<DT, E, HRT>>;
+  then: () =>EventHandlerBuilder<DT, E, HRT>
+  endHandler: () => HRT;
+
+  
 }
 
 // ── FluentBehaviour (root builder) ───────────────────────────────────────────
@@ -181,7 +189,7 @@ export interface FluentBehaviour<DT> {
    * Default if not declared: inbound = 'DOMAIN' (broadest), outbound = 'FEATURE' (finest).
    */
   withScope: (level: BehaviourScopeLevel) => FluentBehaviour<DT>;
-  whenStarted: () => AlwaysBuilder<DT, any, FluentBehaviour<DT>>;
+  whenStarted: () => AlwaysBuilder<DT, any,  FluentBehaviour<DT>>;
   /** Declare a response rule triggered when a UIEvent of this type is raised. */
   whenEventRaised: <E extends UiMsgNames>(eventName: E) => EventHandlerBuilder<DT, E, FluentBehaviour<DT>>;
   build: () => behaviourConfig;

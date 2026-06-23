@@ -12,7 +12,6 @@ import {
   PagedTabBuilder,
   PageDefinition,
   DataDispatchBuilder,
-  LocalEffectBuilder,
   ActivityCallDefinition,
   AlwaysBuilder,
   BehaviourActionFnContext,
@@ -67,6 +66,7 @@ function makeFluentBehaviour<DT>(
       };
       config.elements.push(element);
       return makeAlwaysBuilder<DT, any, FluentBehaviour<DT>>(
+        config.elements,
         element,
         makeFluentBehaviour<DT>(config, buildConfig)
       );
@@ -83,6 +83,7 @@ function makeFluentBehaviour<DT>(
       };
       config.elements.push(element);
       return makeEventHandlerBuilder<DT, E, FluentBehaviour<DT>>(
+        config.elements,
         element,
         makeFluentBehaviour<DT>(config, buildConfig)
       );
@@ -100,51 +101,74 @@ function makeDispatchSurface<DT, E extends UiMsgNames, RT>(
   return {
     withScope: (level: BehaviourScopeLevel) =>
       makeDispatchSurface(element, returnBuilder, level),
-    toActivity:     makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
-    toMenus:        makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toActivity: makeActivityDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toMenus: makeMenuDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
     toPresentation: makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
-    toData:         makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
-    toSystem:       makeSystemDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toData: makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
+    toSystem: makeSystemDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel),
   };
 }
 
 function makeAlwaysBuilder<DT, E extends UiMsgNames, RT>(
+  elements: behaviourElement<DT, E>[],
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): AlwaysBuilder<DT, E, RT> {
-  return {
-   
-    makeRequest: makeDispatchSurface(element, returnBuilder),
 
-    localEffect: (effect: (context: BehaviourActionFnContext<DT, E>) => void): LocalEffectBuilder<DT, E, RT> => {
-      const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
-      element.actions.push(action);
-      return { endEffect: () => returnBuilder };
-    },
-  };
+  const aBuilder = {} as AlwaysBuilder<DT, E, RT>;
+  aBuilder.makeRequest = makeDispatchSurface(element, aBuilder);
+
+  aBuilder.localEffect = (effect: (context: BehaviourActionFnContext<DT, E>) => void) => {
+    const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
+    element.actions.push(action);
+    return { endEffect: () => aBuilder };
+  },
+
+  aBuilder.then = () => makeAlwaysBuilder<DT, E, RT>(elements, cloneElementConditions(elements, element), returnBuilder);
+
+  aBuilder.endHandler = () => returnBuilder;
+
+  return aBuilder;
+};
+
+function andConditions(c1: ((data: any) => boolean) | undefined, c2: (data: any) => boolean): (data: any) => boolean {
+  return (data: any) =>  (c1 ? c1(data) : true)  && c2(data);
 }
 
 function makeEventHandlerBuilder<DT, E extends UiMsgNames, RT>(
+  elements: behaviourElement<DT, E>[],
   element: behaviourElement<DT, E>,
   returnBuilder: RT
 ): EventHandlerBuilder<DT, E, RT> {
-  return {
-    whenDataSatisfies: (condition: (data: DT) => boolean) => {
-      element.dataCondition = condition;
-      return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
+  const evBuilder = {} as EventHandlerBuilder<DT, E, RT>;
+
+  evBuilder.whenDataSatisfies = (condition: (data: DT) => boolean) => {
+    element.dataCondition = andConditions(element.dataCondition, condition);
+    return makeEventHandlerBuilder<DT, E, RT>(elements, element, returnBuilder);
+  },
+    evBuilder.whenDataIdentifierSatisfies = (condition: (dataIdentifier: ViewDataIdentifier) => boolean) => {
+      element.dataIdentifierCondition = andConditions(element.dataIdentifierCondition, condition);
+      return makeEventHandlerBuilder<DT, E, RT>(elements, element, returnBuilder);
     },
-    whenDataIdentifierSatisfies: (condition: (dataIdentifier: ViewDataIdentifier) => boolean) => {
-      element.dataIdentifierCondition = condition;
-      return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
-    },
-    whenEventSatisfies: (condition: (event: EventTypesByMsgName<E>) => boolean) => {
-      element.eventCondition = condition as any;
-      return makeEventHandlerBuilder<DT, E, RT>(element, returnBuilder);
+    evBuilder.whenEventSatisfies = (condition: (event: EventTypesByMsgName<E>) => boolean) => {
+      element.eventCondition = andConditions(element.eventCondition, condition) as any;
+      return makeEventHandlerBuilder<DT, E, RT>(elements, element, returnBuilder);
     },
 
-    ...makeAlwaysBuilder(element, returnBuilder)
-  };
-}
+    evBuilder.then = () => makeEventHandlerBuilder<DT, E, RT>(elements, cloneElementConditions(elements, element), returnBuilder),
+
+    evBuilder.makeRequest = makeDispatchSurface(element, evBuilder);
+
+  evBuilder.localEffect = (effect: (context: BehaviourActionFnContext<DT, E>) => void) => {
+    const action: LocalEffectAction<E> = { kind: 'localEffect', effect };
+    element.actions.push(action);
+    return { endEffect: () => evBuilder };
+  },
+
+    evBuilder.endHandler = () => returnBuilder;
+  return evBuilder;
+};
+
 
 function makeActivityDispatchBuilder<DT, E extends UiMsgNames, RT>(
   element: behaviourElement<DT, E>,
@@ -195,9 +219,9 @@ function makeMenuDispatchBuilder<DT, E extends UiMsgNames, RT>(
   };
 
   return {
-    toAdd:     (menu) => withMenuAction('add', menu as MenuItem),
-    toRemove:  (menu) => withMenuAction('remove', menu as MenuItem),
-    toEnable:  (menu) => withMenuAction('enable', menu as MenuItem),
+    toAdd: (menu) => withMenuAction('add', menu as MenuItem),
+    toRemove: (menu) => withMenuAction('remove', menu as MenuItem),
+    toEnable: (menu) => withMenuAction('enable', menu as MenuItem),
     toDisable: (menu) => withMenuAction('disable', menu as MenuItem),
     endMenus: () => returnBuilder
   };
@@ -209,7 +233,7 @@ function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
   scopeLevel?: BehaviourScopeLevel
 ): DataDispatchBuilder<DT, E, RT> {
   return {
-    invalidate: (viewDataIdentifier: ViewDataIdentifier) => {
+    toInvalidate: (viewDataIdentifier: ViewDataIdentifier) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'DataRequest',
         eventData: { requestType: 'revert', viewDataIdentifier } as any,
@@ -220,7 +244,7 @@ function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
       return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
-    save: (viewDataIdentifier: ViewDataIdentifier, changeFn: (data: DT) => DT) => {
+    toSave: (viewDataIdentifier: ViewDataIdentifier, changeFn: (data: DT) => DT) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'DataRequest',
         eventData: { requestType: 'change', viewDataIdentifier, changeFn } as any,
@@ -231,10 +255,10 @@ function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
       return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
-    updateFromEventPayloadResult: (viewDataIdentifier, mapResultToDataFromEvent) => {
+    toUpdateFromEventResult: (viewDataIdentifier, mapResultToDataFromEvent) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'DataRequest',
-        eventData: { requestType: 'updateFromEventPayloadResult', viewDataIdentifier, mapResultToDataFromEvent } as any,
+        eventData: { requestType: 'toUpdateFromEventResult', viewDataIdentifier, mapResultToDataFromEvent } as any,
         eventMsg: undefined as any,
         outboundScopeLevel: scopeLevel,
       };
@@ -252,7 +276,7 @@ function makeSystemDispatchBuilder<DT, E extends UiMsgNames, RT>(
   scopeLevel?: BehaviourScopeLevel
 ): SystemDispatchBuilder<DT, E, RT> {
   return {
-    logoutUser: () => {
+    toLogoutUser: () => {
       const action: behaviourAction<DT, E> = {
         eventType: 'SystemRequest',
         eventData: { requestType: 'logoutUser' } as any,
@@ -319,12 +343,12 @@ function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
   };
 
   return {
-    toOpenBlade:  (target, params, content, viewDataIdentifier) => withAction('openBlade', target, params, content, viewDataIdentifier),
+    toOpenBlade: (target, params, content, viewDataIdentifier) => withAction('openBlade', target, params, content, viewDataIdentifier),
     toCloseBlade: (target, params) => withAction('closeBlade', target, params),
-    toOpenTab:    (target, params, content, viewDataIdentifier) => withAction('openTab', target, params, content, viewDataIdentifier),
+    toOpenTab: (target, params, content, viewDataIdentifier) => withAction('openTab', target, params, content, viewDataIdentifier),
     toOpenPagedTab: (target, params?) =>
-    makePagedTabBuilder(element, returnBuilder, target, params ?? {}, [], scopeLevel),
-    toCloseTab:     (target, params) => withAction('closeTab', target, params),
+      makePagedTabBuilder(element, returnBuilder, target, params ?? {}, [], scopeLevel),
+    toCloseTab: (target, params) => withAction('closeTab', target, params),
     toAddTabPage: (tabTarget: string, page: PageDefinition, opts?: { activate?: boolean }) => {
       const action: behaviourAction<DT, E> = {
         eventType: 'PresentationRequest',
@@ -345,7 +369,20 @@ function makePresentationDispatchBuilder<DT, E extends UiMsgNames, RT>(
       element.actions.push(action);
       return makePresentationDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
-    navigate:   (target, params) => withAction('navigate', target, params),
+    navigate: (target, params) => withAction('navigate', target, params),
     endPresentation: () => returnBuilder,
   };
+}
+
+function cloneElementConditions(elements: behaviourElement<any, any>[], element: behaviourElement<any, any>): behaviourElement<any, any> {
+  const newElement: behaviourElement<any, any> = {
+    eventType: element.eventType,
+    actions: [],
+    innerElements: [],
+    eventCondition: element.eventCondition,
+    dataCondition: element.dataCondition,
+    dataIdentifierCondition: element.dataIdentifierCondition,
+  };
+  elements.push(newElement);
+  return newElement;
 }
