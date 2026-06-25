@@ -2,7 +2,8 @@ import { ActivitySet, buildActivitySet } from 'msp_svr_common';
 
 import { listEcrRepositoriesHandler, listEksClustersHandler,
   readClusterSetupConfigHandler, writeClusterSetupConfigHandler, reconcileClusterSetupConfigHandler,
-  getAwsWizardBootstrapHandler, connectAwsCredentialsHandler, refreshAwsWizardViewsHandler }
+  getAwsWizardBootstrapHandler, connectAwsCredentialsHandler, refreshAwsWizardViewsHandler,
+}
 from '../services/index.js';
 
 

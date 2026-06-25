@@ -1,7 +1,6 @@
 import { buildActivitySet, ServiceActivityResultBuilder } from 'msp_svr_common'
 import type { ActivitySet } from 'msp_svr_common'
-import { ReadData } from '../services/dgmRead.js';
-import { WriteData } from '../services/dgmWrite.js';
+import { ReadData, WriteData } from 'msp_data_common';
 import { DataObject, View, ViewDataContent } from 'msp_common';
 
 const simpleViewActivitySet: ActivitySet = buildActivitySet()

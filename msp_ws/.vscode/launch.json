@@ -27,7 +27,7 @@
             "stopAll": true
         },
         {
-            "name": "MSP Front & Back & Data",
+         "name": "MSP Front & Back & Data",
             "configurations": [
                 "BusData Run 'dgm_bus_intg'",
                 "TechData Run 'docgraph'",

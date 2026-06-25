@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "clear_mf_cache": "rm -rf node_modules/.vite && rm -rf node_modules/__mf__virtual",
+    "keys:generate-env": "node ./scripts/generateSecurityKeyEnv.mjs",
     "start": "node ./distApi/serviceActivityElements/server.js --inspect & vite",
     "start:server": "node ./distApi/serviceActivityElements/server.js",
     "dev": "vite",
@@ -25,6 +26,7 @@
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
     "msp_common": "workspace:*",
+    "msp_data_common": "workspace:*",
     "msp_svr_common": "workspace:*",
     "msp_ui_common": "workspace:*",
     "node-fetch": "^3.3.2",

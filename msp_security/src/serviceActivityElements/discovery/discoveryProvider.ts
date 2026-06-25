@@ -1,3 +1,5 @@
+import { getRuntimeEncryptionPublicKey } from '../services/encryptionRuntimeKeys.js';
+
 export type EncryptionPublicKeyResponse = {
   kid: string;
   kty: string;
@@ -124,7 +126,42 @@ export function getDiscoveryProvider(config: DiscoveryProviderConfig): Discovery
 }
 
 function resolveEncryptionKey(): EncryptionPublicKeyResponse | null {
-  // First: check for a dedicated encryption public key in env
+  const runtimeKey = getRuntimeEncryptionPublicKey();
+  if (runtimeKey?.kid && runtimeKey?.kty) {
+    return {
+      kid: runtimeKey.kid,
+      kty: runtimeKey.kty,
+      alg: runtimeKey.alg ?? 'RSA-OAEP-256',
+      use: 'enc',
+      n: runtimeKey.n,
+      e: runtimeKey.e,
+      key_ops: runtimeKey.key_ops ?? ['encrypt'],
+    };
+  }
+
+  const inUseSuffix = (process.env['MSP_SECURITY_IN_USE_SUFFIX'] || '1').trim() === '2' ? '2' : '1';
+
+  const suffixedEncKeyJson = process.env[`MSP_SECURITY_ENCRYPTION_PUBLIC_KEY_JSON_${inUseSuffix}`];
+  if (suffixedEncKeyJson?.trim()) {
+    try {
+      const parsed = JSON.parse(suffixedEncKeyJson) as Partial<EncryptionPublicKeyResponse>;
+      if (parsed?.kid && parsed?.kty) {
+        return {
+          kid: parsed.kid,
+          kty: parsed.kty,
+          alg: parsed.alg ?? 'RSA-OAEP-256',
+          use: 'enc',
+          n: parsed.n,
+          e: parsed.e,
+          key_ops: parsed.key_ops ?? ['encrypt'],
+        };
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // First persisted source: check for a dedicated encryption public key in env
   const encKeyJson = process.env['MSP_SECURITY_ENCRYPTION_PUBLIC_KEY_JSON'];
   if (encKeyJson?.trim()) {
     try {

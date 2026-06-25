@@ -47,7 +47,6 @@ export type WithLDDT<C extends CNTX, NewLDDT extends FluxorData<any>> =
 export type WithTDDT<C extends CNTX, NewTDDT> = 
   CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDTOf<C>, NewTDDT>;
 
-export type ReUiPlanExpressionPropExecutionPlan = 'OnBuild' | 'OnRender' | 'OnSourceChangeEvent' | 'OnPropChangeEvent';
 
 export type ReUiPlan = {
   id: string
@@ -63,7 +62,12 @@ export type ReUiPlan = {
   sharedProps?: ReUiPlanElementShareableProps[];
 }
 
-export type ReUiPlanExpressionProp<C> =  ((context: C) => any)
+
+export type ReUiPlanExpressionPropExecutionPlan = 'OnBuild' | 'OnRender' | 'OnSourceChangeEvent' | 'OnPropChangeEvent';
+
+
+export type ReUiPlanExpressionProp<C> =  ((context: C) => any) | { executionPlan: ReUiPlanExpressionPropExecutionPlan, expression: string | ((context: C) => any) }
+
 
 export type ReUiPlanElementSetMember = {componentName?: string, options: ReUiPlanElement, containing? : ReUiPlanElementSet}
 

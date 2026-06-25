@@ -38,3 +38,4 @@ export function addAwsActivityFeatures(service: ManifestServiceBuilder<any, any>
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
 }
+

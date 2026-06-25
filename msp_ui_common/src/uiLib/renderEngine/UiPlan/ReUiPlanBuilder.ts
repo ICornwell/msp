@@ -1,4 +1,4 @@
-import { BSDDTOf, CNTX, ContextOf, LDDTOf, RDDTOf, ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp, RSDDTOf, TDDTOf } from './ReUiPlan.js'
+import { BSDDTOf, CNTX, ContextOf, LDDTOf, RDDTOf, ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp, ReUiPlanExpressionPropExecutionPlan, RSDDTOf, TDDTOf } from './ReUiPlan.js'
 import { defaultDisplayMap } from '../fluxor/defaultDisplayMap.js'
 import { ReComponentBinder, ReComponentReBinder } from '../components/ReComponentProps.js'
 import { ComponentWrapper } from '../components/ReComponentWrapper.js'
@@ -533,9 +533,9 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
       for (const bb of basedOn) {
         if (Object.keys(bb).includes('build')) {
           const baseElement = (bb as any).build(buildSettings);
-          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(baseElement));
+          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, baseElement));
         } else {
-          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(bb as ReUiPlanElement));
+          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, bb as ReUiPlanElement));
         }
       }
 
@@ -552,11 +552,11 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
       }
       reUiPlanComponent.decorators = decoratorSetBuilders.flatMap(dsBuilder => {
         const dsBuilt = dsBuilder.build(buildSettings);
-        return dsBuilt.components.map(c => ReUiPlanElementToReComponentProps(c.options));
+        return dsBuilt.components.map(c => ReUiPlanElementToReComponentProps(buildSettings, c.options));
       });
-      Object.assign(builtComponent, ReUiPlanElementToReComponentProps(reUiPlanComponent));
+      Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, reUiPlanComponent));
       if (innerTypedComponentBuilder) {
-        Object.assign(builtComponent, ReUiPlanElementToReComponentProps(innerTypedComponentBuilder.build(buildSettings)));
+        Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, innerTypedComponentBuilder.build(buildSettings)));
       }
 
       if (builder._buildExtension) {
@@ -647,9 +647,9 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
       for (const bb of basedOn) {
         if (Object.keys(bb).includes('build')) {
           const baseElement = (bb as any).build();
-          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(baseElement));
+          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, baseElement));
         } else {
-          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(bb as ReUiPlanElement));
+          Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, bb as ReUiPlanElement));
         }
       }
 
@@ -668,11 +668,11 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
 
       reUiPlanComponent.decorators = decoratorSetBuilders.flatMap(dsBuilder => {
         const dsBuilt = dsBuilder.build(buildSettings);
-        return dsBuilt.components.map(c => ReUiPlanElementToReComponentProps(c.options));
+        return dsBuilt.components.map(c => ReUiPlanElementToReComponentProps(buildSettings, c.options));
       });
-      Object.assign(builtComponent, ReUiPlanElementToReComponentProps(reUiPlanComponent));
+      Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, reUiPlanComponent));
       if (innerTypedComponentBuilders) {
-        Object.assign(builtComponent, ReUiPlanElementToReComponentProps(innerTypedComponentBuilders.build(buildSettings)));
+        Object.assign(builtComponent, ReUiPlanElementToReComponentProps(buildSettings, innerTypedComponentBuilders.build(buildSettings)));
       }
       (builtComponent as any).fromComponentIndex = fromComponentIndex;
       return builtComponent;
@@ -690,27 +690,39 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
   return builder;
 }
 
-export function ReUiPlanElementToReComponentProps(element: ReUiPlanElement): ReUiPlanElement {
+export function ReUiPlanElementToReComponentProps<BS>(buildSettings: BS, element: ReUiPlanElement): ReUiPlanElement {
   return {
-    hidden: element.hidden,
-    disabled: element.disabled,
-    error: element.error,
-    helperText: element.helperText,
-    label: element.label,
+    hidden: makeExpressionProp(buildSettings, element.hidden),
+    disabled: makeExpressionProp(buildSettings, element.disabled),
+    error: makeExpressionProp(buildSettings, element.error),
+    helperText: makeExpressionProp(buildSettings, element.helperText),
+    label: makeExpressionProp(buildSettings, element.label),
     binding: element.binding,
     extraBindings: element.extraBindings,
     useSingleChildForArrays: element.useSingleChildForArrays,
     decorators: element.decorators,
     componentName: element.componentName,
-    componentProps: element.componentProps,
+    componentProps: element.componentProps, // use makeExpressionProp for all component props, here or delegate to component?
     dataDescriptor: element.dataDescriptor,
     children: element.children,
-    sharedProps: element.sharedProps,
-    buildSettings: element.buildSettings,
-    displayMode: element.displayMode,
-    labelPosition: element.labelPosition,
+    sharedProps: element.sharedProps, // use makeExpressionProp for all shared props, here or earlier?
+    buildSettings: buildSettings,
+    displayMode: makeExpressionProp(buildSettings, element.displayMode),
+    labelPosition: makeExpressionProp(buildSettings, element.labelPosition),
     fromComponentIndex: element.fromComponentIndex,
     isUsed: element.isUsed,
     isReUIPlanElement: element.isReUIPlanElement
   } as ReUiPlanElement;
+}
+
+function makeExpressionProp<BS>(buildSettings: BS, value: any): any | {executionPlan: ReUiPlanExpressionPropExecutionPlan, expression :(context: any) => any } {
+  if (typeof value === 'function') {
+    return { executionPlan: 'OnSourceChangeEvent', expression: value };
+  } else if (typeof value === 'object' && value !== null && 'executionPlan' in value && 'expression' in value) {
+    if (value.executionPlan === 'OnBuild') {
+      return value.expression({buildSettings: buildSettings});
+    } 
+    return { expression: () => value };
+  }
+  return value
 }

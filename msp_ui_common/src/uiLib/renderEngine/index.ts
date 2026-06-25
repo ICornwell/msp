@@ -31,7 +31,7 @@ function ReUiPlanner()  {
 
 export const Re = ReUiPlanner()
 export type { FluxorData }
-export type { ComponentWrapper }
+export type { ComponentWrapper, ReUiPlanComponentBuilder, ReUiPlanElementSetBuilder, CNTX }
 export { ReProvider } from './contexts/ReEngineContext.js'
 export { EngineComponentProvider } from './contexts/ReComponentsContext.js'
 

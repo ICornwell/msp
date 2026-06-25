@@ -132,6 +132,26 @@ function normalizeAlg(alg?: string): 'RSA-OAEP-256' | 'RSA-OAEP' {
   return alg === 'RSA-OAEP' ? 'RSA-OAEP' : 'RSA-OAEP-256';
 }
 
+function normalizeEncryptionPublicKey(raw: unknown): SecurityEncryptionPublicKey | null {
+  const direct = raw as Partial<SecurityEncryptionPublicKey> | undefined;
+  const wrapped = (raw as { data?: Partial<SecurityEncryptionPublicKey> } | undefined)?.data;
+  const candidate = (direct?.kty ? direct : wrapped) as Partial<SecurityEncryptionPublicKey> | undefined;
+
+  if (!candidate?.kid || !candidate?.kty || !candidate?.n || !candidate?.e) {
+    return null;
+  }
+
+  return {
+    kid: candidate.kid,
+    kty: candidate.kty,
+    alg: candidate.alg ?? 'RSA-OAEP-256',
+    use: 'enc',
+    n: candidate.n,
+    e: candidate.e,
+    key_ops: candidate.key_ops ?? ['encrypt'],
+  };
+}
+
 async function getSecurityEncryptionKey(options?: ServiceRequestOptions): Promise<CachedSecurityKeyEntry> {
   if (cachedSecurityKey) {
     return cachedSecurityKey;
@@ -149,8 +169,13 @@ async function getSecurityEncryptionKey(options?: ServiceRequestOptions): Promis
     throw new Error(response.message || 'Failed to load security encryption public key');
   }
 
-  const keyObject = createPublicKey({ key: response.result as any, format: 'jwk' });
-  cachedSecurityKey = { key: response.result, keyObject };
+  const normalizedKey = normalizeEncryptionPublicKey(response.result);
+  if (!normalizedKey) {
+    throw new Error('Security encryption public key payload is invalid (expected kid,kty,n,e).');
+  }
+
+  const keyObject = createPublicKey({ key: normalizedKey as any, format: 'jwk' });
+  cachedSecurityKey = { key: normalizedKey, keyObject };
   return cachedSecurityKey;
 }
 

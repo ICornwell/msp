@@ -5,6 +5,8 @@ import {
   storeServiceSecretHandler,
   retrieveServiceSecretHandler,
   getEncryptionPublicKeyHandler,
+  configureEncryptionKeyPairHandler,
+  rotateServiceSecretVaultKeysHandler,
 } from '../services/index.js';
 
 export const PrivateKeysActivities = buildActivitySet()
@@ -31,6 +33,14 @@ export const PrivateKeysActivities = buildActivitySet()
   .use({
     activityName: 'getEncryptionPublicKey',
     funcs: getEncryptionPublicKeyHandler,
+  })
+  .use({
+    activityName: 'configureEncryptionKeyPair',
+    funcs: configureEncryptionKeyPairHandler,
+  })
+  .use({
+    activityName: 'rotateServiceSecretVaultKeys',
+    funcs: rotateServiceSecretVaultKeysHandler,
   })
   .build();
 

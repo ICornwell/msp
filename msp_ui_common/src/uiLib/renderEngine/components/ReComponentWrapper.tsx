@@ -1,4 +1,4 @@
-import { ComponentType, ReactNode, useEffect, useState } from 'react';
+import { ComponentType, ReactNode, useEffect, useState, useRef } from 'react';
 import { useEngineComponentsContext } from '../contexts/ReComponentsContext.js';
 import FormHelperText from '@mui/material/FormHelperText';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -6,7 +6,7 @@ import { ReComponentCommonProps, ReComponentSystemProps } from './ReComponentPro
 import { makeStyles } from 'tss-react/mui';
 import { RePubSubMsg } from '../data/ReEnginePubSub.js';
 import { ReSubscriptionHandler } from './RePubSubHook.js';
-import { ReUiPlanDisplayMode, CNTX } from '../UiPlan/ReUiPlan.js';
+import { ReUiPlanDisplayMode, CNTX, ReUiPlanExpressionPropExecutionPlan } from '../UiPlan/ReUiPlan.js';
 import { ReNullExtension, ReExtensionBuilder } from '../UiPlan/ReUiPlanBuilder.js';
 
 const useStyles = makeStyles()((theme) => ({
@@ -30,8 +30,10 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
   const { value, record, setMetadataMode, setter, getter, notes, componentCallbackHandler } = wrapperProps
   const { getComponentInstantiator } = useEngineComponentsContext()
 
-  const [ dataValue, setDataValue ] = useState(value);
-  const [redrawToggle, setRedrawToggle] = useState(false);
+  const [dataValue, setDataValue] = useState(value);
+  const [redrawCount, setRedrawCount] = useState(0);
+
+  const onRenderExpresstionValues = useRef<{ [key: string]: any }>({});
 
   useEffect(() => {
     triggerRedraw();
@@ -39,7 +41,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
 
   function triggerRedraw() {
     setDataValue(getter ? getter() : value);
-    setRedrawToggle(!redrawToggle);
+    setRedrawCount(redrawCount + 1);
   }
 
   if (componentCallbackHandler && componentCallbackHandler.dataChangeCallback) {
@@ -64,63 +66,102 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
     }
   };
 
+  useEffect(() => {
+    const dataUnsubs: (() => void)[] = []
+    for (const [key, val] of Object.entries(shadowsProps || {})) {
+      if (val && typeof val === 'object'
+        && (val.executionPlan || val.executionPlan == '') && val.expression
+        && typeof val.expression === 'function') {
+
+        let proxySubId: any = undefined;
+
+        // Collect metadata about function properties
+        const functionPropsMetaData: Array<{
+          path: string,
+          propertyKey: string | number | symbol,
+          subscriptionHandler: ReSubscriptionHandler,
+          //       setter: (newValue: any) => void
+        }> = []
+
+        if (setMetadataMode && localData.___isProxy) {
+          setMetadataMode(false);
+          const subscribe = localData.___proxyPubSub.subscriptionHandler.subscribeToPubSub;
+          // Subscribe to proxy fetches to collect metadata
+          proxySubId = subscribe({
+            callback: (msg: RePubSubMsg) => {
+              functionPropsMetaData.push({
+                path: msg.path, propertyKey: msg.propertyKey,
+                subscriptionHandler: msg.subscriptionHandler
+              });
+            }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'
+          });
+        }
+
+        // when we get the binding value, messages will let us know what properties were accessed
+        // running the function to find the function dependencies,
+        // and then we can subscribe to those properties for changes
+        // WARNING: functions with lazy evaluation or conditional logic may not access all properties
+        // developers must ensure all data-model dependencies are accessed, to trigger refreshes
+        // with recalculations
+        val.expression({
+          rootData: rootData,
+          localData: localData,
+          localIsCollection: Array.isArray(localData),
+          attributeName: key,
+          collectionIndexerId: wrapperProps?.options?.collectionIndexerId,
+        })
+
+        if (value.executionPlan === 'OnSourceChangeEvent' as ReUiPlanExpressionPropExecutionPlan) {
+          for (const metaData of functionPropsMetaData) {
+            // TODO: we should use a subscription hook that will clean up on unmount
+            const subId = metaData.subscriptionHandler.subscribeToPubSub({
+              callback: (_msg: RePubSubMsg) => {
+                triggerRedraw();
+              },
+              msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataChange'
+            })
+            dataUnsubs.push(() => metaData.subscriptionHandler.unsubscribeFromPubSub(subId));
+          }
+        }
+        // Unsubscribe from proxy fetches, now we've found / tracking deps.
+        if (proxySubId) {
+          const unsubscribe = localData.___proxyPubSub.subscriptionHandler.unsubscribeFromPubSub;
+          unsubscribe(proxySubId);
+        }
+      }
+    }
+    return () => {
+      // Cleanup subscriptions if needed
+      for (const unsub of dataUnsubs) {
+        unsub();
+      }
+    }
+  }, [rootData, localData, redrawCount]);
+
   for (const [key, val] of Object.entries(shadowsProps || {})) {
     if (val && typeof val === 'object'
       && (val.executionPlan || val.executionPlan == '') && val.expression
       && typeof val.expression === 'function') {
-
-      let proxySubId: any = undefined;
-
-      // Collect metadata about function properties
-      const functionPropsMetaData: Array<{
-        path: string,
-        propertyKey: string | number | symbol,
-        subscriptionHandler: ReSubscriptionHandler,
-        //       setter: (newValue: any) => void
-      }> = []
-
-      if (setMetadataMode && localData.___isProxy) {
-        setMetadataMode(false);
-        const subscribe = localData.___proxyPubSub.subscriptionHandler.subscribeToPubSub;
-        // Subscribe to proxy fetches to collect metadata
-        proxySubId = subscribe({
-          callback: (msg: RePubSubMsg) => {
-            functionPropsMetaData.push({
-              path: msg.path, propertyKey: msg.propertyKey,
-              subscriptionHandler: msg.subscriptionHandler
-            });
-          }, msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataFetch'
+      if (val.executionPlan === 'OnSourceChangeEvent' as ReUiPlanExpressionPropExecutionPlan
+        || (redrawCount == 0 &&val.executionPlan === 'OnRender' as ReUiPlanExpressionPropExecutionPlan)) {
+        const expVal = val.expression({
+          rootData: rootData,
+          localData: localData,
+          localIsCollection: Array.isArray(localData),
+          attributeName: key,
+          collectionIndexerId: wrapperProps?.options?.collectionIndexerId,
         });
+        (shadowsProps as any)[key] = expVal;
+        if (val.executionPlan !== 'OnRender' as ReUiPlanExpressionPropExecutionPlan
+          || redrawCount === 0) {
+            shadowsProps[key] = expVal;
+          onRenderExpresstionValues.current[key] = expVal;
+        } else {
+          shadowsProps[key] = onRenderExpresstionValues.current[key];
+        } 
+      } else {
+        (shadowsProps as any)[key] = val;
       }
-
-      // when we get the binding value, messages will let us know what properties were accessed
-      const expVal = val.expression({
-        rootData: rootData,
-        localData: localData,
-        localIsCollection: Array.isArray(localData),
-        attributeName: key,
-        collectionIndexerId: wrapperProps?.options?.collectionIndexerId,
-      })
-
-      // Unsubscribe from proxy fetches
-      for (const metaData of functionPropsMetaData) {
-        // TODO: we should use a subscription hook that will clean up on unmount
-        metaData.subscriptionHandler.subscribeToPubSub({
-          callback: (_msg: RePubSubMsg) => {
-            triggerRedraw();
-          },
-          msgTypeFilter: (msg: RePubSubMsg) => msg.messageType === 'dataChange'
-        });
-      }
-      if (proxySubId) {
-        const unsubscribe = localData.___proxyPubSub.subscriptionHandler.unsubscribeFromPubSub;
-        unsubscribe(proxySubId);
-      }
-
-      // Set the evaluated value
-      (shadowsProps as any)[key] = expVal;
-    } else {
-      (shadowsProps as any)[key] = val;
     }
   }
 

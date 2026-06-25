@@ -26,6 +26,7 @@ export type AwsClusterSetupConfig = {
   setupId: string;
   accountId?: string;
   accountName?: string;
+  accessKeyId?: string;
   connectionStatus?: 'success' | 'failed' | 'unknown';
   connectionMessage?: string;
   connectionCheckedAt?: string;

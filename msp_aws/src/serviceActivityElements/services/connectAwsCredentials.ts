@@ -10,6 +10,7 @@ export type ConnectAwsCredentialsPayload = {
   accessKeyId?: string;
   secretAccessKey?: string;
   sessionToken?: string;
+  persistCredentials?: boolean;
 };
 
 const AWS_SECRET_SERVICE_ID = 'msp_aws.data';
@@ -120,6 +121,7 @@ export async function connectAwsCredentialsHandler(
   const accessKeyId = required(payload.accessKeyId);
   const secretAccessKey = required(payload.secretAccessKey);
   const sessionToken = required(payload.sessionToken);
+  const persistCredentials = payload.persistCredentials === true;
 
   if (!accountId || !accessKeyId || !secretAccessKey) {
     resultBuilder.log('Missing required AWS credentials: accountId, accessKeyId and secretAccessKey are required.');
@@ -230,6 +232,7 @@ export async function connectAwsCredentialsHandler(
       clusterName,
       accountId,
       accountName,
+      ...(persistCredentials ? { accessKeyId } : {}),
       connectionStatus: 'success',
       connectionMessage: connection.message || 'Connection succeeded',
       connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
@@ -244,42 +247,23 @@ export async function connectAwsCredentialsHandler(
       );
     }
 
-    await storeSecretForServiceId(
-    {
-      serviceId: AWS_SECRET_SERVICE_ID,
-      secretName: 'aws.accessKeyId',
-      secret: accessKeyId,
-      upsertMode: 'replace',
-      clientCacheTtlMs: 5 * 60 * 1000,
-    },
-    { includeIdClaim: true },
-  );
-
-    await storeSecretForServiceId(
-    {
-      serviceId: AWS_SECRET_SERVICE_ID,
-      secretName: 'aws.secretAccessKey',
-      secret: secretAccessKey,
-      upsertMode: 'replace',
-      clientCacheTtlMs: 5 * 60 * 1000,
-    },
-    { includeIdClaim: true },
-  );
-
-    if (sessionToken) {
+    let credentialsStored = false;
+    if (persistCredentials) {
       await storeSecretForServiceId(
       {
         serviceId: AWS_SECRET_SERVICE_ID,
-        secretName: 'aws.sessionToken',
-        secret: sessionToken,
+        secretName: 'aws.secretAccessKey',
+        secret: secretAccessKey,
         upsertMode: 'replace',
         clientCacheTtlMs: 5 * 60 * 1000,
       },
       { includeIdClaim: true },
-      );
+    );
+
+      credentialsStored = true;
     }
 
-    resultBuilder.log(`AWS credentials connected for accountId=${accountId} region=${region}.`);
+    resultBuilder.log(`AWS credentials validated for accountId=${accountId} region=${region}${persistCredentials ? ' and persisted to vault' : ''}.`);
     return resultBuilder.success({
       connected: true,
       connection,
@@ -290,9 +274,9 @@ export async function connectAwsCredentialsHandler(
       setupId,
       clusterName,
       credentialsStored: {
-        accessKeyId: true,
-        secretAccessKey: true,
-        sessionToken: !!sessionToken,
+        accessKeyId: false,
+        secretAccessKey: credentialsStored,
+        sessionToken: false,
       },
     });
   } catch (error: any) {

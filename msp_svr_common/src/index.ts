@@ -5,6 +5,7 @@ export * from './comms/index.js'
 export * from './als/index.js'
 export * from './app/index.js'
 export * from './security/serviceSecretClient.js'
+export * from './security/vaultSdk.js'
 export * from './auth/auth.js'
 
 export * from './configuredCommon.js';

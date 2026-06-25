@@ -16,6 +16,7 @@ type AwsClusterSetupRecord = {
   setupId?: string;
   accountId?: string;
   accountName?: string;
+  accessKeyId?: string;
   region?: string;
   clusterName?: string;
   wizardVersion?: string;

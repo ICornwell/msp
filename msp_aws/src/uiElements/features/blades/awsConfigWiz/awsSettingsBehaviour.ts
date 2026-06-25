@@ -10,6 +10,12 @@ const defaultSetupContext = {
 };
 
 export const useAwsSettingsBehaviour = () => {
+  let lastEnteredCredentials: {
+    accessKeyId?: string;
+    secretAccessKey?: string;
+    sessionToken?: string;
+  } = {};
+
   const config = createBehaviour()
     .whenStarted()
       .makeRequest
@@ -27,18 +33,26 @@ export const useAwsSettingsBehaviour = () => {
       .endHandler()
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'awsWizardConnect')
+      .localEffect((context) => {
+        const current = (context.event as any)?.payload?.viewDataContent ?? {};
+        lastEnteredCredentials = {
+          accessKeyId: current.accessKeyId,
+          secretAccessKey: current.secretAccessKey,
+          sessionToken: current.sessionToken,
+        };
+      })
+      .endEffect()
       .makeRequest
         .toData.toUpdateFromEventResult(
           ({ event }) => awsClusterSetupConfigView.getViewDataIdentifier(
             event?.payload?.viewDataContent?.setupId ?? defaultSetupContext.setupId,
           ),
           (_result, data) => {
-
             const timestamp = new Date().toISOString();
             const updated = data
             Object.assign(updated, {
                 connectionStatus: '',
-                connectionMessage: 'Testing the connection to AWS with supplied credentials',
+                connectionMessage: 'Testing AWS credentials with supplied values',
                 connectionCheckedAt: timestamp,
                 status: 'draft',
               });
@@ -61,6 +75,53 @@ export const useAwsSettingsBehaviour = () => {
             accessKeyId: event?.payload?.viewDataContent?.accessKeyId,
             secretAccessKey: event?.payload?.viewDataContent?.secretAccessKey,
             sessionToken: event?.payload?.viewDataContent?.sessionToken,
+          }),
+        })
+        .endActivity()
+      .endHandler()
+    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+      .whenEventSatisfies((event) => event?.payload?.action === 'awsWizardStoreCredentials')
+      .localEffect((context) => {
+        const current = (context.event as any)?.payload?.viewDataContent ?? {};
+        lastEnteredCredentials = {
+          accessKeyId: current.accessKeyId,
+          secretAccessKey: current.secretAccessKey,
+          sessionToken: current.sessionToken,
+        };
+      })
+      .endEffect()
+      .makeRequest
+        .toData.toUpdateFromEventResult(
+          ({ event }) => awsClusterSetupConfigView.getViewDataIdentifier(
+            event?.payload?.viewDataContent?.setupId ?? defaultSetupContext.setupId,
+          ),
+          (_result, data) => {
+            const timestamp = new Date().toISOString();
+            const updated = data
+            Object.assign(updated, {
+                connectionMessage: 'Storing validated credentials to secure vault',
+                connectionCheckedAt: timestamp,
+              });
+            return updated;
+          }
+        )
+        .endData()
+      .then()
+      .makeRequest
+        .toActivity.withoutWaiting({
+          id: 'storeAwsCredentials',
+          action: 'aws/connectAwsCredentials/1.0.0',
+          payloadFromEvent: (event) => ({
+            ...defaultSetupContext,
+            setupId: event?.payload?.viewDataContent?.setupId ?? defaultSetupContext.setupId,
+            region: event?.payload?.viewDataContent?.region ?? defaultSetupContext.region,
+            clusterName: event?.payload?.viewDataContent?.clusterName ?? defaultSetupContext.clusterName,
+            accountId: event?.payload?.viewDataContent?.accountId,
+            accountName: event?.payload?.viewDataContent?.accountName,
+            accessKeyId: event?.payload?.viewDataContent?.accessKeyId,
+            secretAccessKey: event?.payload?.viewDataContent?.secretAccessKey,
+            sessionToken: event?.payload?.viewDataContent?.sessionToken,
+            persistCredentials: true,
           }),
         })
         .endActivity()
@@ -92,20 +153,29 @@ export const useAwsSettingsBehaviour = () => {
             const timestamp = new Date().toISOString();
             const updated = data
             if (result.connection.connected) {
+              const credentialsStored = !!result.credentialsStored?.secretAccessKey;
               Object.assign(updated, {
                 setupId: result.setupId ?? updated.setupId,
                 region: result.region ?? updated.region,
                 clusterName: result.clusterName ?? updated.clusterName,
                 accountId: result.connection.accountId,
                 accountName: result.accountName,
+                accessKeyId: updated.accessKeyId ?? lastEnteredCredentials.accessKeyId,
+                secretAccessKey: updated.secretAccessKey ?? lastEnteredCredentials.secretAccessKey,
+                sessionToken: updated.sessionToken ?? lastEnteredCredentials.sessionToken,
                 connectionStatus: 'success',
-                connectionMessage: result.connection.message ?? 'AWS credentials connected',
+                connectionMessage: credentialsStored
+                  ? (result.connection.message ?? 'AWS credentials validated and secret stored')
+                  : (result.connection.message ?? 'AWS credentials validated'),
                 connectionCheckedAt: result.connection.checkedAt,
                 updatedAt: timestamp,
                 status: 'ready',
               });
             } else {
               Object.assign(updated, {
+                accessKeyId: updated.accessKeyId ?? lastEnteredCredentials.accessKeyId,
+                secretAccessKey: updated.secretAccessKey ?? lastEnteredCredentials.secretAccessKey,
+                sessionToken: updated.sessionToken ?? lastEnteredCredentials.sessionToken,
                 connectionStatus: 'failed',
                 connectionMessage: result.connection.message ?? 'AWS credentials failed - unknown reason',
                 connectionCheckedAt: timestamp,
@@ -121,9 +191,11 @@ export const useAwsSettingsBehaviour = () => {
       .whenEventSatisfies(
         (event) => {
           const connectResult = (event?.payload?.result ?? {}) as Record<string, any>;
+          const credentialsStored = !!connectResult?.credentialsStored?.secretAccessKey;
           return event?.payload?.namespace === 'aws'
             && event?.payload?.activityName === 'connectAwsCredentials'
-            && connectResult.connected === true;
+            && connectResult.connected === true
+            && credentialsStored;
         },
       )
       .makeRequest

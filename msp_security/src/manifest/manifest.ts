@@ -30,6 +30,14 @@ function createSecurityBuilder(config?: any) {
       .withAllowedContexts(['*'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
+    .withActivityFeature('configureEncryptionKeyPair', '1.0.0', 'default')
+      .withAllowedContexts(['*'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('rotateServiceSecretVaultKeys', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
 
 }
 
