@@ -68,7 +68,7 @@ const personSchema = schema<{ name: string; age: number }>()
 ```typescript
 const accountView = view('account-view')
   .withVersion('1.0')
-  .withRootKey('accountNumber')
+ .useBusinessKey()
   .withRootElement('account', 'acc', accountSchema)
     .withNamedSubElement('person', 'per', personSchema)
       .withRelation('belongsTo')

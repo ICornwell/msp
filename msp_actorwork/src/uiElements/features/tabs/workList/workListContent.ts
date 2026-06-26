@@ -45,12 +45,15 @@ export function workListContent() {
         .columnGroup('work', 'Overall')
           .column(s => s.work_raisedOn).withHeader('Raised').withRenderer
             .fromComponentElement(PresetDateComponent)
+            .withDisplayMode('readonly')
             .withValueBinding((context) => context.localData.work_raisedOn).endElement
           .column(s => s.work_slaDueDate).withHeader('SLA').withRenderer
             .fromComponentElement(PresetDateComponent)
+            .withDisplayMode('readonly')
             .withValueBinding((context) => context.localData.work_slaDueDate).endElement
           .column(s => s.work_deadline).withHeader('Deadline').withRenderer
             .fromComponentElement(PresetDateComponent)
+            .withDisplayMode('readonly')
             .withValueBinding((context) => context.localData.work_deadline).endElement
         .endGroup
       .endColumns   

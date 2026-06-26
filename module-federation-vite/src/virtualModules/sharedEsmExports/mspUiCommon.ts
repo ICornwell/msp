@@ -42,6 +42,7 @@ export function mspUiCommonExportCode(): string {
     export const PresetMoneyComponent = pick('PresetMoneyComponent');
     export const PresetNumberComponent = pick('PresetNumberComponent');
     export const PresetSecretComponent = pick('PresetSecretComponent');
+    export const PresetSelectComponent = pick('PresetSelectComponent');
     export const PresetTextComponent = pick('PresetTextComponent');
     export const Re = pick('Re');
     export const ServiceDispatcher = pick('ServiceDispatcher');
@@ -52,10 +53,12 @@ export function mspUiCommonExportCode(): string {
     export const UiEventProvider = pick('UiEventProvider');
     export const createBehaviour = pick('createBehaviour');
     export const createBooleanStrategy = pick('createBooleanStrategy');
+    export const createComplexSelectionStrategy = pick('createComplexSelectionStrategy');
     export const createDateStrategy = pick('createDateStrategy');
     export const createMoneyStrategy = pick('createMoneyStrategy');
     export const createNumberStrategy = pick('createNumberStrategy');
     export const createSecretStrategy = pick('createSecretStrategy');
+    export const createSimpleSelectionStrategy = pick('createSimpleSelectionStrategy');
     export const eventTypes = pick('eventTypes');
     export const getLinkClickStrategy = pick('getLinkClickStrategy');
     export const linkClickStrategyFactory = pick('linkClickStrategyFactory');

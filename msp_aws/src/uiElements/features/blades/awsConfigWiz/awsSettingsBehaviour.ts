@@ -31,6 +31,7 @@ export const useAwsSettingsBehaviour = () => {
           })
         .endMenus()
       .endHandler()
+    // --- Test Credentials ---
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'awsWizardConnect')
       .localEffect((context) => {
@@ -49,13 +50,13 @@ export const useAwsSettingsBehaviour = () => {
           ),
           (_result, data) => {
             const timestamp = new Date().toISOString();
-            const updated = data
+            const updated = data;
             Object.assign(updated, {
-                connectionStatus: '',
-                connectionMessage: 'Testing AWS credentials with supplied values',
-                connectionCheckedAt: timestamp,
-                status: 'draft',
-              });
+              connectionStatus: '',
+              connectionMessage: 'Testing AWS credentials with supplied values',
+              connectionCheckedAt: timestamp,
+              status: 'draft',
+            });
             return updated;
           }
         )
@@ -79,6 +80,7 @@ export const useAwsSettingsBehaviour = () => {
         })
         .endActivity()
       .endHandler()
+    // --- Store Credentials ---
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'awsWizardStoreCredentials')
       .localEffect((context) => {
@@ -97,11 +99,11 @@ export const useAwsSettingsBehaviour = () => {
           ),
           (_result, data) => {
             const timestamp = new Date().toISOString();
-            const updated = data
+            const updated = data;
             Object.assign(updated, {
-                connectionMessage: 'Storing validated credentials to secure vault',
-                connectionCheckedAt: timestamp,
-              });
+              connectionMessage: 'Storing validated credentials to secure vault',
+              connectionCheckedAt: timestamp,
+            });
             return updated;
           }
         )
@@ -126,6 +128,22 @@ export const useAwsSettingsBehaviour = () => {
         })
         .endActivity()
       .endHandler()
+    // --- Calculate Subnet Plan ---
+    .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+      .whenEventSatisfies((event) => event?.payload?.action === 'awsWizardCalculateSubnets')
+      .makeRequest
+        .toActivity.withoutWaiting({
+          id: 'calculateSubnetPlan',
+          action: 'aws/calculateSubnetPlan/1.0.0',
+          payloadFromEvent: (event) => ({
+            topologyMode: event?.payload?.viewDataContent?.desiredState?.topologyMode ?? 'consolidated',
+            azCount: Number(event?.payload?.viewDataContent?.desiredState?.azCount ?? 2),
+            vpcCidr: event?.payload?.viewDataContent?.desiredState?.vpcCidr ?? '10.42.0.0/16',
+          }),
+        })
+        .endActivity()
+      .endHandler()
+    // --- Open Setup Wizard blade ---
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'openAwsSetupWizard')
       .makeRequest
@@ -137,6 +155,33 @@ export const useAwsSettingsBehaviour = () => {
         )
         .endPresentation()
       .endHandler()
+    // --- calculateSubnetPlan result ---
+    .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)
+      .whenEventSatisfies(
+        (event) =>
+          event?.payload?.namespace === 'aws' &&
+          event?.payload?.activityName === 'calculateSubnetPlan',
+      )
+      .makeRequest
+        .toData.toUpdateFromEventResult(
+          (_ctx) => awsClusterSetupConfigView.getViewDataIdentifier(defaultSetupContext.setupId),
+          (result, data) => {
+            const updated = data;
+            Object.assign(updated, {
+              desiredState: {
+                ...(updated.desiredState ?? {}),
+                subnetPlan: result.subnets,
+                topologyMode: result.topologyMode,
+                azCount: result.azCount,
+                vpcCidr: result.vpcCidr,
+              },
+            });
+            return updated;
+          },
+        )
+        .endData()
+      .endHandler()
+    // --- connectAwsCredentials result ---
     .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)
       .whenEventSatisfies(
         (event) =>
@@ -149,9 +194,8 @@ export const useAwsSettingsBehaviour = () => {
             event?.payload?.result?.setupId ?? defaultSetupContext.setupId,
           ),
           (result, data) => {
-
             const timestamp = new Date().toISOString();
-            const updated = data
+            const updated = data;
             if (result.connection.connected) {
               const credentialsStored = !!result.credentialsStored?.secretAccessKey;
               Object.assign(updated, {
@@ -187,6 +231,7 @@ export const useAwsSettingsBehaviour = () => {
         )
         .endData()
       .endHandler()
+    // --- Refresh views after successful store ---
     .whenEventRaised(eventTypes.Activity.ACTIVITY_SUCCEEDED)
       .whenEventSatisfies(
         (event) => {
@@ -209,13 +254,7 @@ export const useAwsSettingsBehaviour = () => {
               setupId: connectResult.setupId ?? defaultSetupContext.setupId,
               region: connectResult.region ?? defaultSetupContext.region,
               clusterName: connectResult.clusterName ?? defaultSetupContext.clusterName,
-              refreshes: [
-                'setupConfig',
-                'wizardBootstrap',
-                'eksClusters',
-                'ecrRepositories',
-                'networkTopology',
-              ],
+              refreshes: ['setupConfig', 'wizardBootstrap', 'eksClusters', 'ecrRepositories', 'networkTopology'],
             };
           },
         })

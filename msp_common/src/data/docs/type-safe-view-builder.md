@@ -48,7 +48,7 @@ Each level knows:
 const view = view2<ROOT>('view-name')
   .withVersion('1.0')
   .withConfigSet('main')
-  .withRootKey('id')
+ .useBusinessKey()
   .withRootElement('root', 'r', definition)
     // TypeScript knows valid children from 'definition'
     .withNamedSubElement('child1', { queryObjectId: 'c1' })

@@ -74,7 +74,7 @@ export function ReEngine(props: ReEngineProps) {
           temporaryData: {}
         },
         parentElement: undefined,
-        parentSharedProps: { labelPosition: 'start', displayMode: 'readonly' },
+        parentSharedProps: { labelPosition: 'start' },
         depth: 0
       } as ReEngineElementSetProps)}
 

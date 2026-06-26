@@ -23,14 +23,44 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
       accountName: 'Unassigned',
       connectionStatus: 'unknown',
       connectionMessage: 'Not connected yet.',
+      environmentPurpose: 'coreDev',
+      abMode: false,
       region,
       clusterName,
       wizardVersion: '1.0.0',
       status: 'draft',
       desiredState: {
+        topologyMode: 'consolidated',
+        azCount: 2,
+        vpcCidr: '10.42.0.0/16',
+        security: {
+          wafEnabled: true,
+          guardDuty: true,
+          securityHub: true,
+          cloudTrail: true,
+          flowLogs: true,
+        },
+        postgres: {
+          engine: 'rds',
+          instanceSize: 'md',
+          multiAz: false,
+          backupRetentionDays: 7,
+        },
+        redis: {
+          enabled: true,
+          nodeSize: 'sm',
+          mode: 'cache',
+          multiAz: false,
+        },
+        edgeDb: {
+          enabled: true,
+          dedicatedPostgres: false,
+          resourceProfile: 'sm',
+        },
         eks: {
           clusterVersion: '1.31',
           nodeCount: 2,
+          environmentPrefix: 'dev',
         },
         ecr: {
           repositories: [{
@@ -43,6 +73,7 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
             region: region,
           }],
         },
+        // Legacy network fields kept for backward compatibility
         network: {
           vpcCidr: '10.42.0.0/16',
           publicSubnetCount: 2,

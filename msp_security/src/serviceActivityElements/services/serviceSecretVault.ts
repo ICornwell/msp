@@ -50,6 +50,7 @@ export type RetrieveServiceSecretPayload = {
 
 type StoredServiceSecretRecord = {
   __entityId?: string;
+  id?: string;
   serviceId: string;
   secretName: string;
   encryptedSecret: string;
@@ -74,6 +75,7 @@ type KeySuffix = '1' | '2';
 
 type StoredServiceSecretVaultIndexRecord = {
   __entityId?: string;
+  id?: string;
   indexId: string;
   keys: string[];
   updatedAt: string;
@@ -286,6 +288,7 @@ function isSecurityEncryptionKeyMaterial(serviceId: string, secretName: string):
 function toStoredIndexRecord(data: ServiceSecretVaultIndexData & Partial<DataObject>): StoredServiceSecretVaultIndexRecord {
   return {
     __entityId: data.__entityId,
+    id: data.id ?? undefined,
     indexId: data.indexId,
     keys: Array.isArray(data.keys) ? data.keys : [],
     updatedAt: data.updatedAt,
@@ -295,6 +298,7 @@ function toStoredIndexRecord(data: ServiceSecretVaultIndexData & Partial<DataObj
 function toVaultIndexData(record: StoredServiceSecretVaultIndexRecord): ServiceSecretVaultIndexData & Partial<DataObject> {
   return {
     __entityId: record.__entityId,
+    id: record.id ?? undefined,
     indexId: record.indexId,
     keys: record.keys,
     updatedAt: record.updatedAt,
@@ -304,6 +308,7 @@ function toVaultIndexData(record: StoredServiceSecretVaultIndexRecord): ServiceS
 function toStoredRecord(data: ServiceSecretVaultData & Partial<DataObject>): StoredServiceSecretRecord {
   return {
     __entityId: data.__entityId,
+    id: data.id ?? undefined,
     serviceId: data.serviceId,
     secretName: data.secretName,
     encryptedSecret: data.encryptedSecret,
@@ -323,6 +328,7 @@ function toStoredRecord(data: ServiceSecretVaultData & Partial<DataObject>): Sto
 function toVaultData(record: StoredServiceSecretRecord): ServiceSecretVaultData & Partial<DataObject> {
   return {
     __entityId: record.__entityId,
+    id: record.id ?? undefined,
     vaultKey: storeKey(record.serviceId, record.secretName),
     serviceId: record.serviceId,
     secretName: record.secretName,
@@ -639,6 +645,8 @@ export async function storeServiceSecretHandler(
   const alg = normalizeAlg(payload.alg);
 
   const record: StoredServiceSecretRecord = {
+    __entityId: existing ? existing.__entityId : undefined,
+    id: existing ? existing.id : undefined,
     serviceId,
     secretName,
     encryptedSecret,

@@ -600,7 +600,7 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
     helperText: undefined,
     label: undefined,
     labelPosition: undefined,
-    displayMode: undefined,
+    displayMode: 'editing',
     decorators: [],
     componentName: undefined,
     binding: undefined,

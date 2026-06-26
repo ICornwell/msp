@@ -13,14 +13,13 @@ import { builder2 as wizPage1 } from '../awsSetupWizardContent';
 export function withTrustIdentityPage(builder: typeof wizPage1) {
   return builder
     .withPage('trust-identity', 'Trust and Identity')
-      .withDescription('Capture account and identity routing for setup execution.')
       .withButtons([
         { label: 'Back', role: 'back' },
         { label: 'Next', role: 'next' },
       ])
       .containingElementSet()
         .showingItem.fromComponentElement(LabelFrame)
-          .withLabel('Trust')
+          .withLabel('Trust setup details: capture account and identity routing for setup execution.')
           .containingElementSet()
             .showingItem.fromComponentElement(Columns)
               .withComponentProps({ columns: 2, fillDirection: 'down' })

@@ -35,7 +35,7 @@ export default function PresetBooleanInput(props: PresetBooleanInputProps & ReCo
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,
-    forceReadonly = {false}
+    forceReadonly = {props.displayMode === 'readonly'}
     notes = {props.notes}
     />
   );

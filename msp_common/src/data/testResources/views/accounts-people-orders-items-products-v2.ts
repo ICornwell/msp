@@ -97,7 +97,7 @@ export const productSchema = createSchema('product')
 export const accountsPeopleOrdersItemsProductsView2Context = createView('account-people')
   .withVersion('1.0')
   .withConfigSet('main')
-  .withRootKey('accountNumber')
+  .useBusinessKey()
   .withRootElement(relObjs.accountObject, false)
   
     .withNamedSubElement('person', relObjs.personObject, false)

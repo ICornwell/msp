@@ -26,6 +26,7 @@ export interface PropertyBuilder<T, PK extends SchemaPropertyName
   withDictionaryId: (id: string, version: string) => PropertyBuilder<T, PK, SB, IS>;
   withInfoType: (infoType: SchemaPropertyInfoType) => PropertyBuilder<T, PK, SB, IS>;
   withDefaultLabel: (label: string) => PropertyBuilder<T, PK, SB, IS>;
+  withJsonCodecKey: (codecKey: string) => PropertyBuilder<T, PK, SB, IS>;
   endProperty: () => SchemaBuilder<JOIN<DataOfSchemaBuilder<SB>, { [P in PK]: T }>, IS>;
   __build: () => SchemaProperty<T>; 
 }
@@ -59,6 +60,11 @@ export function createPropertyBuilder<T,
 
     withDefaultLabel: function (label: string): PropertyBuilder<T, PK, SB, IS> {
       property.defaultLabel = label;
+      return builder;
+    },
+
+    withJsonCodecKey: function (codecKey: string): PropertyBuilder<T, PK, SB, IS> {
+      property.jsonCodecKey = codecKey;
       return builder;
     },
 

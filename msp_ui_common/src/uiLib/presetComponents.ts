@@ -48,3 +48,8 @@ export const PresetMoneyComponent: ComponentWrapper<ComponentProps> = {
   displayName: 'PresetMoney',
   extensionFactory: undefined
 } as unknown as ComponentWrapper<ComponentProps>;
+
+export const PresetSelectComponent: ComponentWrapper<ComponentProps> = {
+  displayName: 'PresetSelect',
+  extensionFactory: undefined
+} as unknown as ComponentWrapper<ComponentProps>;

@@ -703,7 +703,7 @@ export function createViewBuilder<RootDT = any>(
     variantName: typeof input === 'string' ? undefined : input.variantName,
     namespace: typeof input === 'string' ? undefined : ((input as Partial<OpsElementName>).namespace),
     configSet: 'main',
-    rootKey: '__entityId',
+    rootKey: '__entityId', // by default views use the entityid..useBusinessKey() can be called to switch to business key
     rootElement: undefined,
   };
 

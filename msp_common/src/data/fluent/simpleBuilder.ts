@@ -11,6 +11,7 @@ export type SimpleSchemaPropertyDefinition =
       dictionaryId?: string;
       dictionaryVersion?: string;
       defaultLabel?: string;
+      jsonCodecKey?: string;
     };
 
 export type SimpleSchemaDefinition<T extends SimpleSchemaShape> = {
@@ -75,6 +76,7 @@ function normalizePropertyDefinition(
     dictionaryId: normalized.dictionaryId ?? options.dictionaryIdFormatter?.(propertyName) ?? `dict-${toKebabCase(propertyName)}`,
     dictionaryVersion,
     defaultLabel: normalized.defaultLabel ?? options.labelFormatter?.(propertyName) ?? toDefaultLabel(propertyName),
+    jsonCodecKey: typeof normalized === 'object' ? normalized.jsonCodecKey : undefined,
   };
 }
 
@@ -95,13 +97,18 @@ export function createSimpleSchemaFromType<T extends SimpleSchemaShape>(
   ]>) {
     const normalized = normalizePropertyDefinition(propertyDefinition, propertyName, options);
 
-    schemaBuilder
+    const propertyBuilder = schemaBuilder
       .withProperty(propertyName)
       .forType<T[typeof propertyName]>()
       .withDictionaryId(normalized.dictionaryId, normalized.dictionaryVersion)
       .withInfoType(normalized.infoType)
-      .withDefaultLabel(normalized.defaultLabel)
-      .endProperty();
+      .withDefaultLabel(normalized.defaultLabel);
+
+    if (normalized.jsonCodecKey) {
+      propertyBuilder.withJsonCodecKey(normalized.jsonCodecKey);
+    }
+
+    propertyBuilder.endProperty();
   }
 
   return schemaBuilder.buildSchema() as unknown as SimpleSchemaFromType<T>;

@@ -7,7 +7,7 @@ const { eksCluster, ecrRepository } = relatedAwsResourceObjects;
 export const awsResourceInventoryView = createView('aws-resource-inventory')
   .withVersion('1.0')
   .withConfigSet('main')
-  .withRootKey('clusterName')
+ .useBusinessKey()
   .withRootElement(eksCluster, false)
   .withNamedSubElement('ecrRepository', ecrRepository, true)
   .withRelation('deploysImageFrom')

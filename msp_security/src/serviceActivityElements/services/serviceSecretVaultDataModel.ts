@@ -5,6 +5,8 @@ import {
   type View,
 } from 'msp_common';
 
+import { vaultCodecs } from './serviceSecretVaultCodecs.js';
+
 export type ServiceSecretVaultData = {
   vaultKey: string;
   serviceId: string;
@@ -39,7 +41,9 @@ const serviceSecretVaultSchema = createSimpleSchemaFromType<ServiceSecretVaultDa
     encryptedSecret: 'Text',
     kid: 'Text',
     alg: 'Text',
-    metadata: 'Json',
+    // NOTE: Using explicit codec key as a reference example — the default
+    // dgm Json codec would behave identically here. See serviceSecretVaultCodecs.ts.
+    metadata: { infoType: 'Json', jsonCodecKey: vaultCodecs.names['security.vault.metadata.v1'] },
     version: 'Integer',
     storedAt: 'DateTime',
     lastAccessedAt: 'DateTime',
@@ -86,7 +90,7 @@ const serviceSecretVaultViewContext = createView({
   variantName: 'default',
 })
   .withConfigSet('main')
-  .withRootKey('vaultKey')
+  .useBusinessKey()
   .withRootElement(serviceSecretVaultDomainObject, false)
   .end()
   .endView();
@@ -97,7 +101,9 @@ const serviceSecretVaultIndexSchema = createSimpleSchemaFromType<ServiceSecretVa
   'serviceSecretVaultIndexRecord',
   {
     indexId: 'Text',
-    keys: 'Json',
+    // NOTE: Using explicit codec key as a reference example — the default
+    // dgm Json codec would behave identically here. See serviceSecretVaultCodecs.ts.
+    keys: { infoType: 'Json', jsonCodecKey: vaultCodecs.names['security.vault.index.keys.v1'] },
     updatedAt: 'DateTime',
   },
   {
@@ -138,7 +144,7 @@ const serviceSecretVaultIndexViewContext = createView({
   variantName: 'default',
 })
   .withConfigSet('main')
-  .withRootKey('indexId')
+  .useBusinessKey()
   .withRootElement(serviceSecretVaultIndexDomainObject, false)
   .end()
   .endView();

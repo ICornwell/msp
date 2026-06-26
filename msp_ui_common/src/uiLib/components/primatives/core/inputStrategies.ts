@@ -84,6 +84,25 @@ export interface ParserStrategy<T = unknown> {
   isExpression?: (input: string, ctx?: StrategyContext) => boolean;
 }
 
+export type KeyboardIntent = {
+  preventDefault?: boolean;
+  stopPropagation?: boolean;
+  skipDefault?: boolean;
+  command?: {
+    name: string;
+    payload?: Record<string, unknown>;
+  };
+};
+
+export interface KeyboardStrategy {
+  onKeyDown?: (event: React.KeyboardEvent, ctx: StrategyContext) => KeyboardIntent | void;
+}
+
+export interface InteractionStrategy {
+  onBlur?: (ctx: StrategyContext) => KeyboardIntent | void;
+  onClick?: (event: React.MouseEvent, ctx: StrategyContext) => KeyboardIntent | void;
+}
+
 /**
  * Click action — when present, the control renders as clickable and raises a UIEvent.
  * The strategy returns the event shape; UniversalInput publishes it.
@@ -104,6 +123,8 @@ export interface InputStrategy<T = unknown> {
   adornment?: AdornmentStrategy;
   formatter?: FormatterStrategy;
   parser?: ParserStrategy<T>;
+  keyboard?: KeyboardStrategy;
+  interaction?: InteractionStrategy;
   /** When set, the control renders as a clickable link and raises a UIEvent on click */
   clickAction?: ClickActionStrategy;
 }
@@ -162,6 +183,8 @@ export function composeStrategies<T>(...strategies: Partial<InputStrategy<T>>[])
     }
     if (strategy.formatter) result.formatter = strategy.formatter;
     if (strategy.parser) result.parser = strategy.parser;
+    if (strategy.keyboard) result.keyboard = strategy.keyboard;
+    if (strategy.interaction) result.interaction = strategy.interaction;
   }
   
   return result;

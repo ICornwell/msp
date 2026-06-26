@@ -57,4 +57,14 @@ export const awsSetupWizardFluxorData: FluxorData<AwsSetupWizardDraftFluxorRow> 
     attributeName: 'updated-at',
     label: 'Updated At',
   },
+  environmentPurpose: {
+    dictionaryName: 'aws-environment-purpose',
+    attributeName: 'environment-purpose',
+    label: 'Environment Purpose',
+  },
+  abMode: {
+    dictionaryName: 'aws-ab-mode',
+    attributeName: 'ab-mode',
+    label: 'A/B Mode',
+  },
 };

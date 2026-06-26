@@ -15,6 +15,7 @@ import { PresetMoneyComponent } from './primatives/presets/PresetMoney.js';
 import { PresetTextComponent } from './primatives/presets/PresetText.js';
 import { PresetDateComponent } from './primatives/presets/PresetDate.js';
 import { PresetLinkComponent } from './primatives/presets/PresetLink.js';
+import { PresetSelectComponent } from './primatives/presets/PresetSelect.js';
 import { PresetSecretComponent } from './primatives/presets/PresetSecret.js';
 import { StatusIconComponent } from './primatives/StatusIcon.js';
 import { StatusLabelComponent } from './primatives/StatusLabel.js';
@@ -41,6 +42,7 @@ export default function EngineComponents() {
   addComponent(PresetSecretComponent);
   addComponent(PresetDateComponent);
   addComponent(PresetLinkComponent);
+  addComponent(PresetSelectComponent);
   addComponent(StatusIconComponent);
   addComponent(StatusLabelComponent);
   return null

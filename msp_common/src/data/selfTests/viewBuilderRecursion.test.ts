@@ -111,7 +111,7 @@ describe('Declarative View Builder', () => {
     // Build view with declarative structure using TypeScript-native array syntax
     const simpleViewContext = createView('account-people-orders')
         .withVersion('1.0')
-        .withRootKey('email')
+       .useBusinessKey()
         .withRootElement(relatedObjs.org, false)  // Object notation with element name
             .withRecursiveNamedSubElement("links", relatedObjs.link, true)  // Object notation
                 .withRelation('withLink')

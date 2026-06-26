@@ -73,7 +73,7 @@ describe('Declarative View Builder - Type Safety', () => {
     const testViewB = createView('test-view')
       .withVersion('1.0')
       .withConfigSet('main')
-      .withRootKey('accountId')
+     .useBusinessKey()
       .withRootElement(relsObjs.account, false)
         // TypeScript knows the valid children are: 'person' and 'order'
         // Try to configure 'person' - this should work
@@ -172,7 +172,7 @@ describe('Declarative View Builder - Type Safety', () => {
     const testview = createView('deep-view')
       .withVersion('1.0')
       .withConfigSet('main')
-      .withRootKey('id1')
+     .useBusinessKey()
       .withRootElement(level1Object, false)
         .withNamedSubElement('l2', level2Object,  false)
           .withNamedSubElement('l3', level3Object, false)

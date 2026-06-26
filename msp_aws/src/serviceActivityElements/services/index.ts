@@ -4,3 +4,4 @@ export * from './clusterSetupConfig.js';
 export * from './getAwsWizardBootstrap.js';
 export * from './connectAwsCredentials.js';
 export * from './refreshAwsWizardViews.js';
+export * from './calculateSubnetPlan.js';

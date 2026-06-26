@@ -3,6 +3,7 @@ import { ActivitySet, buildActivitySet } from 'msp_svr_common';
 import { listEcrRepositoriesHandler, listEksClustersHandler,
   readClusterSetupConfigHandler, writeClusterSetupConfigHandler, reconcileClusterSetupConfigHandler,
   getAwsWizardBootstrapHandler, connectAwsCredentialsHandler, refreshAwsWizardViewsHandler,
+  calculateSubnetPlanHandler,
 }
 from '../services/index.js';
 
@@ -44,6 +45,10 @@ export function getServiceActivities(): ActivitySet {
     .use({
       activityName: 'refreshAwsWizardViews',
       funcs: refreshAwsWizardViewsHandler,
+    })
+    .use({
+      activityName: 'calculateSubnetPlan',
+      funcs: calculateSubnetPlanHandler,
     })
     .build();
 }

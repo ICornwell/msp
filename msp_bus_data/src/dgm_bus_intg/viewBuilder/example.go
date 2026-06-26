@@ -12,7 +12,7 @@ func BuildDemoView() (string, error) {
 	query, err := builder.
 		DefineView().
 			WithName("account-people", "1.0").
-			WithRootKey("accountNumber").
+			WithRootKey("__businessKey").
 			WithRootElement("account").
 				AddSubElement("person").
 					WithRelationFromParent("belongsTo").

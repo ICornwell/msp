@@ -28,7 +28,7 @@ export default function PresetTextInput(props: PresetTextInputProps & ReComponen
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,
-    forceReadonly = {false}
+    forceReadonly = {props.displayMode === 'readonly'}
     notes = {props.notes}
     />
   );

@@ -55,7 +55,7 @@ export default function PresetSecretInput(
       dataType="text"
       displayMode="editing"
       hints={[]}
-      forceReadonly={false}
+      forceReadonly={props.displayMode === 'readonly'}
       notes={props.notes}
     />
   );

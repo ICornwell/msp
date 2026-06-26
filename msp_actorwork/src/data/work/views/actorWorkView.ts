@@ -6,7 +6,7 @@ const { actorWorkLink, work, user } = relatedObjects;
 export const actorWorkView = createView('actor-work')
   .withVersion('1.0')
   .withConfigSet('main')
-  .withRootKey('id')
+ .useBusinessKey()
   .withRootElement(user, false)
     .withNamedSubElement('withWork', actorWorkLink, true)
       .withRelation('hasUserWork')

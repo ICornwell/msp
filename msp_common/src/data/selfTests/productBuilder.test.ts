@@ -47,7 +47,7 @@ describe('Product Builder Integration', () => {
     // Build a view
     const accountView = createView('account-person-view')
       .withVersion('1.0')
-      .withRootKey('accountNumber')
+     .useBusinessKey()
       .withRootElement(relObjs.account, false)
         .withNamedSubElement('person', relObjs.person, false)
           .withRelation('belongsTo')
@@ -90,7 +90,7 @@ describe('Product Builder Integration', () => {
 
     const viewV1 = createView('person-view')
       .withVersion('1.0')
-      .withRootKey('id')
+     .useBusinessKey()
       .withRootElement(domainObjectV1, true)
       .end()
       .endView()
@@ -120,7 +120,7 @@ describe('Product Builder Integration', () => {
 
     const addressView = createView('address-view')
       .withVersion('1.0')
-      .withRootKey('id')
+     .useBusinessKey()
       .withRootElement(addressObject, true)
       .end()
       .endView()
@@ -182,7 +182,7 @@ describe('Product Builder Integration', () => {
 
     const orderViewBuilder = createView('order-items-view')
       .withVersion('1.0')
-      .withRootKey('orderId')
+     .useBusinessKey()
       .withRootElement(relObjs.order, false)
         .withNamedSubElement('item',relObjs.item, true)
           .withRelation('hasItem')

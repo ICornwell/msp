@@ -288,7 +288,7 @@ Applied to real-world use case:
 ```typescript
 const viewContext = view4('account-orders')
   .withVersion('1.0')
-  .withRootKey('accountNumber')
+ .useBusinessKey()
   .withRootElement(accountSchema, false)
     .withNamedSubElement("person", personSchema, false)
       .withRelation('belongsTo')

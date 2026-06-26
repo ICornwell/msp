@@ -35,6 +35,7 @@ import {
   InputMode,
   StrategyContext,
 } from './inputStrategies.js';
+import Typography from '@mui/material/Typography';
 
 // ============================================================================
 // Types
@@ -110,6 +111,7 @@ export default function UniversalInput(
   // Component state
   const componentId = useRef(uuidv4()).current;
   const inputRef = useRef<HTMLInputElement>(null);
+  const strategyCommandSeq = useRef(0);
   
   // Determine mode
   const mode: InputMode = forceReadonly || disabled ? 'readonly' : 'editing';
@@ -118,6 +120,16 @@ export default function UniversalInput(
   const storedExpression = notes?.getExpression?.()[0];
   const storedNotes = notes?.getNotes?.() ?? [];
   const hasNotes = storedNotes.length > 0;
+
+  // Input value state - starts with formatted value
+  const [inputValue, setInputValue] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [strategyCommand, setStrategyCommand] = useState<{
+    seq: number;
+    name: string;
+    payload?: Record<string, unknown>;
+  } | null>(null);
+  const [strategyState, setStrategyState] = useState<Record<string, unknown>>({});
   
   // Strategy context factory
   const createContext = (rawInput: string = '', extraMeta: Record<string, any> = {}): StrategyContext => ({
@@ -125,7 +137,17 @@ export default function UniversalInput(
     value,
     rawInput,
     path: (props as any).path,  // May come from record binder
-    metadata: { dataType, displayMode, hints, ...extraMeta },
+    metadata: {
+      dataType,
+      displayMode,
+      hints,
+      strategyCommand,
+      strategyState,
+      setStrategyState,
+      setRawInput: setInputValue,
+      onValueChange: onChange,
+      ...extraMeta,
+    },
     textInputRef: inputRef,  // Provide textarea ref for strategies that need it
   });
 
@@ -144,9 +166,9 @@ export default function UniversalInput(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, strategy, mode]);
 
-  // Input value state - starts with formatted value
-  const [inputValue, setInputValue] = useState(formattedValue);
-  const [isEditing, setIsEditing] = useState(false);
+  useEffect(() => {
+    setInputValue(formattedValue);
+  }, []);
 
   // Sync formatted value when value prop changes (and not actively editing)
   useEffect(() => {
@@ -160,7 +182,7 @@ export default function UniversalInput(
 
   // Get adornments from strategy
   // For adornments, inject onValueChange handler into metadata so pickers can update value
-  const adornmentCtx = createContext(inputValue, { onValueChange: onChange });
+  const adornmentCtx = createContext(inputValue);
   const startAdornment = strategy.adornment?.getStartAdornment?.(adornmentCtx);
   const endAdornment = strategy.adornment?.getEndAdornment?.(adornmentCtx);
   
@@ -210,10 +232,25 @@ export default function UniversalInput(
   };
 
   const handleBlur = () => {
+    const blurIntent = strategy.interaction?.onBlur?.(createContext(inputValue));
+
+    if (blurIntent?.command?.name) {
+      strategyCommandSeq.current += 1;
+      setStrategyCommand({
+        seq: strategyCommandSeq.current,
+        name: blurIntent.command.name,
+        payload: blurIntent.command.payload,
+      });
+    }
+
     if (strategy.formatter?.onBlur) {
       strategy.formatter.onBlur(inputValue, createContext());
     }
     setIsEditing(false);
+
+    if (blurIntent?.skipDefault) {
+      return;
+    }
     
     if (strategy.readonly?.getReadOnly(createContext())) {
       // readonly might be using formatted value or redaction, and shouldn't commit changes
@@ -257,6 +294,29 @@ export default function UniversalInput(
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    const keyboardIntent = strategy.keyboard?.onKeyDown?.(e, createContext(inputValue));
+
+    if (keyboardIntent?.command?.name) {
+      strategyCommandSeq.current += 1;
+      setStrategyCommand({
+        seq: strategyCommandSeq.current,
+        name: keyboardIntent.command.name,
+        payload: keyboardIntent.command.payload,
+      });
+    }
+
+    if (keyboardIntent?.preventDefault) {
+      e.preventDefault();
+    }
+
+    if (keyboardIntent?.stopPropagation) {
+      e.stopPropagation();
+    }
+
+    if (e.defaultPrevented) {
+      return;
+    }
+
     if (e.key === 'Enter') {
       inputRef.current?.blur();
     }
@@ -264,6 +324,27 @@ export default function UniversalInput(
       // Cancel edit - revert to original formatted value
       setInputValue(formattedValue);
       inputRef.current?.blur();
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    const clickIntent = strategy.interaction?.onClick?.(e, createContext(inputValue));
+
+    if (clickIntent?.command?.name) {
+      strategyCommandSeq.current += 1;
+      setStrategyCommand({
+        seq: strategyCommandSeq.current,
+        name: clickIntent.command.name,
+        payload: clickIntent.command.payload,
+      });
+    }
+
+    if (clickIntent?.preventDefault) {
+      e.preventDefault();
+    }
+
+    if (clickIntent?.stopPropagation) {
+      e.stopPropagation();
     }
   };
 
@@ -296,6 +377,18 @@ export default function UniversalInput(
 
   // ---- Render ----
 
+  if (mode === 'readonly') {
+    return (
+      <Typography
+        variant="body2"
+        sx={{ textAlign: alignment, color: 'text.secondary' }}
+        data-testid={testId}
+      >
+        {formattedValue}
+      </Typography>
+    );
+  }
+
   return (
     <TextField
       id={componentId}
@@ -307,6 +400,7 @@ export default function UniversalInput(
       value={inputValue}
       placeholder={computedPlaceholder}
       onChange={handleInput}
+      onClick={handleClick}
       onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}

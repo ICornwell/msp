@@ -34,7 +34,7 @@ export default function PresetMoneyInput(props: PresetMoneyInputProps & ReCompon
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,
-    forceReadonly = {false}
+    forceReadonly = {props.displayMode === 'readonly'}
     notes = {props.notes}
     />
   );

@@ -144,7 +144,7 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 	currentStrippedContent := map[string]interface{}{}
 	for k, v := range currentData {
 		_, ok := subNames[k]
-		if !ok {
+		if !ok || k == "__tmpId" {
 			currentStrippedContent[k] = v
 		}
 	}

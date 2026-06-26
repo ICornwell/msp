@@ -69,6 +69,7 @@ export type SchemaProperty<T> = {
   dictionaryId: versionedResourceId;
   infoType: SchemaPropertyInfoType;
   defaultLabel?: string;
+  jsonCodecKey?: string;
   type? : T
 }
 

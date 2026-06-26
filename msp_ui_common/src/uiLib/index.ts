@@ -13,6 +13,7 @@ export {
   PresetDateComponent,
   PresetBooleanComponent,
   PresetMoneyComponent,
+  PresetSelectComponent,
   PresetLinkComponent
 } from './presetComponents.js';
 

@@ -116,7 +116,7 @@ describe('Declarative View Builder', () => {
     // Build view with declarative structure using TypeScript-native array syntax
     const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
-      .withRootKey('accountNumber')
+     .useBusinessKey()
       .withRootElement(relatedObjs.accountObject, false)  // Object notation with element name
         .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
           .withRelation('belongsTo')
@@ -208,7 +208,7 @@ describe('Declarative View Builder', () => {
     // Build view with declarative structure using TypeScript-native array syntax
     const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
-      .withRootKey('accountNumber')
+     .useBusinessKey()
       .withRootElement(relatedObjs.accountObject, true)  // Object notation with element name
        
           .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
@@ -251,7 +251,7 @@ describe('Declarative View Builder', () => {
     // Build view with declarative structure using TypeScript-native array syntax
     const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
-      .withRootKey('accountNumber')
+     .useBusinessKey()
       .withRootElement(relatedObjs.accountObject, true)  // Object notation with element name
           .withNamedSubElement("person", relatedObjs.personObject, false)  // Object notation
             .withRelation('belongsTo')
@@ -345,7 +345,7 @@ describe('Declarative View Builder', () => {
     // Build view with declarative structure using TypeScript-native array syntax
     const simpleViewContext = createView('account-people-orders')
       .withVersion('1.0')
-      .withRootKey('accountNumber')
+     .useBusinessKey()
       .withRootElement(relatedObjs2.accountObject2, true)  // Object notation with element name
           .withNamedSubElement("person", relatedObjs2.personObject2, false)  // Object notation
             .withRelation('belongsTo')
@@ -425,7 +425,7 @@ describe('Declarative View Builder', () => {
     const upviewBuilder = createView('user-posts')
       .withVersion('1.0')
       .withConfigSet('main')
-      .withRootKey('userId')
+     .useBusinessKey()
       .withRootElement(userObject, false)
       .withNamedSubElement('posts', postObject, true)
         .end()  // end root element configuration
@@ -526,7 +526,7 @@ describe('Declarative View Builder', () => {
     const aoView = createView('account-orders')
       .withVersion('1.0')
       .withConfigSet('main')
-      .withRootKey('accountNumber')
+     .useBusinessKey()
       .withRootElement(relObjs.accountObject, false)  // Using element name and queryObjectId
       // Now configure specific sub-elements using nested pattern
         .withSubElement(relObjs.orderObject, true)
