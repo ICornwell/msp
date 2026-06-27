@@ -45,22 +45,22 @@ pub struct QueryRelation {
 
 impl QueryRelation {
     pub fn is_relation_from_id(&self, id: &str) -> bool {
-        self.effective_from_id() == id
+        self.effective_from_object() == id
     }
 
     /// Check if this is a QueryRelation with the specified ID as the to object
     pub fn is_relation_to_id(&self, id: &str) -> bool {
-        self.effective_to_id() == id
+        self.effective_to_object() == id
     }
 
-    pub fn effective_from_id(&self) -> &str {
+    pub fn effective_from_object(&self) -> &str {
         if self.reverse {
             &self.to_object
         } else {
             &self.from_object
         }
     }
-    pub fn effective_to_id(&self) -> &str {
+    pub fn effective_to_object(&self) -> &str {
         if self.reverse {
             &self.from_object
         } else {

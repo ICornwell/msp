@@ -42,19 +42,27 @@ func recursiveGraphToDoc(viewSpec apiMessages.ViewElement, graphObjects jsonDoc.
 		return nil, false
 	}
 	// get an easily searchable list of edges coming from the object being processed
-	edges := jsonDoc.JsonObjsByValue(jsonDoc.DocElementsFromJsonArray(data["edges"].([]interface{})), "from", rootObject["id"].(string))
-
+	edgesFrom := jsonDoc.JsonObjsByValue(jsonDoc.DocElementsFromJsonArray(data["edges"].([]interface{})), "from", rootObject["id"].(string))
+	edgesTo := jsonDoc.JsonObjsByValue(jsonDoc.DocElementsFromJsonArray(data["edges"].([]interface{})), "to", rootObject["id"].(string))
 	// create the doc element for this object
 	outDoc := jsonDoc.DocElementFromObject(rootObject, includeMetaData)
 
 	// check the View spec. for sub-elements that need to be included
 	for _, subElement := range viewSpec.SubElements {
 		objColl := []interface{}{}
+		relParentLabel := subElement.RelationFromParent
+		relLink := "to"
+		edges := edgesFrom
+		if relParentLabel == "" {
+			relParentLabel = subElement.RelationToParent
+			relLink = "from"
+			edges = edgesTo
+		}
 		// find edges that match the sub-element
-		subEdges := jsonDoc.JsonObjsByValue(edges, "__label", subElement.RelationFromParent)
+		subEdges := jsonDoc.JsonObjsByValue(edges, "__label", relParentLabel)
 		for _, es := range subEdges {
 			// find the graph vertices that come from the sub-element edges
-			nextObjs := jsonDoc.JsonObjsByValue(vertices, "id", es["to"].(string))
+			nextObjs := jsonDoc.JsonObjsByValue(vertices, "id", es[relLink].(string))
 			for _, nextObj := range nextObjs {
 				// recurse in the process the sub-element vertices
 				childElement, ok := recursiveGraphToDoc(subElement, graphObjects, "id", nextObj["id"].(string), includeMetaData)

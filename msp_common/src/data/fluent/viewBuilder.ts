@@ -1,6 +1,7 @@
 import { Flatten, MakeArray, JOIN, TrueFalse } from './builderUtils.js';
 import { PropsOfDomainObject, DomainObject, NameOfDomainObject, GETRELSFORNAME, RelsFromDO, versionedResourceId,
-   PathOfDomainObject } from '../models/api/data.js';
+   PathOfDomainObject, 
+   RelsToDO} from '../models/api/data.js';
 import { View, ViewElement, SubElement } from '../models/api/view.js';
 import type { NameTriplet, OpsElementName, ViewIdentifier, ViewDataIdentifier } from '../../types/index.js';
 
@@ -272,6 +273,9 @@ export interface ViewElementRecursive<
   withRelation: (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>) =>
     CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT, RSN>, PropsOfDomainObject<DO>>;
 
+  withBackRelation: (relation: GETRELSFORNAME<RelsToDO<PDO>, NameOfDomainObject<DO>>) =>
+    CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT, RSN>, PropsOfDomainObject<DO>>;
+
   withDocPathName: <P extends string>(docPathName: P) =>
     CNTX<ViewElementRecursive<DT, DomainObjectWithNewPath<DO, P>, PDO, EName, RT, RSN>, PropsOfDomainObject<DO>>;
 
@@ -311,6 +315,9 @@ export interface ViewElementNonRecursive<
   ) => NonRecursiveSubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, IC>;
 
   withRelation: (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>) =>
+    CNTX<ViewElementNonRecursive<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>;
+
+  withBackRelation: (relation: GETRELSFORNAME<RelsToDO<PDO>, NameOfDomainObject<DO>>) =>
     CNTX<ViewElementNonRecursive<DT, DO, PDO, EName, RT>, PropsOfDomainObject<DO>>;
 
   withDocPathName: <P extends string>(docPathName: P) =>
@@ -462,6 +469,7 @@ export function createViewElementRecursiveEndBuilder<
     domainObject: domainObject,
     isCollection: isCollection,
     relationFromParent: undefined,
+    relationToParent: undefined,
     subElements: undefined,
     isRecurseEndPoint: false,
     recurseLevel: recurseLevel,
@@ -531,6 +539,7 @@ export function createViewElementRecursiveBuilder<
     domainObject: domainObject,
     isCollection: isCollection,
     relationFromParent: undefined,
+    relationToParent: undefined,
     subElements: undefined,
     isRecurseEndPoint: false,
     isRecurseStartPoint: recurseLevel === 0, // mark this element as the start point of a recursive relationship
@@ -544,6 +553,10 @@ export function createViewElementRecursiveBuilder<
   const builder: ViewElementRecursive< DT, DO, PDO, EName, RT, RSN> = {
     withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      return builderContext;
+    },
+    withBackRelation: function (relation: GETRELSFORNAME<RelsToDO<PDO>, NameOfDomainObject<DO>>): any {
+      element.relationToParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
       return builderContext;
     },
     withDocPathName: function (docPathName: string): any {
@@ -621,6 +634,7 @@ export function createViewElementNonRecursiveBuilder<
     domainObject: domainObject,
     isCollection: isCollection,
     relationFromParent: undefined,
+    relationToParent: undefined,
     subElements: undefined,
     isRecurseStartPoint: false
   };
@@ -631,6 +645,10 @@ export function createViewElementNonRecursiveBuilder<
   const builder: ViewElementNonRecursive< DT, DO, PDO, EName, RT> = {
     withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      return builderContext;
+    },
+    withBackRelation: function (relation: GETRELSFORNAME<RelsToDO<PDO>, NameOfDomainObject<DO>>): any {
+      element.relationToParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
       return builderContext;
     },
     withDocPathName: function (docPathName: string): any {

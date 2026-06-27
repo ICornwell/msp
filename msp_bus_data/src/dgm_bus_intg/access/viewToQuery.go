@@ -96,10 +96,10 @@ func recurseFillQueryParts(dgq *apiMessages.DgQuery, el apiMessages.ViewElement,
 		}
 		if element.RelationToParent != "" {
 			inR := apiMessages.QueryRelation{
-				Type:    element.RelationFromParent, // we'll need to start reading the metadata to resolve this, when different to originalType
+				Type:    element.RelationToParent, // we'll need to start reading the metadata to resolve this, when different to originalType
 				From:    element.QueryObjectId,
 				To:      el.QueryObjectId,
-				Reverse: false,
+				Reverse: true,
 			}
 			dgq.Relations = append(dgq.Relations, inR)
 		}

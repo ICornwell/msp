@@ -346,7 +346,7 @@ fn build_sql_for_query_object(
             ));
             idx += 1;
 
-            if let Some(object) = objects.iter().find(|v| v.is_object_with_id(&relation.to_object))
+            if let Some(object) = objects.iter().find(|v| v.is_object_with_id(&relation.effective_to_object()))
             {
                 // ── Target Vertex CTE ──────────────────────────────────────────────
                 // Selects vertices reached by the edges in S(idx-1), filtered to the

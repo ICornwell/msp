@@ -15,7 +15,8 @@
   "dependencies": {
     "@types/semver": "^7.7.1",
     "got": "^14.6.6",
-    "msp_common": "workspace:*"
+    "msp_common": "workspace:*",
+    "msp_data_common": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

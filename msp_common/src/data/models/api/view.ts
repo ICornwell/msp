@@ -13,6 +13,7 @@ export interface ViewElement<
     domainObjectId: versionedResourceId;  // Serialisable reference to schema
     domainObject?: DO // Optional full schema reference
     relationFromParent?: string;
+    relationToParent?: string;
     subElements?: SubElement[];
     isCollection: boolean;
     isEntity: boolean;  // Indicates if this element represents an entity (root of a graph) or just a value object

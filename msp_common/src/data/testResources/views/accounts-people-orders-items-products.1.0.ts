@@ -97,41 +97,41 @@ export const productSchema = createSchema('product')
   .endProperty()
   .buildSchema();
 
-const accountObject = createEntityObject('accountObject', accountSchema)
+export const accountObject = createEntityObject('accountObject', accountSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .withUniqueBusinessKey(d => `${d.accountNumber}-${uuid()}`)
   .buildObject();
 
-const personObject = createEntityObject('personObject', personSchema)
+export const personObject = createEntityObject('personObject', personSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .withUniqueBusinessKey(d => `${d.name}-${uuid()}`) // Composite key based on name and email
   .buildObject();
 
-const addressObject = createValueObject('addressObject', addressSchema)
+export const addressObject = createValueObject('addressObject', addressSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
 
   .buildObject();
 
-const orderObject = createValueObject('orderObject', orderSchema)
+export const orderObject = createValueObject('orderObject', orderSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
-const itemObject = createValueObject('itemObject', orderItemSchema)
+export const itemObject = createValueObject('itemObject', orderItemSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .buildObject();
 
-const productObject = createEntityObject('productObject', productSchema)
+export const productObject = createEntityObject('productObject', productSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
   .withUniqueBusinessKey(d => `${d.productId}-${uuid()}`)
   .buildObject();
 
-const relObjs = createRelations()
+export const relObjs = createRelations()
   .allowRelationFromTo('hasOrder', accountObject, orderObject, true)
   .allowRelationFromTo('belongsTo', accountObject, personObject, true)
   .allowRelationFromTo('hasItem', orderObject, itemObject, true)
