@@ -503,6 +503,7 @@ fn edge(from_tmp_id: &str, to_tmp_id: &str, label: &str) -> Edge {
 
 fn query_payload_for_commerce(root_entity_id: &str, timestamp: i64) -> serde_json::Value {
     json!({
+        "name": "commerce-query",
         "version": "1.0",
         "user": "test",
         "queryDate": "2026-01-01",
@@ -516,66 +517,13 @@ fn query_payload_for_commerce(root_entity_id: &str, timestamp: i64) -> serde_jso
         "queryType": "graph",
         "getObjects": [
             {
-                "type": "Account",
-                "originalType": "Account",
-                "isQueryRoot": true,
-                "queryObjectId": "a",
-                "attributes": ["id", "name", "status"]
-            },
-            {
-                "type": "Order",
-                "originalType": "Order",
-                "isQueryRoot": false,
-                "queryObjectId": "o",
-                "attributes": ["id", "orderNumber"]
-            },
-            {
-                "type": "OrderLineItem",
-                "originalType": "OrderLineItem",
-                "isQueryRoot": false,
-                "queryObjectId": "li",
-                "attributes": ["id", "quantity", "unitPrice"]
-            },
-            {
                 "type": "Product",
                 "originalType": "Product",
-                "isQueryRoot": false,
+                "isQueryRoot": true,
                 "queryObjectId": "p",
                 "attributes": ["id", "sku", "name", "unitPrice"]
-            },
-            {
-                "type": "Supplier",
-                "originalType": "Supplier",
-                "isQueryRoot": false,
-                "queryObjectId": "s",
-                "attributes": ["id", "supplierCode", "name"]
             }
         ],
-        "getRelations": [
-            {
-                "from": "a",
-                "to": "o",
-                "type": "placedOrder",
-                "reverse": false
-            },
-            {
-                "from": "o",
-                "to": "li",
-                "type": "containsLineItem",
-                "reverse": false
-            },
-            {
-                "from": "li",
-                "to": "p",
-                "type": "lineItemForProduct",
-                "reverse": false
-            },
-            {
-                "from": "p",
-                "to": "s",
-                "type": "suppliedBy",
-                "reverse": false
-            }
-        ]
+        "getRelations": []
     })
 }

@@ -72,3 +72,47 @@ impl GraphElements {
         self.edges.as_ref().map_or(0, |e| e.len())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn graph_elements_builder_and_adders_work() {
+        let v = Vertex::new("Product".to_string(), "default".to_string(), json!({"name":"P"}));
+        let e = Edge::new(
+            "relatedTo".to_string(),
+            "default".to_string(),
+            v.id.clone(),
+            "to-1".to_string(),
+            json!({}),
+        );
+
+        let mut g = GraphElements::new().with_vertices(vec![v.clone()]).with_edges(vec![e.clone()]);
+        assert!(g.has_vertices());
+        assert!(g.has_edges());
+        assert!(!g.is_empty());
+        assert_eq!(1, g.vertex_count());
+        assert_eq!(1, g.edge_count());
+
+        g.add_vertex(v);
+        g.add_edge(e);
+        assert_eq!(2, g.vertex_count());
+        assert_eq!(2, g.edge_count());
+    }
+
+    #[test]
+    fn graph_elements_empty_checks_are_consistent() {
+        let mut g = GraphElements::new();
+        assert!(g.is_empty());
+        assert!(!g.has_vertices());
+        assert!(!g.has_edges());
+        assert_eq!(0, g.vertex_count());
+        assert_eq!(0, g.edge_count());
+
+        g.add_vertex(Vertex::new("Product".to_string(), "default".to_string(), json!({})));
+        assert!(g.has_vertices());
+        assert!(!g.is_empty());
+    }
+}

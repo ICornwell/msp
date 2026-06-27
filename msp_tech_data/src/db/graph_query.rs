@@ -337,11 +337,12 @@ fn build_sql_for_query_object(
             // without duplicating vertex columns.
             current_sql.push(format!(
                 r#"{} AS (SELECT 'e' AS otype, e1.id, 'na' as __originalId, e1.__entityId, e1.__transactionid, e1.__label, FALSE as __isEntity, e1.__viewtype, e1.__timestamp, 'na' AS __businessKey, 'na' AS __alternateKey, e1.content, e1.from_id, e1.to_id
-                FROM edges e1 WHERE e1.__label = '{}' AND EXISTS (SELECT 1 FROM {} v WHERE v.id = e1.from_id)
+                FROM edges e1 WHERE e1.__label = '{}' AND EXISTS (SELECT 1 FROM {} v WHERE v.id = {})
                 )"#,
                 format!("S{}", idx),
                 relation.label,
-                format!("S{}", base_idx - 1)
+                format!("S{}", base_idx - 1),
+                if relation.reverse { "e1.to_id" } else { "e1.from_id" }
             ));
             idx += 1;
 
@@ -353,12 +354,13 @@ fn build_sql_for_query_object(
                 // (excludes superseded/deleted rows).
                 current_sql.push(format!(
                     r#"{} AS (SELECT 'v' AS otype, id, __originalId, __entityId, __transactionid, __label, __isEntity, __viewtype, __timestamp, __businessKey, __alternateKey, content, 'na' AS from_id, 'na' AS to_id
-                    FROM vertices v2 WHERE __label = '{}' AND EXISTS (SELECT 1 FROM {} e WHERE e.to_id = v2.id) AND {}
+                    FROM vertices v2 WHERE __label = '{}' AND EXISTS (SELECT 1 FROM {} e WHERE {} = v2.id) AND {}
                     )"#,
                     format!("S{}", idx),
                     object.label,
-                format!("S{}", idx - 1),
-                latest_vertex_filter("v2", query_timestamp)
+                    format!("S{}", idx - 1),
+                    if relation.reverse { "e.from_id" } else { "e.to_id" },
+                    latest_vertex_filter("v2", query_timestamp)
                 ));
                 idx += 1;
 
@@ -433,7 +435,7 @@ fn latest_vertex_filter(alias: &str, query_timestamp: i64) -> String {
                    AND e.__label = 'supersededBy'
                    AND e.__timestamp <= $3::bigint
              ))"#,
-            alias = alias,
+            alias = alias
         )
     } else {
         // Latest-committed read: exclude vertices only when their supersededBy edge

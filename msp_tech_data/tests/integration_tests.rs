@@ -236,6 +236,7 @@ async fn test_full_lifecycle() -> Result<()> {
 
     // Create query message
     let query_msg = json!({
+        "name": "full-lifecycle-query",
         "version": "1.0",
         "user": "test",
         "queryDate": "2023-10-15",
@@ -249,8 +250,8 @@ async fn test_full_lifecycle() -> Result<()> {
         "queryType": "graph",
         "getObjects": [
             {
-                "type": "product",
-                "originalType": "product",
+                "type": product_id,
+                "originalType": product_id,
                 "isQueryRoot": true,
                 "queryObjectId": "p",
                 "attributes": ["id", "name", "sku"]
@@ -327,20 +328,20 @@ async fn test_query_snapshot_at_timestamp() -> Result<()> {
     let api = GraphApiClient::new(&base_url);
     let scenario = common::fixtures::snapshot_history_scenario();
 
-        api.begin(&scenario.tx_create, scenario.ts_create).await;
-        assert!(api.update_with_tid(&scenario.initial_add_message(), &scenario.tx_create, "Failed to create base graph").await.status().is_success());
+    api.begin(&scenario.tx_create, scenario.ts_create).await;
+    assert!(api.update_with_tid(&scenario.initial_add_message(), &scenario.tx_create, "Failed to create base graph").await.status().is_success());
     api.commit(&scenario.tx_create, scenario.ts_create).await;
 
     let persisted_product = fetch_vertex_by_business_key(&pool, &scenario.fixture.product.business_key).await?;
-        api.begin(&scenario.tx_price_v2, scenario.ts_price_v2).await;
-        assert!(api.update_with_tid(&scenario.price_update_v2_message(&persisted_product), &scenario.tx_price_v2,
-         "Failed to send v2 update").await.status().is_success());
+    api.begin(&scenario.tx_price_v2, scenario.ts_price_v2).await;
+    assert!(api.update_with_tid(&scenario.price_update_v2_message(&persisted_product), &scenario.tx_price_v2,
+        "Failed to send v2 update").await.status().is_success());
     api.commit(&scenario.tx_price_v2, scenario.ts_price_v2).await;
 
     let persisted_product_v2 = fetch_vertex_by_business_key(&pool, &scenario.fixture.product.business_key).await?;
-        api.begin(&scenario.tx_price_v3, scenario.ts_price_v3).await;
-        assert!(api.update_with_tid(&scenario.price_update_v3_message(&persisted_product_v2), &scenario.tx_price_v3,
-         "Failed to send v3 update").await.status().is_success());
+    api.begin(&scenario.tx_price_v3, scenario.ts_price_v3).await;
+    assert!(api.update_with_tid(&scenario.price_update_v3_message(&persisted_product_v2), &scenario.tx_price_v3,
+        "Failed to send v3 update").await.status().is_success());
 
     let query_msg = scenario.query_at_timestamp(&persisted_product.entity_id, scenario.ts_price_v2);
     let response = api.query(&query_msg, 

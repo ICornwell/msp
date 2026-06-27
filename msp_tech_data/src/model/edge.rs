@@ -85,3 +85,41 @@ impl Edge {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn edge_new_sets_expected_identity_fields() {
+        let edge = Edge::new(
+            "contains".to_string(),
+            "default".to_string(),
+            "from-1".to_string(),
+            "to-1".to_string(),
+            json!({"weight":1}),
+        );
+
+        assert_eq!("contains", edge.label);
+        assert_eq!("from-1", edge.from);
+        assert_eq!("to-1", edge.to);
+        assert_eq!("from-1", edge.from_entity_id);
+        assert_eq!("to-1", edge.to_entity_id);
+        assert!(!edge.id.is_empty());
+        assert!(!edge.entity_id.is_empty());
+        assert!(!edge.transaction_id.is_empty());
+    }
+
+    #[test]
+    fn edge_superseded_by_builder_sets_invariants() {
+        let edge = Edge::create_superseded_by("v-old", "v-new", "entity-1", "default");
+        assert_eq!("supersededBy", edge.label);
+        assert_eq!("v-old", edge.from);
+        assert_eq!("v-new", edge.to);
+        assert_eq!("entity-1", edge.entity_id);
+        assert_eq!("entity-1", edge.from_entity_id);
+        assert_eq!("entity-1", edge.to_entity_id);
+        assert_eq!(serde_json::Value::Null, edge.content);
+    }
+}

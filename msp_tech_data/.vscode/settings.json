@@ -1,0 +1,18 @@
+{
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.procMacro.processes": 2,
+  "rust-analyzer.procMacro.ignored": {
+    "poem-openapi-derive": [
+      "Api",
+      "ApiResponse",
+      "Object",
+      "OpenApi",
+      "Tags",
+      "Enum",
+      "Union",
+      "Multipart",
+      "OAuthScopes",
+      "SecurityScheme"
+    ]
+  }
+}

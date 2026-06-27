@@ -285,3 +285,53 @@ impl GraphApi {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn update_response_builders_work() {
+        let ok = UpdateResponse::success(None);
+        assert!(ok.success);
+        assert_eq!("Operation completed successfully", ok.message);
+        assert!(ok.update_message.is_none());
+
+        let err = UpdateResponse::error("bad");
+        assert!(!err.success);
+        assert_eq!("bad", err.message);
+        assert!(err.entity_ids.is_none());
+
+        let validation = UpdateResponse::validation(UpdateMessage::new());
+        assert!(!validation.success);
+        assert_eq!("Validation results", validation.message);
+        assert!(validation.update_message.is_some());
+    }
+
+    #[test]
+    fn update_error_mapping_returns_expected_status_variants() {
+        let bad = GraphApi::handle_update_error(DocGraphError::Validation("v".to_string()));
+        assert!(matches!(bad, Err(ApiErrorResponse::BadRequest(_))));
+
+        let not_found = GraphApi::handle_update_error(DocGraphError::NotFound("n".to_string()));
+        assert!(matches!(not_found, Err(ApiErrorResponse::NotFound(_))));
+
+        let internal = GraphApi::handle_update_error(DocGraphError::Internal("i".to_string()));
+        assert!(matches!(internal, Err(ApiErrorResponse::InternalServerError(_))));
+    }
+
+    #[test]
+    fn query_and_transaction_error_mapping_returns_expected_status_variants() {
+        let bad = GraphApi::handle_query_error(DocGraphError::Validation("v".to_string()));
+        assert!(matches!(bad, Err(ApiErrorResponse::BadRequest(_))));
+
+        let not_found = GraphApi::handle_query_error(DocGraphError::NotFound("n".to_string()));
+        assert!(matches!(not_found, Err(ApiErrorResponse::NotFound(_))));
+
+        let internal_query = GraphApi::handle_query_error(DocGraphError::Internal("i".to_string()));
+        assert!(matches!(internal_query, Err(ApiErrorResponse::InternalServerError(_))));
+
+        let internal_tx = GraphApi::handle_transaction_error(DocGraphError::Internal("i".to_string()));
+        assert!(matches!(internal_tx, Err(ApiErrorResponse::InternalServerError(_))));
+    }
+}

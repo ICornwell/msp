@@ -115,3 +115,38 @@ impl Vertex {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn vertex_new_sets_core_fields() {
+        let v = Vertex::new("Product".to_string(), "default".to_string(), json!({"name":"P"}));
+        assert_eq!("Product", v.label);
+        assert_eq!("default", v.view_type);
+        assert_eq!(v.id, v.entity_id);
+        assert!(!v.id.is_empty());
+        assert_eq!("missing", v.transaction_id);
+        assert!(!v.is_entity);
+    }
+
+    #[test]
+    fn vertex_clone_and_version_helpers_work() {
+        let original = Vertex::new("Product".to_string(), "default".to_string(), json!({"v":1}))
+            .with_tmp_id("tmp-1".to_string());
+        assert_eq!("tmp-1", original.tmp_id);
+
+        let cloned = original.clone_with_new_id("new-id".to_string());
+        assert_eq!("new-id", cloned.id);
+        assert_eq!(original.entity_id, cloned.entity_id);
+
+        let next = original.create_new_version(json!({"v":2}));
+        assert_eq!(original.id, next.original_id);
+        assert_eq!(original.entity_id, next.entity_id);
+        assert_eq!(original.label, next.label);
+        assert_eq!(json!({"v":2}), next.content);
+        assert_ne!(original.id, next.id);
+    }
+}

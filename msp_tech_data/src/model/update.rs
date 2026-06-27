@@ -52,3 +52,26 @@ impl UpdateMessage {
         !self.has_operations()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn update_message_detects_operations() {
+        let empty = UpdateMessage::new();
+        assert!(empty.is_empty());
+        assert!(!empty.has_operations());
+
+        let elems = GraphElements::new();
+        let with_add = UpdateMessage::new().with_add(elems.clone());
+        assert!(with_add.has_operations());
+        assert!(!with_add.is_empty());
+
+        let with_update = UpdateMessage::new().with_update(elems.clone());
+        assert!(with_update.has_operations());
+
+        let with_delete = UpdateMessage::new().with_delete(elems);
+        assert!(with_delete.has_operations());
+    }
+}

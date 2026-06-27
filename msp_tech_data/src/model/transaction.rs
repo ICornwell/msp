@@ -49,3 +49,35 @@ impl TransactionResponse {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn transaction_response_success_builder() {
+        let resp = TransactionResponse::success(
+            "tid-1".to_string(),
+            "1700000000".to_string(),
+            true,
+            false,
+        );
+        assert!(resp.success);
+        assert_eq!("tid-1", resp.transaction_id);
+        assert_eq!("1700000000", resp.timestamp);
+        assert!(resp.is_committed);
+        assert!(!resp.is_rolled_back);
+        assert!(resp.message.is_none());
+    }
+
+    #[test]
+    fn transaction_response_error_builder() {
+        let resp = TransactionResponse::error("failed");
+        assert!(!resp.success);
+        assert_eq!("", resp.transaction_id);
+        assert_eq!("", resp.timestamp);
+        assert!(!resp.is_committed);
+        assert!(!resp.is_rolled_back);
+        assert_eq!(Some("failed".to_string()), resp.message);
+    }
+}

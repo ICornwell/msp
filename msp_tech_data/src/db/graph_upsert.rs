@@ -8,7 +8,7 @@ use crate::{
     model::UpdateMessage
 };
 
-use super::{check_business_key_conflicts, DbClientManager};
+use super::{check_business_key_conflicts, collect_lock_entity_ids, acquire_entity_write_locks, release_entity_write_locks, DbClientManager};
 
 /// Process an update message to add, update, or delete graph elements.
 pub async fn process_update(
@@ -71,6 +71,15 @@ pub async fn process_update(
 
         let tx = client.begin_transaction().await?;
         debug!("Started database transaction for update");
+
+        // ---- Entity write-lock acquisition ----------------------------------------
+        // Collect every entity_id touched by this write (add + update + delete),
+        // sort and deduplicate, then acquire advisory locks in that order so
+        // concurrent writers requesting overlapping sets always lock in the same
+        // sequence, preventing cross-transaction deadlocks.
+        let entity_ids = collect_lock_entity_ids(&message);
+        let lock_records = acquire_entity_write_locks(&tx, &entity_ids, &effective_transaction_id, effective_timestamp).await?;
+        // --------------------------------------------------------------------------
 
         if let Some(add) = &message.add {
             if let Some(vertices) = &add.vertices {
@@ -366,6 +375,10 @@ pub async fn process_update(
                 }
             }
         }
+
+        // ---- Lock release audit edges --------------------------------------------
+        release_entity_write_locks(&tx, &lock_records, &effective_transaction_id, effective_timestamp).await?;
+        // --------------------------------------------------------------------------
 
     tx.commit().await?;
     info!("Update transaction committed successfully");

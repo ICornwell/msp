@@ -198,6 +198,7 @@ async fn test_api_query_graph() -> Result<()> {
     // Create query message
     let query_msg =
         json!({
+        "name": "test-query",
         "version": "1.0",
         "user": "test",
         "queryDate": "2023-10-15",
