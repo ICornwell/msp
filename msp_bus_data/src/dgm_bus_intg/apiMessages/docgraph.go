@@ -10,8 +10,8 @@ type DgQuery struct {
 	RootQueryKeyProperty string      `json:"rootQueryKeyProperty,omitempty"`
 	RootQueryKeyValue    string      `json:"rootQueryKeyValue,omitempty"`
 	RootQueryKeyTypes    string      `json:"rootQueryKeyTypes"`
-	UseEntityIdAsKey     bool        `json:"useEntityIdAsKey,omitempty"`
-	IsLatestOnly         bool        `json:"isLatestOnly,omitempty"`
+	UseEntityIdAsKey     bool        `json:"useEntityIdAsKey"`
+	IsLatestOnly         bool        `json:"isLatestOnly"`
 	Timestamp            int64       `json:"timeStamp"`
 	QueryType            string      `json:"queryType,omitempty"`
 	Objects              []QueryObject `json:"getObjects,omitempty"`

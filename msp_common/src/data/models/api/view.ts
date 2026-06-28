@@ -14,6 +14,10 @@ export interface ViewElement<
     domainObject?: DO // Optional full schema reference
     relationFromParent?: string;
     relationToParent?: string;
+    // Preferred relation-removal behavior flag for value objects.
+    delinkOnRemoval?: boolean;
+    // Deprecated name kept for backward compatibility while clients migrate.
+    cascadeDeletes?: boolean;
     subElements?: SubElement[];
     isCollection: boolean;
     isEntity: boolean;  // Indicates if this element represents an entity (root of a graph) or just a value object

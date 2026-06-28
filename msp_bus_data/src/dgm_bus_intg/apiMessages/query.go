@@ -16,6 +16,8 @@ type ViewElement struct {
 	QueryObjectId      string        `json:"queryObjectId"`
 	RelationFromParent string        `json:"relationFromParent"`
 	RelationToParent   string        `json:"relationToParent,omitempty"`
+	DelinkOnRemoval    bool          `json:"delinkOnRemoval"`
+	CascadeDeletes     bool          `json:"cascadeDeletes"`
 	IsCollection       bool          `json:"isCollection"`
 	IsEntity           bool          `json:"isEntity"`
 	Attributes         []string      `json:"attributes"`

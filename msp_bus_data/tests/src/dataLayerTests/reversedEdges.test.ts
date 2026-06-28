@@ -68,4 +68,21 @@ describe('reversed edges / withRelationBack for view reads', () => {
     
     
   }, debugTimeOut)
+
+      it('should update account through back-relation view', async () => {
+        const initialData = testData()
+        const writeResult = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
+        const accountEntityId = writeResult.entityId
+
+        const accountReadBack = await ReadData(accountsPeopleOrdersItemsProductsView, accountEntityId)
+        const personBusinessKey = accountReadBack?.person?.__businessKey
+
+        const personCentricData = await ReadData(peopleAccountView, personBusinessKey, true)
+        personCentricData.account.accountNumber = `ACC-BACK-UPDATED-${Date.now()}`
+
+        await WriteData(peopleAccountView, personCentricData)
+
+        const updatedAccount = await ReadData(accountsPeopleOrdersItemsProductsView, accountEntityId)
+        expect(updatedAccount?.accountNumber).toBe(personCentricData.account.accountNumber)
+      }, debugTimeOut)
 })

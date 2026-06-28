@@ -1,10 +1,12 @@
 import { DataObjectMetaData, View, ViewElement } from 'msp_common';
 import got from 'got'
 import deepClone from 'safe-clone-deep';
+import { v7 as uuid } from 'uuid';
 
 const BASE = 'http://localhost:5000/v1/doc';
 
 export async function WriteData(view: View, data: any, transactionToken?: string) {
+  annotateSharedReferencesWithTmpIds(data);
   populateBusinessKeysInViewData(view, data);
   const bkey = data?.__businessKey
   const id = data?.__entityId ?? '__noid__'
@@ -32,6 +34,59 @@ export async function WriteData(view: View, data: any, transactionToken?: string
     if (eid) result.entityId = eid; // Attach the resolved entity ID to the result for downstream use
   }
   return result;
+}
+
+function annotateSharedReferencesWithTmpIds(root: any): void {
+  const seen = new WeakMap<object, string>();
+  const visiting = new WeakSet<object>();
+
+  const walk = (node: any): void => {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        walk(item);
+      }
+      return;
+    }
+
+    const objectNode = node as Record<string, any>;
+
+    if (visiting.has(objectNode)) {
+      return;
+    }
+
+    const priorTmpId = seen.get(objectNode);
+    if (priorTmpId) {
+      if (!objectNode.id) {
+        objectNode.__tmpId = priorTmpId;
+      }
+      return;
+    }
+
+    let stableTmpId = typeof objectNode.__tmpId === 'string' && objectNode.__tmpId.length > 0
+      ? objectNode.__tmpId
+      : '';
+
+    if (!objectNode.id && !stableTmpId) {
+      // Keep tmp ids UUID-shaped (36 chars) to match DB constraints on id-like fields.
+      stableTmpId = `${uuid()}`;
+      objectNode.__tmpId = stableTmpId;
+    }
+
+    seen.set(objectNode, stableTmpId);
+    visiting.add(objectNode);
+
+    for (const value of Object.values(objectNode)) {
+      walk(value);
+    }
+
+    visiting.delete(objectNode);
+  };
+
+  walk(root);
 }
 
 export async function ReadData(view: View, id: string, useBusKey: boolean = false, transactionToken?: string) {

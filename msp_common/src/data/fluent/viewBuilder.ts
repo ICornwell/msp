@@ -69,6 +69,45 @@ function attachViewIdentifierHelpers(view: View<any>): void {
   });
 }
 
+function resolveDelinkOnRemovalForRelation(
+  parentDomainObject: DomainObject<any, any, any> | undefined,
+  childDomainObject: DomainObject<any, any, any> | undefined,
+  relationName: string,
+  useBackRelation: boolean
+): boolean | undefined {
+  if (!parentDomainObject || !childDomainObject) {
+    return undefined;
+  }
+
+  const rels = useBackRelation
+    ? parentDomainObject.allowedRelationsTo
+    : parentDomainObject.allowedRelationsFrom;
+  if (!rels || rels.length === 0) {
+    return undefined;
+  }
+
+  const sameObject = (rel: any) => rel?.relatedObject === childDomainObject;
+  const sameId = (rel: any) => rel?.relatedObjectId?.name === childDomainObject.vid?.name;
+
+  const exact = rels.find((rel: any) => rel?.name === relationName && (sameObject(rel) || sameId(rel)));
+  const byNameOnly = rels.find((rel: any) => rel?.name === relationName);
+  const relation = exact ?? byNameOnly;
+  if (!relation) {
+    return undefined;
+  }
+
+  const namedFlag = (relation as any).delinkOnRemoval;
+  if (typeof namedFlag === 'boolean') {
+    return namedFlag;
+  }
+  const legacyFlag = (relation as any).cascadeDeletes;
+  if (typeof legacyFlag === 'boolean') {
+    return legacyFlag;
+  }
+
+  return undefined;
+}
+
 type RTOfRT<RT> = 
 RT extends CNTX<infer B, any> ? B extends ViewElementRecursive<any, any, any, any, infer RT2, any> ? RT2
  : (B extends ViewElementNonRecursive<any, any, any, any, infer RT3> ? RT3 : never) : never;
@@ -373,6 +412,7 @@ function buildSubElement<RSN extends string>(
       queryIdsUsed: Set<string>,
       builder: any,
       subElementBuilders: Array<any>,
+  parentDomainObject: DomainObject<any, any, any> | undefined,
       recursive: RecusiveType = 'non-recursive',
       recurseStartName?: RSN,
       recurseLevel: number = 0
@@ -405,7 +445,8 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
         actualDomainObject,
         isSubCollection,
         subElementBuilders,
-        queryIdsUsed
+        queryIdsUsed,
+        parentDomainObject
       );
 
       return subElementBuilder;
@@ -418,6 +459,7 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
         isSubCollection,
         subElementBuilders,
         queryIdsUsed,
+        parentDomainObject,
         recurseStartName!,
         recurseLevel
       );
@@ -431,6 +473,7 @@ return function <SubEName extends string, DO extends DomainObject<any, any, any>
         isSubCollection,
         subElementBuilders,
         queryIdsUsed,
+        parentDomainObject,
         recurseStartName!,
         recurseLevel
       );
@@ -456,6 +499,7 @@ export function createViewElementRecursiveEndBuilder<
   isCollection: TrueFalse,
   elementBuilders: Array<any>,
   _queryIdsUsed: Set<string>,
+  _parentDomainObject: DomainObject<any, any, any> | undefined,
   recurseStartName: RSN,
   recurseLevel: number = 1
 ): CNTX<ViewElementRecursiveEnd<DT, DO, PDO, EName, RT, RSN>, DT> {
@@ -470,6 +514,8 @@ export function createViewElementRecursiveEndBuilder<
     isCollection: isCollection,
     relationFromParent: undefined,
     relationToParent: undefined,
+    delinkOnRemoval: undefined,
+    cascadeDeletes: undefined,
     subElements: undefined,
     isRecurseEndPoint: false,
     recurseLevel: recurseLevel,
@@ -526,6 +572,7 @@ export function createViewElementRecursiveBuilder<
   isCollection: TrueFalse,
   elementBuilders: Array<any>,
   queryIdsUsed: Set<string>,
+  parentDomainObject: DomainObject<any, any, any> | undefined,
   recurseStartName: RSN,
   recurseLevel: number = 1
 ): CNTX<ViewElementRecursive<DT, DO, PDO, EName, RT, RSN>, DT> {
@@ -553,10 +600,20 @@ export function createViewElementRecursiveBuilder<
   const builder: ViewElementRecursive< DT, DO, PDO, EName, RT, RSN> = {
     withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      const delinkOnRemoval = resolveDelinkOnRemovalForRelation(parentDomainObject, element.domainObject, element.relationFromParent, false);
+      if (typeof delinkOnRemoval === 'boolean') {
+        element.delinkOnRemoval = delinkOnRemoval;
+        element.cascadeDeletes = delinkOnRemoval;
+      }
       return builderContext;
     },
     withBackRelation: function (relation: GETRELSFORNAME<RelsToDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationToParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      const delinkOnRemoval = resolveDelinkOnRemovalForRelation(parentDomainObject, element.domainObject, element.relationToParent, true);
+      if (typeof delinkOnRemoval === 'boolean') {
+        element.delinkOnRemoval = delinkOnRemoval;
+        element.cascadeDeletes = delinkOnRemoval;
+      }
       return builderContext;
     },
     withDocPathName: function (docPathName: string): any {
@@ -565,19 +622,19 @@ export function createViewElementRecursiveBuilder<
     },
     withNamedSubElement:  <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
       (name: SubEName, nextDomainObject: DO, isCollection: IC) => 
-        buildSubElement(queryIdsUsed, builder, subElementBuilders, 'recursive', recurseStartName, recurseLevel + 1)
+        buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'recursive', recurseStartName, recurseLevel + 1)
       (name, nextDomainObject, isCollection),
 
     withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
-    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, 'recursive', recurseStartName, recurseLevel + 1)
+    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'recursive', recurseStartName, recurseLevel + 1)
           <PathOfSingleDomainObject<DO>, DO, IC>
           (innerDomainObject.defaultDocPathName, innerDomainObject, isCollection),
 
     recurse: function (): any {
       element.isRecurseEndPoint = true; // mark this element as the end point of the recursive relationship
-      return buildSubElement(queryIdsUsed, returnTo, subElementBuilders, 'end-recursive', recurseStartName, recurseLevel + 1)
+      return buildSubElement(queryIdsUsed, returnTo, subElementBuilders, domainObject, 'end-recursive', recurseStartName, recurseLevel + 1)
           <RSN, DO, true>
           (recurseStartName, domainObject, true);
     },
@@ -623,7 +680,8 @@ export function createViewElementNonRecursiveBuilder<
   domainObject: DO,
   isCollection: TrueFalse,
   elementBuilders: Array<any>,
-  queryIdsUsed: Set<string>
+  queryIdsUsed: Set<string>,
+  parentDomainObject: DomainObject<any, any, any> | undefined
 ): CNTX<ViewElementNonRecursive<DT, DO, PDO, EName, RT>, DT> {
   const element: Partial<ViewElement<any>> = {
     object: domainObject.name,
@@ -635,6 +693,8 @@ export function createViewElementNonRecursiveBuilder<
     isCollection: isCollection,
     relationFromParent: undefined,
     relationToParent: undefined,
+    delinkOnRemoval: undefined,
+    cascadeDeletes: undefined,
     subElements: undefined,
     isRecurseStartPoint: false
   };
@@ -645,10 +705,20 @@ export function createViewElementNonRecursiveBuilder<
   const builder: ViewElementNonRecursive< DT, DO, PDO, EName, RT> = {
     withRelation: function (relation: GETRELSFORNAME<RelsFromDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationFromParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      const delinkOnRemoval = resolveDelinkOnRemovalForRelation(parentDomainObject, element.domainObject, element.relationFromParent, false);
+      if (typeof delinkOnRemoval === 'boolean') {
+        element.delinkOnRemoval = delinkOnRemoval;
+        element.cascadeDeletes = delinkOnRemoval;
+      }
       return builderContext;
     },
     withBackRelation: function (relation: GETRELSFORNAME<RelsToDO<PDO>, NameOfDomainObject<DO>>): any {
       element.relationToParent = relation as unknown as string; // runtime doesn't care about the actual relation object, just need to store something to indicate there is a relation
+      const delinkOnRemoval = resolveDelinkOnRemovalForRelation(parentDomainObject, element.domainObject, element.relationToParent, true);
+      if (typeof delinkOnRemoval === 'boolean') {
+        element.delinkOnRemoval = delinkOnRemoval;
+        element.cascadeDeletes = delinkOnRemoval;
+      }
       return builderContext;
     },
     withDocPathName: function (docPathName: string): any {
@@ -656,13 +726,13 @@ export function createViewElementNonRecursiveBuilder<
       return builderContext;
     },
         withNamedSubElement:  <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
-      (name: SubEName, nextDomainObject: DO, isCollection: IC) => buildSubElement(queryIdsUsed, builder, subElementBuilders, 'non-recursive')
+      (name: SubEName, nextDomainObject: DO, isCollection: IC) => buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'non-recursive')
       (name, nextDomainObject, isCollection),
 
     withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
-    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, 'non-recursive')
+    ) => buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'non-recursive')
           <PathOfSingleDomainObject<DO>, DO, IC>
           (innerDomainObject.defaultDocPathName, innerDomainObject, isCollection),
     
@@ -670,14 +740,14 @@ export function createViewElementNonRecursiveBuilder<
      withRecursiveNamedSubElement:   <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
       (name: SubEName, nextDomainObject: DO, isCollection: IC) => {
         return buildSubElement(queryIdsUsed, 
-        builder, subElementBuilders, 'recursive')
+        builder, subElementBuilders, domainObject, 'recursive')
       (name, nextDomainObject, isCollection)},
 
     withRecursiveSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
     ) => {
-      return buildSubElement(queryIdsUsed, builder, subElementBuilders, 'recursive')
+        return buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'recursive')
           <PathOfSingleDomainObject<DO>, DO, IC>
           (innerDomainObject.defaultDocPathName, innerDomainObject, isCollection);
     },
@@ -770,7 +840,8 @@ export function createViewBuilder<RootDT = any>(
         actualSchema,
         isCollection,
         [],
-        queryIdsUsed
+        queryIdsUsed,
+        undefined
       );
 
       rootElementBuilder = elementBuilder;

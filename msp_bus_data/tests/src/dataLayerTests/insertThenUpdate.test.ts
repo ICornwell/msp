@@ -1,11 +1,90 @@
 
+import { createView } from 'msp_common';
 import { testData, accountsPeopleOrdersItemsProductsView,
    AccountsPeopleOrdersItemsProductsData,
    simplePersonView,
+   relObjs,
    } from '../../../../msp_common/dist/data/testResources/views/accounts-people-orders-items-products.1.0.js';
 // import { view } from '@/fluent/viewBuilder.js';
 import { WriteData, ReadData } from './integratedTestsSdk.js';
 import { v7 as uuid } from 'uuid';
+
+const sharedContactView = createView('account-people-shared-contact')
+  .withVersion('1.0')
+  .withConfigSet('main')
+  .useBusinessKey()
+  .withRootElement(relObjs.accountObject, false)
+    .withNamedSubElement('contactTelephoneNumber', relObjs.contactTelephoneNumberObject, false)
+      .withRelation('useContactNumber')
+      .end()
+    .withNamedSubElement('person', relObjs.personObject, false)
+      .withRelation('belongsTo')
+      .withNamedSubElement('contactTelephoneNumber', relObjs.contactTelephoneNumberObject, false)
+        .withRelation('useContactNumber')
+        .end()
+      .withNamedSubElement('address', relObjs.addressObject, false)
+        .withRelation('hasAddress')
+        .withNamedSubElement('contactTelephoneNumber', relObjs.contactTelephoneNumberObject, false)
+          .withRelation('useContactNumber')
+          .end()
+        .end()
+      .end()
+    .withNamedSubElement('order', relObjs.orderObject, true)
+      .withRelation('hasOrder')
+      .withNamedSubElement('contactTelephoneNumber', relObjs.contactTelephoneNumberObject, false)
+        .withRelation('useContactNumber')
+        .end()
+      .withNamedSubElement('orderItem', relObjs.itemObject, true)
+        .withRelation('hasItem')
+        .withNamedSubElement('contactTelephoneNumber', relObjs.contactTelephoneNumberObject, false)
+          .withRelation('useContactNumber')
+          .end()
+        .withNamedSubElement('product', relObjs.productObject, false)
+          .withRelation('orderedProduct')
+          .end()
+        .end()
+      .end()
+    .end()
+  .endView()
+  .build();
+
+function sharedContactData() {
+  const sharedContact = {
+    telephoneNumber: `+44-555-${uuid()}`,
+  };
+
+  return {
+    accountNumber: `ACC-SHARED-CONTACT-${uuid()}`,
+    contactTelephoneNumber: sharedContact,
+    person: {
+      name: 'Shared Contact Person',
+      email: `shared.contact.${uuid()}@example.com`,
+      contactTelephoneNumber: sharedContact,
+      address: {
+        street: '1 Shared Contact Street',
+        postalCode: 'SC100',
+        contactTelephoneNumber: sharedContact,
+      },
+    },
+    order: [
+      {
+        orderId: `ORD-SHARED-${uuid()}`,
+        contactTelephoneNumber: sharedContact,
+        orderItem: [
+          {
+            itemId: `ITEM-SHARED-${uuid()}`,
+            numberOfUnits: 1,
+            contactTelephoneNumber: sharedContact,
+            product: {
+              productId: `PROD-SHARED-${uuid()}`,
+              name: 'Shared Contact Product',
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
 
 describe('Insert then update test', () => {
   const debugTimeOut: number = 600000
@@ -501,6 +580,167 @@ describe('Insert then update test', () => {
 
     expect(readBackData3?.name).toBe("Bob Johnson");
 
+  }, debugTimeOut)
+
+  it('should delink value objects when relation is marked for delink on removal', async () => {
+    const initialData: AccountsPeopleOrdersItemsProductsData = {
+      accountNumber: `ACC-DELINK-VO-${uuid()}`,
+      person: {
+        name: 'Value Delink',
+        address: {
+          street: '1 Delink Way',
+          postalCode: '10001'
+        }
+      },
+      order: [
+        {
+          orderId: `ORD-DELINK-${uuid()}`,
+          orderItem: [
+            {
+              itemId: `ITEM-DELINK-${uuid()}`,
+              numberOfUnits: 2,
+              product: {
+                productId: `PROD-DELINK-${uuid()}`,
+                name: 'Delink Product'
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
+    const accountEntityId = r1.entityId
+    const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, accountEntityId)
+
+    const removedOrderItemId = readBackData?.order?.[0]?.orderItem?.[0]?.id
+    expect(removedOrderItemId).toBeDefined()
+
+    readBackData.order[0].orderItem = []
+    const removalResult = await WriteData(accountsPeopleOrdersItemsProductsView, readBackData)
+
+    const accountAfterRemoval = await ReadData(accountsPeopleOrdersItemsProductsView, accountEntityId)
+    expect(accountAfterRemoval?.order?.[0]?.orderItem?.length ?? 0).toBe(0)
+
+    const deletedVertices = removalResult?.request?.delete?.vertices ?? []
+    const wasDeleted = deletedVertices.some((v: any) => v?.__previousId === removedOrderItemId || v?.__originalId === removedOrderItemId)
+    expect(wasDeleted).toBe(false)
+
+    const updateVertices = removalResult?.request?.update?.vertices ?? []
+    const hasDelinkedEdge = updateVertices.some((v: any) => Array.isArray(v?.__viewManagedEdges) && v.__viewManagedEdges.length > 0)
+    expect(hasDelinkedEdge).toBe(true)
+  }, debugTimeOut)
+
+  it('should soft-delete value objects when relation is not marked for delink on removal', async () => {
+    const initialData: AccountsPeopleOrdersItemsProductsData = {
+      accountNumber: `ACC-SOFTDEL-VO-${uuid()}`,
+      person: {
+        name: 'Value Delete',
+        address: {
+          street: '2 Delete Way',
+          postalCode: '20002'
+        }
+      },
+      order: [
+        {
+          orderId: `ORD-DEL-${uuid()}`,
+          orderItem: [
+            {
+              itemId: `ITEM-DEL-${uuid()}`,
+              numberOfUnits: 1,
+              product: {
+                productId: `PROD-DEL-${uuid()}`,
+                name: 'Delete Product'
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const r1 = await WriteData(accountsPeopleOrdersItemsProductsView, initialData)
+    const accountEntityId = r1.entityId
+    const readBackData = await ReadData(accountsPeopleOrdersItemsProductsView, accountEntityId)
+
+    const addressVertexId = readBackData?.person?.address?.id
+    expect(addressVertexId).toBeDefined()
+
+    delete readBackData.person.address
+    const removalResult = await WriteData(accountsPeopleOrdersItemsProductsView, readBackData)
+
+    const accountAfterRemoval = await ReadData(accountsPeopleOrdersItemsProductsView, accountEntityId)
+    expect(accountAfterRemoval?.person?.address).toBeUndefined()
+
+    const deletedVertices = removalResult?.request?.delete?.vertices ?? []
+    const wasSoftDeleted = deletedVertices.some((v: any) => v?.__previousId === addressVertexId || v?.__originalId === addressVertexId)
+    expect(wasSoftDeleted).toBe(true)
+
+    const updateVertices = removalResult?.request?.update?.vertices ?? []
+    const hasDelinkedEdge = updateVertices.some((v: any) => Array.isArray(v?.__viewManagedEdges) && v.__viewManagedEdges.length > 0)
+    expect(hasDelinkedEdge).toBe(true)
+  }, debugTimeOut)
+
+  it('should create one shared contactTelephoneNumber vertex with inbound links from multiple parents', async () => {
+    const initialData = sharedContactData();
+
+    const insertResult = await WriteData(sharedContactView as any, initialData);
+    const addedVertices = insertResult?.request?.add?.vertices ?? [];
+    const addedEdges = insertResult?.request?.add?.edges ?? [];
+
+    const contactVertices = addedVertices.filter((v: any) => v?.__label === 'contactTelephoneNumberObject');
+    expect(contactVertices.length).toBe(1);
+
+    const sharedContactTmpId = contactVertices[0]?.__tmpId;
+    expect(sharedContactTmpId).toBeDefined();
+
+    const inboundUseContactEdges = addedEdges.filter(
+      (e: any) => e?.__label === 'useContactNumber' && e?.to === sharedContactTmpId
+    );
+
+    expect(inboundUseContactEdges.length).toBeGreaterThanOrEqual(5);
+  }, debugTimeOut)
+
+  it('should delink shared contactTelephoneNumber until person removal soft-deletes it everywhere', async () => {
+    const initialData = sharedContactData();
+    const insertResult = await WriteData(sharedContactView as any, initialData);
+    const accountEntityId = insertResult.entityId;
+
+    const readBackData = await ReadData(sharedContactView as any, accountEntityId);
+    expect(readBackData?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+    expect(readBackData?.person?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+    expect(readBackData?.person?.address?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+    expect(readBackData?.order?.[0]?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+    expect(readBackData?.order?.[0]?.orderItem?.[0]?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+
+    // These relations are configured with delinkOnRemoval=true.
+    delete readBackData.order?.[0]?.contactTelephoneNumber;
+    if (readBackData?.order?.[0]?.orderItem?.[0]) {
+      delete readBackData.order[0].orderItem[0].contactTelephoneNumber;
+    }
+
+    const delinkResult = await WriteData(accountsPeopleOrdersItemsProductsView, readBackData);
+    const delinkDeleteVertices = delinkResult?.request?.delete?.vertices ?? [];
+    const delinkDeletedContact = delinkDeleteVertices.some((v: any) => v?.__label === 'contactTelephoneNumberObject');
+    expect(delinkDeletedContact).toBe(false);
+
+    const afterDelink = await ReadData(sharedContactView as any, accountEntityId);
+    expect(afterDelink?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+    expect(afterDelink?.person?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+    expect(afterDelink?.person?.address?.contactTelephoneNumber?.telephoneNumber).toBeDefined();
+
+    // person->contact is configured with delinkOnRemoval=false, so this should soft-delete.
+    delete afterDelink.person.contactTelephoneNumber;
+    const softDeleteResult = await WriteData(sharedContactView as any, afterDelink);
+    const softDeleteVertices = softDeleteResult?.request?.delete?.vertices ?? [];
+    const softDeletedContact = softDeleteVertices.some((v: any) => v?.__label === 'contactTelephoneNumberObject');
+    expect(softDeletedContact).toBe(true);
+
+    const afterSoftDelete = await ReadData(sharedContactView as any, accountEntityId);
+    expect(afterSoftDelete?.contactTelephoneNumber).toBeUndefined();
+    expect(afterSoftDelete?.person?.contactTelephoneNumber).toBeUndefined();
+    expect(afterSoftDelete?.person?.address?.contactTelephoneNumber).toBeUndefined();
+    expect(afterSoftDelete?.order?.[0]?.contactTelephoneNumber).toBeUndefined();
+    expect(afterSoftDelete?.order?.[0]?.orderItem?.[0]?.contactTelephoneNumber).toBeUndefined();
   }, debugTimeOut)
 
 })

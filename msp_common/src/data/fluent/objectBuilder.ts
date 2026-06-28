@@ -15,12 +15,12 @@ export interface ObjectBuilder<RT, O extends string, P extends string, S extends
   withRelationTo: <N extends string, T extends DomainObject<any, any, any>>(
     name: N,
     targetObject: T,
-    cascadeDeletes: TrueFalse
+    delinkOnRemoval: TrueFalse
   ) => RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>>;
   withRelationFrom: <N extends string, T extends DomainObject<any, any, any>>(
     name: N,
     targetObject: T,
-    cascadeDeletes: TrueFalse
+    delinkOnRemoval: TrueFalse
   ) => RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
   buildObject: () => DomainObject<O, P, S>;
 }
@@ -85,23 +85,23 @@ function createBaseBuilder<RT, O extends string, P extends string, S extends Sch
     },
 
 
-    withRelationTo<N extends string, TO extends DomainObject<any, any, any>>(name: N, targetObject: TO, cascadeDeletes: TrueFalse)
+    withRelationTo<N extends string, TO extends DomainObject<any, any, any>>(name: N, targetObject: TO, delinkOnRemoval: TrueFalse)
       : RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>> {
       if (!domainObj.allowedRelationsTo) {
         domainObj.allowedRelationsTo = [];
       }
 
-      addDomainObjectRelationTo(targetObject, name, domainObj, cascadeDeletes);
+      addDomainObjectRelationTo(targetObject, name, domainObj, delinkOnRemoval);
       return returnBuilder as unknown as RTWithNewRelsTo<RT, AddRel<O, N, RelsTo>>;
     },
 
-    withRelationFrom<N extends string, SO extends DomainObject<any, any, any>>(name: N, sourceObject: SO, cascadeDeletes: TrueFalse)
+    withRelationFrom<N extends string, SO extends DomainObject<any, any, any>>(name: N, sourceObject: SO, delinkOnRemoval: TrueFalse)
       : RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>> {
       if (!domainObj.allowedRelationsFrom) {
         domainObj.allowedRelationsFrom = [];
       }
 
-      addDomainObjectRelationFrom(sourceObject, name, domainObj, cascadeDeletes);
+  	  addDomainObjectRelationFrom(sourceObject, name, domainObj, delinkOnRemoval);
       return returnBuilder as unknown as RTWithNewRelsFrom<RT, AddRel<O, N, RelsFrom>>;
     },
     buildObject: () => domainObj as DomainObject<O, P, S>
@@ -248,40 +248,64 @@ export function createEntityObject<S extends Schema<any, any>, N extends string,
 export function addDomainObjectRelationFrom<SO extends DomainObject,
   N extends string,
   TO extends DomainObject>
-  (sourceObject: SO, name: N, targetObject: TO, cascadeDeletes: TrueFalse) {
+  (sourceObject: SO, name: N, targetObject: TO, delinkOnRemoval: TrueFalse) {
   if (!sourceObject.allowedRelationsFrom) {
     sourceObject.allowedRelationsFrom = [];
   }
-  sourceObject.allowedRelationsFrom?.push({ name, relatedObject: targetObject, relatedObjectId: (targetObject as any).vid, cascadeDeletes });
+  sourceObject.allowedRelationsFrom?.push({
+    name,
+    relatedObject: targetObject,
+    relatedObjectId: (targetObject as any).vid,
+    delinkOnRemoval,
+    cascadeDeletes: delinkOnRemoval,
+  });
 
   // if not already present, add reverse relation to target object's allowedRelationsTo
   if (!targetObject.allowedRelationsTo) {
     targetObject.allowedRelationsTo = [];
   }
   if (!targetObject.allowedRelationsTo.find(rel => rel.name === name && rel.relatedObject == sourceObject)) {
-    targetObject.allowedRelationsTo?.push({ name, relatedObject: sourceObject, relatedObjectId: (sourceObject as any).vid, cascadeDeletes });
+    targetObject.allowedRelationsTo?.push({
+      name,
+      relatedObject: sourceObject,
+      relatedObjectId: (sourceObject as any).vid,
+      delinkOnRemoval,
+      cascadeDeletes: delinkOnRemoval,
+    });
   }
 
-  return addNamedRelations<SO, N, TO>(sourceObject, targetObject, name, cascadeDeletes);;
+  return addNamedRelations<SO, N, TO>(sourceObject, targetObject, name, delinkOnRemoval);;
 }
 
 export function addDomainObjectRelationTo<TO extends DomainObject,
   N extends string,
-  SO extends DomainObject>(targetObject: SO, name: N, sourceObject: TO, cascadeDeletes: TrueFalse) {
+  SO extends DomainObject>(targetObject: SO, name: N, sourceObject: TO, delinkOnRemoval: TrueFalse) {
   if (!targetObject.allowedRelationsTo) {
     targetObject.allowedRelationsTo = [];
   }
-  targetObject.allowedRelationsTo?.push({ name, relatedObject: sourceObject, relatedObjectId: (sourceObject as any).vid, cascadeDeletes });
+  targetObject.allowedRelationsTo?.push({
+    name,
+    relatedObject: sourceObject,
+    relatedObjectId: (sourceObject as any).vid,
+    delinkOnRemoval,
+    cascadeDeletes: delinkOnRemoval,
+  });
 
   // if not already present, add reverse relation to target object's allowedRelationsTo
   if (!sourceObject.allowedRelationsFrom) {
     sourceObject.allowedRelationsFrom = [];
   }
   if (!sourceObject.allowedRelationsFrom.find(rel => rel.name === name && rel.relatedObject == targetObject)) {
-    sourceObject.allowedRelationsFrom?.push({ name, relatedObject: targetObject, relatedObjectId: (targetObject as any).vid, cascadeDeletes });
+    sourceObject.allowedRelationsFrom?.push({
+      name,
+      relatedObject: targetObject,
+      relatedObjectId: (targetObject as any).vid,
+      delinkOnRemoval,
+      cascadeDeletes: delinkOnRemoval,
+    });
   }
 
-  return addNamedRelations<SO, N, TO>(targetObject, sourceObject, name, cascadeDeletes); targetObject;
+  return addNamedRelations<SO, N, TO>(targetObject, sourceObject, name, delinkOnRemoval); targetObject;
 }
 function addNamedRelations<SO extends DomainObject,
   N extends string,

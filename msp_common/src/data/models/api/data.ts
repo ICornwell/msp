@@ -89,7 +89,10 @@ export type DomainObjectRelation<RN extends string, TDO> = {
   name: RN;
   relatedObject: TDO;
   relatedObjectId: versionedResourceId;
+  // Deprecated name kept for backward compatibility.
   cascadeDeletes: TrueFalse;
+  // Preferred name: when true, removing from this relation delinks instead of soft-deleting the related value object.
+  delinkOnRemoval?: TrueFalse;
 }
 
 export type SchemaOfDomainObject<DO extends DomainObject> =

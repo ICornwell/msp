@@ -6,6 +6,7 @@
     "msp_common",
     "msp_svr_common",
     "msp_data_common",
+    "msp_bus_data/tests",
     "msp_semaphores",
     "msp_security",
     "msp_ui_common",

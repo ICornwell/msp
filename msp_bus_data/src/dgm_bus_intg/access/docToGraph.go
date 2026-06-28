@@ -159,31 +159,42 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 			if viewElement.IsEntity {
 				primaryBusinessKey = jsonDoc.FromContent[string](newData, "__businessKey")
 			}
+			tmpId := jsonDoc.FromContent[string](newData, "__tmpId")
 
 			if viewElement.IsEntity || currentEntityId == "" {
-				currentEntityId = jsonDoc.FromContent[string](newData, "__tmpId")
+				currentEntityId = tmpId
 			}
-			request.Add.Vertices = append(request.Add.Vertices, &apiMessages.Vertex{
-				Label:         viewElement.Object,
-				IsEntity:      viewElement.IsEntity,
-				TransactionId: transactionId,
-				ViewType:      jsonDoc.FromMetaData[string](newData, "__viewType"),
-				QueryObjectId: viewElement.QueryObjectId,
-				Content:       strippedContent,
-				AlternateKey:  "",
-				BusinessKey:   primaryBusinessKey,
-				TmpId:         jsonDoc.FromContent[string](newData, "__tmpId"),
-				EntityId:      currentEntityId,
-			})
-			if parentNewData != nil {
-				request.Add.Edges = append(request.Add.Edges, &apiMessages.Edge{
-					Label:         viewElement.RelationFromParent,
+			hasExistingAddVertex := slices.IndexFunc(request.Add.Vertices, func(v *apiMessages.Vertex) bool {
+				return v != nil && v.TmpId != "" && v.TmpId == tmpId
+			}) >= 0
+
+			if !hasExistingAddVertex {
+				request.Add.Vertices = append(request.Add.Vertices, &apiMessages.Vertex{
+					Label:         viewElement.Object,
+					IsEntity:      viewElement.IsEntity,
 					TransactionId: transactionId,
-					From:          parentId.(string),
-					To:            idString,
 					ViewType:      jsonDoc.FromMetaData[string](newData, "__viewType"),
-					Content:       map[string]interface{}{},
+					QueryObjectId: viewElement.QueryObjectId,
+					Content:       strippedContent,
+					AlternateKey:  "",
+					BusinessKey:   primaryBusinessKey,
+					TmpId:         tmpId,
+					EntityId:      currentEntityId,
 				})
+			}
+			if parentNewData != nil {
+				parentIdString, _ := parentId.(string)
+				edges := relationEdgesForViewElement(viewElement, parentIdString, idString)
+				for _, edge := range edges {
+					request.Add.Edges = append(request.Add.Edges, &apiMessages.Edge{
+						Label:         edge.label,
+						TransactionId: transactionId,
+						From:          edge.from,
+						To:            edge.to,
+						ViewType:      jsonDoc.FromMetaData[string](newData, "__viewType"),
+						Content:       map[string]interface{}{},
+					})
+				}
 			}
 		} else if diffs.IsUpdatedObject(idString) {
 			if viewElement.IsEntity || currentEntityId == "" {
@@ -191,17 +202,24 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 			}
 			updateObj := diffs.UpdateMap[idString]
 			oldData := updateObj.OldObject
-			request.Update.Vertices = append(request.Update.Vertices, &apiMessages.Vertex{
-				Label:         viewElement.Object,
-				TransactionId: transactionId,
-				EntityId:      jsonDoc.FromContent[string](newData, "__entityId"),
-				ViewType:      jsonDoc.FromMetaData[string](newData, "__viewType"),
-				PreviousId:    oldData["id"].(string),
-				OriginalId:    jsonDoc.FromMetaData[string](oldData, "__originalId"),
-				QueryObjectId: viewElement.QueryObjectId,
-				IsEntity:      viewElement.IsEntity,
-				Content:       strippedContent,
-			})
+			previousId := oldData["id"].(string)
+			hasExistingUpdateVertex := slices.IndexFunc(request.Update.Vertices, func(v *apiMessages.Vertex) bool {
+				return v != nil && v.PreviousId != "" && v.PreviousId == previousId
+			}) >= 0
+
+			if !hasExistingUpdateVertex {
+				request.Update.Vertices = append(request.Update.Vertices, &apiMessages.Vertex{
+					Label:         viewElement.Object,
+					TransactionId: transactionId,
+					EntityId:      jsonDoc.FromContent[string](newData, "__entityId"),
+					ViewType:      jsonDoc.FromMetaData[string](newData, "__viewType"),
+					PreviousId:    previousId,
+					OriginalId:    jsonDoc.FromMetaData[string](oldData, "__originalId"),
+					QueryObjectId: viewElement.QueryObjectId,
+					IsEntity:      viewElement.IsEntity,
+					Content:       strippedContent,
+				})
+			}
 		}
 		for _, v := range viewElement.SubElements {
 			newObj := newData[v.DocPathName]
@@ -246,24 +264,12 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 							if oai < 0 {
 								id := oa["id"]
 								if id != nil {
-									idString := id.(string)
-									if diffs.IsDeletedObject(idString) {
-										// TODO: if the deleted object is an entity,
-										//  we should convert the parent to an update (if it isn't already)
-										//  and add this to the view-managed edges, so it won't be auto
-										//  connected in the graph for the new version of the parent object
-										//  effectivelt soft deleting the object from the view, rather than hard deleting it from the graph
-
-										// if it is not an entity and rhe relation type is set for cascading deletes,
-										// then we should also delete all descendents, as the diff results
-										// won't include these as deleted objects, as they are not being deleted directly
-										
-										handleRemoval(request, viewElement, transactionId, oa, 
-											currentStrippedContent, parentNewData, parentCurrentData, parentStrippedContent,
+									removedCurrentStrippedContent := strippedContentForViewElement(v, oa)
+									// Relationship removal must be handled even when the same child object
+									// still exists elsewhere in the document hierarchy.
+									handleRemoval(request, v, transactionId, oa,
+										removedCurrentStrippedContent, newData, currentData, strippedContent,
 										rawData)
-										// TODO: if set for cascading deletes, then we should recurse down oa
-										// and delete all non-entity cascading descendents
-									}
 								}
 							}
 						}
@@ -281,35 +287,62 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 				}
 			} else {
 				// old but no new - should cause a delete
-				recursiveUpsertViewData(v, &viewElement,
-					nil, newData, strippedContent,
-					currObj.(jsonDoc.JsonDoc), currentData, currentEntityId,
-					rawData, diffs, rootKeyName, transactionId, request)
+				if currObj != nil {
+					recursiveUpsertViewData(v, &viewElement,
+						nil, newData, strippedContent,
+						currObj.(jsonDoc.JsonDoc), currentData, currentEntityId,
+						rawData, diffs, rootKeyName, transactionId, request)
+				} else {
+					// Nothing existed previously for this optional child path.
+					continue
+				}
 			}
 		}
 	} else {
 		id := currentData["id"]
 		if id != nil {
-			idString := id.(string)
-			if diffs.IsDeletedObject(idString) {
 
-				handleRemoval(request, viewElement, transactionId, currentData, currentStrippedContent,
-					parentNewData, parentCurrentData, parentStrippedContent, rawData)
-				// TODO: see above TODO about handling deletes of enity and non-entity children
-				// request.Delete.Vertices = append(request.Delete.Vertices, &apiMessages.Vertex{
-				// 	Label:         viewElement.Object,
-				// 	TransactionId: transactionId,
-				// 	ViewType:      fromMetaData[string](currentData, "__viewType"),
-				// 	QueryObjectId: viewElement.QueryObjectId,
-				// 	OriginalId:    currentData["id"].(string),
-				// 	PreviousId:    currentData["id"].(string),
-				// 	IsEntity: viewElement.IsEntity,
-				// 	Content:  currentStrippedContent,
-				// })
-			}
+			handleRemoval(request, viewElement, transactionId, currentData, currentStrippedContent,
+				parentNewData, parentCurrentData, parentStrippedContent, rawData)
+			// TODO: see above TODO about handling deletes of enity and non-entity children
+			// request.Delete.Vertices = append(request.Delete.Vertices, &apiMessages.Vertex{
+			// 	Label:         viewElement.Object,
+			// 	TransactionId: transactionId,
+			// 	ViewType:      fromMetaData[string](currentData, "__viewType"),
+			// 	QueryObjectId: viewElement.QueryObjectId,
+			// 	OriginalId:    currentData["id"].(string),
+			// 	PreviousId:    currentData["id"].(string),
+			// 	IsEntity: viewElement.IsEntity,
+			// 	Content:  currentStrippedContent,
+			// })
 		}
 	}
 
+}
+
+func strippedContentForViewElement(viewElement apiMessages.ViewElement, data jsonDoc.JsonDoc) map[string]interface{} {
+	strippedContent := map[string]interface{}{}
+	if data == nil {
+		return strippedContent
+	}
+
+	subNames := map[string]bool{}
+	for _, v := range viewElement.SubElements {
+		docPathName := v.DocPathName
+		if docPathName == "" {
+			docPathName = v.Object
+		}
+		subNames[docPathName] = true
+	}
+
+	for k, v := range data {
+		_, ok := subNames[k]
+		if !ok || k == "__tmpId" {
+			strippedContent[k] = v
+		}
+	}
+
+	return strippedContent
 }
 
 func handleRemoval(request *apiMessages.UpsertRequest, viewElement apiMessages.ViewElement,
@@ -317,59 +350,180 @@ func handleRemoval(request *apiMessages.UpsertRequest, viewElement apiMessages.V
 	  currentStrippedContent map[string]interface{},
 		parentData jsonDoc.JsonDoc, parentCurrentData jsonDoc.JsonDoc, parentStrippedContent  map[string]interface{},
 		rawData jsonDoc.JsonDoc)  {
-	if (jsonDoc.FromMetaData[bool](vertex, "__isEntity") == true) {
-		existingUpdateIdx := slices.IndexFunc(request.Update.Vertices, func(vertex *apiMessages.Vertex)bool { return vertex.TmpId == parentData["__tmpId"] })
-		
-		parentVertexId := jsonDoc.FromContent[string](parentCurrentData, "__entityId")
+	delinkOnly := shouldDelinkOnRemoval(viewElement, vertex)
+	if parentData == nil || parentCurrentData == nil {
+		if !delinkOnly {
+			request.Delete.Vertices = append(request.Delete.Vertices, &apiMessages.Vertex{
+				Label:         viewElement.Object,
+				TransactionId: transactionId,
+				ViewType:      jsonDoc.FromMetaData[string](vertex, "__viewType"),
+				EntityId:      jsonDoc.FromContent[string](vertex, "__entityId"),
+				QueryObjectId: viewElement.QueryObjectId,
+				OriginalId:    vertex["id"].(string),
+				PreviousId:    vertex["id"].(string),
+				IsEntity:      viewElement.IsEntity,
+				Content:       currentStrippedContent,
+			})
+		}
+		return
+	}
+
+	parentVertexId := jsonDoc.FromContent[string](parentCurrentData, "id")
+	if parentVertexId == "" {
+		parentVertexId = jsonDoc.FromContent[string](parentCurrentData, "__entityId")
+	}
+	parentEntityId := jsonDoc.FromContent[string](parentData, "__entityId")
+	if parentEntityId == "" {
+		parentEntityId = jsonDoc.FromContent[string](parentCurrentData, "__entityId")
+	}
+	parentTmpID := jsonDoc.FromContent[string](parentData, "__tmpId")
+	if parentTmpID == "" {
+		parentTmpID = jsonDoc.FromContent[string](parentCurrentData, "__tmpId")
+	}
+	if parentVertexId != "" {
+		existingUpdateIdx := slices.IndexFunc(request.Update.Vertices, func(v *apiMessages.Vertex) bool {
+			if v == nil {
+				return false
+			}
+			if v.PreviousId != "" && v.PreviousId == parentVertexId {
+				return true
+			}
+			if v.EntityId != "" && parentEntityId != "" && v.EntityId == parentEntityId {
+				return true
+			}
+			return parentTmpID != "" && v.TmpId == parentTmpID
+		})
+
 		removedVertexId := vertex["id"].(string)
-		
+		relationLabels := relationLabelsForViewElement(viewElement)
+		parentLabel := jsonDoc.FromMetaData[string](parentData, "__label")
+		if parentLabel == "" {
+			parentLabel = viewElement.Object
+		}
+
 		var existingUpdateVertex *apiMessages.Vertex = nil
 		if existingUpdateIdx >= 0 {
 			existingUpdateVertex = request.Update.Vertices[existingUpdateIdx]
 		} else {
+			parentQueryObjectId := jsonDoc.FromMetaData[string](parentData, "__queryObjectId")
+			if parentQueryObjectId == "" {
+				parentQueryObjectId = jsonDoc.FromMetaData[string](parentCurrentData, "__queryObjectId")
+			}
+			parentIsEntity := jsonDoc.FromMetaData[bool](parentData, "__isEntity")
+			if !parentIsEntity {
+				parentIsEntity = jsonDoc.FromMetaData[bool](parentCurrentData, "__isEntity")
+			}
 			existingUpdateVertex = &apiMessages.Vertex{
-				Label:         viewElement.Object,
+				Label:         parentLabel,
 				TransactionId: transactionId,
-				EntityId:      jsonDoc.FromContent[string](parentData, "__entityId"),
+				EntityId:      parentEntityId,
+				TmpId:         parentTmpID,
 				ViewType:      jsonDoc.FromMetaData[string](parentData, "__viewType"),
 				PreviousId:    parentVertexId,
 				OriginalId:    jsonDoc.FromMetaData[string](parentData, "__originalId"),
-				QueryObjectId: viewElement.QueryObjectId,
-				IsEntity:      viewElement.IsEntity,
+				QueryObjectId: parentQueryObjectId,
+				IsEntity:      parentIsEntity,
 				Content:       parentStrippedContent,
 			}
-			if existingUpdateVertex.ViewManagedEdges == nil {
-				existingUpdateVertex.ViewManagedEdges = []string{}
-			}
-			existingUpdateVertex.ViewManagedEdges = append(existingUpdateVertex.ViewManagedEdges, getEdgeIds(parentVertexId, removedVertexId, rawData )...)
 			request.Update.Vertices = append(request.Update.Vertices, existingUpdateVertex)
 		}
-		// existinst vertex needs place for the removed edge
-	
-		} else {
-	request.Delete.Vertices = append(request.Delete.Vertices, &apiMessages.Vertex{
-		Label:         viewElement.Object,
-		TransactionId: transactionId,
-		ViewType:      jsonDoc.FromMetaData[string](vertex, "__viewType"),
-		EntityId:      jsonDoc.FromContent[string](vertex, "__entityId"),
-		QueryObjectId: viewElement.QueryObjectId,
-		OriginalId:    vertex["id"].(string),
-		PreviousId:    vertex["id"].(string),
-		IsEntity:      viewElement.IsEntity,
-		Content:       currentStrippedContent,
-	})
-}
+		if existingUpdateVertex.ViewManagedEdges == nil {
+			existingUpdateVertex.ViewManagedEdges = []string{}
+		}
+		edgeIDs := getEdgeIds(parentVertexId, removedVertexId, relationLabels, rawData)
+		if len(edgeIDs) == 0 {
+			edgeIDs = getEdgeIds(parentVertexId, removedVertexId, nil, rawData)
+		}
+		for _, edgeID := range edgeIDs {
+			if !slices.Contains(existingUpdateVertex.ViewManagedEdges, edgeID) {
+				existingUpdateVertex.ViewManagedEdges = append(existingUpdateVertex.ViewManagedEdges, edgeID)
+			}
+		}
+	}
+
+	if !delinkOnly {
+		request.Delete.Vertices = append(request.Delete.Vertices, &apiMessages.Vertex{
+			Label:         viewElement.Object,
+			TransactionId: transactionId,
+			ViewType:      jsonDoc.FromMetaData[string](vertex, "__viewType"),
+			EntityId:      jsonDoc.FromContent[string](vertex, "__entityId"),
+			QueryObjectId: viewElement.QueryObjectId,
+			OriginalId:    vertex["id"].(string),
+			PreviousId:    vertex["id"].(string),
+			IsEntity:      viewElement.IsEntity,
+			Content:       currentStrippedContent,
+		})
+	}
 }
 
-func getEdgeIds(vertexId1 string, vertexId2 string, rawData jsonDoc.JsonDoc) []string {
+func shouldDelinkOnRemoval(viewElement apiMessages.ViewElement, vertex jsonDoc.JsonDoc) bool {
+	if jsonDoc.FromMetaData[bool](vertex, "__isEntity") {
+		return true
+	}
+	if viewElement.DelinkOnRemoval {
+		return true
+	}
+	// Backward compatibility for legacy field name emitted by older clients.
+	if viewElement.CascadeDeletes {
+		return true
+	}
+	return false
+}
+
+type relationEdge struct {
+	label string
+	from  string
+	to    string
+}
+
+func relationEdgesForViewElement(viewElement apiMessages.ViewElement, parentId string, childId string) []relationEdge {
+	edges := []relationEdge{}
+	if viewElement.RelationFromParent != "" {
+		edges = append(edges, relationEdge{label: viewElement.RelationFromParent, from: parentId, to: childId})
+	}
+	if viewElement.RelationToParent != "" {
+		edges = append(edges, relationEdge{label: viewElement.RelationToParent, from: childId, to: parentId})
+	}
+	return edges
+}
+
+func relationLabelsForViewElement(viewElement apiMessages.ViewElement) []string {
+	labels := []string{}
+	if viewElement.RelationFromParent != "" {
+		labels = append(labels, viewElement.RelationFromParent)
+	}
+	if viewElement.RelationToParent != "" {
+		labels = append(labels, viewElement.RelationToParent)
+	}
+	return labels
+}
+
+func getEdgeIds(vertexId1 string, vertexId2 string, relationLabels []string, rawData jsonDoc.JsonDoc) []string {
 	var edgeIds []string
+	allowedLabels := map[string]bool{}
+	for _, label := range relationLabels {
+		allowedLabels[label] = true
+	}
 	edges, ok := rawData["data"].(map[string]interface{})["edges"].([]interface{})
 	if ok {
 		for _, e := range edges {
 			edge := e.(jsonDoc.JsonDoc)
+			if len(allowedLabels) > 0 {
+				edgeLabel, _ := edge["__label"].(string)
+				if !allowedLabels[edgeLabel] {
+					continue
+				}
+			}
 			if (edge["from"] == vertexId1 && edge["to"] == vertexId2) ||
 				(edge["from"] == vertexId2 && edge["to"] == vertexId1) {
-				edgeIds = append(edgeIds, edge["id"].(string))
+				edgeId, hasId := edge["id"].(string)
+				if !hasId {
+					continue
+				}
+				if !slices.Contains(edgeIds, edgeId) {
+					edgeIds = append(edgeIds, edgeId)
+				}
+				continue
 			}
 		}
 	}

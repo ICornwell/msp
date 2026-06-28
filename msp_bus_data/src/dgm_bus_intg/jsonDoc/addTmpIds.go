@@ -6,7 +6,7 @@ import (
 
 func AddTmpIdToJSON(data map[string]interface{}) (map[string]interface{}, error) {
 	// Add UUID to this object
-	if data["id"] == nil || data["id"].(string) == "" {
+	if (data["id"] == nil || data["id"].(string) == "") && (data["__tmpId"] == nil || data["__tmpId"].(string) == "") {
 		id := utils.GenerateId()
 		data["__tmpId"] = id
 	}
@@ -14,7 +14,7 @@ func AddTmpIdToJSON(data map[string]interface{}) (map[string]interface{}, error)
 		switch v := data[i].(type) {
 		case map[string]interface{}:
 			// Generate a new UUID for this object
-			if v["id"] == nil || v["id"].(string) == "" {
+			if (v["id"] == nil || v["id"].(string) == "") && (v["__tmpId"] == nil || v["__tmpId"].(string) == "") {
 				id := utils.GenerateId()
 				v["__tmpId"] = id
 			}
@@ -38,7 +38,7 @@ func AddTmpIdToJSON(data map[string]interface{}) (map[string]interface{}, error)
 
 func processObject(obj map[string]interface{}) {
 	// Add UUID to this object
-	if obj["id"] == nil || obj["id"].(string) == "" {
+	if (obj["id"] == nil || obj["id"].(string) == "") && (obj["__tmpId"] == nil || obj["__tmpId"].(string) == "") {
 		id := utils.GenerateId()
 		obj["__tmpId"] = id
 	}

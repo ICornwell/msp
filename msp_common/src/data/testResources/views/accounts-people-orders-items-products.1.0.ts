@@ -97,6 +97,16 @@ export const productSchema = createSchema('product')
   .endProperty()
   .buildSchema();
 
+export const contactTelephoneNumberSchema = createSchema('contactTelephoneNumber')
+  .withFQId({ namespace: 'test', version: '1.0'})
+  .withProperty('telephoneNumber')
+  .forType<string>()
+  .withDictionaryId('dict-contact-telephone-number', '1.0')
+  .withInfoType('Text')
+  .withDefaultLabel('Contact Telephone Number')
+  .endProperty()
+  .buildSchema();
+
 export const accountObject = createEntityObject('accountObject', accountSchema)
   .withFQId({ namespace: 'test', version: '1.0'})
   .forDomain({ name: 'sales', version: '1.0' })
@@ -131,12 +141,22 @@ export const productObject = createEntityObject('productObject', productSchema)
   .withUniqueBusinessKey(d => `${d.productId}-${uuid()}`)
   .buildObject();
 
+export const contactTelephoneNumberObject = createValueObject('contactTelephoneNumberObject', contactTelephoneNumberSchema)
+  .withFQId({ namespace: 'test', version: '1.0'})
+  .forDomain({ name: 'sales', version: '1.0' })
+  .buildObject();
+
 export const relObjs = createRelations()
   .allowRelationFromTo('hasOrder', accountObject, orderObject, true)
   .allowRelationFromTo('belongsTo', accountObject, personObject, true)
   .allowRelationFromTo('hasItem', orderObject, itemObject, true)
   .allowRelationFromTo('orderedProduct', itemObject, productObject, false)
   .allowRelationFromTo('hasAddress', personObject, addressObject, false)
+  .allowRelationFromTo('useContactNumber', accountObject, contactTelephoneNumberObject, true)
+  .allowRelationFromTo('useContactNumber', personObject, contactTelephoneNumberObject, false)
+  .allowRelationFromTo('useContactNumber', addressObject, contactTelephoneNumberObject, false)
+  .allowRelationFromTo('useContactNumber', orderObject, contactTelephoneNumberObject, true)
+  .allowRelationFromTo('useContactNumber', itemObject, contactTelephoneNumberObject, true)
   .buildRelatedObjects();
 
 

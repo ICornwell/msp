@@ -27,13 +27,13 @@ export interface RelationsBuilder<RO> {
     name: N,
     targetObject: T,
     sourceObject: S,
-    cascadeDeletes: TrueFalse
+    delinkOnRemoval: TrueFalse
   ) => RelationsBuilder<UpdateRO<RO, DOWithNewFromRels<S,N,NameOfDomainObject<T>>, DOWithNewToRels<T,N,NameOfDomainObject<S>>>>;
   allowRelationFromTo: <S extends DomainObject, N extends string, T extends DomainObject>(
     name: N,
     sourceObject: S,
     targetObject: T,
-    cascadeDeletes: TrueFalse
+    delinkOnRemoval: TrueFalse
   ) => RelationsBuilder<UpdateRO<RO, DOWithNewFromRels<S,N,NameOfDomainObject<T>>, DOWithNewToRels<T,N,NameOfDomainObject<S>>>>;
 
   buildRelatedObjects: () => RO;
@@ -46,9 +46,9 @@ function createRelationsBuilder<RO>(currentObjects: RO) {
       name: N,
       targetObject: T,
       sourceObject: S,
-      cascadeDeletes: TrueFalse
+      delinkOnRemoval: TrueFalse
     ): RelationsBuilder<UpdateRO<RO, DOWithNewFromRels<S,N,NameOfDomainObject<T>>, DOWithNewToRels<T,N,NameOfDomainObject<S>>>> {
-      return this.allowRelationFromTo(name, sourceObject, targetObject, cascadeDeletes);
+      return this.allowRelationFromTo(name, sourceObject, targetObject, delinkOnRemoval);
     /*
       // Note: the source and target are reversed <T,N,S> here because we're adding a relation from the perspective of the target object
       const { target, source } = addDomainObjectRelationTo<S,N,T>(targetObject, name, sourceObject, cascadeDeletes);
@@ -64,10 +64,10 @@ function createRelationsBuilder<RO>(currentObjects: RO) {
       name: N,
       sourceObject: S,
       targetObject: T,
-      cascadeDeletes: TrueFalse
+      delinkOnRemoval: TrueFalse
     ): RelationsBuilder<UpdateRO<RO, DOWithNewFromRels<S,N,NameOfDomainObject<T>>, DOWithNewToRels<T,N,NameOfDomainObject<S>>>> {
       
-      const { target, source } = addDomainObjectRelationFrom<S, N, T>(sourceObject, name, targetObject, cascadeDeletes);
+      const { target, source } = addDomainObjectRelationFrom<S, N, T>(sourceObject, name, targetObject, delinkOnRemoval);
       const newObjects = {
         ...currentObjects,
         [target.name as string]: target,
