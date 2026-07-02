@@ -24,7 +24,8 @@ export {
   Stepper,
   StatusIcon,
   StatusLabel,
-  BasicButton
+  BasicButton,
+  ClickableIcon
 } from './coreComponents.js';
 
 export * from './components/primatives/core/strategies/index.js';

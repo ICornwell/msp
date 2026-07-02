@@ -194,6 +194,23 @@ export function BehaviourDispatchProvider({ children }: BehaviourDispatchProvide
               if (patch && typeof patch === 'object') {
                 update(vid, patch, eventWithDataCarrier.event.correlationId);
               }
+            } else if (requestType === 'toUpdateFromEventAction') {
+              const rawEvent = eventWithDataCarrier?.event;
+              const mapEventToDataFromEvent = action.eventData?.mapEventToDataFromEvent;
+              const mapVid = action.eventData?.viewDataIdentifier;
+              const vid =
+                paramFromMaybeFunction(mapVid, eventWithDataCarrier, undefined)
+                || rawEvent?.payload?.viewDataIdentifier
+                || rawEvent?.payload?.context?.viewDataIdentifier;
+              if (!vid || isLocked(vid)) return;
+              const dataForUpdate = queryDataByIdentifier(vid);
+              if (!dataForUpdate) return;
+              const patch = typeof mapEventToDataFromEvent === 'function'
+                ? mapEventToDataFromEvent(rawEvent, dataForUpdate)
+                : undefined;
+              if (patch && typeof patch === 'object') {
+                update(vid, patch, eventWithDataCarrier.event.correlationId);
+              }
             } else {
               const nextData =
                 typeof action.eventData?.changeFn === 'function'

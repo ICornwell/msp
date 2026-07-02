@@ -31,6 +31,8 @@ import {
   StrategyKey,
   strategyRegistry, 
   buildStrategyKey,
+  normalizeDataTypeHint,
+  coerceByDataType,
   textStrategy,
   InputMode,
   StrategyContext,
@@ -95,6 +97,7 @@ export default function UniversalInput(
 
   const onChange = events?.onChange;
   const { raiseUiEvent } = useUiEventPublisher();
+  const normalizedDataType = useMemo(() => normalizeDataTypeHint(String(dataType ?? 'text')), [dataType]);
 
   // Strategy resolution:
   // 1. Use pre-resolved strategy if provided (from ReEngine)
@@ -104,9 +107,9 @@ export default function UniversalInput(
     if (resolvedStrategy) return resolvedStrategy;
     
     // Fallback: build key and resolve locally
-    const key = providedKey ?? buildStrategyKey(dataType, displayMode, hints);
+    const key = providedKey ?? buildStrategyKey(normalizedDataType, displayMode, hints);
     return strategyRegistry.get(key) ?? textStrategy;
-  }, [resolvedStrategy, providedKey, dataType, displayMode, hints.join(':')]);
+  }, [resolvedStrategy, providedKey, normalizedDataType, displayMode, hints.join(':')]);
 
   // Component state
   const componentId = useRef(uuidv4()).current;
@@ -138,7 +141,7 @@ export default function UniversalInput(
     rawInput,
     path: (props as any).path,  // May come from record binder
     metadata: {
-      dataType,
+    dataType: normalizedDataType,
       displayMode,
       hints,
       strategyCommand,
@@ -259,7 +262,7 @@ export default function UniversalInput(
 
     if (!strategy.parser) {
       // No parser - just pass through as string
-      onChange?.(inputValue);
+      onChange?.(coerceByDataType(inputValue, normalizedDataType));
       setInputValue(formattedValue);
       return;
     }
@@ -269,7 +272,8 @@ export default function UniversalInput(
     
     if (result.success) {
       // Valid value - commit it
-      onChange?.(result.value);
+      const coercedValue = coerceByDataType(result.value, normalizedDataType);
+      onChange?.(coercedValue);
       
       // If it was an expression, store it via notes
       if (result.expression && notes?.setExpression) {
@@ -280,8 +284,8 @@ export default function UniversalInput(
       }
       
       // Re-format for display
-      const newFormatted = strategy.formatter?.format(result.value, createContext()) 
-        ?? String(result.value);
+      const newFormatted = strategy.formatter?.format(coercedValue, createContext()) 
+        ?? String(coercedValue);
       setInputValue(newFormatted);
     } else {
       // Invalid value - store as a note

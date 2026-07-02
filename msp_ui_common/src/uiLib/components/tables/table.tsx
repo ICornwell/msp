@@ -44,6 +44,21 @@ export function extendWithTable<C extends CNTX, RT>(
       return builder as FluentSimple;
     },
 
+    withRemoveIcon(
+      enabledWhen: (record: DataOf<LDDTOf<C>>) => boolean,
+      eventMsgAction: string,
+      eventMsgContext?: Record<string, any> | ((record: DataOf<LDDTOf<C>>) => Record<string, any>),
+      icon?: React.ElementType,
+    ): FluentSimple {
+      config.removeIcon = {
+        enabledWhen,
+        eventMsgAction,
+        eventMsgContext,
+        icon,
+      };
+      return builder as FluentSimple;
+    },
+
     withVirtualization(rowHeight: number, overscan: number = 5): FluentSimple {
       config.virtualization = { enabled: true, rowHeight, overscan };
       return builder as FluentSimple;

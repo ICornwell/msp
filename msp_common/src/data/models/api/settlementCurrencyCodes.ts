@@ -1,0 +1,15 @@
+export type settlementCurrencyCode =
+	| 'AUD'
+	| 'CAD'
+	| 'CHF'
+	| 'CNH'
+	| 'DKK'
+	| 'EUR'
+	| 'GBP'
+	| 'HKD'
+	| 'JPY'
+	| 'NOK'
+	| 'NZD'
+	| 'SEK'
+	| 'SGD'
+	| 'USD';

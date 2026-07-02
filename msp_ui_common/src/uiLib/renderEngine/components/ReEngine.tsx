@@ -4,7 +4,7 @@ import { ReUiPlan, ReUiPlanElementSet, ReUiPlanElement, ReUiPlanElementShareable
 import { ReProvider } from '../contexts/ReEngineContext.js';
 import ReComponentWrapper from './ReComponentWrapper.js';
 
-import { FluxorProps } from 'msp_common';
+import { ExpandDataForFluxor, FluxorProps } from 'msp_common';
 import { getSourceDataProxy, Notes } from '../data/uiDataProxy.js';
 import PubSub, { RePubSubMsg } from '../data/ReEnginePubSub.js'
 import { resolvePath } from '../data/pathResolver.js';
@@ -81,6 +81,19 @@ export function ReEngine(props: ReEngineProps) {
     </ReProvider>
   )
 
+  function inferDataTypeFromValue(value: any): string | undefined {
+    if (typeof value === 'boolean') {
+      return 'Boolean';
+    }
+    if (typeof value === 'number') {
+      return Number.isInteger(value) ? 'Integer' : 'Float';
+    }
+    if (typeof value === 'string') {
+      return 'Text';
+    }
+    return undefined;
+  }
+
 
   function recursiveRender(elementProps: ReEngineElementSetProps): React.ReactElement | React.ReactElement[] {
     const { uiPlan, uiPlanElementSet, setMetadataMode, parentElement: parentElement, context, depth } = elementProps;
@@ -118,11 +131,15 @@ export function ReEngine(props: ReEngineProps) {
       // multi-use options so cast to any
       const componentOptions = mergeProps(sharedProps, options || {}) as any;
 
+      const scopedLocalData = componentOptions.dataDescriptor
+        ? ExpandDataForFluxor(localData, componentOptions.dataDescriptor)
+        : localData;
+
       if (componentOptions.hidden) {
         return; // Skip rendering if hidden
       }
-      let record: any = localData
-      let value: any = localData
+      let record: any = scopedLocalData
+      let value: any = scopedLocalData
       let attributeName: string | number | symbol = ''
       let setter: (newValue: any) => void = () => { return; };
       let getter: (() => any) | undefined = undefined;
@@ -171,8 +188,8 @@ export function ReEngine(props: ReEngineProps) {
           // when we get the binding value, messages will let us know what properties were accessed
           getter = () => binding({
             rootData: rootData,
-            localData: localData,
-            localIsCollection: Array.isArray(localData),
+            localData: scopedLocalData,
+            localIsCollection: Array.isArray(scopedLocalData),
             attributeName: '',
             collectionIndexerId: (componentOptions as any).collectionIndexerId,
           })
@@ -216,12 +233,19 @@ export function ReEngine(props: ReEngineProps) {
 
 
         } else if (typeof binding === 'string') {
-          value = resolvePath(binding, localData);
+          value = resolvePath(binding, scopedLocalData);
         }
       }
       if (value?.path) {
         const { schema, attribute } = getSchemaAndAttributeDefinition(value);
         updateComponentOptions(componentOptions, schema, attribute);
+      }
+
+      if (componentOptions.dataType === undefined && componentOptions.propertyDescriptor?.dataType === undefined) {
+        const inferredDataType = inferDataTypeFromValue(value);
+        if (inferredDataType) {
+          componentOptions.dataType = inferredDataType;
+        }
       }
 
       let elementComponent = (<></>)
@@ -282,7 +306,7 @@ export function ReEngine(props: ReEngineProps) {
             key={elementIndex}
             wrapperProps={{ options: { ...componentOptions }, ...systemProps, record }}
             rootData={rootData}
-            localData={localData}
+            localData={scopedLocalData}
           >
             {childElements}
           </ReComponentWrapper>
@@ -291,7 +315,7 @@ export function ReEngine(props: ReEngineProps) {
         elementComponent = (
           <ReComponentWrapper
             rootData={rootData}
-            localData={localData}
+            localData={scopedLocalData}
             wrapperProps={{ options: { ...componentOptions }, ...systemProps, record }} />
         );
       }
@@ -301,7 +325,7 @@ export function ReEngine(props: ReEngineProps) {
           elementComponent = (
             <ReComponentWrapper
               rootData={rootData}
-              localData={localData}
+              localData={scopedLocalData}
               wrapperProps={{ options: { ...decoratorOptions }, ...systemProps, record }} >
               {elementComponent}
             </ReComponentWrapper>)

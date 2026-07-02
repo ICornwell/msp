@@ -208,6 +208,116 @@ export type DataTypeHint =
   | 'percentage'
   | 'secret'
 
+export function normalizeDataTypeHint(dataType?: string): DataTypeHint {
+  const normalized = (dataType ?? '').trim();
+  if (!normalized) {
+    return 'text';
+  }
+
+  switch (normalized.toLowerCase()) {
+    case 'boolean':
+      return 'boolean';
+    case 'integer':
+    case 'float':
+    case 'number':
+      return 'number';
+    case 'money':
+      return 'money';
+    case 'date':
+      return 'date';
+    case 'datetime':
+      return 'datetime';
+    case 'percentage':
+      return 'percentage';
+    case 'select':
+      return 'select';
+    case 'secret':
+      return 'secret';
+    case 'text':
+    default:
+      return 'text';
+  }
+}
+
+function parseBoolean(value: unknown): boolean | undefined {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
+      return true;
+    }
+    if (['false', '0', 'no', 'n', 'off'].includes(normalized)) {
+      return false;
+    }
+  }
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true;
+    }
+    if (value === 0) {
+      return false;
+    }
+  }
+  return undefined;
+}
+
+function parseNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[,$%\s]/g, '');
+    if (!cleaned) {
+      return undefined;
+    }
+    const parsed = Number(cleaned);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return undefined;
+}
+
+function parseDate(value: unknown): Date | undefined {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  return undefined;
+}
+
+export function coerceByDataType(value: unknown, dataType: DataTypeHint): unknown {
+  switch (dataType) {
+    case 'boolean': {
+      const parsed = parseBoolean(value);
+      return parsed === undefined ? value : parsed;
+    }
+    case 'number':
+    case 'money':
+    case 'percentage': {
+      const parsed = parseNumber(value);
+      return parsed === undefined ? value : parsed;
+    }
+    case 'date':
+    case 'datetime': {
+      const parsed = parseDate(value);
+      return parsed === undefined ? value : parsed;
+    }
+    case 'text':
+    case 'select':
+    case 'secret':
+    default:
+      return value;
+  }
+}
+
 /**
  * Display mode hints
  */

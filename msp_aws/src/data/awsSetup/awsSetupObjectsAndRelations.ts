@@ -8,6 +8,7 @@ import {
   awsClusterSetupNetworkDesiredStateSchema,
   awsClusterSetupRepositorySchema,
   awsDesiredResourceConfigSchema,
+  ecrSetupConfigSchema,
 } from './awsSetupSchemas.js';
 
 export const awsClusterSetupConfigObject = createEntityObject('awsClusterSetupConfig', awsClusterSetupConfigSchema)
@@ -45,6 +46,12 @@ export const awsDesiredResourceConfigObject = createEntityObject('awsDesiredReso
   .withFQId({ namespace: 'aws', version: '1.0'})
   .forDomain({ name: 'aws', version: '1.0' })
   .withUniqueBusinessKey((data) => `${data.setupCaseId}`)
+  .buildObject();
+
+export const ecrSetupConfigObject = createEntityObject('ecrSetupConfig', ecrSetupConfigSchema)
+  .withFQId({ namespace: 'aws', version: '1.0'})
+  .forDomain({ name: 'aws', version: '1.0' })
+  .withUniqueBusinessKey((data) => `${data.setupId}`)
   .buildObject();
 
 export const relatedAwsSetupObjects = createRelations()

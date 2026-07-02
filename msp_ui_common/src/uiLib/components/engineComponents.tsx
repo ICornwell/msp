@@ -19,6 +19,7 @@ import { PresetSelectComponent } from './primatives/presets/PresetSelect.js';
 import { PresetSecretComponent } from './primatives/presets/PresetSecret.js';
 import { StatusIconComponent } from './primatives/StatusIcon.js';
 import { StatusLabelComponent } from './primatives/StatusLabel.js';
+import { ClickableIconComponent } from './primatives/ClickableIcon.js';
 
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
@@ -45,6 +46,7 @@ export default function EngineComponents() {
   addComponent(PresetSelectComponent);
   addComponent(StatusIconComponent);
   addComponent(StatusLabelComponent);
+  addComponent(ClickableIconComponent);
   return null
 }
 

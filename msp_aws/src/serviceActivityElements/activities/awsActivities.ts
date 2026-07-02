@@ -4,6 +4,7 @@ import { listEcrRepositoriesHandler, listEksClustersHandler,
   readClusterSetupConfigHandler, writeClusterSetupConfigHandler, reconcileClusterSetupConfigHandler,
   getAwsWizardBootstrapHandler, connectAwsCredentialsHandler, refreshAwsWizardViewsHandler,
   calculateSubnetPlanHandler,
+  readEcrSetupConfigHandler, writeEcrSetupConfigHandler, reconcileEcrSetupConfigHandler,
 }
 from '../services/index.js';
 
@@ -49,6 +50,18 @@ export function getServiceActivities(): ActivitySet {
     .use({
       activityName: 'calculateSubnetPlan',
       funcs: calculateSubnetPlanHandler,
+    })
+    .use({
+      activityName: 'readEcrSetupConfig',
+      funcs: readEcrSetupConfigHandler,
+    })
+    .use({
+      activityName: 'writeEcrSetupConfig',
+      funcs: writeEcrSetupConfigHandler,
+    })
+    .use({
+      activityName: 'reconcileEcrSetupConfig',
+      funcs: reconcileEcrSetupConfigHandler,
     })
     .build();
 }

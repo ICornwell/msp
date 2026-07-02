@@ -12,6 +12,7 @@ export type PresetLinkInputProps = {
 }  ;
 
 export default function PresetLinkInput(props: PresetLinkInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'text';
 
   return (
     <UniversalInput
@@ -25,7 +26,7 @@ export default function PresetLinkInput(props: PresetLinkInputProps & ReComponen
     events = {props.events}
     //TODO: componentProps should have been mapped into props
     strategy = {getLinkClickStrategy((props as any).componentProps.linkName ?? 'unknown-link')}
-    dataType = 'text'
+    dataType = {dataType as any}
     displayMode = 'readonly'
     hints = {[]}
     // strategyKey: providedKey,

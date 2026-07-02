@@ -5,7 +5,7 @@ import { ComponentWrapper } from './renderEngine/components/ReComponentWrapper.j
 import { TableExtension, TableProps, extendWithTable} from './components/tables/index.js';
 import { CNTX } from './renderEngine/UiPlan/ReUiPlan.js';
 import { ElementSetContainerExtension, extendWithElementSetContainer } from './renderEngine/components/ContainerElements.js';
-import { BasicButtonProps, ColumnProps } from './components/index.js';
+import { BasicButtonProps, ClickableIconProps, ColumnProps } from './components/index.js';
 import { LabelFrameProps } from './components/containers/labelframe.js';
 import { StepperProps, extendWithStepper, StepperExtension } from './components/containers/stepper.js';
 
@@ -47,3 +47,8 @@ export const BasicButton: ComponentWrapper<BasicButtonProps> = {
   displayName: 'BasicButton',
   extensionFactory: undefined
 } as unknown as ComponentWrapper<BasicButtonProps>;
+
+export const ClickableIcon: ComponentWrapper<ClickableIconProps> = {
+  displayName: 'ClickableIcon',
+  extensionFactory: undefined,
+} as unknown as ComponentWrapper<ClickableIconProps>;

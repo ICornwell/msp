@@ -26,6 +26,7 @@ import {
 } from '../../renderEngine/components/ReComponentProps.js';
 import type { ComponentWrapper } from '../../renderEngine/components/ReComponentWrapper.js';
 import type { TableColumnConfig, TableProps } from './tableTypes.js';
+import ClickableIcon from '../primatives/ClickableIcon.js';
 
 type RendererBuildable = {
   build: (settings: unknown) => ReUiPlanElement;
@@ -126,8 +127,7 @@ function Table<TData extends FluxorData<any> = FluxorData<any>>(
     if (!effectiveColumns.length) return [];
 
     const columnHelper = createColumnHelper<DataOf<TData>>();
-
-    return effectiveColumns.map((col: TableColumnConfig<TData>) => {
+    const mappedColumns = effectiveColumns.map((col: TableColumnConfig<TData>) => {
       const rendererBuilders = getRendererBuilders(col);
       if (!col.cellRenderer && rendererBuilders && rendererBuilders.length > 0) {
         // set the renderer by building from the builders to provide a ReUIPlanElementSetMember array
@@ -152,6 +152,45 @@ function Table<TData extends FluxorData<any> = FluxorData<any>>(
         header: col.header || col.id,
       });
     });
+
+    const removeIconConfig = tableConfig?.removeIcon;
+    if (removeIconConfig?.eventMsgAction) {
+      mappedColumns.push(
+        columnHelper.display({
+          id: '__remove_icon',
+          header: '',
+          cell: (info) => {
+            const row = info.row.original;
+            const enabledWhen = removeIconConfig.enabledWhen;
+            const enabled = enabledWhen ? enabledWhen(row) : true;
+            const eventMsgContext = removeIconConfig.eventMsgContext;
+            const contextFromConfig = typeof eventMsgContext === 'function'
+              ? eventMsgContext(row)
+              : (eventMsgContext ?? {});
+
+            return (
+              <ClickableIcon
+                icon={removeIconConfig.icon}
+                eventMsgAction={removeIconConfig.eventMsgAction}
+                eventMsgContext={{
+                  ...contextFromConfig,
+                  repositoryName: (row as any)?.repositoryName,
+                  recordId: (row as any)?.recordId,
+                }}
+                record={row}
+                includeRecordInContext={false}
+                disabled={!enabled}
+                label="Remove"
+              />
+            );
+          },
+          enableSorting: false,
+          enableColumnFilter: false,
+        })
+      );
+    }
+
+    return mappedColumns;
   }, [tableConfig, effectiveColumns]);
 
   function resolveRenderer(

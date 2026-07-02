@@ -1,5 +1,6 @@
 import { Columns, LabelFrame, PresetBooleanComponent, StatusLabel } from 'msp_ui_common/uiLib';
 import { builder4 as wizPage3 } from '../awsSetupWizardContent';
+import { awsSecurityFluxorData } from '../../../../../fluxorObjects/awsSetupWizardFluxor.js';
 
 export function withSecurityBaselinePage(builder: typeof wizPage3) {
   return builder
@@ -28,17 +29,18 @@ export function withSecurityBaselinePage(builder: typeof wizPage3) {
             .showingItem.fromComponentElement(Columns)
               .withComponentProps({ columns: 2, fillDirection: 'down' })
               .containingElementSet()
+                .usingFluxor(awsSecurityFluxorData, (ctx: any) => ctx.localData.desiredState?.security ?? {})
                 .showingItem.fromComponentElement(PresetBooleanComponent)
                   .withLabel('Web Application Firewall (WAF) — protects your load balancer from web attacks')
-                  .withValueBinding((ctx: any) => ctx.localData.desiredState?.security?.wafEnabled !== false)
+                  .withValueBinding((ctx: any) => ctx.localData.wafEnabled !== false)
                 .endElement
                 .showingItem.fromComponentElement(PresetBooleanComponent)
                   .withLabel('Threat Detection (GuardDuty) — monitors for unusual API calls and malicious IPs')
-                  .withValueBinding((ctx: any) => ctx.localData.desiredState?.security?.guardDuty !== false)
+                  .withValueBinding((ctx: any) => ctx.localData.guardDuty !== false)
                 .endElement
                 .showingItem.fromComponentElement(PresetBooleanComponent)
                   .withLabel('Security Findings Dashboard (Security Hub) — aggregates security alerts')
-                  .withValueBinding((ctx: any) => ctx.localData.desiredState?.security?.securityHub !== false)
+                  .withValueBinding((ctx: any) => ctx.localData.securityHub !== false)
                 .endElement
               .end()
             .endElement

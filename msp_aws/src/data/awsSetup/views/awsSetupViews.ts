@@ -2,6 +2,7 @@ import { createView } from 'msp_common';
 
 import {
   awsDesiredResourceConfigObject,
+  ecrSetupConfigObject,
   relatedAwsSetupObjects,
 } from '../awsSetupObjectsAndRelations.js';
 
@@ -45,6 +46,16 @@ export const awsDesiredResourceConfigView = createView('aws-desired-resource-con
   .withConfigSet('main')
   .useBusinessKey()
   .withRootElement(awsDesiredResourceConfigObject, false)
+  .end()
+  .endView()
+  .build();
+
+export const ecrSetupConfigView = createView('ecr-setup-config')
+  .withNamespace('aws')
+  .withVersion('1.0')
+  .withConfigSet('main')
+  .useBusinessKey()
+  .withRootElement(ecrSetupConfigObject, false)
   .end()
   .endView()
   .build();

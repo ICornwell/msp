@@ -12,6 +12,7 @@ export type PresetTextInputProps = {
 }  ;
 
 export default function PresetTextInput(props: PresetTextInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'text';
 
   return (
     <UniversalInput
@@ -24,7 +25,7 @@ export default function PresetTextInput(props: PresetTextInputProps & ReComponen
     disabled= {props.disabled}
     events = {props.events}
     //strategy = resolvedStrategy
-    dataType = 'text'
+    dataType = {dataType as any}
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,

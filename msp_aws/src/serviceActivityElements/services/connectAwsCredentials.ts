@@ -14,6 +14,7 @@ export type ConnectAwsCredentialsPayload = {
 };
 
 const AWS_SECRET_SERVICE_ID = 'msp_aws.data';
+const REDACTED_SECRET = '__redacted__';
 
 function required(value: string | undefined): string | undefined {
   const normalized = value?.trim();
@@ -119,11 +120,13 @@ export async function connectAwsCredentialsHandler(
   const accountId = normalizeAccountId(payload.accountId);
   const accountName = required(payload.accountName);
   const accessKeyId = required(payload.accessKeyId);
-  const secretAccessKey = required(payload.secretAccessKey);
+  const secretInput = required(payload.secretAccessKey);
   const sessionToken = required(payload.sessionToken);
   const persistCredentials = payload.persistCredentials === true;
+  const isRedactedSecret = secretInput === REDACTED_SECRET;
+  const secretAccessKey = isRedactedSecret ? undefined : secretInput;
 
-  if (!accountId || !accessKeyId || !secretAccessKey) {
+  if (!accountId || !accessKeyId || (!secretAccessKey && !(persistCredentials && isRedactedSecret))) {
     resultBuilder.log('Missing required AWS credentials: accountId, accessKeyId and secretAccessKey are required.');
     return resultBuilder.successfullyFailed({
       connected: false,
@@ -147,12 +150,87 @@ export async function connectAwsCredentialsHandler(
       })
   }
 
+  if (isRedactedSecret && !persistCredentials) {
+    const message = 'Secret Access Key is redacted. Re-enter the real secret to run credential validation.';
+    resultBuilder.log(message);
+    return resultBuilder.successfullyFailed(
+      {
+        connected: false,
+        connection: {
+          connected: false,
+          accountId,
+          checkedAt: new Date().toISOString(),
+          message,
+        },
+        data: {},
+        accountId,
+        accountName,
+        region,
+        setupId,
+        clusterName,
+      },
+      message,
+      { code: 'INVALID_INPUT' },
+    );
+  }
+
+  if (isRedactedSecret && persistCredentials) {
+    const checkedAt = new Date().toISOString();
+    const connectionMessage = 'Using existing vaulted secret (redacted input). Vault secret left unchanged.';
+    const writeResponse = await runServiceActivity(
+      'aws',
+      'writeClusterSetupConfig',
+      '1.0.0',
+      {
+        setupId,
+        region,
+        clusterName,
+        accountId,
+        accountName,
+        accessKeyId,
+        connectionStatus: 'success',
+        connectionMessage,
+        connectionCheckedAt: checkedAt,
+        status: 'ready',
+      },
+    );
+
+    if (!writeResponse.success) {
+      return resultBuilder.failed(
+        writeResponse.message || 'Failed to persist setup status while leaving vault secret unchanged.',
+        { code: 'WRITE_SETUP_FAILED' },
+      );
+    }
+
+    resultBuilder.log(`AWS credential store skipped vault update because secret value was redacted for accountId=${accountId} region=${region}.`);
+    return resultBuilder.success({
+      connected: true,
+      connection: {
+        connected: true,
+        accountId,
+        message: connectionMessage,
+        checkedAt,
+      },
+      data: writeResponse.result?.data,
+      accountId,
+      accountName,
+      region,
+      setupId,
+      clusterName,
+      credentialsStored: {
+        accessKeyId: false,
+        secretAccessKey: false,
+        sessionToken: false,
+      },
+    });
+  }
+
   try {
     const connection = await validateAwsConnectionViaDataActivity(
       accountId,
       region,
       accessKeyId,
-      secretAccessKey,
+      secretAccessKey!,
       sessionToken,
     );
 
@@ -253,7 +331,7 @@ export async function connectAwsCredentialsHandler(
       {
         serviceId: AWS_SECRET_SERVICE_ID,
         secretName: 'aws.secretAccessKey',
-        secret: secretAccessKey,
+        secret: secretAccessKey!,
         upsertMode: 'replace',
         clientCacheTtlMs: 5 * 60 * 1000,
       },

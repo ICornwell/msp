@@ -3,3 +3,4 @@ export * from './presets/index.js';
 export * from './StatusIcon.js';
 export * from './StatusLabel.js';
 export * from './BasicButton.js';
+export * from './ClickableIcon.js';

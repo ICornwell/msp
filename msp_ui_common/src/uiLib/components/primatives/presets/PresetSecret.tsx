@@ -18,6 +18,7 @@ function getInitialVisibleMode(_value: string, _isRedacted: boolean): boolean {
 export default function PresetSecretInput(
   props: PresetSecretInputProps & ReComponentCommonProps & ReComponentSystemProps,
 ) {
+  const dataType = props.dataType ?? 'secret';
   const redactedValue = props.redactedValue ?? REDACTED_SECRET_VALUE;
   const value = String(props.value ?? '');
   const isRedacted = value === redactedValue;
@@ -52,7 +53,7 @@ export default function PresetSecretInput(
       disabled={props.disabled}
       events={props.events}
       strategy={strategy}
-      dataType="text"
+      dataType={dataType as any}
       displayMode="editing"
       hints={[]}
       forceReadonly={props.displayMode === 'readonly'}

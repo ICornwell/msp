@@ -99,6 +99,11 @@ export interface DataDispatchBuilder<DT, E extends UiMsgNames, RT> {
     dataId: BehaviourArg<ViewDataIdentifier>,
     mapResultToDataFromEvent: <D extends Partial<any> = any>(result: any, data: D) => D
   ) => DataDispatchBuilder<DT, E, RT>;
+  /** Apply a partial patch to cached data using the triggering UI event as source. */
+  toUpdateFromEventAction: (
+    dataId: BehaviourArg<ViewDataIdentifier>,
+    mapEventToDataFromEvent: <D extends Partial<any> = any>(event: EventTypesByMsgName<E>, data: D) => D
+  ) => DataDispatchBuilder<DT, E, RT>;
   endData: () => RT;
 }
 

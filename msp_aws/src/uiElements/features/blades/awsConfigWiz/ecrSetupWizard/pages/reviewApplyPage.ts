@@ -1,19 +1,20 @@
 import { BasicButton, Columns, LabelFrame, PresetTextComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder7 as wizPage6 } from '../awsSetupWizardContent';
-export function withReviewCreatePage(builder: typeof wizPage6) {
+import { builder4 as wizPage3 } from '../ecrSetupWizardContent.js';
+
+export function withReviewApplyPage(builder: typeof wizPage3) {
   return builder
-    .withPage('review-create', 'Review and Create')
+    .withPage('review-apply', 'Review and Apply')
       .withButtons([
         { label: 'Back', role: 'back' },
         { label: 'Finish', role: 'finish', variant: 'contained' },
       ])
       .containingElementSet()
         .showingItem.fromComponentElement(LabelFrame)
-          .withLabel('Summary: save the current wizard state, then optionally run a dry-run reconcile check.')
+          .withLabel('Persist this ECR setup draft and optionally run a dry-run reconcile plan.')
           .containingElementSet()
             .showingItem.fromComponentElement(StatusLabel)
               .withLabel('')
-              .withValueBinding(() => 'Save Draft persists your current settings. Dry Run Plan validates what would be applied without making infrastructure changes.')
+              .withValueBinding(() => 'Save Draft persists current ECR configuration. Dry Run Plan computes what would change without applying infrastructure mutations.')
             .endElement
             .showingItem.fromComponentElement(Columns)
               .withComponentProps({ columns: 2, fillDirection: 'down' })
@@ -29,26 +30,24 @@ export function withReviewCreatePage(builder: typeof wizPage6) {
                 .showingItem.fromComponentElement(BasicButton)
                   .withLabel('Save Draft')
                   .withComponentProps({
-                    internalName: 'saveAwsSetupDraft',
+                    internalName: 'saveEcrSetupDraft',
                     size: 'small',
                     includeRecordInContext: true,
                     context: {
-                      setupId: 'aws-cluster-setup-default',
+                      setupId: 'aws-ecr-setup-default',
                       region: 'eu-west-2',
-                      clusterName: 'msp-dev-eks',
                     },
                   })
                 .endElement
                 .showingItem.fromComponentElement(BasicButton)
                   .withLabel('Dry Run Plan')
                   .withComponentProps({
-                    internalName: 'dryRunAwsSetup',
+                    internalName: 'dryRunEcrSetup',
                     size: 'small',
                     includeRecordInContext: true,
                     context: {
-                      setupId: 'aws-cluster-setup-default',
+                      setupId: 'aws-ecr-setup-default',
                       region: 'eu-west-2',
-                      clusterName: 'msp-dev-eks',
                     },
                   })
                 .endElement

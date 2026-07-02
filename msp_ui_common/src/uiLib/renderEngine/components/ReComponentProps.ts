@@ -8,6 +8,7 @@ export type ReComponentCommonProps = {
   hidden?: boolean;
   disabled?: boolean;
   error?: boolean;
+  dataType?: string;
   helperText?: string;
   label?: string;
   labelPosition?: 'top' | 'start' | 'end' | 'bottom';

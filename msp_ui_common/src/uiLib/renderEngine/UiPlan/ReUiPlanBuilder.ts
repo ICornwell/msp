@@ -32,6 +32,29 @@ export type ReBuilder = {
   build: <BS>(buildSettings: BS, dataDescriptor: FluxorData<any>) => any
 }
 
+export type ReUiDataTypeHint =
+  | 'Text'
+  | 'Integer'
+  | 'Float'
+  | 'Boolean'
+  | 'Date'
+  | 'DateTime'
+  | 'Time'
+  | 'Money'
+  | 'Percentage'
+  | 'Image'
+  | 'Json'
+  | 'Custom'
+  | 'text'
+  | 'number'
+  | 'money'
+  | 'boolean'
+  | 'date'
+  | 'datetime'
+  | 'select'
+  | 'percentage'
+  | 'secret';
+
 export type ReExtensionBuilder<_C extends CNTX, RT> = {
   _endExtension?: () => RT;
   _buildExtension?: <BS>(buildSettings: BS, extendedElement: any) => void;
@@ -80,6 +103,7 @@ function createPrebuiltElementBuilder<RT>(
   builder.withLabel = noOp;
   builder.withLabelPosition = noOp;
   builder.withDisplayMode = noOp;
+  builder.withDataType = noOp;
   builder.withoutCollectionExpansion = noOp;
   builder.withDecorators = () => ({} as any);
   builder.withValueBinding = noOp;
@@ -97,7 +121,7 @@ export function createElementBuilderQuartet<C extends CNTX, RT>(
   returnTo: RT,
   componentBuilders: ReUiPlanComponentBuilder<any, any, any>[],
   containedElementSetBuilders?: ReUiPlanElementSetBuilder<any, any>[],
-//  dataDescriptor?: FluxorData<LDDTOf<C>>
+  dataDescriptor?: FluxorData<any>
 ): ElementBuilderQuartet<C, RT> {
   return {
     fromElementBuilder: (componentBuilder: ReUiPlanComponentBuilder<any, any, any>): RT => {
@@ -109,9 +133,9 @@ export function createElementBuilderQuartet<C extends CNTX, RT>(
       return returnTo;
     },
     fromComponentElement: <T extends ComponentWrapper<any>>(component: T): ComponentBuilderWithExt<C, T, RT> =>
-      CreateReUiPlanComponent(returnTo, component, componentBuilders, containedElementSetBuilders), //, dataDescriptor),
+      CreateReUiPlanComponent(returnTo, component, componentBuilders, containedElementSetBuilders, dataDescriptor),
     fromFluxorElement: (): ReUiPlanComponentBuilder<C, any, RT> =>
-      CreateReUiPlanComponent(returnTo, undefined, componentBuilders, containedElementSetBuilders) //, dataDescriptor)
+      CreateReUiPlanComponent(returnTo, undefined, componentBuilders, containedElementSetBuilders, dataDescriptor)
   };
 }
 
@@ -198,6 +222,7 @@ export interface ReUiPlanComponentBuilder<C extends CNTX, T extends ComponentWra
   withLabel: (label: string | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, RT>
   withLabelPosition: (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, RT>
   withDisplayMode: (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>) => ComponentBuilderWithExt<C, T, RT>
+  withDataType: (dataType: ReUiDataTypeHint) => ComponentBuilderWithExt<C, T, RT>
   withoutCollectionExpansion: (isSingleChildForArrays: boolean) => ComponentBuilderWithExt<C, T, RT>
   withDecorators: () => ReUiPlanDecoratorSetBuilder<C, ComponentBuilderWithExt<C, T, RT>>
   withValueBinding: (binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>) => ComponentBuilderWithExt<C, T, RT>
@@ -259,19 +284,32 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
         reUiPlan.mainPlanElementSet.push(...set);
         return returnTo;
       },
-      fromInlineElementSet: CreateReUiPlanElementSet<C2, ReUiPlanBuilder<C2>>(returnTo, mainPlainElementSetBuilders) //, dataDescriptor)
+      fromInlineElementSet: CreateReUiPlanElementSet<C2, ReUiPlanBuilder<C2>>(returnTo, mainPlainElementSetBuilders)
     }
   }
 
   const builder: ReUiPlanBuilder<C> = {
     withElementSet: {
       usingFluxor: function <RDDT2 extends FluxorData<any>>(_newDataDescriptor: RDDT2, _binding?:  ReComponentReBinder<C, RDDT2>): ReUiPlanBuilderElementsOptions<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>> {
-        // Return options with the new context type - the builder cast is safe because 
-        // we're just changing the type parameter, and the actual object is the same
-        return getWithElementsOptions<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>>(
-          builder as unknown as ReUiPlanBuilder<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>>, 
-        //  newDataDescriptor
-        );
+        const typedBuilder = builder as unknown as ReUiPlanBuilder<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>>;
+        return {
+          fromElementSetBuilder: function (elementSetBuilder: ReUiPlanElementSetBuilder<any, any>): typeof typedBuilder {
+            mainPlainElementSetBuilders.push(elementSetBuilder);
+            return typedBuilder;
+          },
+          fromElementSetObject: function (set: ReUiPlanElementSet): typeof typedBuilder {
+            if (!reUiPlan.mainPlanElementSet) {
+              reUiPlan.mainPlanElementSet = [];
+            }
+            reUiPlan.mainPlanElementSet.push(...set);
+            return typedBuilder;
+          },
+          fromInlineElementSet: CreateReUiPlanElementSet<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>, typeof typedBuilder>(
+            typedBuilder,
+            mainPlainElementSetBuilders,
+            _newDataDescriptor,
+          )
+        };
       },
       ...(getWithElementsOptions<C>({} as ReUiPlanBuilder<C>))
     },
@@ -319,7 +357,7 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
 export function CreateReUiPlanElementSet<C extends CNTX, RT>(
   returnTo: RT,
   elementSetBuilders: ReUiPlanElementSetBuilder<any,any>[],
-//  dataDescriptor?: FluxorData<LDDTOf<C>>
+  dataDescriptor?: FluxorData<any>
 ): ReUiPlanElementSetBuilder<C, RT> {
   let components: ReUiPlanElementSet = []
   let componentBuilders: ReUiPlanComponentBuilder<any, any, any>[] = []
@@ -328,7 +366,7 @@ export function CreateReUiPlanElementSet<C extends CNTX, RT>(
 
   const builder: ReUiPlanElementSetBuilder<C, RT> = {
     usingFluxor: function <LDDT2 extends FluxorData<any>>(_innerDataDescriptor: LDDT2, _binding?:  ReComponentReBinder<C, LDDT2>) {
-      const newBuilder = CreateReUiPlanElementSet<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>,  RT>(returnTo, elementSetBuilders);
+      const newBuilder = CreateReUiPlanElementSet<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>,  RT>(returnTo, elementSetBuilders, _innerDataDescriptor);
       innerTypedElementBuilder = newBuilder
       return newBuilder
     },
@@ -359,14 +397,14 @@ export function CreateReUiPlanElementSet<C extends CNTX, RT>(
     }
   }
 
-  builder.withSharedProps = () => CreateReUiSharedProps<C, ReUiPlanElementSetBuilder<C, RT>>(builder, componentBuilders.length, sharedProps, undefined); //, dataDescriptor);
+  builder.withSharedProps = () => CreateReUiSharedProps<C, ReUiPlanElementSetBuilder<C, RT>>(builder, componentBuilders.length, sharedProps, undefined, dataDescriptor);
 
   // Instantiate the quartet with proper return reference
   builder.showingItem = createElementBuilderQuartet<C, ReUiPlanElementSetBuilder<C, RT>>(
     builder,
     componentBuilders,
     undefined,
-  //  dataDescriptor
+    dataDescriptor
   );
 
   elementSetBuilders.push(builder);
@@ -422,7 +460,7 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
   componentWrapper?: T,
   set?: ReUiPlanComponentBuilder<any, any, any>[],
   childBuilders?: ReUiPlanElementSetBuilder<any, any>[],
-//  dataDescriptor?: FluxorData<LDDTOf<C>>
+  dataDescriptor?: FluxorData<any>
 ): ComponentBuilderWithExt<C, T, RT> {
   const reUiPlanComponent: ReUiPlanElement = {
     isReUIPlanElement: true,
@@ -439,7 +477,7 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
     extraBindings: {},
     children: undefined,
     buildSettings: undefined,
-//    dataDescriptor: dataDescriptor
+    dataDescriptor: dataDescriptor
   } as ReUiPlanElement
   let innerTypedComponentBuilder: ReUiPlanComponentBuilder<any, any, any> | undefined = undefined;
   const decoratorSetBuilders: ReUiPlanDecoratorSetBuilder<any, any>[] = [];
@@ -448,7 +486,7 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
   // Create the base builder first, then merge in extensions
   const builder: ComponentBuilderWithExt<C, T, RT> = {
     usingFluxor: function <LDDT2 extends FluxorData<any>>(_innerDataDescriptor: LDDT2, _binding?: ReComponentReBinder<C, LDDT2>) {
-      const newBuilder = CreateReUiPlanComponent<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, RT>(returnTo, componentWrapper, set, childBuilders); //, innerDataDescriptor);
+      const newBuilder = CreateReUiPlanComponent<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, RT>(returnTo, componentWrapper, set, childBuilders, _innerDataDescriptor);
       innerTypedComponentBuilder = newBuilder
       return newBuilder
     },
@@ -487,6 +525,10 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
     },
     withDisplayMode: function (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
       reUiPlanComponent.displayMode = displayMode;
+      return builder;
+    },
+    withDataType: function (dataType: ReUiDataTypeHint): ComponentBuilderWithExt<C, T, RT> {
+      reUiPlanComponent.dataType = dataType;
       return builder;
     },
     withoutCollectionExpansion: function (useSingleChildForArrays: boolean): ComponentBuilderWithExt<C, T, RT> {
@@ -590,7 +632,7 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
   fromComponentIndex: number,
   set?: ReUiPlanSharedPropsBuilder<any, any>[],
   childBuilders?: ReUiPlanElementSetBuilder<any, any>[],
-//  dataDescriptor?: FluxorData<LDDTOf<C>>
+  dataDescriptor?: FluxorData<any>
 ): ReUiPlanSharedPropsBuilder<C, RT> {
   const reUiPlanComponent: ReUiPlanElement = {
     isReUIPlanElement: true,
@@ -607,7 +649,7 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
     extraBindings: {},
     children: undefined,
     buildSettings: undefined,
-//    dataDescriptor: dataDescriptor
+    dataDescriptor: dataDescriptor
   } as ReUiPlanElement
   let innerTypedComponentBuilders: ReUiPlanSharedPropsBuilder<any, any> | undefined = undefined;
   const basedOn: (ReUiPlanSharedPropsBuilder<any, any> | ReUiPlanElement)[] = [];
@@ -615,7 +657,7 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
 
   const builder: ReUiPlanSharedPropsBuilder<C, RT> = {
     usingFluxor: function <LDDT2 extends FluxorData<any>>(_innerDataDescriptor: LDDT2, _binding?:  ReComponentReBinder<C, LDDT2>) {
-      const newBuilder = CreateReUiSharedProps<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, RT>(returnTo, fromComponentIndex, set, childBuilders); //, innerDataDescriptor);
+      const newBuilder = CreateReUiSharedProps<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, RT>(returnTo, fromComponentIndex, set, childBuilders, _innerDataDescriptor);
       innerTypedComponentBuilders = newBuilder
       return newBuilder
     },
@@ -697,6 +739,7 @@ export function ReUiPlanElementToReComponentProps<BS>(buildSettings: BS, element
     error: makeExpressionProp(buildSettings, element.error),
     helperText: makeExpressionProp(buildSettings, element.helperText),
     label: makeExpressionProp(buildSettings, element.label),
+    dataType: element.dataType,
     binding: element.binding,
     extraBindings: element.extraBindings,
     useSingleChildForArrays: element.useSingleChildForArrays,

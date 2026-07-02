@@ -87,6 +87,7 @@ export type ReUiPlanElementCommmonProps = {
   hidden?: boolean | ReUiPlanExpressionProp<any>;
   disabled?: boolean | ReUiPlanExpressionProp<any>;
   error?: boolean | ReUiPlanExpressionProp<any>;
+  dataType?: string;
   helperText?: string | ReUiPlanExpressionProp<any>;
   label?: string | ReUiPlanExpressionProp<any>;
   binding?: ReComponentBinder<any, any>;

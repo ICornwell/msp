@@ -266,6 +266,17 @@ function makeDataDispatchBuilder<DT, E extends UiMsgNames, RT>(
       return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
     },
 
+    toUpdateFromEventAction: (viewDataIdentifier, mapEventToDataFromEvent) => {
+      const action: behaviourAction<DT, E> = {
+        eventType: 'DataRequest',
+        eventData: { requestType: 'toUpdateFromEventAction', viewDataIdentifier, mapEventToDataFromEvent } as any,
+        eventMsg: undefined as any,
+        outboundScopeLevel: scopeLevel,
+      };
+      element.actions.push(action);
+      return makeDataDispatchBuilder<DT, E, RT>(element, returnBuilder, scopeLevel);
+    },
+
     endData: () => returnBuilder
   };
 }

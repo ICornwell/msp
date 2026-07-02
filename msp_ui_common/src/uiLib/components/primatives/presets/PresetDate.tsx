@@ -6,6 +6,7 @@ import { createDateStrategy, DateStrategyOptions } from "../core/index.js";
 export type PresetDateInputProps = DateStrategyOptions;
 
 export default function PresetDateInput(props: PresetDateInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'date';
   return (
     <UniversalInput
       label={props.label}
@@ -21,7 +22,7 @@ export default function PresetDateInput(props: PresetDateInputProps & ReComponen
         timeZone: props.timeZone,
         dateFormat: props.dateFormat,
       })}
-      dataType="date"
+      dataType={dataType as any}
       displayMode="editing"
       hints={[]}
       forceReadonly={props.displayMode === 'readonly'}

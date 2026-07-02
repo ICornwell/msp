@@ -352,6 +352,7 @@
         "Behaviour",
         "BehaviourDispatchProvider",
         "BehaviourHandlerRegistryProvider",
+        "ClickableIcon",
         "Columns",
         "DEFAULT_REDACTED_SECRET_VALUE",
         "DataCacheProvider",

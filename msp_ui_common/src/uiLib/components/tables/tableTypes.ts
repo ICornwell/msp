@@ -116,6 +116,12 @@ export interface TableConfig<TData extends FluxorData<any> = FluxorData<any>> {
   orientation: TableOrientation;
   columns: TableColumnConfig<TData>[];
   columnGroups: ColumnGroupConfig[];
+  removeIcon?: {
+    enabledWhen?: (record: DataOf<TData>) => boolean;
+    eventMsgAction: string;
+    eventMsgContext?: Record<string, any> | ((record: DataOf<TData>) => Record<string, any>);
+    icon?: React.ElementType;
+  };
   dataAccessor?: (ctx: any) => DataOf<TData>[];
   useSchemaColumns?: boolean;
   schemaSelector?: (data: DataOf<TData>) => (keyof DataOf<TData>)[];
@@ -249,6 +255,12 @@ export interface FilterColumnOptions<C extends CNTX, TValue, RT> extends ReBuild
 export interface TableExtension<C extends CNTX, RT> extends ReExtensionBuilder<C, RT> {
   forDataType<_T extends FluxorData<any>>(): FluentSimple;
   withOrientation(orientation: TableOrientation): FluentSimple;
+  withRemoveIcon(
+    enabledWhen: (record: DataOf<LDDTOf<C>>) => boolean,
+    eventMsgAction: string,
+    eventMsgContext?: Record<string, any> | ((record: DataOf<LDDTOf<C>>) => Record<string, any>),
+    icon?: React.ElementType,
+  ): FluentSimple;
   withVirtualization(rowHeight: number, overscan?: number): FluentSimple;
   withColumns(): FluentSubBuilder<ColumnBuilder<C, FluentSimple>>;
   withColumnsFromSchema(selector?: <T>(data: T) => (keyof T)[]): FluentSimple;

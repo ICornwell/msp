@@ -13,6 +13,7 @@ export type PresetMoneyInputProps = {
 }  ;
 
 export default function PresetMoneyInput(props: PresetMoneyInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'money';
 
   return (
     <UniversalInput
@@ -30,7 +31,7 @@ export default function PresetMoneyInput(props: PresetMoneyInputProps & ReCompon
       expressionParser: expressionParsers.get('math'),
       currencySymbol: props.currencySymbol ?? '$'
     })}
-    dataType = 'text'
+    dataType = {dataType as any}
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,

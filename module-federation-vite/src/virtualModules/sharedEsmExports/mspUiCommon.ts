@@ -30,6 +30,7 @@ export function mspUiCommonExportCode(): string {
     export const Behaviour = pick('Behaviour');
     export const BehaviourDispatchProvider = pick('BehaviourDispatchProvider');
     export const BehaviourHandlerRegistryProvider = pick('BehaviourHandlerRegistryProvider');
+    export const ClickableIcon = pick('ClickableIcon');
     export const Columns = pick('Columns');
     export const DEFAULT_REDACTED_SECRET_VALUE = pick('DEFAULT_REDACTED_SECRET_VALUE');
     export const DataCacheProvider = pick('DataCacheProvider');

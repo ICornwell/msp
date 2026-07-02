@@ -5,3 +5,4 @@ export * from './getAwsWizardBootstrap.js';
 export * from './connectAwsCredentials.js';
 export * from './refreshAwsWizardViews.js';
 export * from './calculateSubnetPlan.js';
+export * from './ecrSetupConfig.js';

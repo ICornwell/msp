@@ -13,6 +13,7 @@ export type PresetNumberInputProps = {
 }  ;
 
 export default function PresetNumberInput(props: PresetNumberInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'number';
 
   return (
     <UniversalInput
@@ -29,7 +30,7 @@ export default function PresetNumberInput(props: PresetNumberInputProps & ReComp
       thousandsSeparator: true,
       expressionParser: expressionParsers.get('math')
     })}
-    dataType = 'text'
+    dataType = {dataType as any}
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,

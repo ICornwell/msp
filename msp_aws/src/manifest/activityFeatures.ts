@@ -1,5 +1,5 @@
 import type { ManifestServiceBuilder } from 'msp_svr_common';
-import { awsClusterSetupConfigView } from '../data/index.js';
+import { awsClusterSetupConfigView, ecrSetupConfigView } from '../data/index.js';
 
 export function addAwsActivityFeatures(service: ManifestServiceBuilder<any, any>)
 { 
@@ -38,6 +38,19 @@ export function addAwsActivityFeatures(service: ManifestServiceBuilder<any, any>
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
     .withActivityFeature('calculateSubnetPlan', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('readEcrSetupConfig', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .useForViewRead(ecrSetupConfigView)
+      .endActivityFeature
+    .withActivityFeature('writeEcrSetupConfig', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
+    .withActivityFeature('reconcileEcrSetupConfig', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature

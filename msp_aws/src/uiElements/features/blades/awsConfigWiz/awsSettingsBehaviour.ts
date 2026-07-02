@@ -147,6 +147,18 @@ export const useAwsSettingsBehaviour = () => {
     .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
       .whenEventSatisfies((event) => event?.payload?.action === 'openAwsSetupWizard')
       .makeRequest
+        .toActivity.withoutWaiting({
+          id: 'refreshAwsWizardOnOpen',
+          action: 'aws/refreshAwsWizardViews/1.0.0',
+          payloadFromEvent: (event) => ({
+            ...defaultSetupContext,
+            ...(event?.payload?.context ?? {}),
+            refreshes: ['setupConfig', 'wizardBootstrap'],
+          }),
+        })
+        .endActivity()
+      .then()
+      .makeRequest
         .toPresentation.toOpenBlade(
           'AwsSetupWizardBlade',
           () => ({ title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3, updateWhenDataChanges: true }),

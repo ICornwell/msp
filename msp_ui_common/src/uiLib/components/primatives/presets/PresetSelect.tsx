@@ -26,6 +26,7 @@ export type PresetSelectInputProps = {
 };
 
 export default function PresetSelectInput(props: PresetSelectInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'select';
   const strategy = props.strategyType === 'complexSelection'
     ? createComplexSelectionStrategy({
         options: props.complexOptions ?? [],
@@ -55,7 +56,7 @@ export default function PresetSelectInput(props: PresetSelectInputProps & ReComp
       disabled={props.disabled}
       events={props.events}
       strategy={strategy}
-      dataType="select"
+      dataType={dataType as any}
       displayMode="editing"
       hints={[]}
       forceReadonly={false}

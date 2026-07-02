@@ -12,6 +12,7 @@ export type PresetBooleanInputProps = {
 }  ;
 
 export default function PresetBooleanInput(props: PresetBooleanInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'boolean';
 
   return (
     <UniversalInput
@@ -31,7 +32,7 @@ export default function PresetBooleanInput(props: PresetBooleanInputProps & ReCo
       },
       controlType: 'checkbox',
     })}
-    dataType = 'text'
+    dataType = {dataType as any}
     displayMode = 'editing'
     hints = {[]}
     // strategyKey: providedKey,

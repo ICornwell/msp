@@ -10,6 +10,8 @@ import {
 
 import { builder2 as wizPage1 } from '../awsSetupWizardContent';
 
+const REDACTED_SECRET = '__redacted__';
+
 export function withTrustIdentityPage(builder: typeof wizPage1) {
   return builder
     .withPage('trust-identity', 'Trust and Identity')
@@ -42,7 +44,13 @@ export function withTrustIdentityPage(builder: typeof wizPage1) {
                 .endElement
                 .showingItem.fromComponentElement(PresetSecretComponent)
                   .withLabel('Secret Access Key')
-                  .withValueBinding((ctx: any) => ctx.localData.secretAccessKey)
+                  .withValueBinding((ctx: any) => {
+                    const secret = ctx.localData.secretAccessKey?.trim();
+                    if (secret) {
+                      return secret;
+                    }
+                    return ctx.localData.connectionStatus === 'success' ? REDACTED_SECRET : undefined;
+                  })
                 .endElement
                 .showingItem.fromComponentElement(PresetSecretComponent)
                   .withLabel('Session Token (Optional)')

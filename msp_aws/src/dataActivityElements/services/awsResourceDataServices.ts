@@ -147,18 +147,9 @@ function readEksClustersFromAws(payload: AwsReadPayload): AwsSdkEksCluster[] {
   ];
 }
 
-function readEcrRepositoriesFromAws(payload: AwsReadPayload): AwsSdkEcrRepository[] {
-  return [
-    {
-      accountId: getAccountId(payload),
-      repositoryArn: 'arn:aws:ecr:eu-west-2:000000000000:repository/actorwork/dev',
-      repositoryName: 'actorwork/dev',
-      repositoryUri: '000000000000.dkr.ecr.eu-west-2.amazonaws.com/actorwork/dev',
-      region: getRegion(payload),
-      imageTagMutability: 'IMMUTABLE',
-      scanOnPush: true,
-    },
-  ];
+function readEcrRepositoriesFromAws(_payload: AwsReadPayload): AwsSdkEcrRepository[] {
+  // Baseline mock returns no repositories so new environments begin with an empty ECR plan.
+  return [];
 }
 
 function readIamRolesFromAws(payload: AwsReadPayload): AwsSdkIamRole[] {
