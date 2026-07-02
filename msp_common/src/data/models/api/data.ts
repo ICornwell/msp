@@ -62,7 +62,10 @@ export type UNARRAY<T> = T extends Array<infer AT> ? AT : T;
 
 
 export type SchemaPropertyName = string;
-export type SchemaPropertyInfoType = "Text" | "Integer" | "Float" | "Boolean" | "Date" | "DateTime" | "Time" | "Money" | "Percentage" | "Image" | "Json" | "Custom";
+export type SchemaPropertyInfoType = "Text"
+  | "Integer" | "Float" | "FixedPoint" | "Money" | "Percentage" 
+  | "Boolean" | "Date" | "DateTime" | "Time"
+  | "Image" | "Json" | "Custom";
 
 export type SchemaProperty<T> = {
   name?: string;

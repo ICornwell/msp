@@ -1,4 +1,4 @@
-import { ReadData, WriteData } from 'msp_data_common';
+import { ReadData, WriteData } from 'msp_svr_common';
 import type { View } from 'msp_common';
 
 export function readSecurityData(view: View, id: string) {

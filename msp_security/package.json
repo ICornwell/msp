@@ -26,7 +26,6 @@
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
     "msp_common": "workspace:*",
-    "msp_data_common": "workspace:*",
     "msp_svr_common": "workspace:*",
     "msp_ui_common": "workspace:*",
     "node-fetch": "^3.3.2",

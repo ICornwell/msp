@@ -44,6 +44,15 @@
 		},
 		{
 			"path": "msp_security"
+		},
+		{
+			"path": "msp_lloydsmsg"
+		},
+		{
+			"path": "msp_module_template"
+		},
+		{
+			"path": "msp_fp_js"
 		}
 	],
 	"settings": {

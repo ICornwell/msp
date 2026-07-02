@@ -10,25 +10,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: PNPM Install
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.14.2
+      - name: Enable Corepack and Setup Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@4.13.0 --activate
 
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
-      - run: corepack enable
-
       - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build
-        run: pnpm run build
+        run: yarn run build
 
       - name: Publish to npm
         run: npm publish --access public

@@ -1,0 +1,164 @@
+//! Financial operation error types
+//! 
+//! This module defines all error types that can occur during financial calculations,
+//! providing clear, actionable error messages for debugging and user feedback.
+
+use fpdec::DecimalError;
+use std::fmt;
+
+/// Comprehensive error type for all financial operations
+/// 
+/// Each variant provides specific context about what went wrong,
+/// making debugging and error handling more straightforward.
+#[derive(Debug)]
+pub enum FinancialError {
+    /// Underlying decimal library error (e.g., overflow, invalid format)
+    DecimalError(DecimalError),
+    
+    /// Precision value exceeds maximum allowed (0-18)
+    InvalidPrecision { 
+        requested: u8, 
+        maximum: u8 
+    },
+    
+    /// String parsing failed with specific context
+    ParseError { 
+        input: String, 
+        reason: String 
+    },
+    
+    /// Arithmetic operation failed due to mismatched precision
+    PrecisionMismatch { 
+        first_precision: u8, 
+        second_precision: u8,
+        operation: String 
+    },
+    
+    /// Division by zero attempted
+    DivisionByZero,
+    
+    /// Required context missing for operation
+    MissingContext { 
+        required_for: String 
+    },
+    
+    /// Invalid operation or configuration
+    InvalidOperation(String),
+}
+
+impl From<DecimalError> for FinancialError {
+    fn from(err: DecimalError) -> Self {
+        FinancialError::DecimalError(err)
+    }
+}
+
+impl fmt::Display for FinancialError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            FinancialError::DecimalError(e) => 
+                write!(f, "Decimal calculation error: {}", e),
+                
+            FinancialError::InvalidPrecision { requested, maximum } => 
+                write!(f, "Invalid precision: {} (maximum allowed: {})", requested, maximum),
+                
+            FinancialError::ParseError { input, reason } => 
+                write!(f, "Failed to parse '{}': {}", input, reason),
+                
+            FinancialError::PrecisionMismatch { first_precision, second_precision, operation } => 
+                write!(f, "Precision mismatch in {}: {} vs {} decimal places", 
+                       operation, first_precision, second_precision),
+                       
+            FinancialError::DivisionByZero => 
+                write!(f, "Division by zero is not allowed"),
+                
+            FinancialError::MissingContext { required_for } => 
+                write!(f, "Missing financial context required for: {}", required_for),
+                
+            FinancialError::InvalidOperation(msg) => 
+                write!(f, "Invalid operation: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for FinancialError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            FinancialError::DecimalError(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+/// Result type alias for financial operations
+pub type FinancialResult<T> = Result<T, FinancialError>;
+
+/// Helper functions for creating common errors with better ergonomics
+impl FinancialError {
+    /// Create a precision validation error
+    pub fn invalid_precision(requested: u8, maximum: u8) -> Self {
+        FinancialError::InvalidPrecision { requested, maximum }
+    }
+    
+    /// Create a parse error with context
+    pub fn parse_failed<S: Into<String>>(input: S, reason: S) -> Self {
+        FinancialError::ParseError { 
+            input: input.into(), 
+            reason: reason.into() 
+        }
+    }
+    
+    /// Create a precision mismatch error
+    pub fn precision_mismatch<S: Into<String>>(
+        first: u8, 
+        second: u8, 
+        operation: S
+    ) -> Self {
+        FinancialError::PrecisionMismatch {
+            first_precision: first,
+            second_precision: second,
+            operation: operation.into(),
+        }
+    }
+    
+    /// Create a missing context error
+    pub fn missing_context<S: Into<String>>(required_for: S) -> Self {
+        FinancialError::MissingContext {
+            required_for: required_for.into(),
+        }
+    }
+    
+    /// Create an invalid operation error
+    pub fn invalid_operation<S: Into<String>>(message: S) -> Self {
+        FinancialError::InvalidOperation(message.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_error_creation() {
+        let err = FinancialError::invalid_precision(25, 18);
+        assert!(matches!(err, FinancialError::InvalidPrecision { requested: 25, maximum: 18 }));
+    }
+
+    #[test]
+    fn test_error_display() {
+        let err = FinancialError::DivisionByZero;
+        assert_eq!(err.to_string(), "Division by zero is not allowed");
+        
+        let err = FinancialError::invalid_operation("test error");
+        assert_eq!(err.to_string(), "Invalid operation: test error");
+    }
+
+    #[test]
+    fn test_precision_mismatch() {
+        let err = FinancialError::precision_mismatch(2, 4, "addition");
+        assert!(matches!(err, FinancialError::PrecisionMismatch { 
+            first_precision: 2, 
+            second_precision: 4, 
+            operation: _ 
+        }));
+    }
+}

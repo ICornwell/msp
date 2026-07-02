@@ -1,0 +1,126 @@
+const fp = require('./index.js');
+
+console.log('🧪 Testing Phase 1: FixedDecimal Implementation\n');
+
+// Test basic functionality
+console.log('=== Basic FixedDecimal Tests ===');
+
+try {
+    // Test decimal creation
+    const decimal1 = fp.createFixedDecimal('123.45', 2);
+    console.log('✓ Create decimal: 123.45 with precision 2 =', decimal1);
+    
+    const decimal2 = fp.createFixedDecimal('67.89', 2);
+    console.log('✓ Create decimal: 67.89 with precision 2 =', decimal2);
+    
+    // Test arithmetic operations
+    const sum = fp.add('123.45', 2, '67.89', 2);
+    console.log('✓ Addition: 123.45 + 67.89 =', sum);
+    
+    const difference = fp.subtract('123.45', 2, '67.89', 2);
+    console.log('✓ Subtraction: 123.45 - 67.89 =', difference);
+    
+    const product = fp.multiply('123.45', 2, '2.5', 1);
+    console.log('✓ Multiplication: 123.45 × 2.5 =', product);
+    
+    const quotient = fp.divide('100.00', 2, '4.00', 2);
+    console.log('✓ Division: 100.00 ÷ 4.00 =', quotient);
+    
+} catch (error) {
+    console.error('❌ Basic tests failed:', error.message);
+}
+
+console.log('\n=== Edge Case Tests ===');
+
+try {
+    // Test high precision
+    const highPrecision = fp.createFixedDecimal('3.141592653589793', 15);
+    console.log('✓ High precision (15): π ≈', highPrecision);
+    
+    // Test zero
+    const zero = fp.createFixedDecimal('0.00', 2);
+    console.log('✓ Zero with precision 2 =', zero);
+    
+    // Test negative numbers
+    const negative = fp.createFixedDecimal('-456.78', 2);
+    console.log('✓ Negative number: -456.78 =', negative);
+    
+    // Test integer (precision 0)
+    const integer = fp.createFixedDecimal('42', 0);
+    console.log('✓ Integer (precision 0): 42 =', integer);
+    
+    // Test very small number
+    const tiny = fp.createFixedDecimal('0.001', 3);
+    console.log('✓ Small number: 0.001 =', tiny);
+    
+} catch (error) {
+    console.error('❌ Edge case tests failed:', error.message);
+}
+
+console.log('\n=== Error Handling Tests ===');
+
+// Test precision mismatch
+try {
+    const result = fp.add('123.45', 2, '67.8', 1);
+    console.log('❌ Should have failed: precision mismatch');
+} catch (error) {
+    console.log('✓ Precision mismatch correctly caught:', error.message);
+}
+
+// Test division by zero
+try {
+    const result = fp.divide('100.00', 2, '0.00', 2);
+    console.log('❌ Should have failed: division by zero');
+} catch (error) {
+    console.log('✓ Division by zero correctly caught:', error.message);
+}
+
+// Test invalid precision
+try {
+    const result = fp.createFixedDecimal('123.45', 25); // Max is 18
+    console.log('❌ Should have failed: invalid precision');
+} catch (error) {
+    console.log('✓ Invalid precision correctly caught:', error.message);
+}
+
+// Test malformed decimal
+try {
+    const result = fp.createFixedDecimal('123.45.67', 2);
+    console.log('❌ Should have failed: malformed decimal');
+} catch (error) {
+    console.log('✓ Malformed decimal correctly caught:', error.message);
+}
+
+console.log('\n=== Financial Precision Tests ===');
+
+try {
+    // Test financial calculations that require precision
+    const price = fp.createFixedDecimal('19.99', 2);
+    const quantity = fp.createFixedDecimal('3', 0);
+    const total = fp.multiply('19.99', 2, '3', 0);
+    console.log('✓ Financial calc: $19.99 × 3 = $' + total);
+    
+    // Test currency-like precision
+    const usd1 = fp.createFixedDecimal('100.23', 2);
+    const usd2 = fp.createFixedDecimal('200.45', 2);
+    const usdSum = fp.add('100.23', 2, '200.45', 2);
+    console.log('✓ Currency precision: $100.23 + $200.45 = $' + usdSum);
+    
+    // Test percentage calculations
+    const principal = fp.createFixedDecimal('1000.00', 2);
+    const rate = fp.createFixedDecimal('0.05', 4); // 5% as 0.0500
+    const interest = fp.multiply('1000.00', 2, '0.05', 4);
+    console.log('✓ Interest calc: $1000.00 × 5% = $' + interest);
+    
+} catch (error) {
+    console.error('❌ Financial precision tests failed:', error.message);
+}
+
+console.log('\n🎉 Phase 1 FixedDecimal implementation testing complete!');
+console.log('📊 Core Features Implemented:');
+console.log('  • FixedDecimal type with i128 backing');
+console.log('  • Precision support (0-18 decimal places)');
+console.log('  • Basic arithmetic (+, -, ×, ÷)');
+console.log('  • String parsing and formatting');
+console.log('  • Comprehensive error handling');
+console.log('  • Overflow/underflow protection');

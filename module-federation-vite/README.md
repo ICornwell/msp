@@ -34,9 +34,9 @@ This plugin makes Module Federation work together with [Vite](https://vitejs.dev
 </p>
 
 ```bash
-pnpm install
-pnpm run build
-pnpm run multi-example
+yarn install
+yarn run build
+yarn run multi-example
 ```
 
 ## Getting started 🚀

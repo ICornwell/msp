@@ -1,4 +1,5 @@
 import { getConfig } from '../configuredCommon.js';
+import { deserializeWithCodecs } from "../codecs/codecJson.js";
 import { authenticatedPut } from '../als/outboundRequests.js';
 import type {ServiceRequestEnvelope, ServiceRequestOptions, ServiceRequestResult} from 'msp_common';
 
@@ -78,12 +79,10 @@ export async function serviceRequest<TPayload = any, TResult = any>(
 
 		let body: any = undefined;
 		try {
-			body = await response.json();
-		} catch {
-			body = undefined;
-		}
-
-		if (!response.ok) {
+                        const rawText = await response.text();
+                        body = deserializeWithCodecs(rawText);
+                } catch {
+                        body = undefined;
 			throw new Error(`Service request failed (${response.status}): ${response.statusText}`);
 		}
 

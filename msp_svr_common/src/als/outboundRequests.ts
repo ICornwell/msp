@@ -1,3 +1,4 @@
+import { serializeWithCodecs } from "../codecs/codecJson.js";
 // Outbound request handler with automatic token acquisition and claim propagation
 import {
   getAssertionStore,
@@ -188,7 +189,7 @@ export async function makeAuthenticatedRequest(
     function safeBody(body: any) { return deepClone(body, { circular: true }); } // Avoid mutating original body
     fetchOptions.body = typeof requestOptions.body === 'string'
       ? requestOptions.body
-      : JSON.stringify(safeBody(requestOptions.body));
+      : serializeWithCodecs(safeBody(requestOptions.body));
   }
   
   // Make the request

@@ -1,4 +1,4 @@
-import { registerJsonCodecs } from 'msp_data_common';
+import { registerJsonCodecs } from 'msp_svr_common';
 
 // NOTE: These codecs use standard JSON.stringify/JSON.parse behaviour and are
 // functionally identical to the default dgm SDK fallback. They are registered

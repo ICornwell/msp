@@ -1,5 +1,7 @@
 import type { NormalizedModuleFederationOptions } from '../normalizeModuleFederationOptions';
 
+type HostInitInjectLocationOptions = 'html' | 'entry' | 'head';
+
 export function getDefaultMockOptions(
   overrides: Partial<NormalizedModuleFederationOptions> = {}
 ): NormalizedModuleFederationOptions {
@@ -18,6 +20,6 @@ export function getDefaultMockOptions(
     shareStrategy: 'loaded-first',
     virtualModuleDir: '__mf__virtual',
     hostInitInjectLocation: 'html',
-    ...overrides,
+    ...overrides, bundleAllCSS: overrides.bundleAllCSS ?? false,
   };
 }

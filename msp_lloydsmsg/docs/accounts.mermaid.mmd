@@ -1,0 +1,76 @@
+flowchart TD
+    %% Core Domain Entities (The Reality & Expectations)
+    Pol[Policy Node\nUMR: B0456...]
+    Inst[Installment Expectation\nNet: £30k, Due: Oct 30]
+    
+    Pol -->|hasExpectation| Inst
+    
+    %% The Event/Transaction layer (The Triggers)
+    Adv[Broker Advice / LPAN\nAdvised Net: £30k]
+    Cash[Cash Receipt\nBank Ref: £30k]
+    Alloc[Outward Allocation\nSplit £30k to Fiduciaries]
+    Earn[Earning Run\nPeriod End Amortization]
+
+    %% Graph Linkages (Matching)
+    Match[Allocation / Match Node]
+    Variance[FX / Short-fall\nWrite-off Node]
+    
+    Adv -->|fulfillsExpectation| Inst
+    Cash -->|allocatesCashTo| Match
+    Adv -->|matchedBy| Match
+    Match -.->|resolvesDiscrepancy| Variance
+    
+    Adv -->|triggersSplit| Alloc
+    
+    %% Accounting Entries (Double Entry Graph Sub-Nodes)
+    J_Adv[Journal: Premium Advised]
+    J_Cash[Journal: Cash Settled]
+    J_Alloc[Journal: Fiduciary Split]
+    J_Earn[Journal: Premium Earned]
+    
+    Adv -.->|generates| J_Adv
+    Cash -.->|generates| J_Cash
+    Alloc -.->|generates| J_Alloc
+    Earn -.->|generates| J_Earn
+    
+    %% Fiduciary Cash-Flow Accounts (The Match / Settled path)
+    AccRec[A/C: Broker Receivable]
+    AccCash[A/C: Ops Cash Bank]
+    AccClear[A/C: Premium Clearing]
+    AccInc[A/C: MGA Commission Income]
+    AccPay[A/C: Carrier Payables]
+    
+    %% Temporal Capital Modeling Accounts (The Earnings path)
+    AccUPR[A/C: Unearned Prm Reserve\nEstablished at Advice]
+    AccEarn[A/C: Earned Premium]
+    
+    %% Cash-Flow Journals
+    J_Adv -->|Debit £30k| AccRec
+    J_Adv -->|Credit £30k| AccClear
+    
+    J_Cash -->|Debit £30k| AccCash
+    J_Cash -->|Credit £30k| AccRec
+    
+    J_Alloc -->|Debit £30k| AccClear
+    J_Alloc -->|Credit £Y| AccInc
+    J_Alloc -->|Credit £Z| AccPay
+    
+    %% Capital Journals (Parallel Reality)
+    J_Adv -->|Credit £30k| AccUPR
+    J_Adv -->|Debit £30k| DUMMY_ASSET[Deferred Acq Costs / Premium Asset]
+    
+    J_Earn -->|Debit £X| AccUPR
+    J_Earn -->|Credit £X| AccEarn
+    
+    %% Styling
+    classDef domain fill:#d4e157,stroke:#333,stroke-width:2px,color:#000;
+    classDef event fill:#64b5f6,stroke:#333,stroke-width:1px,color:#000;
+    classDef account fill:#ffb74d,stroke:#333,stroke-width:2px,color:#000;
+    classDef journal fill:#e0e0e0,stroke:#333,stroke-width:1px,stroke-dasharray: 4 4,color:#000;
+    classDef junction fill:#ce93d8,stroke:#333,stroke-width:2px,color:#000;
+    
+    class Pol,Inst domain;
+    class Adv,Cash,Earn,Alloc event;
+    class AccRec,AccUPR,AccCash,AccEarn,AccClear,AccInc,AccPay account;
+    class J_Adv,J_Cash,J_Earn,J_Alloc journal;
+    class Match,Variance junction;

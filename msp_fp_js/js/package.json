@@ -1,0 +1,32 @@
+{
+  "name": "fp_js",
+  "version": "1.0.0",
+  "description": "fixed point financial maths for js",
+  "license": "ISC",
+  "author": "ic",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd ../rs && cargo build --release && cp target/release/libfp_js.so target/release/fp_js.node",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "@neon-rs/cli": "^0.1.0",
+    "jest": "^30.0.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./jest.setup.js"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js"
+    ],
+    "collectCoverageFrom": [
+      "index.js"
+    ],
+    "testTimeout": 10000
+  }
+}

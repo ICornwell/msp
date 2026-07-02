@@ -74,7 +74,7 @@
       
           "@azure/msal-browser": {
             name: "@azure/msal-browser",
-            version: "4.29.0",
+            version: "4.30.0",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -128,7 +128,7 @@
         ,
           "@azure/msal-react": {
             name: "@azure/msal-react",
-            version: "3.0.27",
+            version: "3.0.29",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -560,7 +560,7 @@
         ,
           "react": {
             name: "react",
-            version: "19.2.4",
+            version: "19.2.7",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -614,7 +614,7 @@
         ,
           "react-dom/client": {
             name: "react-dom/client",
-            version: "19.2.4",
+            version: "19.2.7",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -668,7 +668,7 @@
         ,
           "react/jsx-runtime": {
             name: "react/jsx-runtime",
-            version: "19.2.4",
+            version: "19.2.7",
             scope: ["default"],
             loaded: false,
             from: "host",
@@ -722,7 +722,7 @@
         ,
           "semver": {
             name: "semver",
-            version: "7.7.4",
+            version: "7.8.5",
             scope: ["default"],
             loaded: false,
             from: "host",

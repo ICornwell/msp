@@ -304,6 +304,15 @@ export interface ViewElementRecursive<
     isCollection: IC
   ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, IC, RSN>;
 
+  withNamedSubElementList: <SubEName extends string, NDO extends DomainObject<any, any, any>>(
+    name: SubEName,
+    nextDomainObject: NDO
+  ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, true, RSN>;
+
+  withSubElementList: <NDO extends DomainObject<any, any, any>>(
+    nextDomainObject: NDO
+  ) => RecursiveSubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, true, RSN>;
+
   withSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     nextDomainObject: NDO,
     isCollection: IC
@@ -347,6 +356,15 @@ export interface ViewElementNonRecursive<
     nextDomainObject: NDO,
     isCollection: IC
   ) => NonRecursiveSubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, IC>;
+
+  withNamedSubElementList: <SubEName extends string, NDO extends DomainObject<any, any, any>>(
+    name: SubEName,
+    nextDomainObject: NDO
+  ) => NonRecursiveSubElementRT<DT, DO, PDO, EName, RT, SubEName, NDO, true>;
+
+  withSubElementList: <NDO extends DomainObject<any, any, any>>(
+    nextDomainObject: NDO
+  ) => NonRecursiveSubElementRT<DT, DO, PDO, EName, RT, PathOfDomainObject<NDO>, NDO, true>;
 
   withSubElement: <NDO extends DomainObject<any, any, any>, IC extends TrueFalse>(
     nextDomainObject: NDO,
@@ -625,6 +643,17 @@ export function createViewElementRecursiveBuilder<
         buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'recursive', recurseStartName, recurseLevel + 1)
       (name, nextDomainObject, isCollection),
 
+    withNamedSubElementList: <SubEName extends string, DO extends DomainObject<any, any, any>>
+      (name: SubEName, nextDomainObject: DO) => 
+        buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'recursive', recurseStartName, recurseLevel + 1)
+      (name, nextDomainObject, true as any),
+
+    withSubElementList: <DO extends DomainObject<any, any, any>>
+      (innerDomainObject: DO) => 
+        buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'recursive', recurseStartName, recurseLevel + 1)
+      <PathOfSingleDomainObject<DO>, DO, any>
+      (innerDomainObject.defaultDocPathName, innerDomainObject, true as any),
+
     withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,
       isCollection: IC
@@ -728,6 +757,15 @@ export function createViewElementNonRecursiveBuilder<
         withNamedSubElement:  <SubEName extends string, DO extends DomainObject<any, any, any>, IC extends TrueFalse>
       (name: SubEName, nextDomainObject: DO, isCollection: IC) => buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'non-recursive')
       (name, nextDomainObject, isCollection),
+
+    withNamedSubElementList:  <SubEName extends string, DO extends DomainObject<any, any, any>>
+      (name: SubEName, nextDomainObject: DO) => buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'non-recursive')
+      (name, nextDomainObject, true as any),
+
+    withSubElementList: <DO extends DomainObject<any, any, any>>
+      (innerDomainObject: DO) => buildSubElement(queryIdsUsed, builder, subElementBuilders, domainObject, 'non-recursive')
+          <PathOfSingleDomainObject<DO>, DO, any>
+          (innerDomainObject.defaultDocPathName, innerDomainObject, true as any),
 
     withSubElement: <DO extends DomainObject<any, any, any>, IC extends TrueFalse>(
       innerDomainObject: DO,

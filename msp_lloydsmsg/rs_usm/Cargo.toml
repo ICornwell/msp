@@ -1,0 +1,16 @@
+[package]
+name = "rs_usm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+fp_js = { version = "0.1.0", path = "../../msp_fp_js/rs" }
+fpdec = { version = "0.14.1", features = ["serde-as-str"] }
+nom = "8.0.0"
+poem = "3.1.12"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = ["full"] }
+
+[dev-dependencies]
+proptest = "1.11.0"

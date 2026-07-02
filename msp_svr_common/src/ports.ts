@@ -10,14 +10,19 @@ const ports = {
         msp_security: process.env.SECURITY_INTERNAL_PORT || 4004,
     },
     modules: {
+        'actorWork-activityService-1.0.0-default': {
+            services: 4003,
+            ui: 3003
+        },
         'aws-awsMainService-1.0.0-default': {
             services: 4011,
             data: 5011,
             ui: 3011
         },
-        'actorWork-activityService-1.0.0-default': {
-            services: 4003,
-            ui: 3003
+        'lloydsMsg-lloydsMsgService-1.0.0-default': {
+            services: 4012,
+            data: 5012,
+            ui: 3012
         }
     }
 }

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "skipLibCheck": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./distApi",
+    "rootDir": "./src",
+    "esModuleInterop": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": false,
+    "experimentalDecorators": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": false
+  },
+  "include": [
+    "src/serviceActivityElements/**/*.ts",
+    "src/dataActivityElements/**/*.ts",
+    "src/manifest/**/*.ts",
+    "src/apiElements/**/*.ts",
+    "src/uiElements/fluxorObjects/**/*.ts"
+  ]
+}
