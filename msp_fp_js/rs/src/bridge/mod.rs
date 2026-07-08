@@ -1,201 +1,158 @@
-//! Neon bridge module for JavaScript integration
-//! 
-//! This module contains all Neon-specific code for exposing the library
-//! functionality to JavaScript/Node.js.
-
 use neon::prelude::*;
-use crate::{FixedDecimal, FinancialError, FinancialContext};
 
-/// Add two fixed-point decimal numbers
-pub fn add_decimal(mut cx: FunctionContext) -> JsResult<JsString> {
-    let a_str = cx.argument::<JsString>(0)?.value(&mut cx);
-    let a_precision = cx.argument::<JsNumber>(1)?.value(&mut cx) as u8;
-    let b_str = cx.argument::<JsString>(2)?.value(&mut cx);
-    let b_precision = cx.argument::<JsNumber>(3)?.value(&mut cx) as u8;
-    
-    let result = (|| -> Result<String, FinancialError> {
-        let a = FixedDecimal::from_str_with_precision(&a_str, a_precision)?;
-        let b = FixedDecimal::from_str_with_precision(&b_str, b_precision)?;
-        let sum = a.add(&b)?;
-        Ok(sum.to_string())
-    })();
-    
-    match result {
-        Ok(sum_str) => Ok(cx.string(sum_str)),
-        Err(e) => cx.throw_error(format!("Calculation error: {}", e))
-    }
-}
+pub mod core_ops;
+pub mod dimension;
+pub mod currency;
 
-/// Multiply two fixed-point decimal numbers
-pub fn multiply_decimal(mut cx: FunctionContext) -> JsResult<JsString> {
-    let a_str = cx.argument::<JsString>(0)?.value(&mut cx);
-    let a_precision = cx.argument::<JsNumber>(1)?.value(&mut cx) as u8;
-    let b_str = cx.argument::<JsString>(2)?.value(&mut cx);
-    let b_precision = cx.argument::<JsNumber>(3)?.value(&mut cx) as u8;
-    
-    let result = (|| -> Result<String, FinancialError> {
-        let a = FixedDecimal::from_str_with_precision(&a_str, a_precision)?;
-        let b = FixedDecimal::from_str_with_precision(&b_str, b_precision)?;
-        let product = a.multiply(&b)?;
-        Ok(product.to_string())
-    })();
-    
-    match result {
-        Ok(product_str) => Ok(cx.string(product_str)),
-        Err(e) => cx.throw_error(format!("Calculation error: {}", e))
-    }
-}
-
-/// Convert currency using exchange rates
-pub fn convert_currency(mut cx: FunctionContext) -> JsResult<JsString> {
-    let amount_str = cx.argument::<JsString>(0)?.value(&mut cx);
-    let precision = cx.argument::<JsNumber>(1)?.value(&mut cx) as u8;
-    let from_currency = cx.argument::<JsString>(2)?.value(&mut cx);
-    let to_currency = cx.argument::<JsString>(3)?.value(&mut cx);
-    let rate_str = cx.argument::<JsString>(4)?.value(&mut cx);
-    let rate_precision = cx.argument::<JsNumber>(5)?.value(&mut cx) as u8;
-    
-    let result = (|| -> Result<String, FinancialError> {
-        let amount = FixedDecimal::from_str_with_precision(&amount_str, precision)?;
-        let mut context = FinancialContext::new();
-        context.add_currency_rate(&from_currency, &to_currency, &rate_str, rate_precision)?;
-        let converted = context.convert_currency(&amount, &from_currency, &to_currency)?;
-        Ok(converted.to_string())
-    })();
-    
-    match result {
-        Ok(converted_str) => Ok(cx.string(converted_str)),
-        Err(e) => cx.throw_error(format!("Currency conversion error: {}", e))
-    }
-}
-
-/// Create a fixed decimal from string and precision
-pub fn create_fixed_decimal(mut cx: FunctionContext) -> JsResult<JsString> {
-    let value_str = cx.argument::<JsString>(0)?.value(&mut cx);
-    let precision = cx.argument::<JsNumber>(1)?.value(&mut cx) as u8;
-    
-    let result = (|| -> Result<String, FinancialError> {
-        let decimal = FixedDecimal::from_str_with_precision(&value_str, precision)?;
-        Ok(decimal.to_string())
-    })();
-    
-    match result {
-        Ok(decimal_str) => Ok(cx.string(decimal_str)),
-        Err(e) => cx.throw_error(format!("Create decimal error: {}", e))
-    }
-}
-
-/// Subtract two fixed-point decimal numbers  
-pub fn subtract_decimal(mut cx: FunctionContext) -> JsResult<JsString> {
-    let a_str = cx.argument::<JsString>(0)?.value(&mut cx);
-    let a_precision = cx.argument::<JsNumber>(1)?.value(&mut cx) as u8;
-    let b_str = cx.argument::<JsString>(2)?.value(&mut cx);
-    let b_precision = cx.argument::<JsNumber>(3)?.value(&mut cx) as u8;
-    
-    let result = (|| -> Result<String, FinancialError> {
-        let a = FixedDecimal::from_str_with_precision(&a_str, a_precision)?;
-        let b = FixedDecimal::from_str_with_precision(&b_str, b_precision)?;
-        let difference = a.subtract(&b)?;
-        Ok(difference.to_string())
-    })();
-    
-    match result {
-        Ok(difference_str) => Ok(cx.string(difference_str)),
-        Err(e) => cx.throw_error(format!("Calculation error: {}", e))
-    }
-}
-
-/// Divide two fixed-point decimal numbers
-pub fn divide_decimal(mut cx: FunctionContext) -> JsResult<JsString> {
-    let a_str = cx.argument::<JsString>(0)?.value(&mut cx);
-    let a_precision = cx.argument::<JsNumber>(1)?.value(&mut cx) as u8;
-    let b_str = cx.argument::<JsString>(2)?.value(&mut cx);
-    let b_precision = cx.argument::<JsNumber>(3)?.value(&mut cx) as u8;
-    
-    let result = (|| -> Result<String, FinancialError> {
-        let a = FixedDecimal::from_str_with_precision(&a_str, a_precision)?;
-        let b = FixedDecimal::from_str_with_precision(&b_str, b_precision)?;
-        let quotient = a.divide(&b)?;
-        Ok(quotient.to_string())
-    })();
-    
-    match result {
-        Ok(quotient_str) => Ok(cx.string(quotient_str)),
-        Err(e) => cx.throw_error(format!("Calculation error: {}", e))
-    }
-}
-
-/// Export functions to the Neon module
 pub fn register_functions(cx: &mut ModuleContext) -> NeonResult<()> {
-    cx.export_function("add", add_decimal)?;
-    cx.export_function("multiply", multiply_decimal)?;
-    cx.export_function("convertCurrency", convert_currency)?;
-    cx.export_function("createFixedDecimal", create_fixed_decimal)?;
-    cx.export_function("subtract", subtract_decimal)?;
-    cx.export_function("divide", divide_decimal)?;
-    cx.export_function("accumulateToTarget", accumulate_to_target)?;
-    Ok(())
-}
-
-use crate::strategies::{FinancialAccumulator, AccumulationStrategy};
-
-/// Accumulate an array of currency strings into a single target currency
-pub fn accumulate_to_target(mut cx: FunctionContext) -> JsResult<JsString> {
-    // 0: Array of format [{ amount: string, precision: u8, currency: string }]
-    let entries_arg = cx.argument::<JsArray>(0)?;
+    // -------------------------------------------------------------
+    // Namespace: fp
+    // -------------------------------------------------------------
+    let fp = cx.empty_object();
     
-    // 1: Target currency string
-    let target_currency = cx.argument::<JsString>(1)?.value(&mut cx);
+    let add_fn = JsFunction::new(cx, core_ops::js_add)?;
+    fp.set(cx, "add", add_fn)?;
     
-    // 2: Array of exchange rates: [{ from: string, to: string, rate: string, precision: u8 }]
-    let rates_arg = cx.argument::<JsArray>(2)?;
+    let sub_fn = JsFunction::new(cx, core_ops::js_subtract)?;
+    fp.set(cx, "subtract", sub_fn)?;
+    
+    let mul_fn = JsFunction::new(cx, core_ops::js_multiply)?;
+    fp.set(cx, "multiply", mul_fn)?;
+    
+    let div_fn = JsFunction::new(cx, core_ops::js_divide)?;
+    fp.set(cx, "divide", div_fn)?;
+    
+    let div_into_fn = JsFunction::new(cx, core_ops::js_divide_into)?;
+    fp.set(cx, "divideInto", div_into_fn)?;
+    
+    cx.export_value("fp", fp)?;
 
-    // Build the context with temporary rates
-    let mut context = FinancialContext::new();
+    // -------------------------------------------------------------
+    // Namespace: dim
+    // -------------------------------------------------------------
+    let dim = cx.empty_object();
     
-    // Parse rates array safely
-    for i in 0..rates_arg.len(&mut cx) {
-        if let Ok(rate_obj) = rates_arg.get::<JsObject, _, _>(&mut cx, i) {
-            let from = rate_obj.get::<JsString, _, _>(&mut cx, "from")?.value(&mut cx);
-            let to = rate_obj.get::<JsString, _, _>(&mut cx, "to")?.value(&mut cx);
-            let rate = rate_obj.get::<JsString, _, _>(&mut cx, "rate")?.value(&mut cx);
-            let precision = rate_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
+    let dim_add = JsFunction::new(cx, dimension::js_dim_strict_add)?;
+    dim.set(cx, "strictAdd", dim_add)?;
+    
+    let dim_sub = JsFunction::new(cx, dimension::js_dim_strict_subtract)?;
+    dim.set(cx, "strictSubtract", dim_sub)?;
+    
+    let dim_mult = JsFunction::new(cx, dimension::js_dim_multiply)?;
+    dim.set(cx, "multiply", dim_mult)?;
+    
+    let dim_div_round = JsFunction::new(cx, dimension::js_dim_divide_rounded)?;
+    dim.set(cx, "divideRounded", dim_div_round)?;
+    
+    let dim_pct_round = JsFunction::new(cx, dimension::js_dim_percentage_of_rounded)?;
+    dim.set(cx, "percentageOfRounded", dim_pct_round)?;
+
+    let dim_div_into = JsFunction::new(cx, dimension::js_dim_divide_into)?;
+    dim.set(cx, "divideInto", dim_div_into)?;
+    
+    let dim_sum = JsFunction::new(cx, dimension::js_dim_strict_sum_over)?;
+    dim.set(cx, "strictSumOver", dim_sum)?;
+
+    let dim_sum_prod = JsFunction::new(cx, dimension::js_dim_strict_sum_over_products)?;
+    dim.set(cx, "strictSumOverProducts", dim_sum_prod)?;
+    
+    cx.export_value("dim", dim)?;
+
+    // -------------------------------------------------------------
+    // Namespace: dimSet
+    // -------------------------------------------------------------
+    let dim_set = cx.empty_object();
+    
+    let set_sum_dim_fn = JsFunction::new(cx, dimension::js_sum_dimensions)?;
+    dim_set.set(cx, "sumDimensions", set_sum_dim_fn)?;
+    
+    let set_add_fn = JsFunction::new(cx, dimension::js_set_strict_add)?;
+    dim_set.set(cx, "add", set_add_fn)?;
+    
+    let set_sub_fn = JsFunction::new(cx, dimension::js_set_strict_subtract)?;
+    dim_set.set(cx, "subtract", set_sub_fn)?;
+
+    let set_mul_fn = JsFunction::new(cx, dimension::js_set_multiply)?;
+    dim_set.set(cx, "multiply", set_mul_fn)?;
+    
+    let set_div_round = JsFunction::new(cx, dimension::js_set_divide_rounded)?;
+    dim_set.set(cx, "divideRounded", set_div_round)?;
+    
+    let set_pct_round = JsFunction::new(cx, dimension::js_set_percentage_of_rounded)?;
+    dim_set.set(cx, "percentageOfRounded", set_pct_round)?;
+
+    let set_div_into_fn = JsFunction::new(cx, dimension::js_set_divide_into)?;
+    dim_set.set(cx, "divideInto", set_div_into_fn)?;
+    
+    let set_sum_over_fn = JsFunction::new(cx, dimension::js_set_strict_sum_over)?;
+    dim_set.set(cx, "strictSumOver", set_sum_over_fn)?;
+
+    let set_sum_prod_fn = JsFunction::new(cx, dimension::js_set_strict_sum_over_products)?;
+    dim_set.set(cx, "strictSumOverProducts", set_sum_prod_fn)?;
+    
+    cx.export_value("dimSet", dim_set)?;
+
+    // -------------------------------------------------------------
+    // Namespace: ccy
+    // -------------------------------------------------------------
+    let ccy = cx.empty_object();
+    
+    let ccy_add = JsFunction::new(cx, currency::js_ccy_strict_add)?;
+    ccy.set(cx, "strictAdd", ccy_add)?;
+    
+    let ccy_sub = JsFunction::new(cx, currency::js_ccy_strict_subtract)?;
+    ccy.set(cx, "strictSubtract", ccy_sub)?;
+    
+    let ccy_mult = JsFunction::new(cx, currency::js_ccy_multiply)?;
+    ccy.set(cx, "multiply", ccy_mult)?;
+
+    let ccy_div_round = JsFunction::new(cx, currency::js_ccy_divide_rounded)?;
+    ccy.set(cx, "divideRounded", ccy_div_round)?;
+    
+    let ccy_pct_round = JsFunction::new(cx, currency::js_ccy_percentage_of_rounded)?;
+    ccy.set(cx, "percentageOfRounded", ccy_pct_round)?;
+
+    let ccy_div_into = JsFunction::new(cx, currency::js_ccy_divide_into)?;
+    ccy.set(cx, "divideInto", ccy_div_into)?;
+    
+    let ccy_sum = JsFunction::new(cx, currency::js_ccy_strict_sum_over)?;
+    ccy.set(cx, "strictSumOver", ccy_sum)?;
+
+    let ccy_sum_prod = JsFunction::new(cx, currency::js_ccy_strict_sum_over_products)?;
+    ccy.set(cx, "strictSumOverProducts", ccy_sum_prod)?;
+    
+    cx.export_value("ccy", ccy)?;
+
+    // -------------------------------------------------------------
+    // Namespace: ccySet
+    // -------------------------------------------------------------
+    let ccy_set = cx.empty_object();
             
-            // Ignore failure to add individual rate (context swallows it or we can handle it)
-            let _ = context.add_currency_rate(&from, &to, &rate, precision);
-        }
-    }
+    let cset_add_fn = JsFunction::new(cx, currency::js_ccyset_strict_add)?;
+    ccy_set.set(cx, "add", cset_add_fn)?;
 
-    let result = (|| -> Result<String, FinancialError> {
-        let strategy = AccumulationStrategy::StrictTo(target_currency.clone(), &context);
-        let mut accumulator = FinancialAccumulator::new(strategy);
+    let cset_sub_fn = JsFunction::new(cx, currency::js_ccyset_strict_subtract)?;
+    ccy_set.set(cx, "subtract", cset_sub_fn)?;
 
-        for i in 0..entries_arg.len(&mut cx) {
-            if let Ok(entry_obj) = entries_arg.get::<JsObject, _, _>(&mut cx, i) {
-                let amount_res = entry_obj.get::<JsString, _, _>(&mut cx, "amount");
-                let precision_res = entry_obj.get::<JsNumber, _, _>(&mut cx, "precision");
-                let ccy_res = entry_obj.get::<JsString, _, _>(&mut cx, "currency");
+    let cset_mul_fn = JsFunction::new(cx, currency::js_ccyset_multiply)?;
+    ccy_set.set(cx, "multiply", cset_mul_fn)?;
 
-                if let (Ok(a), Ok(p), Ok(c)) = (amount_res, precision_res, ccy_res) {
-                    let amount_str = a.value(&mut cx);
-                    let precision = p.value(&mut cx) as u8;
-                    let ccy = c.value(&mut cx);
-                    let fd = FixedDecimal::from_str_with_precision(&amount_str, precision)?;
-                    accumulator.add(&fd, &ccy)?;
-                }
-            }
-        }
+    let cset_div_round = JsFunction::new(cx, currency::js_ccyset_divide_rounded)?;
+    ccy_set.set(cx, "divideRounded", cset_div_round)?;
+    
+    let cset_pct_round = JsFunction::new(cx, currency::js_ccyset_percentage_of_rounded)?;
+    ccy_set.set(cx, "percentageOfRounded", cset_pct_round)?;
 
-        let buckets = accumulator.get_buckets();
-        if let Some(final_value) = buckets.get(&target_currency) {
-            Ok(final_value.to_string())
-        } else {
-            Ok("0.0".to_string()) // Or throw error
-        }
-    })();
+    let cset_div_into_fn = JsFunction::new(cx, currency::js_ccyset_divide_into)?;
+    ccy_set.set(cx, "divideInto", cset_div_into_fn)?;
+    
+    let cset_sum_over_fn = JsFunction::new(cx, currency::js_ccyset_strict_sum_over)?;
+    ccy_set.set(cx, "strictSumOver", cset_sum_over_fn)?;
 
-    match result {
-        Ok(res_str) => Ok(cx.string(res_str)),
-        Err(e) => cx.throw_error(format!("Accumulator error: {}", e))
-    }
+    let cset_sum_prod_fn = JsFunction::new(cx, currency::js_ccyset_strict_sum_over_products)?;
+    ccy_set.set(cx, "strictSumOverProducts", cset_sum_prod_fn)?;
+
+    cx.export_value("ccySet", ccy_set)?;
+    
+    Ok(())
 }

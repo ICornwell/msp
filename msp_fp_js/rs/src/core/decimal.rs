@@ -19,8 +19,8 @@ use super::errors::{FinancialError, FinancialResult};
 /// ```rust
 /// use fp_js::core::FixedDecimal;
 /// 
-/// let price = FixedDecimal::from_str_with_precision("19.99", 2)?;
-/// let tax_rate = FixedDecimal::from_str_with_precision("0.08", 2)?;
+/// let price = fp_js::core::FixedDecimal::from_str_with_precision("19.99", 2)?;
+/// let tax_rate = fp_js::core::FixedDecimal::from_str_with_precision("0.08", 2)?;
 /// let total = price.multiply(&tax_rate)?;
 /// assert_eq!(total.to_string(), "1.60");
 /// ```
@@ -49,7 +49,7 @@ impl FixedDecimal {
     /// # Examples
     /// 
     /// ```rust
-    /// let decimal = FixedDecimal::from_str_with_precision("123.456", 2)?;
+    /// let decimal = fp_js::core::FixedDecimal::from_str_with_precision("123.456", 2)?;
     /// assert_eq!(decimal.to_string(), "123.46");
     /// ```
     pub fn from_str_with_precision(input: &str, precision: u8) -> FinancialResult<Self> {
@@ -58,7 +58,7 @@ impl FixedDecimal {
         let decimal = Decimal::from_str(input.trim())
             .map_err(|_| FinancialError::parse_failed(input, "Invalid decimal format"))?;
         
-        let rounded = Self::apply_banker_rounding(decimal, precision);
+        let rounded = Self::apply_rounding(decimal, precision, crate::strategies::RoundingStrategy::default());
         
         Ok(FixedDecimal { 
             decimal: rounded, 
@@ -73,7 +73,7 @@ impl FixedDecimal {
     pub fn from_decimal(decimal: Decimal, precision: u8) -> FinancialResult<Self> {
         Self::validate_precision(precision)?;
         
-        let rounded = Self::apply_banker_rounding(decimal, precision);
+        let rounded = Self::apply_rounding(decimal, precision, crate::strategies::RoundingStrategy::default());
         Ok(FixedDecimal { decimal: rounded, precision })
     }
     
@@ -123,7 +123,7 @@ impl FixedDecimal {
     /// # Examples
     /// 
     /// ```rust
-    /// let amount = FixedDecimal::from_str_with_precision("123.4", 2)?;
+    /// let amount = fp_js::core::FixedDecimal::from_str_with_precision("123.4", 2)?;
     /// assert_eq!(amount.to_string(), "123.40");
     /// ```
     pub fn to_string(&self) -> String {
@@ -160,12 +160,13 @@ impl FixedDecimal {
     /// 
     /// This is the default rounding method for financial applications
     /// as it reduces bias in large sets of calculations.
-    fn apply_banker_rounding(decimal: Decimal, precision: u8) -> Decimal {
+    fn apply_rounding(decimal: Decimal, precision: u8, strategy: crate::strategies::RoundingStrategy) -> Decimal {
         // Save current rounding mode
         let original_mode = RoundingMode::default();
         
-        // Temporarily set banker's rounding
-        RoundingMode::set_default(RoundingMode::RoundHalfEven);
+        // Temporarily set rounding strategy
+        let new_mode: fpdec::RoundingMode = strategy.into();
+        RoundingMode::set_default(new_mode);
         let result = decimal.round(precision as i8);
         
         // Restore original mode
@@ -198,8 +199,8 @@ impl FixedDecimal {
     /// # Examples
     /// 
     /// ```rust
-    /// let a = FixedDecimal::from_str_with_precision("10.50", 2)?;
-    /// let b = FixedDecimal::from_str_with_precision("5.25", 2)?;
+    /// let a = fp_js::core::FixedDecimal::from_str_with_precision("10.50", 2)?;
+    /// let b = fp_js::core::FixedDecimal::from_str_with_precision("5.25", 2)?;
     /// let sum = a.add(&b)?;
     /// assert_eq!(sum.to_string(), "15.75");
     /// ```
@@ -207,7 +208,7 @@ impl FixedDecimal {
         self.require_matching_precision(other, "addition")?;
         
         let result = self.decimal + other.decimal;
-        let rounded = Self::apply_banker_rounding(result, self.precision);
+        let rounded = Self::apply_rounding(result, self.precision, crate::strategies::RoundingStrategy::default());
         
         Ok(FixedDecimal { 
             decimal: rounded, 
@@ -220,7 +221,7 @@ impl FixedDecimal {
         self.require_matching_precision(other, "subtraction")?;
         
         let result = self.decimal - other.decimal;
-        let rounded = Self::apply_banker_rounding(result, self.precision);
+        let rounded = Self::apply_rounding(result, self.precision, crate::strategies::RoundingStrategy::default());
         
         Ok(FixedDecimal { 
             decimal: rounded, 
@@ -234,7 +235,7 @@ impl FixedDecimal {
     /// For different precision handling, use strategy-aware operations.
     pub fn multiply(&self, other: &Self) -> FinancialResult<FixedDecimal> {
         let result = self.decimal * other.decimal;
-        let rounded = Self::apply_banker_rounding(result, self.precision);
+        let rounded = Self::apply_rounding(result, self.precision, crate::strategies::RoundingStrategy::default());
         
         Ok(FixedDecimal { 
             decimal: rounded, 
@@ -246,13 +247,67 @@ impl FixedDecimal {
     /// 
     /// Returns an error if the divisor is zero.
     /// The result takes the precision of the first operand.
+    pub fn divide_into(&self, parts: i64, strategy_set: crate::strategies::DivisionStrategySet) -> FinancialResult<(Vec<FixedDecimal>, Option<FixedDecimal>)> {
+        if parts <= 0 {
+            return Err(FinancialError::invalid_operation("Parts must be greater than zero".to_string()));
+        }
+
+        let divisor = fpdec::Decimal::from(parts);
+        let base_amount = self.decimal;
+        let mut part_dec = base_amount / divisor;
+        part_dec = Self::apply_rounding(part_dec, self.precision, strategy_set.rounding);
+
+        let parts_total = part_dec * divisor;
+        let remainder_dec = base_amount - parts_total;
+        
+        let part_fd = FixedDecimal { decimal: part_dec, precision: self.precision };
+        let mut results = vec![part_fd.clone(); parts as usize];
+        
+        if remainder_dec == fpdec::Decimal::ZERO {
+            return Ok((results, None));
+        }
+        
+        match strategy_set.remainder {
+            crate::strategies::RemainderStrategy::AddToFirst => {
+                results[0] = FixedDecimal { decimal: part_dec + remainder_dec, precision: self.precision };
+                Ok((results, None))
+            },
+            crate::strategies::RemainderStrategy::AddToLast => {
+                let last_idx = (parts - 1) as usize;
+                results[last_idx] = FixedDecimal { decimal: part_dec + remainder_dec, precision: self.precision };
+                Ok((results, None))
+            },
+            crate::strategies::RemainderStrategy::KeepSeparate => {
+                Ok(( 
+                    results, 
+                    Some(FixedDecimal { decimal: remainder_dec, precision: self.precision }) 
+                ))
+            }
+        }
+    }
+
+    /// Divide two FixedDecimals using a specific rounding strategy
+    pub fn divide_with_strategy(&self, other: &Self, strategy: crate::strategies::RoundingStrategy) -> FinancialResult<FixedDecimal> {
+        if other.is_zero() {
+            return Err(FinancialError::DivisionByZero);
+        }
+        
+        let result = self.decimal / other.decimal;
+        let rounded = Self::apply_rounding(result, self.precision, strategy);
+        
+        Ok(FixedDecimal { 
+            decimal: rounded, 
+            precision: self.precision 
+        })
+    }
+
     pub fn divide(&self, other: &Self) -> FinancialResult<FixedDecimal> {
         if other.is_zero() {
             return Err(FinancialError::DivisionByZero);
         }
         
         let result = self.decimal / other.decimal;
-        let rounded = Self::apply_banker_rounding(result, self.precision);
+        let rounded = Self::apply_rounding(result, self.precision, crate::strategies::RoundingStrategy::default());
         
         Ok(FixedDecimal { 
             decimal: rounded, 
@@ -268,7 +323,7 @@ mod tests {
     #[test]
     fn test_fixed_decimal_creation() {
         let decimal = FixedDecimal::from_integer(12345, 2).unwrap();
-        assert_eq!(decimal.raw_value(), "apply_banker_rounding12345");
+        assert_eq!(decimal.raw_value(), "12345");
         assert_eq!(decimal.precision(), 2);
     }
 
@@ -287,7 +342,7 @@ mod tests {
     #[test]
     fn test_arithmetic_operations() {
         let a = FixedDecimal::from_str_with_precision("100.25", 2).unwrap();
-        let b = FixedDecimal::from_str_with_precision("50.75", 2).unwrap();
+        let b =FixedDecimal::from_str_with_precision("50.75", 2).unwrap();
         
         let sum = a.add(&b).unwrap();
         assert_eq!(sum.to_string(), "151.00");

@@ -1,3 +1,4 @@
+ 
 //! Core financial calculation types and operations
 //! 
 //! This module contains the fundamental building blocks for financial calculations:
@@ -10,3 +11,4 @@ pub mod decimal;
 
 pub use errors::{FinancialError, FinancialResult};
 pub use decimal::FixedDecimal;
+pub mod dimension;
