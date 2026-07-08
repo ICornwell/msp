@@ -1,0 +1,12 @@
+{
+  "name": "msp_fp_js",
+  "version": "1.0.0",
+  "description": "Fixed point financial math native engine and fluent DSL",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "cd js && npm run build && cd .. && yarn tsc",
+    "test": "cd js && npm test"
+  }
+}

@@ -80,12 +80,8 @@ pub fn js_ccy_multiply(mut cx: FunctionContext) -> JsResult<JsString> {
     let a = extract_ccy(&mut cx, a_str).or_else(|e| cx.throw_error(e))?;
     
     // Multiplier is dimensionless scalar e.g. "1.50"
-    let m_obj = cx.argument::<JsObject>(1)?;
-    let m_val = m_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-    let m_prec = m_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-    
-    let multiplier = FixedDecimal::from_str_with_precision(&m_val, m_prec)
-        .or_else(|e| cx.throw_error(e.to_string()))?;
+    let m_str = cx.argument::<JsString>(1)?.value(&mut cx);
+    let multiplier = crate::bridge::fp_str::parse_fp_string(&m_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
         
     match a.multiply(&multiplier) {
         Ok(result) => create_ccy_str(&mut cx, &result),
@@ -141,12 +137,9 @@ pub fn js_ccy_strict_sum_over_products(mut cx: FunctionContext) -> JsResult<JsSt
     for i in 0..items_arr.len(&mut cx) {
         let pair_obj = items_arr.get::<JsObject, _, _>(&mut cx, i)?;
         let s = pair_obj.get::<JsString, _, _>(&mut cx, "amount")?; // e.g. "GBP: 100.00: 2dp"
-        let m_obj = pair_obj.get::<JsObject, _, _>(&mut cx, "multiplier")?;
-        
+        let m_str = pair_obj.get::<JsString, _, _>(&mut cx, "multiplier")?.value(&mut cx);
         let a = extract_ccy(&mut cx, s).or_else(|e| cx.throw_error(e))?;
-        let m_val = m_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-        let m_prec = m_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-        let m = FixedDecimal::from_str_with_precision(&m_val, m_prec).or_else(|e| cx.throw_error(e.to_string()))?;
+        let m = crate::bridge::fp_str::parse_fp_string(&m_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
         
         vec_items.push((a, m));
     }
@@ -238,13 +231,9 @@ pub fn js_ccy_divide_rounded(mut cx: FunctionContext) -> JsResult<JsString> {
     let a_str = cx.argument::<JsString>(0)?;
     let a = extract_ccy(&mut cx, a_str).or_else(|e| cx.throw_error(e))?;
     
-    let d_obj = cx.argument::<JsObject>(1)?;
+    let d_str = cx.argument::<JsString>(1)?.value(&mut cx);
     let strategy_str = cx.argument::<JsString>(2)?.value(&mut cx);
-    
-    let val_str = d_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-    let precision = d_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-    let divisor = FixedDecimal::from_str_with_precision(&val_str, precision)
-        .or_else(|e| cx.throw_error(e.to_string()))?;
+    let divisor = crate::bridge::fp_str::parse_fp_string(&d_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
         
     let strategy = crate::strategies::RoundingStrategy::parse_strategy_name(&strategy_str)
         .unwrap_or(crate::strategies::RoundingStrategy::Down);
@@ -259,13 +248,9 @@ pub fn js_ccy_percentage_of_rounded(mut cx: FunctionContext) -> JsResult<JsStrin
     let a_str = cx.argument::<JsString>(0)?;
     let a = extract_ccy(&mut cx, a_str).or_else(|e| cx.throw_error(e))?;
     
-    let p_obj = cx.argument::<JsObject>(1)?;
+    let p_str = cx.argument::<JsString>(1)?.value(&mut cx);
     let strategy_str = cx.argument::<JsString>(2)?.value(&mut cx);
-    
-    let val_str = p_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-    let precision = p_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-    let percentage = FixedDecimal::from_str_with_precision(&val_str, precision)
-        .or_else(|e| cx.throw_error(e.to_string()))?;
+    let percentage = crate::bridge::fp_str::parse_fp_string(&p_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
         
     let strategy = crate::strategies::RoundingStrategy::parse_strategy_name(&strategy_str)
         .unwrap_or(crate::strategies::RoundingStrategy::Down);
@@ -319,7 +304,7 @@ pub fn js_ccyset_multiply(mut cx: FunctionContext) -> JsResult<JsArray> {
 
 pub fn js_ccyset_divide_rounded(mut cx: FunctionContext) -> JsResult<JsArray> {
     let items_arr = cx.argument::<JsArray>(0)?;
-    let d_obj = cx.argument::<JsObject>(1)?;
+    let d_str = cx.argument::<JsString>(1)?.value(&mut cx);
     let strategy_str = cx.argument::<JsString>(2)?.value(&mut cx);
     
     let mut set = DimensionSet::new();
@@ -329,10 +314,7 @@ pub fn js_ccyset_divide_rounded(mut cx: FunctionContext) -> JsResult<JsArray> {
         set.add(&amount).or_else(|e| cx.throw_error(e.to_string()))?;
     }
     
-    let val_str = d_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-    let precision = d_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-    let divisor = FixedDecimal::from_str_with_precision(&val_str, precision)
-        .or_else(|e| cx.throw_error(e.to_string()))?;
+    let divisor = crate::bridge::fp_str::parse_fp_string(&d_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
         
     let strategy = crate::strategies::RoundingStrategy::parse_strategy_name(&strategy_str)
         .unwrap_or(crate::strategies::RoundingStrategy::Down);
@@ -345,7 +327,7 @@ pub fn js_ccyset_divide_rounded(mut cx: FunctionContext) -> JsResult<JsArray> {
 
 pub fn js_ccyset_percentage_of_rounded(mut cx: FunctionContext) -> JsResult<JsArray> {
     let items_arr = cx.argument::<JsArray>(0)?;
-    let p_obj = cx.argument::<JsObject>(1)?;
+    let p_str = cx.argument::<JsString>(1)?.value(&mut cx);
     let strategy_str = cx.argument::<JsString>(2)?.value(&mut cx);
     
     let mut set = DimensionSet::new();
@@ -355,10 +337,7 @@ pub fn js_ccyset_percentage_of_rounded(mut cx: FunctionContext) -> JsResult<JsAr
         set.add(&amount).or_else(|e| cx.throw_error(e.to_string()))?;
     }
     
-    let val_str = p_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-    let precision = p_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-    let percentage = FixedDecimal::from_str_with_precision(&val_str, precision)
-        .or_else(|e| cx.throw_error(e.to_string()))?;
+    let percentage = crate::bridge::fp_str::parse_fp_string(&p_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
         
     let strategy = crate::strategies::RoundingStrategy::parse_strategy_name(&strategy_str)
         .unwrap_or(crate::strategies::RoundingStrategy::Down);
@@ -376,14 +355,9 @@ pub fn js_ccyset_strict_sum_over_products(mut cx: FunctionContext) -> JsResult<J
     for i in 0..items_arr.len(&mut cx) {
         let pair_obj = items_arr.get::<JsObject, _, _>(&mut cx, i)?;
         let s = pair_obj.get::<JsString, _, _>(&mut cx, "amount")?;
-        let m_obj = pair_obj.get::<JsObject, _, _>(&mut cx, "multiplier")?;
-        
+        let m_str = pair_obj.get::<JsString, _, _>(&mut cx, "multiplier")?.value(&mut cx);
         let a = extract_ccy(&mut cx, s).or_else(|e| cx.throw_error(e))?;
-        
-        let m_val = m_obj.get::<JsString, _, _>(&mut cx, "value")?.value(&mut cx);
-        let m_prec = m_obj.get::<JsNumber, _, _>(&mut cx, "precision")?.value(&mut cx) as u8;
-        let m = FixedDecimal::from_str_with_precision(&m_val, m_prec)
-            .or_else(|e| cx.throw_error(e.to_string()))?;
+        let m = crate::bridge::fp_str::parse_fp_string(&m_str).map_err(|e| cx.throw_error::<_, String>(e).unwrap_err())?;
             
         vec_items.push((a, m));
     }

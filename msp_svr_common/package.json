@@ -40,7 +40,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "msp_common": "workspace:*",
-    "msp_fp_js": "workspace:msp_fp_js/js",
+    "msp_fp_js": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "safe-clone-deep": "^1.1.5",

@@ -29,7 +29,7 @@
     "msp_bus_data": "workspace:msp_bus_data/tests",
     "msp_bus_data_tests": "workspace:msp_bus_data/tests",
     "msp_common": "workspace:*",
-    "msp_fs_js": "workspace:*",
+    "msp_fp_js": "workspace:*",
     "msp_svr_common": "workspace:*",
     "msp_ui_common": "workspace:*",
     "node-fetch": "^3.3.2",

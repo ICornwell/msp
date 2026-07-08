@@ -16,7 +16,7 @@
     "msp_actorwork",
     "msp_aws",
     "msp_lloydsmsg",
-    "msp_fp_js/js"
+    "msp_fp_js"
   ],
   "packageManager": "yarn@4.17.0",
   "scripts": {

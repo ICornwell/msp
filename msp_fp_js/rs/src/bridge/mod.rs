@@ -3,6 +3,7 @@ use neon::prelude::*;
 pub mod core_ops;
 pub mod dimension;
 pub mod currency;
+pub mod fp_str;
 
 pub fn register_functions(cx: &mut ModuleContext) -> NeonResult<()> {
     // -------------------------------------------------------------
@@ -26,6 +27,28 @@ pub fn register_functions(cx: &mut ModuleContext) -> NeonResult<()> {
     fp.set(cx, "divideInto", div_into_fn)?;
     
     cx.export_value("fp", fp)?;
+
+    // -------------------------------------------------------------
+    // Namespace: fpStr
+    // -------------------------------------------------------------
+    let fp_str_ns = cx.empty_object();
+    
+    let fadd = JsFunction::new(cx, fp_str::js_fpstr_add)?;
+    fp_str_ns.set(cx, "add", fadd)?;
+    
+    let fsub = JsFunction::new(cx, fp_str::js_fpstr_subtract)?;
+    fp_str_ns.set(cx, "subtract", fsub)?;
+    
+    let fmul = JsFunction::new(cx, fp_str::js_fpstr_multiply)?;
+    fp_str_ns.set(cx, "multiply", fmul)?;
+    
+    let fdiv = JsFunction::new(cx, fp_str::js_fpstr_divide)?;
+    fp_str_ns.set(cx, "divide", fdiv)?;
+    
+    let fdiv_into = JsFunction::new(cx, fp_str::js_fpstr_divide_into)?;
+    fp_str_ns.set(cx, "divideInto", fdiv_into)?;
+    
+    cx.export_value("fpStr", fp_str_ns)?;
 
     // -------------------------------------------------------------
     // Namespace: dim

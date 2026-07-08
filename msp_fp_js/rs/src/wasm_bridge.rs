@@ -298,3 +298,69 @@ pub fn ccySet_divide_into(set_js: JsValue, parts: i64, strategy_str: &str) -> Re
     
     Ok(serde_wasm_bindgen::to_value(&out_array_of_arrays)?)
 }
+
+// -------------------------------------------------------------
+// Namespace equivalent: fpStr_
+// -------------------------------------------------------------
+
+#[wasm_bindgen]
+pub fn fpStr_add(a_str: &str, b_str: &str) -> Result<String, JsValue> {
+    let a = crate::bridge::fp_str::parse_fp_string(a_str).map_err(|e| JsValue::from_str(&e))?;
+    let b = crate::bridge::fp_str::parse_fp_string(b_str).map_err(|e| JsValue::from_str(&e))?;
+    
+    let sum = a.add(&b).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(crate::bridge::fp_str::format_fp_string(&sum))
+}
+
+#[wasm_bindgen]
+pub fn fpStr_subtract(a_str: &str, b_str: &str) -> Result<String, JsValue> {
+    let a = crate::bridge::fp_str::parse_fp_string(a_str).map_err(|e| JsValue::from_str(&e))?;
+    let b = crate::bridge::fp_str::parse_fp_string(b_str).map_err(|e| JsValue::from_str(&e))?;
+    
+    let diff = a.subtract(&b).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(crate::bridge::fp_str::format_fp_string(&diff))
+}
+
+#[wasm_bindgen]
+pub fn fpStr_multiply(a_str: &str, b_str: &str) -> Result<String, JsValue> {
+    let a = crate::bridge::fp_str::parse_fp_string(a_str).map_err(|e| JsValue::from_str(&e))?;
+    let b = crate::bridge::fp_str::parse_fp_string(b_str).map_err(|e| JsValue::from_str(&e))?;
+    
+    let prod = a.multiply(&b).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(crate::bridge::fp_str::format_fp_string(&prod))
+}
+
+#[wasm_bindgen]
+pub fn fpStr_divide(a_str: &str, b_str: &str) -> Result<String, JsValue> {
+    let a = crate::bridge::fp_str::parse_fp_string(a_str).map_err(|e| JsValue::from_str(&e))?;
+    let b = crate::bridge::fp_str::parse_fp_string(b_str).map_err(|e| JsValue::from_str(&e))?;
+    
+    let quot = a.divide(&b).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(crate::bridge::fp_str::format_fp_string(&quot))
+}
+
+#[wasm_bindgen]
+pub fn fpStr_divideInto(a_str: &str, parts: i64, strategy_str: &str) -> Result<JsValue, JsValue> {
+    let a = crate::bridge::fp_str::parse_fp_string(a_str).map_err(|e| JsValue::from_str(&e))?;
+    
+    use crate::strategies::DivisionStrategySet;
+    use crate::strategies::RoundingStrategy;
+    use crate::strategies::RemainderStrategy;
+    
+    let strategy_set = match strategy_str {
+        "AddToFirst" => DivisionStrategySet {
+            rounding: RoundingStrategy::Down,
+            remainder: RemainderStrategy::AddToFirst,
+        },
+        "AddToLast" => DivisionStrategySet {
+            rounding: RoundingStrategy::Down,
+            remainder: RemainderStrategy::AddToLast,
+        },
+        _ => return Err(JsValue::from_str("Unknown division strategy")),
+    };
+    
+    let (arrays, _) = a.divide_into(parts, strategy_set).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    
+    let out_vec: Vec<String> = arrays.iter().map(crate::bridge::fp_str::format_fp_string).collect();
+    Ok(serde_wasm_bindgen::to_value(&out_vec)?)
+}

@@ -1,17 +1,21 @@
-import fp from 'msp_fp_js';
+import { createStrategy } from 'msp_fp_js';
 import { EarningStrategy } from './types.js';
+
+const EarningsMathStrategy = createStrategy('Earnings')
+    .withPrecision(2)
+    .withRounding('Bankers')
+    .withInstallmentDistribution('LoadLast') 
+    .build();
 
 export const LinearEarningStrategy: EarningStrategy = {
     strategyName: 'Linear',
     getConfigParams: () => [],
     calculateEarnings: (totalPremium, inceptionDate, expiryDate, config) => {
-        // Strict linear amortization assumes evenly 1/12th every month of the policy lifecycle
-        const total = fp(totalPremium);
-        const slices = fp.divideInto(total, 12, 'ROUND_REM_TO_LAST');
+        const { ccy } = EarningsMathStrategy.fpTypes();
+        const slices = ccy(totalPremium).divideInto(12);
         
         let currentDate = new Date(inceptionDate);
-        return slices.map((slice: any, index: number) => {
-            // Earning runs technically occur at the end of the month covering the elapsed period
+        return slices.map((slice, index) => {
             const periodEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + index + 1, 0);
             return {
                 periodEndDate: periodEndDate.toISOString().split('T')[0],
@@ -27,8 +31,23 @@ export const WindstormEarningStrategy: EarningStrategy = {
         { name: 'hurricaneSeasonLoadMonth', label: 'Hurricane Peak Month (1-12)', dataType: 'number' }
     ],
     calculateEarnings: (totalPremium, inceptionDate, expiryDate, config) => {
-        // A naive implementation to prove config-loaded mathematics: E.g., drops 50% of earning natively on Month 8, and spreads the rest.
-        // In real systems, this uses daily earning vectors configured by the Actuary.
-        return []; 
+        const peakMonth = config.hurricaneSeasonLoadMonth || 8;
+        const { ccy, dec } = EarningsMathStrategy.fpTypes();
+        
+        const totalAmount = ccy(totalPremium);
+        // Load 50% cleanly mathematically into peak month 
+        const peakAmount = totalAmount.percentageOfRounded(dec("50.0: 1dp"));
+        const restAmount = totalAmount.subtract(peakAmount);
+        
+        // Spread the rest evenly across the 11 other months loading leftovers onto the final bound
+        const restSlices = restAmount.divideInto(11);
+        
+        return restSlices.map((slice, i) => {
+            // Simplified mapping return just to demonstrate mathematical use-case.
+            return {
+                periodEndDate: "Y-M-D Placeholder",
+                amountToEarn: slice.toString()
+            };
+        });
     }
 };

@@ -1,20 +1,12 @@
-import * as fp from 'msp_fp_js';
+import { createStrategy } from 'msp_fp_js';
 import { InstallmentStrategy } from './types.js';
 
-// The input looks like "USD: 100000.00: 2dp" 
-// We parse the string out and split it apart
-function parseFpMoneyString(moneyStr: string): { currency: string, amount: string, dp: number } {
-    const parts = moneyStr.split(':').map(s => s.trim());
-    return {
-        currency: parts[0],
-        amount: parts[1],
-        dp: parseInt(parts[2].replace('dp', ''), 10)
-    };
-}
-
-function assembleFpMoneyString(currency: string, amount: string, dp: number): string {
-    return `${currency}: ${amount}: ${dp}dp`;
-}
+// Setup strict context targeting typical standard Monthly Installment Loaders
+const InstallmentMathStrategy = createStrategy('Installments')
+    .withPrecision(2)
+    .withRounding('Bankers')
+    .withInstallmentDistribution('LoadFirst') // Load the odd penny into the first installment
+    .build();
 
 export const SimpleMonthlyInstallmentStrategy: InstallmentStrategy = {
     strategyName: 'SimpleMonthly',
@@ -24,21 +16,19 @@ export const SimpleMonthlyInstallmentStrategy: InstallmentStrategy = {
     calculateInstallments: (totalPremium, inceptionDate, expiryDate, config) => {
         const dayOfMonth = config.dayOfMonth || 1;
         
-        const parsed = parseFpMoneyString(totalPremium);
-        // Using "FIRST" remainder strategy as default
-        const result = fp.divideInto(parsed.amount, parsed.dp, 12, "FIRST");
+        // We utilize the strict contextual ccy wrapper
+        const { ccy } = InstallmentMathStrategy.fpTypes();
+        const installments = ccy(totalPremium).divideInto(12);
         
         const [year, month, _day] = inceptionDate.split('-').map(Number);
         
-        const res = [];
-        for(let i=0; i<12; i++) {
+        return installments.map((part, i) => {
             const d = new Date(Date.UTC(year, month - 1 + i, dayOfMonth));
-            res.push({
+            return {
                 dueDate: d.toISOString().split('T')[0],
-                amount: assembleFpMoneyString(parsed.currency, result.parts[i], parsed.dp)
-            });
-        }
-        return res;
+                amount: part.toString()
+            };
+        });
     }
 };
 
@@ -53,18 +43,15 @@ export const SimpleQuarterlyInstallmentStrategy: InstallmentStrategy = {
         const startMonth = config.startMonth || (month - 1);
         const dayOfMonth = config.dayOfMonth || 1;
         
-        const parsed = parseFpMoneyString(totalPremium);
-        // "FIRST" strategy
-        const result = fp.divideInto(parsed.amount, parsed.dp, 4, "FIRST");
+        const { ccy } = InstallmentMathStrategy.fpTypes();
+        const installments = ccy(totalPremium).divideInto(4);
         
-        const res = [];
-        for(let i=0; i<4; i++) {
+        return installments.map((part, i) => {
             const d = new Date(Date.UTC(year, startMonth + (i*3), dayOfMonth));
-            res.push({
+            return {
                 dueDate: d.toISOString().split('T')[0],
-                amount: assembleFpMoneyString(parsed.currency, result.parts[i], parsed.dp)
-            });
-        }
-        return res;
+                amount: part.toString()
+            };
+        });
     }
 };
