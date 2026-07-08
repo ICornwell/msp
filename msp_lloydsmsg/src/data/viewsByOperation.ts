@@ -1,47 +1,44 @@
 import { createView } from 'msp_common';
-import { 
-  policyObject, syndicateObject, brokerObject, moneyObject, installmentObject, marketShareObject 
-} from './schemas.js';
+import { relObjs } from './viewRelations.js';
 
 export const bindRiskView = createView('bindRiskView')
-  .withRootElement(policyObject, false)
-    .withNamedSubElementList('syndicate', syndicateObject)
+  .withRootElement(relObjs.policyObject, false)
+    .withNamedSubElementList('syndicate', relObjs.syndicateObject)
       .withRelation('subscribedBy')
       .end()
-    .withNamedSubElement('broker', brokerObject, false)
+    .withNamedSubElement('broker', relObjs.brokerObject, false)
       .withRelation('brokedBy')
       .end()
-  .__build();
+  .end()
+  .endView()
+  .build();
 
 export const marketSigningsView = createView('marketSigningsView')
-  .withRootElement(policyObject, false)
-    .withNamedSubElementList('marketShare', marketShareObject)
+  .withRootElement(relObjs.policyObject, false)
+    .withNamedSubElementList('marketShare', relObjs.marketShareObject)
       .withRelation('hasSignings')
-      .withNamedSubElement('syndicate', syndicateObject, false)
+      .withNamedSubElement('syndicate', relObjs.syndicateObject, false)
         .withRelation('allocatedTo')
         .end()
       .end()
-  .__build();
+    .end()
+  .endView()
+  .build();
 
 export const bookPremiumView = createView('bookPremiumView')
-  .withRootElement(policyObject, false)
-    .withNamedSubElementList('installment', installmentObject)
+  .withRootElement(relObjs.policyObject, false)
+    .withNamedSubElementList('installment', relObjs.installmentObject)
       .withRelation('hasInstallments')
-      .withNamedSubElement('money', moneyObject, false)
-        .withRelation('forAmount')
-        .end()
       .end()
-  .__build();
+  .end()
+  .endView()
+  .build();
 
 export const settlePremiumView = createView('settlePremiumView')
-  .withRootElement(brokerObject, false)
-    .withNamedSubElementList('money', moneyObject)
-      .withRelation('paysAmount')
-      .withNamedSubElement('installment', installmentObject, false)
-        .withRelation('settlesInstallment')
-        .end()
-      .withNamedSubElement('policy', policyObject, false)
-        .withRelation('settlesPolicy')
-        .end()
-      .end()
-  .__build();
+  .withRootElement(relObjs.brokerObject, false)
+  // We need to define new relational bridging without moneyObject if settle is required here.
+  // Actually, settle behavior mapping belongs in ledger reconciling.
+  .end()
+  .endView()
+  .build();
+

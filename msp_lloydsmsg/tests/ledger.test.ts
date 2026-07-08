@@ -5,7 +5,7 @@ describe('Ledger Double Entry Graph Behavior', () => {
 
     it('Scenario 1: Happy Path - Advice creation generates Receivable and UPR journals', () => {
         // Asserting the structural integrity using the Typescript 7 Type Inference from our View
-        const adviceTransaction: typeof transactionLedgerView._TYPE = {
+        const adviceTransaction: typeof transactionLedgerView.dataType = {
             eventId: 'EVT-001',
             eventType: 'LPAN_ADVICE',
             effectiveDate: '2026-07-02',

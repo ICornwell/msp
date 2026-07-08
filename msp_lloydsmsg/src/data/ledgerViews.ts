@@ -1,60 +1,60 @@
 import { createView } from 'msp_common';
-import { 
-  accountObject, journalObject, businessEventObject, matchJunctionObject, moneyObject
-} from './schemas.js';
+import { relObjs } from './viewRelations.js';
 
 export const transactionLedgerView = createView('transactionLedgerView')
-  .withRootElement(businessEventObject, false)
-    .withNamedSubElementList('journals', journalObject)
+  .withRootElement(relObjs.businessEventObject, false)
+    .withNamedSubElementList('journals', relObjs.journalObject)
       .withRelation('generatesJournal')
-      .withNamedSubElement('money', moneyObject, false)
-        .withRelation('forAmount')
-        .end()
-      .withNamedSubElement('account', accountObject, false)
+      // Removed .withNamedSubElement('money', moneyObject) mapping as well
+      .withNamedSubElement('account', relObjs.accountObject, false)
         .withRelation('postsToAccount')
         .end()
       .end()
-  .__build();
+    .end()
+  .endView()
+  .build();
 
 export const doubleEntryAccountView = createView('doubleEntryAccountView')
-  .withRootElement(accountObject, false)
-    .withNamedSubElementList('entries', journalObject)
+  .withRootElement(relObjs.accountObject, false)
+    .withNamedSubElementList('entries', relObjs.journalObject)
       .withRelation('hasEntry')
-      .withNamedSubElement('money', moneyObject, false)
-        .withRelation('forAmount')
-        .end()
-      .withNamedSubElement('transaction', businessEventObject, false)
+      .withNamedSubElement('transaction', relObjs.businessEventObject, false)
         .withRelation('originatedFrom')
         .end()
       .end()
-  .__build();
+    .end()
+  .endView()
+  .build();
 
 export const matchingView = createView('matchingView')
-  .withRootElement(matchJunctionObject, false)
-    .withNamedSubElementList('sourceEvents', businessEventObject)
+  .withRootElement(relObjs.matchJunctionObject, false)
+    .withNamedSubElementList('sourceEvents', relObjs.businessEventObject)
       .withRelation('linksEvent')
       .end()
-  .__build();
+    .end()
+  .endView()
+  .build();
 
-import { fxResolutionStrategyObject, reconciliationToleranceObject, exceptionTaskObject } from './schemas.js';
-
-// Extend the matching view to understand exceptions
 export const matchingWithExceptionsView = createView('matchingWithExceptionsView')
-  .withRootElement(matchJunctionObject, false)
-    .withNamedSubElementList('sourceEvents', businessEventObject)
+  .withRootElement(relObjs.matchJunctionObject, false)
+    .withNamedSubElementList('sourceEvents', relObjs.businessEventObject)
       .withRelation('linksEvent')
       .end()
-    .withNamedSubElementList('exceptions', exceptionTaskObject)
+    .withNamedSubElementList('exceptions', relObjs.exceptionTaskObject)
       .withRelation('raisedException')
       .end()
-  .__build();
+    .end()
+  .endView()
+  .build();
 
 export const policyConfigView = createView('policyConfigView')
-  .withRootElement(policyObject, false)
-    .withNamedSubElement('fxStrategy', fxResolutionStrategyObject, false)
+  .withRootElement(relObjs.policyObject, false)
+    .withNamedSubElement('fxStrategy', relObjs.fxResolutionStrategyObject, false)
       .withRelation('usesFxStrategy')
       .end()
-    .withNamedSubElement('tolerance', reconciliationToleranceObject, false)
+    .withNamedSubElement('tolerance', relObjs.reconciliationToleranceObject, false)
       .withRelation('appliesTolerance')
       .end()
-  .__build();
+    .end()
+  .endView()
+  .build();

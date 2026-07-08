@@ -1,7 +1,4 @@
-import { v4 as uuid } from 'uuid';
-
-import { createSchema } from 'msp_common';
-import { createEntityObject, createValueObject } from 'msp_common';
+import { createSchema, createEntityObject, createValueObject } from 'msp_common';
 
 const DOMAIN = { name: 'lloyds-accounting', version: '1.0' };
 const NAMESPACE = 'lloyds-core';
@@ -10,26 +7,6 @@ const FQID = { namespace: NAMESPACE, version: '1.0' };
 // -----------------------------------------------------------------------------
 // VALUE OBJECTS (Bound to entities, meaningless without context)
 // -----------------------------------------------------------------------------
-
-// 1. Money - The absolute core of multi-currency triangulation
-export const moneySchema = createSchema('money')
-  .withFQId(FQID)
-  .withProperty('amount')
-    .forType<string>() // Must be string to support fixed-point precision
-    .withDictionaryId('dict-amount', '1.0')
-    .withInfoType('Text')
-    .endProperty()
-  .withProperty('currency')
-    .forType<string>() // ISO currency code (e.g., 'GBP', 'USD', 'JPY')
-    .withDictionaryId('dict-currency', '1.0')
-    .withInfoType('Text')
-    .endProperty()
-  .buildSchema();
-
-export const moneyObject = createValueObject('moneyObject', moneySchema)
-  .withFQId(FQID)
-  .forDomain(DOMAIN)
-  .buildObject();
 
 // 2. Installment - Expected future cashflow slice
 export const installmentSchema = createSchema('installment')
@@ -49,6 +26,11 @@ export const installmentSchema = createSchema('installment')
     .withDictionaryId('dict-status', '1.0')
     .withInfoType('Text')
     .endProperty()
+  .withProperty('amount')
+    .forType<string>() // Must be string to support fixed-point precision
+    .withDictionaryId('dict-amount', '1.0')
+    .withInfoType('Money')
+    .endProperty()
   .buildSchema();
 
 export const installmentObject = createValueObject('installmentObject', installmentSchema)
@@ -62,12 +44,12 @@ export const marketShareSchema = createSchema('marketShare')
   .withProperty('writtenLinePercentage')
     .forType<string>() // Keep as string for fixed-point math
     .withDictionaryId('dict-written-pct', '1.0')
-    .withInfoType('Text')
+    .withInfoType('Percentage')
     .endProperty()
   .withProperty('signedLinePercentage')
     .forType<string>() 
     .withDictionaryId('dict-signed-pct', '1.0')
-    .withInfoType('Text')
+    .withInfoType('Percentage')
     .endProperty()
   .buildSchema();
 
@@ -88,6 +70,11 @@ export const chargeSchema = createSchema('charge')
     .forType<string>()
     .withDictionaryId('dict-charge-description', '1.0')
     .withInfoType('Text')
+    .endProperty()
+  .withProperty('amount')
+    .forType<string>() // Must be string to support fixed-point precision
+    .withDictionaryId('dict-amount', '1.0')
+    .withInfoType('Money')
     .endProperty()
   .buildSchema();
 
@@ -229,6 +216,11 @@ export const journalSchema = createSchema('journal')
     .withDictionaryId('dict-entry-type', '1.0')
     .withInfoType('Text')
     .endProperty()
+  .withProperty('amount')
+    .forType<string>() // Must be string to support fixed-point precision
+    .withDictionaryId('dict-amount', '1.0')
+    .withInfoType('Money')
+    .endProperty()
   .buildSchema();
 
 export const journalObject = createEntityObject('journalObject', journalSchema)
@@ -271,6 +263,11 @@ export const matchJunctionSchema = createSchema('matchJunction')
     .withDictionaryId('dict-match-id', '1.0')
     .withInfoType('Text')
     .endProperty()
+  .withProperty('matchDate')
+    .forType<string>()
+    .withDictionaryId('dict-match-date', '1.0')
+    .withInfoType('Date')
+    .endProperty()
   .withProperty('matchType')
     .forType<'CASH_TO_ADVICE' | 'CASH_TO_VARIANCE' | 'ADVICE_TO_EARNING'>()
     .withDictionaryId('dict-match-type', '1.0')
@@ -283,7 +280,6 @@ export const matchJunctionObject = createEntityObject('matchJunctionObject', mat
   .forDomain(DOMAIN)
   .withUniqueBusinessKey(d => d.matchId)
   .buildObject();
-
 
 // -----------------------------------------------------------------------------
 // BUSINESS RULES & STRATEGIES (Declarative behavior configurations)
@@ -316,12 +312,7 @@ export const reconciliationToleranceSchema = createSchema('reconciliationToleran
   .withProperty('maxAutoWriteOff')
     .forType<string>() // e.g. "0.50"
     .withDictionaryId('dict-tolerance-amount', '1.0')
-    .withInfoType('Text')
-    .endProperty()
-  .withProperty('currency')
-    .forType<string>()
-    .withDictionaryId('dict-currency', '1.0')
-    .withInfoType('Text')
+    .withInfoType('Money')
     .endProperty()
   .withProperty('actionWhenExceeded')
     .forType<'ROUTE_TO_HUMAN' | 'REJECT_CASH' | 'AUTO_ACCEPT_WITH_WARNING'>()
@@ -360,7 +351,3 @@ export const exceptionTaskObject = createEntityObject('exceptionTaskObject', exc
   .forDomain(DOMAIN)
   .withUniqueBusinessKey(d => d.taskId)
   .buildObject();
-
-// Extend Business event for the FanOut 
-// We simply amend the schema literals to include OUTWARD_ALLOCATION
-// Using regex string replacement tool instead.

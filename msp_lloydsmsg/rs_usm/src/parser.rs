@@ -134,9 +134,9 @@ mod proptests {
             prop_assert!(res.is_ok(), "Failed to parse structurally valid EDIFACT string: {}", s);
         }
 
-        // Ensures that randomly generated garbage data never panics the parser
+        // Ensures that randomly generated garsete data never panics the parser
         #[test]
-        fn survives_random_garbage(s in "\\PC*") {
+        fn survives_random_garsete(s in "\\PC*") {
             // We don't care if it errors, we just assert it doesn't panic/crash
             let _ = parse_usm(&s);
         }
