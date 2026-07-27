@@ -5,6 +5,7 @@ import type { AwsClusterSetupConfig, ReadClusterSetupConfigPayload,
    ClusterSetupPlanStep, 
    AwsResourceConfigStatus} from '../../data/clusterSetUpConfig.js';
 import { awsClusterSetupConfigObject, awsClusterSetupConfigView } from '../../data/index.js';
+import { resolveAwsCredentials, storeAwsSecretAccessKey } from '../../shared/vault.js';
 
 const setupViewIdentifier = awsClusterSetupConfigView.getViewIdentifier!();
 
@@ -87,11 +88,19 @@ function seedSetup(region: string, clusterName: string, setupId: string = 'aws-c
   return content;
 }
 
-function normalizeSetupRow(row: any): ViewDataContent<AwsClusterSetupConfig> | undefined {
+async function normalizeSetupRow(row: any): Promise<ViewDataContent<AwsClusterSetupConfig> | undefined> {
   if (!row) {
     return undefined;
   }
 
+  const secrets = await resolveAwsCredentials(row?.content?.region);
+
+  if (secrets.secretAccessKey) {
+    row.content.secretAccessKey = '__redacted__';
+  } else {
+    row.content.secretAccessKey = undefined;
+  }
+  
   if (row.content && matchesId(row, setupViewIdentifier)) {
     return row as ViewDataContent<AwsClusterSetupConfig>;
   }
@@ -125,7 +134,7 @@ async function readSetup(payload: ReadClusterSetupConfigPayload): Promise<ViewDa
       throw new Error('Missing required key fields for AWS cluster setup config');
     }
     const readResult = await ReadData(awsClusterSetupConfigView, key, { useBusinessKey: true });
-    const normalized = normalizeSetupRow(readResult?.data ?? readResult?.result?.data ?? readResult);
+    const normalized = await normalizeSetupRow(readResult?.data ?? readResult?.result?.data ?? readResult);
     if (normalized) {
       return [normalized];
     }
@@ -145,6 +154,10 @@ async function mergeSetup(payload: WriteClusterSetupConfigPayload): Promise<View
   const clusterName = payload.clusterName ?? 'msp-dev-eks';
   const setupId = payload.setupId ?? 'aws-cluster-setup-default';
   const existing = (await readSetup({ setupId, region, clusterName }))[0] ?? seedSetup(region, clusterName, setupId);
+
+  if (payload.secretAccessKey && payload.secretAccessKey != '__redacted__') {
+    await storeAwsSecretAccessKey(payload.secretAccessKey);
+  }
 
   const nextContent: ViewDataContent<AwsClusterSetupConfig> = {
     ...existing,

@@ -1,5 +1,5 @@
 import { Columns, LabelFrame, PresetBooleanComponent, PresetSelectComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder5 as wizPage4 } from '../awsSetupWizardContent';
+import type { builder5 as wizPage4 } from '../awsSetupWizardContent';
 import { awsEdgeDbFluxorData, awsPostgresFluxorData, awsRedisFluxorData } from '../../../../../fluxorObjects/awsSetupWizardFluxor.js';
 
 export function withDataServicesPage(builder: typeof wizPage4) {

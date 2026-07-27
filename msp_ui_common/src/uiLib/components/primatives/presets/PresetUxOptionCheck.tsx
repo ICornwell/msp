@@ -1,0 +1,45 @@
+// eslint-disable-next-line no-unused-vars
+
+import UniversalInput from "../core/UniversalInput.js";
+
+import { ReComponentCommonProps, ReComponentSystemProps } from '../../../renderEngine/components/ReComponentProps.js';
+import { createLeafComponent } from '../../../renderEngine/components/ReComponentWrapper.js';
+
+import { createUxOptionCheckStrategy } from "../core/index.js";
+
+export type PresetUxOptionCheckInputProps = {
+  textRepresentation?: { true: string; false: string; undefined: string };
+}  ;
+
+export default function PresetUxOptionCheckInput(props: PresetUxOptionCheckInputProps & ReComponentCommonProps & ReComponentSystemProps) {
+  const dataType = props.dataType ?? 'boolean';
+
+  return (
+    <UniversalInput
+    label = {props.label}
+    value = {props.value}
+    error = {props.error}
+     
+    testId = {props.testId} 
+    helperText= {props.helperText}
+    disabled= {props.disabled}
+    events = {props.events}
+    strategy = {createUxOptionCheckStrategy({
+      labels: {
+        true: props.textRepresentation?.true ?? 'True',
+        false: props.textRepresentation?.false ?? 'False',
+        undefined: props.textRepresentation?.undefined ?? 'Undefined',
+      },
+      controlType: 'checkbox',
+    })}
+    dataType = {dataType as any}
+    displayMode = 'editing'
+    hints = {[]}
+    // strategyKey: providedKey,
+    forceReadonly = {props.displayMode === 'readonly'}
+    notes = {props.notes}
+    />
+  );
+}
+
+export const PresetUxOptionCheckComponent = createLeafComponent<PresetUxOptionCheckInputProps>(PresetUxOptionCheckInput, 'PresetUxOptionCheck');

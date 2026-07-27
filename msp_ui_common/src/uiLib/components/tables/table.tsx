@@ -28,11 +28,16 @@ export function extendWithTable<C extends CNTX, RT>(
   builder: any,
   _contextPlaceHolder: C
 ): TableExtension<C, RT> {
+  const assertUnlocked = ((builder as any).__assertDefinitionUnlocked as ((methodName: string) => void) | undefined)
+    ?? (() => undefined);
+
   const config: TableConfig<LDDTOf<C>> = {
     orientation: 'rows-horizontal',
     columns: [],
     columnGroups: [],
   };
+  (config as any).__assertDefinitionUnlocked = assertUnlocked;
+  let _isBuilt = false;
 
   const extension: FluentExtension = {
     forDataType<_T extends FluxorData<any>>(): FluentSimple {
@@ -40,6 +45,7 @@ export function extendWithTable<C extends CNTX, RT>(
     },
 
     withOrientation(orientation: TableOrientation): FluentSimple {
+      assertUnlocked('table.withOrientation');
       config.orientation = orientation;
       return builder as FluentSimple;
     },
@@ -50,6 +56,7 @@ export function extendWithTable<C extends CNTX, RT>(
       eventMsgContext?: Record<string, any> | ((record: DataOf<LDDTOf<C>>) => Record<string, any>),
       icon?: React.ElementType,
     ): FluentSimple {
+      assertUnlocked('table.withRemoveIcon');
       config.removeIcon = {
         enabledWhen,
         eventMsgAction,
@@ -60,11 +67,13 @@ export function extendWithTable<C extends CNTX, RT>(
     },
 
     withVirtualization(rowHeight: number, overscan: number = 5): FluentSimple {
+      assertUnlocked('table.withVirtualization');
       config.virtualization = { enabled: true, rowHeight, overscan };
       return builder as FluentSimple;
     },
 
     withColumns(): FluentSubBuilder<ColumnBuilder<C, FluentSimple>> {
+      assertUnlocked('table.withColumns');
       return createColumnBuilder<C, FluentSimple>(
         builder as FluentSimple,
         config,
@@ -73,12 +82,14 @@ export function extendWithTable<C extends CNTX, RT>(
     },
 
     withColumnsFromSchema(selector?: (data: DataOf<LDDTOf<C>>) => (keyof DataOf<LDDTOf<C>>)[]): FluentSimple {
+      assertUnlocked('table.withColumnsFromSchema');
       (config as any).useSchemaColumns = true;
       (config as any).schemaSelector = selector;
       return builder as FluentSimple;
     },
 
     withFiltering(): FluentSubBuilder<FilterBuilder<C, FluentSimple>> {
+      assertUnlocked('table.withFiltering');
       config.enableFiltering = true;
       return createFilterBuilder<C, FluentSimple>(
         builder as FluentSimple,
@@ -87,30 +98,41 @@ export function extendWithTable<C extends CNTX, RT>(
     },
 
     enableSorting(enabled: boolean = true): FluentSimple {
+      assertUnlocked('table.enableSorting');
       config.enableSorting = enabled;
       return builder as FluentSimple;
     },
 
     enableFiltering(enabled: boolean = true): FluentSimple {
+      assertUnlocked('table.enableFiltering');
       config.enableFiltering = enabled;
       return builder as FluentSimple;
     },
 
     enableColumnResizing(enabled: boolean = true): FluentSimple {
+      assertUnlocked('table.enableColumnResizing');
       config.enableColumnResizing = enabled;
       return builder as FluentSimple;
     },
 
     enableRowSelection(enabled: boolean = true): FluentSimple {
+      assertUnlocked('table.enableRowSelection');
       config.enableRowSelection = enabled;
       return builder as FluentSimple;
     },
 
     _buildExtension: (_buildConfig: any, extendedElement: any) => {
+      if (_isBuilt) {
+        return;
+      }
       extendedElement.componentProps = {
         ...extendedElement.componentProps,
         tableConfig: config,
       };
+      _isBuilt = true;
+    },
+    _resetExtensionBuildState: () => {
+      _isBuilt = false;
     }
   };
 

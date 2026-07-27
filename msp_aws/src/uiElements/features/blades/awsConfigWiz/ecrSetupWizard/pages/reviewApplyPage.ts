@@ -1,5 +1,5 @@
 import { BasicButton, Columns, LabelFrame, PresetTextComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder4 as wizPage3 } from '../ecrSetupWizardContent.js';
+import type { builder4 as wizPage3 } from '../ecrSetupWizardContent.js';
 
 export function withReviewApplyPage(builder: typeof wizPage3) {
   return builder

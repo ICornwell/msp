@@ -1,7 +1,12 @@
-import { Columns, LabelFrame, PresetBooleanComponent, PresetSelectComponent, PresetTextComponent, StatusLabel, BasicButton, Table } from 'msp_ui_common/uiLib';
+import { Columns, LabelFrame, PresetUxOptionCheckComponent,
+   PresetSelectComponent, PresetTextComponent,
+    StatusLabel, BasicButton, Table } from 'msp_ui_common/uiLib';
 import { ecrSetupConfigView } from '../../../../../../data/index.js';
-import { builder as wizPages } from '../ecrSetupWizardContent.js';
+import type { builder as wizPages } from '../ecrSetupWizardContent.js';
 import { ecrDesiredStateFluxorData } from '../../../../../fluxorObjects/ecrSetupWizardFluxor.js';
+import { EcrSetupWizardDraftFluxorData } from '../../../../../fluxorObjects/ecrWizardFluxorModels.js';
+
+const repositoriesFluxorData = EcrSetupWizardDraftFluxorData.desiredState!.children!.repositories!.children!;
 
 export function withRepositoryScopePage(builder: typeof wizPages) {
   return builder
@@ -21,15 +26,15 @@ export function withRepositoryScopePage(builder: typeof wizPages) {
               .containingElementSet()
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Setup Id')
-                  .withValueBinding((ctx: any) => ctx.rootData.setupId)
+                  .withValueBinding((ctx) => ctx.rootData.setupId)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Region')
-                  .withValueBinding((ctx: any) => ctx.rootData.region)
+                  .withValueBinding((ctx) => ctx.rootData.region)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Repository Prefix')
-                  .withValueBinding((ctx: any) => ctx.localData.repositoryPrefix ?? 'actorwork')
+                  .withValueBinding((ctx) => ctx.localData.repositoryPrefix ?? 'actorwork')
                 .endElement
                 .showingItem.fromComponentElement(PresetSelectComponent)
                   .withLabel('Naming Convention')
@@ -39,20 +44,20 @@ export function withRepositoryScopePage(builder: typeof wizPages) {
                       { value: 'custom', description: 'Custom naming' },
                     ],
                   })
-                  .withValueBinding((ctx: any) => ctx.localData.namingConventionMode ?? 'default')
+                  .withValueBinding((ctx) => ctx.localData.namingConventionMode ?? 'default')
                 .endElement
-                .showingItem.fromComponentElement(PresetBooleanComponent)
+                .showingItem.fromComponentElement(PresetUxOptionCheckComponent)
                   .withLabel('Add new ECR')
-                  .withValueBinding((ctx: any) => !!ctx.localData.addNewEcr)
+                  .withValueBinding((ctx) => !!ctx.localData.addNewEcr)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('ECR Name')
-                  .withDisableWhenRule((ctx: any) => !ctx.localData.addNewEcr)
-                  .withValueBinding((ctx: any) => ctx.localData.pendingRepositoryName ?? '')
+                  .withDisableWhenRule((ctx) => !ctx.localData.addNewEcr)
+                  .withValueBinding((ctx) => ctx.localData.pendingRepositoryName ?? '')
                 .endElement
                 .showingItem.fromComponentElement(BasicButton)
                   .withLabel('Add new ECR to plan')
-                  .withDisableWhenRule((ctx: any) => {
+                  .withDisableWhenRule((ctx) => {
                     const enabled = !!ctx.localData.addNewEcr;
                     const name = ctx.localData.pendingRepositoryName?.trim();
                     return !enabled || !name;
@@ -75,19 +80,21 @@ export function withRepositoryScopePage(builder: typeof wizPages) {
           .containingElementSet()
             .showingItem.fromComponentElement(Table)
               .withLabel('Repository plan')
-              .withValueBinding((ctx: any) => (ctx.localData.repositories ?? []).map((repo: any) => ({
+              .withValueBinding((ctx) => (ctx.localData.repositories ?? []).map((repo) => ({
                 ...repo,
                 setupId: ctx.rootData.setupId,
               })))
+              .usingFluxor(repositoriesFluxorData, (ctx) => ctx.localData.repositories)
               .withColumns()
-              .column((r: any) => r.repositoryName).withHeader('Repository')
-              .column((r: any) => r.region).withHeader('Region')
-              .column((r: any) => r.mode).withHeader('Mode')
+              
+              .column((r) => r.repositoryName).withHeader('Repository')
+              .column((r) => r.region).withHeader('Region')
+              .column((r) => r.mode).withHeader('Mode')
               .endColumns
               .withRemoveIcon(
                 () => true,
                 'removeEcrRepositoryFromPlan',
-                (row: any) => ({
+                (row) => ({
                   viewDataIdentifier: ecrSetupConfigView.getViewDataIdentifier(row?.setupId ?? 'aws-ecr-setup-default'),
                 }),
               )

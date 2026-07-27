@@ -1,5 +1,5 @@
 import { BasicButton, Columns, LabelFrame, PresetSelectComponent, PresetTextComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder3 as wizPage2 } from '../awsSetupWizardContent';
+import type { builder3 as wizPage2 } from '../awsSetupWizardContent';
 import { awsDesiredStateFluxorData } from '../../../../../fluxorObjects/awsSetupWizardFluxor.js';
 
 export function withNetworkShapePage(builder: typeof wizPage2) {
@@ -10,7 +10,7 @@ export function withNetworkShapePage(builder: typeof wizPage2) {
         { label: 'Next', role: 'next' },
       ])
       .containingElementSet()
-        .usingFluxor(awsDesiredStateFluxorData, (ctx: any) => ctx.localData.desiredState ?? {})
+        .usingFluxor(awsDesiredStateFluxorData, ctx => ctx.localData.desiredState ?? {})
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Network Topology: choose how workloads are separated across the network. Defaults come from environment purpose and can be adjusted here.')
           .containingElementSet()
@@ -30,7 +30,7 @@ export function withNetworkShapePage(builder: typeof wizPage2) {
                       { value: 'fullSplit', description: 'Full Split' },
                     ],
                   })
-                  .withValueBinding((ctx: any) => ctx.localData.topologyMode ?? 'consolidated')
+                  .withValueBinding(ctx => ctx.localData.topologyMode ?? 'consolidated')
                 .endElement
                 .showingItem.fromComponentElement(PresetSelectComponent)
                   .withLabel('Availability Zones (2 or 3)')
@@ -40,11 +40,11 @@ export function withNetworkShapePage(builder: typeof wizPage2) {
                       { value: '3', description: '3 AZs' },
                     ],
                   })
-                  .withValueBinding((ctx: any) => String(ctx.localData.azCount ?? 2))
+                  .withValueBinding(ctx => String(ctx.localData.azCount ?? 2))
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('VPC Address Range (CIDR)')
-                  .withValueBinding((ctx: any) => ctx.localData.vpcCidr ?? '10.42.0.0/16')
+                  .withValueBinding(ctx => ctx.localData.vpcCidr ?? '10.42.0.0/16')
                 .endElement
                 .showingItem.fromComponentElement(BasicButton)
                   .withLabel('Calculate Network Plan')
@@ -64,7 +64,7 @@ export function withNetworkShapePage(builder: typeof wizPage2) {
           .containingElementSet()
             .showingItem.fromComponentElement(StatusLabel)
               .withLabel('')
-              .withValueBinding((ctx: any) => {
+              .withValueBinding(ctx => {
                 const subnets = ctx.localData.subnetPlan ?? [];
                 if (subnets.length === 0) return 'Click "Calculate Network Plan" to generate the subnet layout.';
                 return subnets

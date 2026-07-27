@@ -1,5 +1,5 @@
 import { Columns, LabelFrame, PresetTextComponent } from 'msp_ui_common/uiLib';
-import { builder6 as wizPage5 } from '../awsSetupWizardContent';
+import type { builder6 as wizPage5 } from '../awsSetupWizardContent';
 export function withResourceNamingPage(builder: typeof wizPage5) {
   return builder
     .withPage('resource-naming', 'Resource Naming')
@@ -16,11 +16,11 @@ export function withResourceNamingPage(builder: typeof wizPage5) {
               .containingElementSet()
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Cluster Name')
-                  .withValueBinding((ctx: any) => ctx.localData.clusterName)
+                  .withValueBinding(ctx => ctx.localData.clusterName)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('ECR Repositories')
-                  .withValueBinding((ctx: any) =>
+                  .withValueBinding(ctx =>
                     (ctx.localData.desiredState?.ecr?.repositories ?? [])
                       .map((repository: any) => repository.repositoryName)
                       .join(', '),

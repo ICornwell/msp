@@ -1,5 +1,5 @@
 import { Columns, LabelFrame, PresetBooleanComponent, PresetSelectComponent, PresetTextComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder2 as wizPage1 } from '../ecrSetupWizardContent.js';
+import type { builder2 as wizPage1 } from '../ecrSetupWizardContent.js';
 import { ecrDesiredStateFluxorData, ecrLifecyclePolicyFluxorData } from '../../../../../fluxorObjects/ecrSetupWizardFluxor.js';
 
 export function withRepositoryPoliciesPage(builder: typeof wizPage1) {
@@ -16,7 +16,9 @@ export function withRepositoryPoliciesPage(builder: typeof wizPage1) {
           .containingElementSet()
             .showingItem.fromComponentElement(StatusLabel)
               .withLabel('')
-              .withValueBinding(() => 'These defaults are applied to planned repositories and can be refined per-repository later.')
+              .withValueBinding(() => {
+                return 'These defaults are applied to planned repositories and can be refined per-repository later.';
+              })
             .endElement
             .showingItem.fromComponentElement(Columns)
               .withComponentProps({ columns: 2, fillDirection: 'down' })

@@ -155,6 +155,20 @@ export default defineConfig({
     cors: false,
     port: Ports.core.uiWeb,
     open: false,
+    // WebSocket path to the servicehub UI-notification hub. Vite's proxy
+    // (http-proxy underneath) handles the HTTP Upgrade handshake natively
+    // (ws: true) — something the fetch()-based BFF middleware in
+    // uiApiProxy.ts can never do, because after the 101 response the
+    // connection stops being HTTP request/response at all.
+    // Vite's own HMR websocket is unaffected (it lives on its own token'd
+    // path and is handled before proxying).
+    proxy: {
+      '/ws/v1': {
+        target: `http://localhost:${Ports.core.serviceHub}`,
+        ws: true,
+        changeOrigin: true,
+      },
+    },
     watch: {
       // Exclude virtual module files written by the MF plugin at startup.
       // Without this, Vite's watcher fires HMR reload events for those writes

@@ -32,23 +32,23 @@ export function withPlatformIntentPage(builder: typeof wizPages) {
                     ],
                     useStartsWithMatching: false,
                   })
-                  .withValueBinding((ctx: any) => ctx.localData.environmentPurpose ?? 'coreDev')
+                  .withValueBinding(ctx => ctx.localData.environmentPurpose ?? 'coreDev')
                 .endElement
                 .showingItem.fromComponentElement(PresetBooleanComponent)
                   .withLabel('A/B Mode (parallel version deployment)')
-                  .withValueBinding((ctx: any) => !!ctx.localData.abMode)
+                  .withValueBinding(ctx => !!ctx.localData.abMode)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Region')
-                  .withValueBinding((ctx: any) => ctx.localData.region)
+                  .withValueBinding(ctx => ctx.localData.region)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Setup Id')
-                  .withValueBinding((ctx: any) => ctx.localData.setupId)
+                  .withValueBinding(ctx => ctx.localData.setupId)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Status')
-                  .withValueBinding((ctx: any) => ctx.localData.status)
+                  .withValueBinding(ctx => ctx.localData.status)
                 .endElement
               .end()
             .endElement

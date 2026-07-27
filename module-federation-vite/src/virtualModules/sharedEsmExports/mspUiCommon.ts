@@ -45,6 +45,7 @@ export function mspUiCommonExportCode(): string {
     export const PresetSecretComponent = pick('PresetSecretComponent');
     export const PresetSelectComponent = pick('PresetSelectComponent');
     export const PresetTextComponent = pick('PresetTextComponent');
+    export const PresetUxOptionCheckComponent = pick('PresetUxOptionCheckComponent');
     export const Re = pick('Re');
     export const ServiceDispatcher = pick('ServiceDispatcher');
     export const StatusIcon = pick('StatusIcon');
@@ -60,6 +61,7 @@ export function mspUiCommonExportCode(): string {
     export const createNumberStrategy = pick('createNumberStrategy');
     export const createSecretStrategy = pick('createSecretStrategy');
     export const createSimpleSelectionStrategy = pick('createSimpleSelectionStrategy');
+    export const createUxOptionCheckStrategy = pick('createUxOptionCheckStrategy');
     export const eventTypes = pick('eventTypes');
     export const getLinkClickStrategy = pick('getLinkClickStrategy');
     export const linkClickStrategyFactory = pick('linkClickStrategyFactory');

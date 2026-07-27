@@ -22,7 +22,7 @@ export default function PresetSecretInput(
   const redactedValue = props.redactedValue ?? REDACTED_SECRET_VALUE;
   const value = String(props.value ?? '');
   const isRedacted = value === redactedValue;
-  const canToggleVisibility = !isRedacted;
+  const [canToggleVisibility, setCanToggleVisibility] = useState<boolean>(!isRedacted);
 
   const [isVisible, setIsVisible] = useState<boolean>(getInitialVisibleMode(value, isRedacted));
 
@@ -38,7 +38,11 @@ export default function PresetSecretInput(
       onToggleVisibility: () => { let newVis = !isVisible; setIsVisible(() => newVis); return newVis; },
       onBlur: (_val, _ctx) => {
         setIsVisible(false);
-      }
+      },
+      onChange: (_val, _ctx) => {
+        const isRedacted = value === redactedValue;// Handle change if needed
+        setCanToggleVisibility(!isRedacted);
+      },
     }),
     [isVisible, redactedValue, canToggleVisibility],
   );
@@ -46,12 +50,13 @@ export default function PresetSecretInput(
   return (
     <UniversalInput
       label={props.label}
-      value={props.value}
+      value={value}
       error={props.error}
       testId={props.testId}
       helperText={props.helperText}
       disabled={props.disabled}
       events={props.events}
+      placeholder={isRedacted ? '*REDACTED*' : props.placeholder}
       strategy={strategy}
       dataType={dataType as any}
       displayMode="editing"

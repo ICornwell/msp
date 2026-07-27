@@ -3,6 +3,7 @@ import { DataCacheEvents, DataCacheEventsType} from './DataCacheContext.js';
 import { ActivityEvents, ActivityEventsType } from './ActivityDispatchContext.js';
 import { NavigationEvents, NavigationEventsType } from '../events/uiNavEventMsgTypes.js';
 import { UiActivityEvent, UiDataCacheEvent, UiNavigationEvent, UiUserSessionEvent } from '../events/uiEvents.js';
+import { UiMsgNotificationNames } from '../events/uiNotificationTypes.js';
 
 // compound type acros all UI susbsystems for the event types that can be raised in the system
 // used for strong typing of the messageType field in UiEventMessage
@@ -36,7 +37,8 @@ export type UiMsgNavigationNames = {
 
 // combined type for all message names across all event domains 
 // this is the type that will be used for the messageType field in generic UiEventMessage
-export type UiMsgNames = UiMsgUserSessionNames | UiMsgDataCacheNames | UiMsgActivityNames | UiMsgNavigationNames;
+export type UiMsgNames = UiMsgUserSessionNames | UiMsgDataCacheNames
+   | UiMsgActivityNames | UiMsgNavigationNames | UiMsgNotificationNames;
 
 // for a given message name, look up the corresponding full event type
 export type EventTypesByMsgName<T extends UiMsgNames> = 

@@ -1,11 +1,13 @@
 import { serviceManager } from 'msp_svr_common';
 import { createServiceManager } from './serviceActivityRegistry.js';
 import { discoveryActivitySet } from '../activities/discovery.js';
+import { notificationsActivitySet } from '../activities/notifications.js';
 import { createDataServiceManager } from './dataActivityRegistry.js';
 
 // Create service manager for local activities
 const localServices = serviceManager();
 localServices.use(discoveryActivitySet);
+localServices.use(notificationsActivitySet);
 
 // Main routing function - checks local first, then uses registry's ActivitySet
 export async function routeServiceActivity(

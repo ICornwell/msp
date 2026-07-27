@@ -7,6 +7,8 @@ import { handler as app } from './api.js';
 import http from 'http';
 import { config } from 'dotenv';
 import {Ports} from "msp_svr_common"
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import { getConfig } from "msp_svr_common";
 
 // Load environment variables
 config();
@@ -28,6 +30,17 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+const getServiceHubUrl = () => getConfig().serviceHubApiUrl || 'http://localhost:4001';
+
+const wsProxy = createProxyMiddleware({
+  target: getServiceHubUrl(),
+  ws: true,
+  pathFilter: '/v1/ws',
+});
+app.use(wsProxy);
+// crucial line — wire the upgrade event manually:
+server.on('upgrade', wsProxy.upgrade);
 
 /**
  * Normalize a port into a number, string, or false.

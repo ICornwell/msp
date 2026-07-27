@@ -111,6 +111,7 @@ export const UserSessionContext = createContext<{
   addHandler: (id: string, handler: UserChangeHandler) => void;
   removeHandler: (id: string) => void;
   getSessionInfo: () => SessionInfo;
+  getToken: () => string
   login: () => void
   loggedOut: () => void
 }>({
@@ -118,6 +119,7 @@ export const UserSessionContext = createContext<{
   removeHandler: (_id: string) => {},
   getSessionInfo: () => ({ userName: undefined, userId: undefined }),
   login: () => { },
+  getToken: () => '',
   loggedOut: () => { }
 });
 
@@ -373,6 +375,7 @@ function deregisterTokenWithServiceWorker(state: UserSessionState,callback: () =
         addHandler,
         removeHandler,
         getSessionInfo,
+        getToken: () => state.current.idToken ?? '',
         login,
         loggedOut
       }}>

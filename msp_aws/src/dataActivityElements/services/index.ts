@@ -1,2 +1,3 @@
 export * from './awsResourceDataServices.js';
-export * from './awsCredentialResolver.js';
+export * from './awsAccountResourceReads.js';
+

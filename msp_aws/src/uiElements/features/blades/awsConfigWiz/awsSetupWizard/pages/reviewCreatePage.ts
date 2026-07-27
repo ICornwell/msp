@@ -1,5 +1,5 @@
 import { BasicButton, Columns, LabelFrame, PresetTextComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder7 as wizPage6 } from '../awsSetupWizardContent';
+import type { builder7 as wizPage6 } from '../awsSetupWizardContent';
 export function withReviewCreatePage(builder: typeof wizPage6) {
   return builder
     .withPage('review-create', 'Review and Create')
@@ -20,11 +20,11 @@ export function withReviewCreatePage(builder: typeof wizPage6) {
               .containingElementSet()
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Updated At')
-                  .withValueBinding((ctx: any) => ctx.localData.updatedAt)
+                  .withValueBinding(ctx => ctx.localData.updatedAt)
                 .endElement
                 .showingItem.fromComponentElement(PresetTextComponent)
                   .withLabel('Current Status')
-                  .withValueBinding((ctx: any) => ctx.localData.status)
+                  .withValueBinding(ctx => ctx.localData.status)
                 .endElement
                 .showingItem.fromComponentElement(BasicButton)
                   .withLabel('Save Draft')

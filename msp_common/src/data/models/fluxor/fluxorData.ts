@@ -39,20 +39,22 @@ type FluxorArrayNode<T> =
   FluxorArrayMember<T> extends FluxorPrimitive
     ? FluxorProps<FluxorArrayMember<T>> & FluxorArray
     : (
-      // Backward compatible: existing array-complex metadata-only declarations remain valid.
-      (FluxorProps<FluxorArrayMember<T>> & FluxorComplex & FluxorArray)
-      // New: allow nested child descriptor declarations directly under the node.
-      | (FluxorProps<FluxorArrayMember<T>> & FluxorComplex & FluxorArray & FluxorData<FluxorArrayMember<T>>)
+      // Complex array member: child descriptors live under the dedicated 'children' key
+      // so they can never clash with FluxorProps metadata names, and property access
+      // works without union narrowing.
+      FluxorProps<FluxorArrayMember<T>> & FluxorComplex & FluxorArray & {
+        children?: FluxorData<FluxorArrayMember<T>>;
+      }
     );
 
 type FluxorObjectNode<T> =
   Exclude<T, undefined> extends FluxorPrimitive
     ? FluxorProps<Exclude<T, undefined>>
     : (
-      // Backward compatible: existing complex metadata-only declarations remain valid.
-      (FluxorProps<Exclude<T, undefined>> & FluxorComplex)
-      // New: allow nested child descriptor declarations directly under the node.
-      | (FluxorProps<Exclude<T, undefined>> & FluxorComplex & FluxorData<Exclude<T, undefined>>)
+      // Complex object: child descriptors live under the dedicated 'children' key.
+      FluxorProps<Exclude<T, undefined>> & FluxorComplex & {
+        children?: FluxorData<Exclude<T, undefined>>;
+      }
     );
 
 export type FluxorData<T> = {
@@ -75,6 +77,7 @@ const fluxorMetaKeys = new Set([
   'hidden',
   'error',
   'withChildData',
+  'children',
   '_parentObjectKeyName',
   '_schemaName',
   'isArray',
@@ -86,6 +89,7 @@ function getChildFluxorDescriptor(node: any): Record<string, any> {
     return {};
   }
 
+  // Legacy support: child descriptors declared inline alongside metadata keys.
   const childEntries = Object.entries(node).filter(([key]) => !fluxorMetaKeys.has(key));
   const inlineChildren = Object.fromEntries(childEntries);
 
@@ -93,7 +97,12 @@ function getChildFluxorDescriptor(node: any): Record<string, any> {
     ? node.withChildData
     : {};
 
-  return { ...withChildData, ...inlineChildren };
+  // Canonical: child descriptors under the dedicated 'children' key win.
+  const children = node.children && typeof node.children === 'object'
+    ? node.children
+    : {};
+
+  return { ...withChildData, ...inlineChildren, ...children };
 }
 
 function isComplexFluxorNode(node: any): boolean {

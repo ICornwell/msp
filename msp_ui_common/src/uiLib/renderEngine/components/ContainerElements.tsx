@@ -39,11 +39,15 @@ export function extendWithElementSetContainer<C extends CNTX, RT, BLD>(
   _contextPlaceHolder: C
 ): ElementSetContainerExtension<C, RT> {
   const containedBuilders: ReUiPlanElementSetBuilder<any, any>[] = [];
+  let _isBuilt = false;
   const extension: FluentExtension = {
     containingElementSet: (): FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>> => (
       CreateReUiPlanElementSet<C, BLD>(builder, containedBuilders) as unknown as FluentSubBuilder<ReUiPlanElementSetBuilder<C, FluentSimple>>
     ),
     _buildExtension: (buildConfig: any, extendedElement: ReUiPlanElement) => {
+      if (_isBuilt) {
+        return;
+      }
       if (!extendedElement.children) extendedElement.children = [];
       if (!extendedElement.sharedProps) extendedElement.sharedProps = [];
       containedBuilders.forEach(setBuilder => {
@@ -51,6 +55,11 @@ export function extendWithElementSetContainer<C extends CNTX, RT, BLD>(
         if (extendedElement.children) extendedElement.children.push(...components);
         if (extendedElement.sharedProps) extendedElement.sharedProps.push(...sharedProps);
       });
+      _isBuilt = true;
+    },
+    _resetExtensionBuildState: () => {
+      containedBuilders.length = 0;
+      _isBuilt = false;
     }
   };
 

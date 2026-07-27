@@ -12,6 +12,10 @@ export function addAwsActivityFeatures(service: ManifestServiceBuilder<any, any>
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])
       .endActivityFeature
+    .withActivityFeature('listAccountResources', '1.0.0', 'default')
+      .withAllowedContexts(['AUTH'])
+      .forProducts([{ domain: '*', name: '*', version: '*' }])
+      .endActivityFeature
     .withActivityFeature('readClusterSetupConfig', '1.0.0', 'default')
       .withAllowedContexts(['AUTH'])
       .forProducts([{ domain: '*', name: '*', version: '*' }])

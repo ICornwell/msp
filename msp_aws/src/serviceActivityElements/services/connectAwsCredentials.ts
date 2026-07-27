@@ -1,5 +1,6 @@
-import type { ViewDataContent } from 'msp_common';
+import type { ServiceRequestResult, ViewDataContent } from 'msp_common';
 import { runDataActivity, runServiceActivity, storeSecretForServiceId, type ServiceActivityResultBuilder } from 'msp_svr_common';
+import { tryVaultSecret } from '../../shared/vault.js';
 
 export type ConnectAwsCredentialsPayload = {
   setupId?: string;
@@ -11,6 +12,7 @@ export type ConnectAwsCredentialsPayload = {
   secretAccessKey?: string;
   sessionToken?: string;
   persistCredentials?: boolean;
+  isTestConnectionOnly?: boolean;
 };
 
 const AWS_SECRET_SERVICE_ID = 'msp_aws.data';
@@ -122,11 +124,13 @@ export async function connectAwsCredentialsHandler(
   const accessKeyId = required(payload.accessKeyId);
   const secretInput = required(payload.secretAccessKey);
   const sessionToken = required(payload.sessionToken);
+  const isTestConnectionOnly = payload.isTestConnectionOnly;
   const persistCredentials = payload.persistCredentials === true;
   const isRedactedSecret = secretInput === REDACTED_SECRET;
-  const secretAccessKey = isRedactedSecret ? undefined : secretInput;
+  const secretAccessKey = isRedactedSecret ? await tryVaultSecret('aws.secretAccessKey') : secretInput;
 
-  if (!accountId || !accessKeyId || (!secretAccessKey && !(persistCredentials && isRedactedSecret))) {
+  // check we have all required inputs before attempting to connect
+  if (!accountId || !accessKeyId || !secretAccessKey) {
     resultBuilder.log('Missing required AWS credentials: accountId, accessKeyId and secretAccessKey are required.');
     return resultBuilder.successfullyFailed({
       connected: false,
@@ -150,31 +154,9 @@ export async function connectAwsCredentialsHandler(
       })
   }
 
-  if (isRedactedSecret && !persistCredentials) {
-    const message = 'Secret Access Key is redacted. Re-enter the real secret to run credential validation.';
-    resultBuilder.log(message);
-    return resultBuilder.successfullyFailed(
-      {
-        connected: false,
-        connection: {
-          connected: false,
-          accountId,
-          checkedAt: new Date().toISOString(),
-          message,
-        },
-        data: {},
-        accountId,
-        accountName,
-        region,
-        setupId,
-        clusterName,
-      },
-      message,
-      { code: 'INVALID_INPUT' },
-    );
-  }
-
-  if (isRedactedSecret && persistCredentials) {
+  // if we have been asked to only check the connection,
+  //  we can skip persisting the secret and just validate the credentials
+  if (!isTestConnectionOnly) {
     const checkedAt = new Date().toISOString();
     const connectionMessage = 'Using existing vaulted secret (redacted input). Vault secret left unchanged.';
     const writeResponse = await runServiceActivity(
@@ -201,30 +183,9 @@ export async function connectAwsCredentialsHandler(
         { code: 'WRITE_SETUP_FAILED' },
       );
     }
-
-    resultBuilder.log(`AWS credential store skipped vault update because secret value was redacted for accountId=${accountId} region=${region}.`);
-    return resultBuilder.success({
-      connected: true,
-      connection: {
-        connected: true,
-        accountId,
-        message: connectionMessage,
-        checkedAt,
-      },
-      data: writeResponse.result?.data,
-      accountId,
-      accountName,
-      region,
-      setupId,
-      clusterName,
-      credentialsStored: {
-        accessKeyId: false,
-        secretAccessKey: false,
-        sessionToken: false,
-      },
-    });
   }
 
+  // test the connection to AWS with the provided credentials
   try {
     const connection = await validateAwsConnectionViaDataActivity(
       accountId,
@@ -235,28 +196,32 @@ export async function connectAwsCredentialsHandler(
     );
 
     const failureMessage = connection.message || 'Unable to connect to AWS with supplied credentials.';
-
+    let writeResponse: ServiceRequestResult<any> | undefined;
+    // failed ?
     if (!connection.connected) {
-      const writeResponse = await runServiceActivity(
-      'aws',
-      'writeClusterSetupConfig',
-      '1.0.0',
-      {
-        setupId,
-        region,
-        clusterName,
-        accountId,
-        accountName,
-        connectionStatus: 'failed',
-        connectionMessage: failureMessage,
-        connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
-      },
-    );
-
+      if (persistCredentials) {
+      // update the config with the failed connection status and message
+        writeResponse = await runServiceActivity(
+          'aws',
+          'writeClusterSetupConfig',
+          '1.0.0',
+          {
+            setupId,
+            region,
+            clusterName,
+            accountId,
+            accountName,
+            connectionStatus: 'failed',
+            connectionMessage: failureMessage,
+            connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
+          },
+        );
+      }
+      // exit with status and message from the connection attempt
       return resultBuilder.success({
         connected: false,
         connection,
-        data: writeResponse.result?.data,
+        data: writeResponse?.result?.data,
         accountId,
         accountName,
         region,
@@ -265,25 +230,26 @@ export async function connectAwsCredentialsHandler(
       });
     }
 
+    // check the connected accountId matches the provided accountId (if any)
     const callerAccountId = normalizeAccountId(connection.accountId) || connection.accountId;
     if (callerAccountId && callerAccountId !== accountId) {
       const mismatchMessage = `Provided accountId ${accountId} does not match AWS caller account ${connection.accountId}.`;
 
       const writeResponse = await runServiceActivity(
-      'aws',
-      'writeClusterSetupConfig',
-      '1.0.0',
-      {
-        setupId,
-        region,
-        clusterName,
-        accountId,
-        accountName,
-        connectionStatus: 'failed',
-        connectionMessage: mismatchMessage,
-        connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
-      },
-    );
+        'aws',
+        'writeClusterSetupConfig',
+        '1.0.0',
+        {
+          setupId,
+          region,
+          clusterName,
+          accountId,
+          accountName,
+          connectionStatus: 'failed',
+          connectionMessage: mismatchMessage,
+          connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
+        },
+      );
 
       return resultBuilder.success({
         connected: false,
@@ -300,60 +266,68 @@ export async function connectAwsCredentialsHandler(
       });
     }
 
-    const writeResponse = await runServiceActivity(
-    'aws',
-    'writeClusterSetupConfig',
-    '1.0.0',
-    {
-      setupId,
-      region,
-      clusterName,
-      accountId,
-      accountName,
-      ...(persistCredentials ? { accessKeyId } : {}),
-      connectionStatus: 'success',
-      connectionMessage: connection.message || 'Connection succeeded',
-      connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
-      status: 'ready',
-    },
-  );
-
-    if (!writeResponse.success) {
-      return resultBuilder.failed(
-        writeResponse.message || 'Connected to AWS but failed to persist setup status.',
-        { code: 'WRITE_SETUP_FAILED' },
-      );
-    }
-
     let credentialsStored = false;
+
+    // rewrite the config and credentials to vault if requested (and not just a test connection)
+    // with successfils status and message from the connection attempt
     if (persistCredentials) {
+      const writeResponse = await runServiceActivity(
+        'aws',
+        'writeClusterSetupConfig',
+        '1.0.0',
+        {
+          setupId,
+          region,
+          clusterName,
+          accountId,
+          accountName,
+          ...(persistCredentials ? { accessKeyId } : {}),
+          connectionStatus: 'success',
+          connectionMessage: connection.message || 'Connection succeeded',
+          connectionCheckedAt: connection.checkedAt || new Date().toISOString(),
+          status: 'ready',
+        },
+      );
+
+      if (!writeResponse.success) {
+        return resultBuilder.failed(
+          writeResponse.message || 'Connected to AWS but failed to persist setup status.',
+          { code: 'WRITE_SETUP_FAILED' },
+        );
+      }
+
+      
+
       await storeSecretForServiceId(
-      {
-        serviceId: AWS_SECRET_SERVICE_ID,
-        secretName: 'aws.secretAccessKey',
-        secret: secretAccessKey!,
-        upsertMode: 'replace',
-        clientCacheTtlMs: 5 * 60 * 1000,
-      },
-      { includeIdClaim: true },
-    );
+        {
+          serviceId: AWS_SECRET_SERVICE_ID,
+          secretName: 'aws.secretAccessKey',
+          secret: secretAccessKey!,
+          upsertMode: 'replace',
+          clientCacheTtlMs: 5 * 60 * 1000,
+        },
+        { includeIdClaim: true },
+      );
 
       credentialsStored = true;
     }
 
+
+    // main return for successful connection
     resultBuilder.log(`AWS credentials validated for accountId=${accountId} region=${region}${persistCredentials ? ' and persisted to vault' : ''}.`);
     return resultBuilder.success({
       connected: true,
       connection,
-      data: writeResponse.result?.data,
+      data: writeResponse?.result?.data,
       accountId,
       accountName,
+      ...(persistCredentials ? { accessKeyId, secretAccessKey: '__redacted__' } : {}),
       region,
       setupId,
       clusterName,
       credentialsStored: {
         accessKeyId: false,
-        secretAccessKey: credentialsStored,
+        secretAccessKey: credentialsStored ? '__redacted__' : undefined,
         sessionToken: false,
       },
     });

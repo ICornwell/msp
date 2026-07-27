@@ -102,6 +102,7 @@ export type AwsClusterSetupConfig = {
   accountId?: string;
   accountName?: string;
   accessKeyId?: string;
+  secretAccessKey?: string;
   environmentPurpose?: EnvironmentPurpose;
   abMode?: boolean;
   connectionStatus?: 'success' | 'failed' | 'unknown';

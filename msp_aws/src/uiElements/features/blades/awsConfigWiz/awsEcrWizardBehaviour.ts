@@ -1,7 +1,7 @@
 import type { ViewDataIdentifier } from 'msp_common';
 import { createBehaviour, eventTypes } from 'msp_ui_common/uiLib';
 
-import { ecrSetupWizardContent } from './ecrSetupWizardContent.js';
+import { ecrSetupWizardPlan } from './ecrSetupWizardContent.js';
 import { ecrSetupConfigView } from '../../../../data/index.js';
 
 const defaultEcrSetupContext = {
@@ -53,7 +53,7 @@ export const useAwsEcrWizardBehaviour = () => {
         .toPresentation.toOpenBlade(
           'AwsEcrWizardBlade',
           () => ({ title: 'AWS ECR Configuration Wizard', bladeWidthPreset: 3, updateWhenDataChanges: true }),
-          ecrSetupWizardContent(),
+          ecrSetupWizardPlan,
           getEcrSetupViewId(defaultEcrSetupContext.setupId),
         )
         .endPresentation()

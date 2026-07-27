@@ -10,6 +10,7 @@ import { config } from 'dotenv';
 import { setConfig, Ports } from 'msp_svr_common';
 import { registerForBff } from './register.js';
 import { resolveConfig} from './config.js';
+import { attachWsHub } from './services/wsHub.js';
 
 import {
   testData,
@@ -36,6 +37,10 @@ app.set('port', port);
  * Create HTTP server.
  */
 const server = http.createServer(app);
+
+// WebSocket hub for UI notifications (/ws/v1). Attaches to the raw HTTP
+// server because the Upgrade handshake never reaches Express middleware.
+attachWsHub(server);
 
 /**
  * Listen on provided port, on all network interfaces.

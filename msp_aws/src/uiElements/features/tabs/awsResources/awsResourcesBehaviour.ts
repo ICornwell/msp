@@ -1,8 +1,9 @@
 import { createBehaviour, eventTypes } from 'msp_ui_common/uiLib';
 import { matchesId } from 'msp_common';
-import { awsClusterSetupConfigView, awsResourceInventoryView } from '../../../../data/index.js';
+import { awsClusterSetupConfigView, awsResourceInventoryView, awsAccountInventoryView } from '../../../../data/index.js';
 
 import { awsResourcesContent } from './awsResourcesContent.js';
+import { awsAccountInventoryContent } from './awsAccountInventoryContent.js';
 
 const defaultSetupContext = {
   setupId: 'aws-cluster-setup-default',
@@ -61,6 +62,14 @@ export const useAwsResourcesBehaviour = () => {
         menuTarget: 'top',
         context: defaultSetupContext,
       })
+      .toAdd({
+        id: 'aws-scan-account',
+        label: 'Scan AWS Account',
+        eventName: eventTypes.Navigation.ITEM_CLICK,
+        action: 'scanAwsAccount',
+        menuTarget: 'top',
+        context: defaultSetupContext,
+      })
       .endMenus()
     .endHandler()
   .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
@@ -90,6 +99,27 @@ export const useAwsResourcesBehaviour = () => {
         }),
       })
       .endActivity()
+    .endHandler()
+  .whenEventRaised(eventTypes.Navigation.ITEM_CLICK)
+    .whenEventSatisfies((event) => event?.payload?.action === 'scanAwsAccount')
+    .makeRequest.toActivity
+      .withoutWaiting({
+        id: 'listAccountResources',
+        action: 'aws/listAccountResources/1.0.0',
+        payload: { region: defaultSetupContext.region },
+      })
+      .endActivity()
+    .endHandler()
+  .whenEventRaised(eventTypes.DataCache.DATA_LOADED)
+    .whenDataIdentifierSatisfies((vid) => matchesId(vid, awsAccountInventoryView.getViewIdentifier()) && !vid?.recordId)
+    .makeRequest.toPresentation
+      .toOpenTab(
+        'AwsAccountInventoryTab',
+        { title: 'AWS Account Inventory', closable: true },
+        awsAccountInventoryContent(),
+        ({ viewDataIdentifier }) => viewDataIdentifier,
+      )
+      .endPresentation()
     .endHandler()
   .build();
 

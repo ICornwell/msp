@@ -2,7 +2,7 @@ import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import type { DataObject, ViewDataNewContent } from 'msp_common';
 import { ReadData, WriteData, type ServiceActivityResultBuilder } from 'msp_svr_common';
 
-import { resolveAwsCredentials } from './awsCredentialResolver.js';
+import { resolveAwsCredentials } from '../../shared/vault.js';
 import { awsDesiredResourceConfigView, eksClusterObject, ecrRepositoryObject } from '../../data/index.js';
 
 

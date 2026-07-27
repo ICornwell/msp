@@ -120,7 +120,7 @@ const serviceSecretVaultIndexDomainObject = createSimpleDomainObject<ServiceSecr
   serviceSecretVaultIndexSchema,
   {
     entity: true,
-    businessKey: 'indexId',
+    businessKey: 'vaultKey',
     fqId: {
       namespace: 'security',
       version: '1.0.0',

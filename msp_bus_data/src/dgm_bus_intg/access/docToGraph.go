@@ -104,6 +104,19 @@ func upsertViewData(view apiMessages.ViewQuery,
 	return upsertRequest
 }
 
+func toJsonDoc(data interface{}) jsonDoc.JsonDoc {
+	if data == nil {
+		return nil
+	}
+	if d, ok := data.(jsonDoc.JsonDoc); ok {
+		return d
+	}
+	if d, ok := data.(map[string]interface{}); ok {
+		return jsonDoc.JsonDoc(d)
+	}
+	return nil
+}
+
 func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 	parentViewElement *apiMessages.ViewElement,
 	newData jsonDoc.JsonDoc,
@@ -136,7 +149,7 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 	strippedContent := map[string]interface{}{}
 	for k, v := range newData {
 		_, ok := subNames[k]
-		if !ok {
+		if !ok && k != "__tmpId" { // remove the __tmpId from the content, it has done its job
 			strippedContent[k] = v
 		}
 	}
@@ -231,17 +244,17 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 				if t == reflect.Slice {
 					// hideous casting abound! sorry, json handling is a little messy
 					for _, n := range newObj.([]interface{}) {
-						na := n.(jsonDoc.JsonDoc)
+						na := toJsonDoc(n)
 						oai := -1
 						var oa jsonDoc.JsonDoc = nil
 						if currObj != nil {
 							currDoc := currObj.([]interface{})
 							// looking up an array item with matching index from new data in the current data
 							oai = slices.IndexFunc(currDoc,
-								func(o interface{}) bool { return o.(jsonDoc.JsonDoc)["id"] == na["id"] })
+								func(o interface{}) bool { return toJsonDoc(o)["id"] == na["id"] })
 
 							if oai >= 0 {
-								oa = currDoc[oai].(jsonDoc.JsonDoc)
+								oa = toJsonDoc(currDoc[oai])
 							}
 						}
 						recursiveUpsertViewData(v,
@@ -252,14 +265,14 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 					}
 					if currObj != nil { // can bw nil for new items
 					for _, o := range currObj.([]interface{}) {
-						oa := o.(jsonDoc.JsonDoc)
+						oa := toJsonDoc(o)
 						oai := -1
 						
 						
 							newDoc := newObj.([]interface{})
 							// looking up an array item with matching index from current data in the new data
 							oai = slices.IndexFunc(newDoc,
-								func(n interface{}) bool { return n.(jsonDoc.JsonDoc)["id"] == oa["id"] })
+								func(n interface{}) bool { return toJsonDoc(n)["id"] == oa["id"] })
 
 							if oai < 0 {
 								id := oa["id"]
@@ -278,10 +291,10 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 					// much simpler where the child is a single item
 					var c jsonDoc.JsonDoc
 					if currObj != nil {
-						c = currObj.(jsonDoc.JsonDoc)
+						c = toJsonDoc(currObj)
 					}
 					recursiveUpsertViewData(v, &viewElement,
-						newObj.(jsonDoc.JsonDoc), newData, strippedContent,
+						toJsonDoc(newObj), newData, strippedContent,
 						c, currentData, currentEntityId,
 						rawData, diffs, rootKeyName, transactionId, request)
 				}
@@ -290,7 +303,7 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 				if currObj != nil {
 					recursiveUpsertViewData(v, &viewElement,
 						nil, newData, strippedContent,
-						currObj.(jsonDoc.JsonDoc), currentData, currentEntityId,
+						toJsonDoc(currObj), currentData, currentEntityId,
 						rawData, diffs, rootKeyName, transactionId, request)
 				} else {
 					// Nothing existed previously for this optional child path.
@@ -507,7 +520,7 @@ func getEdgeIds(vertexId1 string, vertexId2 string, relationLabels []string, raw
 	edges, ok := rawData["data"].(map[string]interface{})["edges"].([]interface{})
 	if ok {
 		for _, e := range edges {
-			edge := e.(jsonDoc.JsonDoc)
+			edge := toJsonDoc(e)
 			if len(allowedLabels) > 0 {
 				edgeLabel, _ := edge["__label"].(string)
 				if !allowedLabels[edgeLabel] {

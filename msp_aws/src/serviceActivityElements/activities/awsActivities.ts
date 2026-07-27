@@ -5,6 +5,7 @@ import { listEcrRepositoriesHandler, listEksClustersHandler,
   getAwsWizardBootstrapHandler, connectAwsCredentialsHandler, refreshAwsWizardViewsHandler,
   calculateSubnetPlanHandler,
   readEcrSetupConfigHandler, writeEcrSetupConfigHandler, reconcileEcrSetupConfigHandler,
+  listAccountResourcesHandler,
 }
 from '../services/index.js';
 
@@ -22,6 +23,10 @@ export function getServiceActivities(): ActivitySet {
     .use({
       activityName: 'listEcrRepositories',
       funcs: listEcrRepositoriesHandler,
+    })
+    .use({
+      activityName: 'listAccountResources',
+      funcs: listAccountResourcesHandler,
     })
     .use({
       activityName: 'readClusterSetupConfig',

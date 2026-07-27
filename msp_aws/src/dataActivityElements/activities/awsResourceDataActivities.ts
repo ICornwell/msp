@@ -1,7 +1,8 @@
 import { ActivitySet, buildActivitySet } from 'msp_svr_common';
 import { awsIamRolesHandler, awsInventorySnapshotHandler, awsNetworkTopologyHandler,
    readAwsDesiredResourceConfigHandler, writeAwsDesiredResourceConfigHandler,
-  awsEksClustersHandler, awsEcrRepositoriesHandler, awsValidateCredentialsHandler } from '../services/index.js';
+  awsEksClustersHandler, awsEcrRepositoriesHandler, awsValidateCredentialsHandler,
+  awsAccountResourcesHandler } from '../services/index.js';
 
 
 export const AwsResourceDataActivities: ActivitySet =
@@ -41,5 +42,9 @@ export const AwsResourceDataActivities: ActivitySet =
     .use({
       activityName: 'awsValidateCredentials',
       funcs: awsValidateCredentialsHandler,
+    })
+    .use({
+      activityName: 'awsAccountResources',
+      funcs: awsAccountResourcesHandler,
     })
     .build();

@@ -1,1 +1,1 @@
-export { awsSetupWizardContent } from './awsSetupWizard/awsSetupWizardContent.js';
+export { awsSetupWizardPlan } from './awsSetupWizard/awsSetupWizardContent.js';

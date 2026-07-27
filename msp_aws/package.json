@@ -19,6 +19,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@aws-sdk/client-ec2": "^3.1083.0",
+    "@aws-sdk/client-ecr": "^3.1083.0",
+    "@aws-sdk/client-eks": "^3.1083.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.1083.0",
+    "@aws-sdk/client-resource-groups-tagging-api": "^3.1083.0",
     "@aws-sdk/client-sts": "^3.940.0",
     "@module-federation/vite": "workspace:*",
     "@vitejs/plugin-react-swc": "^4.2.2",

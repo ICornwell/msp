@@ -12,6 +12,7 @@ export type SecretStrategyOptions = {
   canToggleVisibility?: boolean;
   onToggleVisibility?: () => boolean;
   onBlur?: (value: unknown, ctx: StrategyContext) => void;
+  onChange?: (value: unknown, ctx: StrategyContext) => void;
 };
 
 // function maskSecret(value: string): string {
@@ -29,12 +30,13 @@ export function createSecretStrategy(options: SecretStrategyOptions): InputStrat
     onToggleVisibility,
     canToggleVisibility = true,
     redactedValue = DEFAULT_REDACTED_SECRET_VALUE,
+    onChange,
   } = options;
 
   return {
-    readonly: {
-      getReadOnly: (ctx: StrategyContext) => (ctx.value === redactedValue)
-    },
+    // readonly: {
+    //   getReadOnly: (ctx: StrategyContext) => (ctx.value === redactedValue)
+    // },
     formatter: {
 
     //  useFormatForEdit: true,
@@ -42,9 +44,16 @@ export function createSecretStrategy(options: SecretStrategyOptions): InputStrat
       onBlur: (value: unknown, ctx: StrategyContext) => {
         options.onBlur?.(value, ctx);
       },
+      onChange: (value: unknown, ctx: StrategyContext) => {
+        onChange?.(value, ctx);
+      },
       format: (value: unknown, _ctx: StrategyContext): string => {
         const raw = String(value ?? '');
         if (!raw) {
+          return '';
+        }
+
+        if (raw === redactedValue) {
           return '';
         }
 
@@ -52,7 +61,11 @@ export function createSecretStrategy(options: SecretStrategyOptions): InputStrat
       },
     },
     parser: {
-      parse: (input: string) => ({ success: true, value: input }),
+      parse: (input: string, ctx: StrategyContext) => (
+        { 
+          success: true,
+          value: (ctx.value === redactedValue && ctx.rawInput === '') ? redactedValue : input
+        }),
     },
     adornment: {
       getEndAdornment: (ctx) => {

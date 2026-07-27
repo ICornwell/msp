@@ -60,6 +60,7 @@ export type ReUiPlan = {
   buildSettings?: any,
   dataDescriptor?: FluxorData<any>
   sharedProps?: ReUiPlanElementShareableProps[];
+  _isBuilt?: boolean;
 }
 
 

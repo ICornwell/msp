@@ -14,7 +14,8 @@ export {
   PresetBooleanComponent,
   PresetMoneyComponent,
   PresetSelectComponent,
-  PresetLinkComponent
+  PresetLinkComponent,
+  PresetUxOptionCheckComponent
 } from './presetComponents.js';
 
 export { 

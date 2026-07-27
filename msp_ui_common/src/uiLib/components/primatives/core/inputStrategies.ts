@@ -14,7 +14,7 @@
  * - Adornments are lightweight in readonly, full-featured in edit mode
  */
 
-import { ReactNode } from 'react';
+import React, {  ReactNode } from 'react';
 
 // ============================================================================
 // Core Types
@@ -52,6 +52,10 @@ export interface ReadOnlyStrategy {
   getReadOnly: (ctx: StrategyContext) => boolean;
 }
 
+export interface CustomRenderStrategy {
+  customRenderer: (ctx: RenderStrategyContext) => ReactNode;
+}
+
 /** 
  * Adornments - icons, buttons, pickers that appear in/around the input
  * In readonly mode: lightweight (text/icon)
@@ -60,6 +64,7 @@ export interface ReadOnlyStrategy {
 export interface AdornmentStrategy {
   getStartAdornment?: (ctx: StrategyContext) => ReactNode;
   getEndAdornment?: (ctx: StrategyContext) => ReactNode;
+  showAdornmentsOnly?: (ctx: StrategyContext) => boolean;  // If true, input is hidden and only adornments are shown
 }
 
 /**
@@ -71,6 +76,7 @@ export interface FormatterStrategy {
   format: (value: unknown, ctx: StrategyContext) => string;
   inputType?: (value: unknown, ctx: StrategyContext) => string;  // Optional: specify input type (e.g., "text", "number") for better mobile keyboards
   onBlur?: (value: unknown, ctx: StrategyContext) => void;  // Optional: callback when input loses focus
+  onChange?: (value: unknown, ctx: StrategyContext) => void;  // Optional: callback when input value changes
 }
 
 /**
@@ -114,8 +120,70 @@ export interface ClickActionStrategy {
 }
 
 // ============================================================================
-// Combined Strategy (convenience type)
+// Render Strategy Context - for full custom renderers
 // ============================================================================
+
+/*
+  id={componentId}
+      data-testid={testId}
+      inputRef={inputRef}
+      variant="filled"
+      
+      // Always type="text" - we handle everything ourselves
+      type={strategy.formatter?.inputType?.(value, createContext()) ?? "text"}
+      value={inputValue}
+      placeholder={computedPlaceholder}
+      onChange={handleInput}
+      onClick={handleClick}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      label={label}
+      helperText={helperText}
+      error={error}
+      disabled={disabled}
+      slotProps={{
+        inputLabel: { shrink: true },
+        input: {
+          inputProps:{ hidden: strategy.adornment?.showAdornmentsOnly?.(createContext()) ?? false },
+          readOnly: forceReadonly || strategy.readonly?.getReadOnly(createContext()) || false,
+          startAdornment: startAdornment ? (
+            <InputAdornment style={{marginTop: '2px'}}position="start">{startAdornment}</InputAdornment>
+          ) : undefined,
+          endAdornment: combinedEndAdornment ? (
+            <InputAdornment style={{marginTop: '2px'}} position="end">{combinedEndAdornment}</InputAdornment>
+          ) : undefined,
+          sx: {
+            textAlign: alignment,
+            '& input': {
+              textAlign: alignment
+            }
+          }
+        }
+      }}
+    />
+  );
+*/
+export type RenderStrategyContext = {
+  componentId: string;
+  testId?: string;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  value: unknown;
+  rawInput: string;
+  placeholder?: string;
+  label?: string;
+  helperText?: string;
+  error?: boolean;
+  disabled?: boolean;
+  alignment: Alignment;
+  startAdornment?: ReactNode;
+  endAdornment?: ReactNode;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void ;
+  onClick: (event: React.MouseEvent) => void  | undefined;
+  onFocus: () => void  | undefined;
+  onBlur: () => void  | undefined;
+  onKeyDown: (event: React.KeyboardEvent) => void  | undefined;
+}
 
 export interface InputStrategy<T = unknown> {
   readonly?: ReadOnlyStrategy;
@@ -127,6 +195,7 @@ export interface InputStrategy<T = unknown> {
   interaction?: InteractionStrategy;
   /** When set, the control renders as a clickable link and raises a UIEvent on click */
   clickAction?: ClickActionStrategy;
+  customRender?: CustomRenderStrategy;
 }
 
 // ============================================================================

@@ -23,11 +23,8 @@ export const builder6 = withDataServicesPage(builder5);
 export const builder7 = withResourceNamingPage(builder6);
 export const builder8 = withReviewCreatePage(builder7);
 
-export function awsSetupWizardContent() {
-
-  return builder8
-    .endElement
-    .endSet
-    .BuildUiPlan();
-}
+export const awsSetupWizardPlan = builder8
+  .endElement
+  .endSet
+  .BuildUiPlan();
 

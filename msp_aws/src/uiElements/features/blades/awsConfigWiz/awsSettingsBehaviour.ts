@@ -1,6 +1,6 @@
 import { createBehaviour, eventTypes } from 'msp_ui_common/uiLib';
 
-import { awsSetupWizardContent } from './awsSetupWizardContent.js';
+import { awsSetupWizardPlan } from './awsSetupWizardContent.js';
 import { awsClusterSetupConfigView } from '../../../../data/index.js';
 
 const defaultSetupContext = {
@@ -76,6 +76,7 @@ export const useAwsSettingsBehaviour = () => {
             accessKeyId: event?.payload?.viewDataContent?.accessKeyId,
             secretAccessKey: event?.payload?.viewDataContent?.secretAccessKey,
             sessionToken: event?.payload?.viewDataContent?.sessionToken,
+            isTestConnectionOnly: true,
           }),
         })
         .endActivity()
@@ -124,6 +125,7 @@ export const useAwsSettingsBehaviour = () => {
             secretAccessKey: event?.payload?.viewDataContent?.secretAccessKey,
             sessionToken: event?.payload?.viewDataContent?.sessionToken,
             persistCredentials: true,
+            isTestConnectionOnly: false,
           }),
         })
         .endActivity()
@@ -162,7 +164,7 @@ export const useAwsSettingsBehaviour = () => {
         .toPresentation.toOpenBlade(
           'AwsSetupWizardBlade',
           () => ({ title: 'AWS Setup Configuration Wizard', bladeWidthPreset: 3, updateWhenDataChanges: true }),
-          awsSetupWizardContent(),
+          awsSetupWizardPlan,
           awsClusterSetupConfigView.getViewDataIdentifier(defaultSetupContext.setupId)
         )
         .endPresentation()

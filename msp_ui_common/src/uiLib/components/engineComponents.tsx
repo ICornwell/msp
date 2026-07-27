@@ -20,6 +20,7 @@ import { PresetSecretComponent } from './primatives/presets/PresetSecret.js';
 import { StatusIconComponent } from './primatives/StatusIcon.js';
 import { StatusLabelComponent } from './primatives/StatusLabel.js';
 import { ClickableIconComponent } from './primatives/ClickableIcon.js';
+import { PresetUxOptionCheckComponent } from './primatives/presets/PresetUxOptionCheck.js';
 
 export default function EngineComponents() {
   const { addComponent } = useEngineComponentsContext();
@@ -36,6 +37,7 @@ export default function EngineComponents() {
   addComponent(TableComponent);
 
   addComponent(PresetBooleanComponent);
+  addComponent(PresetUxOptionCheckComponent);
   addComponent(BasicButtonComponent);
   addComponent(PresetNumberComponent);
   addComponent(PresetMoneyComponent);

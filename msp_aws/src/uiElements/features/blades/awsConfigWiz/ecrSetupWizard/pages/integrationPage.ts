@@ -1,5 +1,5 @@
 import { Columns, LabelFrame, PresetTextComponent, StatusLabel } from 'msp_ui_common/uiLib';
-import { builder3 as wizPage2 } from '../ecrSetupWizardContent.js';
+import type { builder3 as wizPage2 } from '../ecrSetupWizardContent.js';
 import { ecrDesiredStateFluxorData } from '../../../../../fluxorObjects/ecrSetupWizardFluxor.js';
 
 export function withIntegrationPage(builder: typeof wizPage2) {

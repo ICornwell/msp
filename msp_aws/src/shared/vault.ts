@@ -1,4 +1,4 @@
-import { fetchSecretForServiceId } from 'msp_svr_common';
+import { fetchSecretForServiceId, storeSecretForServiceId } from 'msp_svr_common';
 
 export type AwsCredentials = {
   accessKeyId: string;
@@ -7,14 +7,14 @@ export type AwsCredentials = {
   region: string;
 };
 
-const SERVICE_ID = 'msp_aws.data';
+const AWS_SECRET_SERVICE_ID = 'msp_aws.data';
 
-async function tryVaultSecret(secretName: string): Promise<string | undefined> {
+export async function tryVaultSecret(secretName: string): Promise<string | undefined> {
   try {
     const response = await fetchSecretForServiceId({
-      serviceId: SERVICE_ID,
+      serviceId: AWS_SECRET_SERVICE_ID,
       secretName,
-      requesterServiceId: SERVICE_ID,
+      requesterServiceId: AWS_SECRET_SERVICE_ID,
     }, {
       includeIdClaim: true,
     });
@@ -25,7 +25,20 @@ async function tryVaultSecret(secretName: string): Promise<string | undefined> {
   }
 }
 
-async function resolveString(
+export async function storeAwsSecretAccessKey(secretAccessKey: string): Promise<void> {
+  await storeSecretForServiceId(
+    {
+      serviceId: AWS_SECRET_SERVICE_ID,
+      secretName: 'aws.secretAccessKey',
+      secret: secretAccessKey!,
+      upsertMode: 'replace',
+      clientCacheTtlMs: 5 * 60 * 1000,
+    },
+    { includeIdClaim: true },
+  );
+}
+
+export async function resolveString(
   secretName: string,
   envKey: string,
   fallback: string,

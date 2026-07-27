@@ -1,1 +1,1 @@
-export { ecrSetupWizardContent } from './ecrSetupWizard/ecrSetupWizardContent.js';
+export { ecrSetupWizardPlan } from './ecrSetupWizard/ecrSetupWizardContent.js';

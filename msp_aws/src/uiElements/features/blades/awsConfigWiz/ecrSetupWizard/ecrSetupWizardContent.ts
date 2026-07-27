@@ -17,9 +17,7 @@ export const builder3 = withRepositoryPoliciesPage(builder2);
 export const builder4 = withIntegrationPage(builder3);
 export const builder5 = withReviewApplyPage(builder4);
 
-export function ecrSetupWizardContent() {
-  return builder5
-    .endElement
-    .endSet
-    .BuildUiPlan();
-}
+export const ecrSetupWizardPlan = builder5
+  .endElement
+  .endSet
+  .BuildUiPlan();

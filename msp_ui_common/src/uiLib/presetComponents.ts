@@ -43,6 +43,12 @@ export const PresetBooleanComponent: ComponentWrapper<ComponentProps> = {
   extensionFactory: undefined
 } as unknown as ComponentWrapper<ComponentProps>;
 
+// UxOptionCheck component
+export const PresetUxOptionCheckComponent: ComponentWrapper<ComponentProps> = {
+  displayName: 'PresetUxOptionCheck',
+  extensionFactory: undefined
+} as unknown as ComponentWrapper<ComponentProps>;
+
 // Money/currency input component
 export const PresetMoneyComponent: ComponentWrapper<ComponentProps> = {
   displayName: 'PresetMoney',

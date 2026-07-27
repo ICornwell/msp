@@ -22,7 +22,7 @@ export interface SchemaBuilder<D extends SchemaType, IS extends Schema<any, any>
 
 export interface PropertyBuilder<T, PK extends SchemaPropertyName
 , SB extends SchemaBuilder<any, any>, IS extends Schema<any, any> | undefined> {
-  forType: <NewT>() => PropertyBuilder<NewT, PK, SB, IS>;
+  forType: <NewT extends string | number | boolean | Date | null>() => PropertyBuilder<NewT, PK, SB, IS>;
   withDictionaryId: (id: string, version: string) => PropertyBuilder<T, PK, SB, IS>;
   withInfoType: (infoType: SchemaPropertyInfoType) => PropertyBuilder<T, PK, SB, IS>;
   withDefaultLabel: (label: string) => PropertyBuilder<T, PK, SB, IS>;
@@ -45,7 +45,7 @@ export function createPropertyBuilder<T,
   };
 
   const builder: PropertyBuilder<T, PK, SB, IS  > = {
-    forType: function <NewT>(): PropertyBuilder<NewT, PK, SB, IS> {
+    forType: function <NewT extends string | number | boolean | Date | null>(): PropertyBuilder<NewT, PK, SB, IS> {
       return createPropertyBuilder<NewT, PK, SB, IS>(name, parentBuilder, property as Partial<SchemaProperty<NewT>>);
     },
     withDictionaryId: function (id: string, version: string): PropertyBuilder<T, PK, SB, IS> {

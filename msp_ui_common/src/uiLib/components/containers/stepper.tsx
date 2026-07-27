@@ -101,37 +101,49 @@ function buildPageContent(pageRecord: StepperPageRecord, buildConfig: any): Step
 function createStepperPageBuilder<C extends CNTX, RT>(
   returnTo: RT,
   pageRecord: StepperPageRecord,
-  pageBuilder: any
+  pageBuilder: any,
+  assertUnlocked: (methodName: string) => void,
+  definitionLock?: any,
 ): StepperPageBuilder<C, RT> {
   pageBuilder.withPageId = (pageId: string) => {
+    assertUnlocked('stepper.page.withPageId');
     pageRecord.page.pageId = pageId;
     return pageBuilder;
   };
   pageBuilder.withTitle = (title: string) => {
+    assertUnlocked('stepper.page.withTitle');
     pageRecord.page.title = title;
     return pageBuilder;
   };
   pageBuilder.withDescription = (description: string) => {
+    assertUnlocked('stepper.page.withDescription');
     pageRecord.page.description = description;
     return pageBuilder;
   };
   pageBuilder.withButton = (button: StepperPageButton) => {
+    assertUnlocked('stepper.page.withButton');
     pageRecord.page.buttons = [...(pageRecord.page.buttons ?? []), button];
     return pageBuilder;
   };
   pageBuilder.withButtons = (buttons: StepperPageButton[]) => {
+    assertUnlocked('stepper.page.withButtons');
     pageRecord.page.buttons = [...(pageRecord.page.buttons ?? []), ...buttons];
     return pageBuilder;
   };
   pageBuilder.withScrollEligible = (scrollEligible: boolean = true) => {
+    assertUnlocked('stepper.page.withScrollEligible');
     pageRecord.page.scrollEligible = scrollEligible;
     return pageBuilder;
   };
   pageBuilder.activateOnOpen = (activateOnOpen: boolean = true) => {
+    assertUnlocked('stepper.page.activateOnOpen');
     pageRecord.page.activateOnOpen = activateOnOpen;
     return pageBuilder;
   };
-  pageBuilder.containingElementSet = () => CreateReUiPlanElementSet(pageBuilder, pageRecord.containedBuilders) as unknown as ReUiPlanElementSetBuilder<C, StepperPageBuilder<C, RT>>;
+  pageBuilder.containingElementSet = () => {
+    assertUnlocked('stepper.page.containingElementSet');
+    return CreateReUiPlanElementSet(pageBuilder, pageRecord.containedBuilders, undefined, definitionLock) as unknown as ReUiPlanElementSetBuilder<C, StepperPageBuilder<C, RT>>;
+  };
   pageBuilder.endPage = returnTo;
 
   return pageBuilder as StepperPageBuilder<C, RT>;
@@ -142,19 +154,25 @@ export function extendWithStepper<C extends CNTX, RT, BLD>(
   builder: BLD,
   _contextPlaceHolder: C
 ): StepperExtension<C, RT> {
+  const assertUnlocked = ((builder as any).__assertDefinitionUnlocked as ((methodName: string) => void) | undefined)
+    ?? (() => undefined);
+  const definitionLock = (builder as any).__definitionLock;
+
   const stepperConfig: StepperConfig = {
     orientation: 'horizontal',
     pages: [],
   };
   const pageRecords: StepperPageRecord[] = [];
-
+  let _isBuilt = false;
   const extension: FluentExtension = {
     withOrientation(orientation: StepperOrientation): FluentSimple {
+      assertUnlocked('stepper.withOrientation');
       stepperConfig.orientation = orientation;
       return builder as FluentSimple;
     },
 
     withPage(pageId: string, title: string = pageId): FluentSubBuilder<StepperPageBuilder<C, FluentSimple>> {
+      assertUnlocked('stepper.withPage');
       const pageRecord: StepperPageRecord = {
         page: {
           pageId,
@@ -166,10 +184,13 @@ export function extendWithStepper<C extends CNTX, RT, BLD>(
 
       pageRecords.push(pageRecord);
       const pageBuilder: any = {};
-      return createStepperPageBuilder<C, FluentSimple>(builder as FluentSimple, pageRecord, pageBuilder) as unknown as FluentSubBuilder<StepperPageBuilder<C, FluentSimple>>;
+      return createStepperPageBuilder<C, FluentSimple>(builder as FluentSimple, pageRecord, pageBuilder, assertUnlocked, definitionLock) as unknown as FluentSubBuilder<StepperPageBuilder<C, FluentSimple>>;
     },
 
     _buildExtension: (buildSettings: any, extendedElement: any) => {
+      if (_isBuilt) {
+        return;
+      }
       stepperConfig.pages = pageRecords.map((pageRecord) => ({
         ...pageRecord.page,
         content: buildPageContent(pageRecord, buildSettings),
@@ -178,7 +199,12 @@ export function extendWithStepper<C extends CNTX, RT, BLD>(
         ...extendedElement.componentProps,
         stepperConfig,
       };
+      _isBuilt = true;
     },
+    _resetExtensionBuildState: () => {
+      stepperConfig.pages = [];
+      _isBuilt = false;
+    }
   };
 
   return extension as StepperExtension<C, RT>;

@@ -171,7 +171,7 @@ export default function UniversalInput(
 
   useEffect(() => {
     setInputValue(formattedValue);
-  }, []);
+  }, [strategy.formatter?.inputType?.(value, createContext())]);
 
   // Sync formatted value when value prop changes (and not actively editing)
   useEffect(() => {
@@ -230,6 +230,9 @@ export default function UniversalInput(
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+    if (strategy.formatter?.onChange) {
+      strategy.formatter.onChange(newValue, createContext(newValue));
+    }
     // Don't commit yet - just update local state
     // This is the "dumb pipe" approach
   };
@@ -393,12 +396,34 @@ export default function UniversalInput(
     );
   }
 
+  if (strategy.customRender?.customRenderer) {
+    return strategy.customRender.customRenderer({
+      componentId,
+      testId,
+      inputRef,
+      value,
+      rawInput: inputValue,
+      label,
+      error,
+      helperText,
+      disabled,
+      onChange: handleInput,
+      onFocus: handleFocus,
+      onBlur: handleBlur,
+      onKeyDown: handleKeyDown,
+      onClick: handleClick,
+      alignment,
+
+    });
+  }
+
   return (
     <TextField
       id={componentId}
       data-testid={testId}
       inputRef={inputRef}
       variant="filled"
+      
       // Always type="text" - we handle everything ourselves
       type={strategy.formatter?.inputType?.(value, createContext()) ?? "text"}
       value={inputValue}
@@ -415,6 +440,7 @@ export default function UniversalInput(
       slotProps={{
         inputLabel: { shrink: true },
         input: {
+          inputProps:{ hidden: strategy.adornment?.showAdornmentsOnly?.(createContext()) ?? false },
           readOnly: forceReadonly || strategy.readonly?.getReadOnly(createContext()) || false,
           startAdornment: startAdornment ? (
             <InputAdornment style={{marginTop: '2px'}}position="start">{startAdornment}</InputAdornment>

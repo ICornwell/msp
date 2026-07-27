@@ -1,4 +1,6 @@
-import { BSDDTOf, CNTX, ContextOf, LDDTOf, RDDTOf, ReUiPlan, ReUiPlanElement, ReUiPlanElementSet, ReUiPlanExpressionProp, ReUiPlanExpressionPropExecutionPlan, RSDDTOf, TDDTOf } from './ReUiPlan.js'
+import { BSDDTOf, CNTX, ContextOf, LDDTOf, RDDTOf, ReUiPlan, ReUiPlanElement,
+   ReUiPlanElementSet, ReUiPlanExpressionProp,
+    ReUiPlanExpressionPropExecutionPlan, RSDDTOf, TDDTOf } from './ReUiPlan.js'
 import { defaultDisplayMap } from '../fluxor/defaultDisplayMap.js'
 import { ReComponentBinder, ReComponentReBinder } from '../components/ReComponentProps.js'
 import { ComponentWrapper } from '../components/ReComponentWrapper.js'
@@ -45,23 +47,29 @@ export type ReUiDataTypeHint =
   | 'Image'
   | 'Json'
   | 'Custom'
-  | 'text'
-  | 'number'
-  | 'money'
-  | 'boolean'
-  | 'date'
-  | 'datetime'
-  | 'select'
-  | 'percentage'
-  | 'secret';
+  | 'Select'
+  | 'Secret';
 
 export type ReExtensionBuilder<_C extends CNTX, RT> = {
   _endExtension?: () => RT;
   _buildExtension?: <BS>(buildSettings: BS, extendedElement: any) => void;
+  _resetExtensionBuildState?: () => void;
 }
 
 export type ReNullExtension = {
    _buildExtension?: <BS>(buildSettings: BS, extendedElement: any) => void;
+  _resetExtensionBuildState?: () => void;
+}
+
+type ReUiPlanDefinitionLock = {
+  isLocked: boolean;
+}
+
+function assertDefinitionsUnlocked(lock: ReUiPlanDefinitionLock | undefined, methodName: string): void {
+  if (!lock?.isLocked) {
+    return;
+  }
+  throw new Error(`ReUiPlan definitions are locked after BuildUiPlan(). Cannot call '${methodName}'.`);
 }
 
 
@@ -87,6 +95,7 @@ function createPrebuiltElementBuilder<RT>(
 ): ReUiPlanComponentBuilder<any, any, any> {
   const builder: any = {
     build: () => element,
+    _resetBuildState: () => {},
     end: () => returnTo,
     endElement: returnTo
   };
@@ -121,21 +130,24 @@ export function createElementBuilderQuartet<C extends CNTX, RT>(
   returnTo: RT,
   componentBuilders: ReUiPlanComponentBuilder<any, any, any>[],
   containedElementSetBuilders?: ReUiPlanElementSetBuilder<any, any>[],
-  dataDescriptor?: FluxorData<any>
+  dataDescriptor?: FluxorData<any>,
+  definitionLock?: ReUiPlanDefinitionLock
 ): ElementBuilderQuartet<C, RT> {
   return {
     fromElementBuilder: (componentBuilder: ReUiPlanComponentBuilder<any, any, any>): RT => {
+      assertDefinitionsUnlocked(definitionLock, 'fromElementBuilder');
       componentBuilders.push(componentBuilder);
       return returnTo;
     },
     fromElementObject: (element: ReUiPlanElement): RT => {
+      assertDefinitionsUnlocked(definitionLock, 'fromElementObject');
       componentBuilders.push(createPrebuiltElementBuilder(element, returnTo));
       return returnTo;
     },
     fromComponentElement: <T extends ComponentWrapper<any>>(component: T): ComponentBuilderWithExt<C, T, RT> =>
-      CreateReUiPlanComponent(returnTo, component, componentBuilders, containedElementSetBuilders, dataDescriptor),
+      CreateReUiPlanComponent(returnTo, component, componentBuilders, containedElementSetBuilders, dataDescriptor, definitionLock),
     fromFluxorElement: (): ReUiPlanComponentBuilder<C, any, RT> =>
-      CreateReUiPlanComponent(returnTo, undefined, componentBuilders, containedElementSetBuilders, dataDescriptor)
+      CreateReUiPlanComponent(returnTo, undefined, componentBuilders, containedElementSetBuilders, dataDescriptor, definitionLock)
   };
 }
 
@@ -146,6 +158,7 @@ export function createElementBuilderQuartet<C extends CNTX, RT>(
 
 export interface ReBuilderBase<T> {
   build: <BS>(buildSettings: BS) => any;
+  _resetBuildState: () => void;
   end: () => T;
 }
 
@@ -255,6 +268,7 @@ export interface ReUiPlanSharedPropsBuilder<C extends CNTX, RT> extends ReBuilde
 // ============================================================================
 
 export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: string): ReUiPlanBuilder<C> {
+  const definitionLock: ReUiPlanDefinitionLock = { isLocked: false };
   const reUiPlan = {
     id: name,
     name: name,
@@ -266,6 +280,7 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
     mainPlanElementSet: [],
     sharedProps: [],
     buildSettings: undefined,
+    _isBuilt: false,
 //    dataDescriptor: undefined
   } as ReUiPlan
 
@@ -274,30 +289,35 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
   function getWithElementsOptions<C2 extends CNTX>(returnTo: ReUiPlanBuilder<C2>): ReUiPlanBuilderElementsOptions<C2> {
     return {
       fromElementSetBuilder: function (elementSetBuilder: ReUiPlanElementSetBuilder<any, any>): ReUiPlanBuilder<C2> {
+        assertDefinitionsUnlocked(definitionLock, 'withElementSet.fromElementSetBuilder');
         mainPlainElementSetBuilders.push(elementSetBuilder);
         return returnTo;
       },
       fromElementSetObject: function (set: ReUiPlanElementSet): ReUiPlanBuilder<C2> {
+        assertDefinitionsUnlocked(definitionLock, 'withElementSet.fromElementSetObject');
         if (!reUiPlan.mainPlanElementSet) {
           reUiPlan.mainPlanElementSet = [];
         }
         reUiPlan.mainPlanElementSet.push(...set);
         return returnTo;
       },
-      fromInlineElementSet: CreateReUiPlanElementSet<C2, ReUiPlanBuilder<C2>>(returnTo, mainPlainElementSetBuilders)
+      fromInlineElementSet: CreateReUiPlanElementSet<C2, ReUiPlanBuilder<C2>>(returnTo, mainPlainElementSetBuilders, undefined, definitionLock)
     }
   }
 
   const builder: ReUiPlanBuilder<C> = {
     withElementSet: {
       usingFluxor: function <RDDT2 extends FluxorData<any>>(_newDataDescriptor: RDDT2, _binding?:  ReComponentReBinder<C, RDDT2>): ReUiPlanBuilderElementsOptions<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>> {
+        assertDefinitionsUnlocked(definitionLock, 'withElementSet.usingFluxor');
         const typedBuilder = builder as unknown as ReUiPlanBuilder<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDT2, RDDT2, TDDTOf<C>>>;
         return {
           fromElementSetBuilder: function (elementSetBuilder: ReUiPlanElementSetBuilder<any, any>): typeof typedBuilder {
+            assertDefinitionsUnlocked(definitionLock, 'withElementSet.usingFluxor.fromElementSetBuilder');
             mainPlainElementSetBuilders.push(elementSetBuilder);
             return typedBuilder;
           },
           fromElementSetObject: function (set: ReUiPlanElementSet): typeof typedBuilder {
+            assertDefinitionsUnlocked(definitionLock, 'withElementSet.usingFluxor.fromElementSetObject');
             if (!reUiPlan.mainPlanElementSet) {
               reUiPlan.mainPlanElementSet = [];
             }
@@ -308,29 +328,39 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
             typedBuilder,
             mainPlainElementSetBuilders,
             _newDataDescriptor,
+            definitionLock,
           )
         };
       },
-      ...(getWithElementsOptions<C>({} as ReUiPlanBuilder<C>))
+      fromElementSetBuilder: undefined as unknown as ReUiPlanBuilderElementsOptions<C>['fromElementSetBuilder'],
+      fromElementSetObject: undefined as unknown as ReUiPlanBuilderElementsOptions<C>['fromElementSetObject'],
+      fromInlineElementSet: undefined as unknown as ReUiPlanBuilderElementsOptions<C>['fromInlineElementSet'],
     },
 
     withDisplayTypeMap: function (map: [string, string][]) {
+      assertDefinitionsUnlocked(definitionLock, 'withDisplayTypeMap');
       reUiPlan.displayTypeMap = map;
       return builder;
     },
     withRules: function (rules: string[]) {
+      assertDefinitionsUnlocked(definitionLock, 'withRules');
       reUiPlan.rules = rules;
       return builder;
     },
     withFluxorSet: function (Fluxors: FluxorProps<any>[]) {
+      assertDefinitionsUnlocked(definitionLock, 'withFluxorSet');
       reUiPlan.fluxors = Fluxors;
       return builder;
     },
     withDescription: function (description: string) {
+      assertDefinitionsUnlocked(definitionLock, 'withDescription');
       reUiPlan.description = description;
       return builder;
     },
     BuildUiPlan: function <BS>(buildSettings: BS) {
+      if (reUiPlan._isBuilt) {
+        return reUiPlan;
+      }
       for (const esb of mainPlainElementSetBuilders) {
         const elements = esb.build(buildSettings);
         if (!reUiPlan.mainPlanElementSet) {
@@ -340,9 +370,19 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
         reUiPlan.sharedProps?.push(...((elements.sharedProps ?? []).filter(sp => sp && sp.isUsed)));
       }
       reUiPlan.buildSettings = buildSettings;
+      reUiPlan._isBuilt = true;
+      definitionLock.isLocked = true;
       return reUiPlan;
     },
     build: function <BS>(_buildSettings: BS) { console.log('Use BuildUiPlan instead of build'); return reUiPlan; },
+    _resetBuildState: function () {
+      for (const esb of mainPlainElementSetBuilders) {
+        esb._resetBuildState();
+      }
+      reUiPlan.mainPlanElementSet = [];
+      reUiPlan.sharedProps = [];
+      reUiPlan._isBuilt = false;
+    },
     end: function () {
       return undefined;
     }
@@ -357,16 +397,23 @@ export function CreateReUiPlan<C extends CNTX = CNTX>(name: string, version?: st
 export function CreateReUiPlanElementSet<C extends CNTX, RT>(
   returnTo: RT,
   elementSetBuilders: ReUiPlanElementSetBuilder<any,any>[],
-  dataDescriptor?: FluxorData<any>
+  dataDescriptor?: FluxorData<any>,
+  definitionLock?: ReUiPlanDefinitionLock
 ): ReUiPlanElementSetBuilder<C, RT> {
   let components: ReUiPlanElementSet = []
+  let sharedPropsElements: ReUiPlanElement[] = [];
+  let _isBuilt = false
   let componentBuilders: ReUiPlanComponentBuilder<any, any, any>[] = []
   let innerTypedElementBuilder: ReUiPlanElementSetBuilder<any, any> | undefined= undefined
   let sharedProps: ReUiPlanSharedPropsBuilder<any, any>[] = []
 
   const builder: ReUiPlanElementSetBuilder<C, RT> = {
     usingFluxor: function <LDDT2 extends FluxorData<any>>(_innerDataDescriptor: LDDT2, _binding?:  ReComponentReBinder<C, LDDT2>) {
-      const newBuilder = CreateReUiPlanElementSet<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>,  RT>(returnTo, elementSetBuilders, _innerDataDescriptor);
+      assertDefinitionsUnlocked(definitionLock, 'elementSet.usingFluxor');
+      // NB: pass a throwaway registration array - the inner builder is owned (and built)
+      // exclusively via innerTypedElementBuilder. Registering it in the shared
+      // elementSetBuilders array would cause its components to be emitted twice.
+      const newBuilder = CreateReUiPlanElementSet<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>,  RT>(returnTo, [], _innerDataDescriptor, definitionLock);
       innerTypedElementBuilder = newBuilder
       return newBuilder
     },
@@ -376,35 +423,56 @@ export function CreateReUiPlanElementSet<C extends CNTX, RT>(
     withSharedProps: () => ({} as ReUiPlanSharedPropsBuilder<C, ReUiPlanElementSetBuilder<C, RT>>),
     endSet: returnTo,
     build: function <BS>(buildSettings: BS) {
-      for (const cb of componentBuilders) {
-        const element = cb.build(buildSettings);
-        components.push({ componentName: element.componentName, options: { ...element, ...element.componentProps }, containing: element.children });
+      if (!_isBuilt) {
+        for (const cb of componentBuilders) {
+          const element = cb.build(buildSettings);
+          components.push({ componentName: element.componentName, options: { ...element, ...element.componentProps }, containing: element.children });
+        }
+        for (const spb of sharedProps) {
+          const spElement = spb.build(buildSettings);
+          sharedPropsElements.push(spElement);
+        }
+        if (innerTypedElementBuilder) {
+          const innerElements = innerTypedElementBuilder.build(buildSettings);
+          components.push(...innerElements.components);
+          sharedPropsElements.push(...innerElements.sharedProps);
+        }
+        _isBuilt = true;
       }
-      const sharedPropsElements: ReUiPlanElement[] = [];
+      
+      return { components: components as ReUiPlanElementSet, sharedProps: sharedPropsElements };
+    },
+    _resetBuildState: function () {
+      for (const cb of componentBuilders) {
+        cb._resetBuildState();
+      }
       for (const spb of sharedProps) {
-        const spElement = spb.build(buildSettings);
-        sharedPropsElements.push(spElement);
+        spb._resetBuildState();
       }
       if (innerTypedElementBuilder) {
-        const innerElements = innerTypedElementBuilder.build(buildSettings);
-        components.push(...innerElements.components);
-        sharedPropsElements.push(...innerElements.sharedProps);
+        innerTypedElementBuilder._resetBuildState();
       }
-      return { components: components as ReUiPlanElementSet, sharedProps: sharedPropsElements };
+      components = [];
+      sharedPropsElements = [];
+      _isBuilt = false;
     },
     end: function () {
       return returnTo;
     }
   }
 
-  builder.withSharedProps = () => CreateReUiSharedProps<C, ReUiPlanElementSetBuilder<C, RT>>(builder, componentBuilders.length, sharedProps, undefined, dataDescriptor);
+  builder.withSharedProps = () => {
+    assertDefinitionsUnlocked(definitionLock, 'elementSet.withSharedProps');
+    return CreateReUiSharedProps<C, ReUiPlanElementSetBuilder<C, RT>>(builder, componentBuilders.length, sharedProps, undefined, dataDescriptor, definitionLock);
+  };
 
   // Instantiate the quartet with proper return reference
   builder.showingItem = createElementBuilderQuartet<C, ReUiPlanElementSetBuilder<C, RT>>(
     builder,
     componentBuilders,
     undefined,
-    dataDescriptor
+    dataDescriptor,
+    definitionLock
   );
 
   elementSetBuilders.push(builder);
@@ -417,10 +485,11 @@ export function CreateReUiPlanDecoratorSet<C extends CNTX, RT>(
   returnTo: RT,
   decoratorSetBuilders: ReUiPlanDecoratorSetBuilder<any, any>[],
 //  dataDescriptor?: FluxorData<LDDTOf<C>>
+  definitionLock?: ReUiPlanDefinitionLock
 ): ReUiPlanDecoratorSetBuilder<C, RT> {
   let components: ReUiPlanElementSet = []
   let componentBuilders: ReUiPlanComponentBuilder<any, any, any>[] = []
-
+  let _isBuilt = false
 
   const builder: ReUiPlanDecoratorSetBuilder<C, RT> = {
     // Use the reusable quartet abstraction
@@ -428,13 +497,22 @@ export function CreateReUiPlanDecoratorSet<C extends CNTX, RT>(
 
     endDecoratorSet: returnTo,
     build: function <BS>(buildSettings: BS) {
-      for (const cb of componentBuilders) {
-        const element = cb.build(buildSettings);
-        components.push({ componentName: element.componentName, options: { ...element, ...element.componentProps }, containing: element.children });
+      if (!_isBuilt) {
+        for (const cb of componentBuilders) {
+          const element = cb.build(buildSettings);
+          components.push({ componentName: element.componentName, options: { ...element, ...element.componentProps }, containing: element.children });
+        }
+        _isBuilt = true;
       }
 
-
       return { components: components as ReUiPlanElementSet };
+    },
+    _resetBuildState: function () {
+      for (const cb of componentBuilders) {
+        cb._resetBuildState();
+      }
+      components = [];
+      _isBuilt = false;
     },
     end: function () {
       return returnTo;
@@ -448,6 +526,8 @@ export function CreateReUiPlanDecoratorSet<C extends CNTX, RT>(
     componentBuilders,
     containedElementSetBuilders,
   //  dataDescriptor
+    undefined,
+    definitionLock,
   );
 
   decoratorSetBuilders.push(builder);
@@ -460,7 +540,8 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
   componentWrapper?: T,
   set?: ReUiPlanComponentBuilder<any, any, any>[],
   childBuilders?: ReUiPlanElementSetBuilder<any, any>[],
-  dataDescriptor?: FluxorData<any>
+  dataDescriptor?: FluxorData<any>,
+  definitionLock?: ReUiPlanDefinitionLock
 ): ComponentBuilderWithExt<C, T, RT> {
   const reUiPlanComponent: ReUiPlanElement = {
     isReUIPlanElement: true,
@@ -486,66 +567,84 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
   // Create the base builder first, then merge in extensions
   const builder: ComponentBuilderWithExt<C, T, RT> = {
     usingFluxor: function <LDDT2 extends FluxorData<any>>(_innerDataDescriptor: LDDT2, _binding?: ReComponentReBinder<C, LDDT2>) {
-      const newBuilder = CreateReUiPlanComponent<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, RT>(returnTo, componentWrapper, set, childBuilders, _innerDataDescriptor);
+      assertDefinitionsUnlocked(definitionLock, 'component.usingFluxor');
+      // NB: pass undefined for the registration set - the inner builder is owned (and built)
+      // exclusively via innerTypedComponentBuilder. Registering it in the shared set
+      // would cause the element to be emitted twice.
+      const newBuilder = CreateReUiPlanComponent<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, T, RT>(returnTo, componentWrapper, undefined, childBuilders, _innerDataDescriptor, definitionLock);
       innerTypedComponentBuilder = newBuilder
       return newBuilder
     },
 
     withHideWhenRule: function (hidden: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withHideWhenRule');
       reUiPlanComponent.hidden = hidden;
       return builder;
     },
     hide: function (): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.hide');
       reUiPlanComponent.hidden = true;
       return builder;
     },
     disable: function (): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.disable');
       reUiPlanComponent.disabled = true;
       return builder;
     },
     withDisableWhenRule: function (disabled: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withDisableWhenRule');
       reUiPlanComponent.disabled = disabled;
       return builder;
     },
     withErrorCondition: function (error: boolean | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withErrorCondition');
       reUiPlanComponent.error = error;
       return builder;
     },
     withHelperText: function (helperText: string | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withHelperText');
       reUiPlanComponent.helperText = helperText;
       return builder;
     },
     withLabel: function (label: string | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withLabel');
       reUiPlanComponent.label = label;
       return builder;
     },
     withLabelPosition: function (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withLabelPosition');
       reUiPlanComponent.labelPosition = labelPosition;
       return builder;
     },
     withDisplayMode: function (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withDisplayMode');
       reUiPlanComponent.displayMode = displayMode;
       return builder;
     },
     withDataType: function (dataType: ReUiDataTypeHint): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withDataType');
       reUiPlanComponent.dataType = dataType;
       return builder;
     },
     withoutCollectionExpansion: function (useSingleChildForArrays: boolean): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withoutCollectionExpansion');
       reUiPlanComponent.useSingleChildForArrays = useSingleChildForArrays;
       return builder;
     },
     withDecorators: () => {
-      return CreateReUiPlanDecoratorSet<C, ReUiPlanComponentBuilder<C, T, RT>>(builder, decoratorSetBuilders); //, dataDescriptor);
+      assertDefinitionsUnlocked(definitionLock, 'component.withDecorators');
+      return CreateReUiPlanDecoratorSet<C, ReUiPlanComponentBuilder<C, T, RT>>(builder, decoratorSetBuilders, definitionLock); //, dataDescriptor);
       // decoratorSetBuilders.push(decoratorsetBuilder)
       // return decoratorsetBuilder;
     },
 
     withValueBinding: function (binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withValueBinding');
       reUiPlanComponent.binding = binding;
       return builder;
     },
     withExtraBinding: function (boundPropName: string, binding: ReComponentBinder<DataOf<RDDTOf<C>>, DataOf<LDDTOf<C>>>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withExtraBinding');
       if (!reUiPlanComponent.extraBindings) {
         reUiPlanComponent.extraBindings = {};
       }
@@ -553,19 +652,23 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
       return builder;
     },
     basedOnElementBuilder: function (basebuilder: ReUiPlanComponentBuilder<any, any, any>): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.basedOnElementBuilder');
       basedOn.push(basebuilder);
       return builder;
     },
     basedOnElement: function (element: ReUiPlanElement): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.basedOnElement');
       basedOn.push(element);
       return builder;
     },
    
     withComponentProps: function (props: PropsOf<T>): ComponentBuilderWithExt<C, T, RT>{
+      assertDefinitionsUnlocked(definitionLock, 'component.withComponentProps');
       reUiPlanComponent.componentProps = props;
       return builder;
     },
     withTempVar: function <K extends string, V>(_key: K, _value: V): ComponentBuilderWithExt<C, T, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'component.withTempVar');
       // This would set a temp var in context at runtime
       // For now, just return builder - actual implementation would store in context
       return builder;
@@ -607,11 +710,28 @@ export function CreateReUiPlanComponent<C extends CNTX, T extends ComponentWrapp
 
       return builtComponent;
     },
+    _resetBuildState: function () {
+      for (const cb of childBuilders ?? []) {
+        cb._resetBuildState();
+      }
+      for (const dsb of decoratorSetBuilders) {
+        dsb._resetBuildState();
+      }
+      if (innerTypedComponentBuilder) {
+        innerTypedComponentBuilder._resetBuildState();
+      }
+      if (builder._resetExtensionBuildState) {
+        builder._resetExtensionBuildState();
+      }
+    },
     endElement: returnTo,
     end: function () {
       return returnTo;
     }
   } as ComponentBuilderWithExt<C, T, RT>;
+
+  (builder as any).__assertDefinitionUnlocked = (methodName: string) => assertDefinitionsUnlocked(definitionLock, methodName);
+  (builder as any).__definitionLock = definitionLock;
 
   // If the component has an extension factory, call it and merge into builder
   // Pass dataDescriptor so TypeScript can infer TData from the actual value
@@ -632,7 +752,8 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
   fromComponentIndex: number,
   set?: ReUiPlanSharedPropsBuilder<any, any>[],
   childBuilders?: ReUiPlanElementSetBuilder<any, any>[],
-  dataDescriptor?: FluxorData<any>
+  dataDescriptor?: FluxorData<any>,
+  definitionLock?: ReUiPlanDefinitionLock
 ): ReUiPlanSharedPropsBuilder<C, RT> {
   const reUiPlanComponent: ReUiPlanElement = {
     isReUIPlanElement: true,
@@ -657,28 +778,36 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
 
   const builder: ReUiPlanSharedPropsBuilder<C, RT> = {
     usingFluxor: function <LDDT2 extends FluxorData<any>>(_innerDataDescriptor: LDDT2, _binding?:  ReComponentReBinder<C, LDDT2>) {
-      const newBuilder = CreateReUiSharedProps<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, RT>(returnTo, fromComponentIndex, set, childBuilders, _innerDataDescriptor);
+      assertDefinitionsUnlocked(definitionLock, 'sharedProps.usingFluxor');
+      // NB: pass undefined for the registration set - the inner builder is owned (and built)
+      // exclusively via innerTypedComponentBuilders. Registering it in the shared set
+      // would cause the shared props to be emitted twice.
+      const newBuilder = CreateReUiSharedProps<CNTX<BSDDTOf<C>, RSDDTOf<C>, RDDTOf<C>, LDDT2, TDDTOf<C>>, RT>(returnTo, fromComponentIndex, undefined, childBuilders, _innerDataDescriptor, definitionLock);
       innerTypedComponentBuilders = newBuilder
       return newBuilder
     },
 
 
     withLabelPosition: function (labelPosition: 'top' | 'start' | 'end' | 'bottom' | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanSharedPropsBuilder<C, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'sharedProps.withLabelPosition');
       reUiPlanComponent.labelPosition = labelPosition;
       reUiPlanComponent.isUsed = true
       return builder;
     },
     withDisplayMode: function (displayMode: 'editing' | 'editable' | 'readonly' | ReUiPlanExpressionProp<ContextOf<C>>): ReUiPlanSharedPropsBuilder<C, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'sharedProps.withDisplayMode');
       reUiPlanComponent.displayMode = displayMode;
       reUiPlanComponent.isUsed = true
       return builder;
     },
     withDecorators: () => {
-      return CreateReUiPlanDecoratorSet<C, ReUiPlanSharedPropsBuilder<C, RT>>(builder, decoratorSetBuilders); //, dataDescriptor);
+      assertDefinitionsUnlocked(definitionLock, 'sharedProps.withDecorators');
+      return CreateReUiPlanDecoratorSet<C, ReUiPlanSharedPropsBuilder<C, RT>>(builder, decoratorSetBuilders, definitionLock); //, dataDescriptor);
       // decoratorSetBuilders.push(decoratorsetBuilder)
       // return decoratorsetBuilder;
     },
     withComponentProps: function <CP extends ComponentWrapper<any>>(props: PropsOf<CP>): ReUiPlanSharedPropsBuilder<C, RT> {
+      assertDefinitionsUnlocked(definitionLock, 'sharedProps.withComponentProps');
       reUiPlanComponent.componentProps = { ...(reUiPlanComponent.componentProps ?? {}), ...props };
       reUiPlanComponent.isUsed = true
       return builder;
@@ -718,6 +847,17 @@ export function CreateReUiSharedProps<C extends CNTX, RT>(
       }
       (builtComponent as any).fromComponentIndex = fromComponentIndex;
       return builtComponent;
+    },
+    _resetBuildState: function () {
+      for (const cb of childBuilders ?? []) {
+        cb._resetBuildState();
+      }
+      for (const dsb of decoratorSetBuilders) {
+        dsb._resetBuildState();
+      }
+      if (innerTypedComponentBuilders) {
+        innerTypedComponentBuilders._resetBuildState();
+      }
     },
     endSharedProps: returnTo,
     end: function () {
