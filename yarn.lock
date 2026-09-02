@@ -11815,6 +11815,7 @@ __metadata:
     msp_common: "workspace:*"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
+    safe-clone-deep: "npm:^1.1.5"
     semver: "npm:^7.7.1"
     swagger-autogen: "npm:^2.23.7"
     swagger-jsdoc: "npm:^6.2.8"
