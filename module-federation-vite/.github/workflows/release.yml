@@ -10,25 +10,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: PNPM Install
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.14.2
-
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: 'pnpm'
+          cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
       - run: corepack enable
 
-      - name: Install NPM Dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: yarn install --immutable
 
       - name: Build
-        run: pnpm run build
+        run: yarn workspace @module-federation/vite run build
 
       - name: Publish to npm
         run: npm publish --access public

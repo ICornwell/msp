@@ -1,4 +1,5 @@
 import { RequestEnvelope, ServiceRequestResult } from 'msp_common';
+import { parse, stringify } from 'flatted';
 
 const apiHostName = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 
@@ -54,7 +55,7 @@ export async function serviceRequest<E extends RequestEnvelope>(serviceType: 'ac
     const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(envelope),
+      body: stringify(envelope),
       signal: controller.signal,
     });
 
@@ -65,7 +66,10 @@ export async function serviceRequest<E extends RequestEnvelope>(serviceType: 'ac
       throw new Error(`Activity call failed: ${response.status} ${response.statusText}`);
     }
 
-    const result = await response.json() as ServiceRequestResult;
+    const responseText = await response.text();
+    const result = (responseText.trim().startsWith('[')
+      ? parse(responseText)
+      : JSON.parse(responseText)) as ServiceRequestResult;
 
     return result;
   } catch (error: any) {

@@ -29,8 +29,11 @@ export async function getTokenForService(includeId: boolean = false): Promise<{ 
     tokenCache.delete(config.scope);
   }
   
+  const testingIdp = process.env['MSP_Service_IdP']?.trim();
   const authority = config.authority || 'https://login.microsoftonline.com';
-  const tokenEndpoint = `${authority}/oauth2/v2.0/token`;
+  const tokenEndpoint = testingIdp
+    ? `${testingIdp.replace(/\/$/, '')}/token`
+    : `${authority}/oauth2/v2.0/token`;
   
   const body = new URLSearchParams({
     client_id: config.clientId,

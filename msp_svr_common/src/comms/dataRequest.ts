@@ -82,7 +82,8 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 		}
 
 		if (insertResponse.status !== 200) {
-			throw new Error(`Data request failed (${insertResponse.status}): ${insertResponse.statusText}`);
+			const responseBody = await insertResponse.text();
+			throw new Error(`Data request failed (${insertResponse.status}): ${insertResponse.statusText}${responseBody ? `: ${responseBody}` : ''}`);
 		}
 
 		let result: any = undefined;
@@ -103,6 +104,7 @@ export async function WriteData(view: View, data: any, options?: DataRequestOpti
 		if (error.name === 'AbortError') {
 			throw new Error(`Data request timed out after ${timeoutMs} ms`);
 		}
+		throw error;
 	} finally {
 		if (timeoutHandle) {
 			clearTimeout(timeoutHandle);
@@ -153,7 +155,8 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		}
 
 		if (queryResponse.status !== 200) {
-			throw new Error(`Data request failed (${queryResponse.status}): ${queryResponse.statusText}`);
+			const responseBody = await queryResponse.text();
+			throw new Error(`Data request failed (${queryResponse.status}): ${queryResponse.statusText}${responseBody ? `: ${responseBody}` : ''}`);
 		}
 
 		let result: any = undefined;
@@ -168,6 +171,7 @@ export async function ReadData(view: View, id: string, options?: DataRequestOpti
 		if (error.name === 'AbortError') {
 			throw new Error(`Data request timed out after ${timeoutMs} ms`);
 		}
+		throw error;
 
 	} finally {
 		if (timeoutHandle) {

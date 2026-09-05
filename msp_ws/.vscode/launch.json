@@ -21,14 +21,31 @@
         {
             "name": "MSP Data",
             "configurations": [
+                "Start Postgres",
                 "BusData Run 'dgm_bus_intg'",
                 "TechData Run 'docgraph'",
             ],
             "stopAll": true
         },
         {
+         "name": "MSP  Back & Data",
+            "configurations": [
+                "Start Postgres",
+                "BusData Run 'dgm_bus_intg'",
+                "TechData Run 'docgraph'",
+                "Run Service Hub",
+                "Run Data Hub",
+                "Run Security",
+                "Run Semaphores",
+                "Run Actor-Work",
+                "Run PAMELA"
+            ],
+            "stopAll": true
+        },
+        {
          "name": "MSP Front & Back & Data",
             "configurations": [
+                "Start Postgres",
                 "BusData Run 'dgm_bus_intg'",
                 "TechData Run 'docgraph'",
                 "Run Service Hub",
@@ -37,6 +54,7 @@
                 "Run Semaphores",
                 "Run Actor-Work",
                 "Run AWS",
+                "Run PAMELA",
                 "Run Front End",
                 "Launch Chrome",
                 "Attach to Chrome",
@@ -129,8 +147,33 @@
         },
         {
             "runtimeExecutable": "yarn",
+            "runtimeArgs": ["pamela:start"],
+            "name": "Run PAMELA",
+            "request": "launch",
+            "type": "node",
+            "cwd": "${workspaceFolder}/..",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/../msp_pamela/distApi/**/*.js"
+            ]
+        },
+        {
+            "runtimeExecutable": "yarn",
             "runtimeArgs": ["fes:start"],
             "name": "Run Front End",
+            "request": "launch",
+            "type": "node",
+            "cwd": "${workspaceFolder}/..",
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceFolder}/../msp_fes/distApi/**/*.js"
+            ]
+
+        },
+         {
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": ["dbstart"],
+            "name": "Start Postgres",
             "request": "launch",
             "type": "node",
             "cwd": "${workspaceFolder}/..",
@@ -149,7 +192,7 @@
             "cwd": "${workspaceFolder}/..",
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/../msp_fes/distApi/**/*.js"
+                "${workspaceFolder}/../msp_security/distApi/**/*.js"
             ]
 
         },

@@ -8,6 +8,7 @@ import fileUpload from 'express-fileupload';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import { pipeline } from 'node:stream/promises';
+import { stringify } from 'flatted';
 
 import { Ports, setConfig } from 'msp_svr_common'
 import { resolveConfig } from './src/uiApi/config.js';
@@ -112,7 +113,7 @@ function getProxyCall(proxyUrl: string) {
       const newUrl = new URL(urlText);
       console.log(`MSP UI request to ${req.originalUrl} redirected to ${newUrl}`);
       console.log(`body type is ${typeof req.body}`);
-      const bodyContent = (typeof req.body === 'string') ? req.body : JSON.stringify(req.body);
+      const bodyContent = (typeof req.body === 'string') ? req.body : stringify(req.body);
       const controller = new AbortController();
       const simpleHeaders = Object.entries(req.headers || {}).reduce((acc, [key, value]) => {
         if (Array.isArray(value)) {

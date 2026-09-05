@@ -12,10 +12,10 @@ func TestUpsertViewData_AddsForwardRelationEdgeFromParentToChild(t *testing.T) {
 	view := apiMessages.ViewQuery{
 		RootKey: "id",
 		RootElement: apiMessages.ViewElement{
-			Object:       "person",
-			DocPathName:  "person",
+			Object:        "person",
+			DocPathName:   "person",
 			QueryObjectId: "p",
-			IsEntity:     true,
+			IsEntity:      true,
 			SubElements: []apiMessages.ViewElement{
 				{
 					Object:             "address",
@@ -54,10 +54,10 @@ func TestUpsertViewData_AddsBackRelationEdgeFromChildToParent(t *testing.T) {
 	view := apiMessages.ViewQuery{
 		RootKey: "id",
 		RootElement: apiMessages.ViewElement{
-			Object:       "person",
-			DocPathName:  "person",
+			Object:        "person",
+			DocPathName:   "person",
 			QueryObjectId: "p",
-			IsEntity:     true,
+			IsEntity:      true,
 			SubElements: []apiMessages.ViewElement{
 				{
 					Object:           "account",
@@ -146,6 +146,48 @@ func TestUpsertViewData_AddsBothDirectionsWhenBothRelationsAreDeclared(t *testin
 
 	assert.Equal(t, foundForward, true)
 	assert.Equal(t, foundBackward, true)
+}
+
+func TestDeduplicateNewVertices_ReusesBusinessKeyAndRewritesEdges(t *testing.T) {
+	request := &apiMessages.UpsertRequest{
+		Add: apiMessages.VerticesAndEdges{
+			Vertices: []*apiMessages.Vertex{
+				{TmpId: "artefact-1", Label: "pamelaArtefact", BusinessKey: "shared"},
+				{TmpId: "artefact-2", Label: "pamelaArtefact", BusinessKey: "shared"},
+				{TmpId: "other-1", Label: "pamelaArtefact", BusinessKey: "other"},
+			},
+			Edges: []*apiMessages.Edge{
+				{From: "artefact-2", To: "other-1"},
+				{From: "other-1", To: "artefact-2"},
+			},
+		},
+	}
+
+	deduplicateNewVertices(request)
+
+	assert.Equal(t, len(request.Add.Vertices), 2)
+	assert.Equal(t, request.Add.Vertices[0].TmpId, "artefact-1")
+	assert.Equal(t, request.Add.Edges[0].From, "artefact-1")
+	assert.Equal(t, request.Add.Edges[0].To, "other-1")
+	assert.Equal(t, request.Add.Edges[1].From, "other-1")
+	assert.Equal(t, request.Add.Edges[1].To, "artefact-1")
+}
+
+func TestDeduplicateNewVertices_DoesNotMergeDifferentLabelsOrEmptyKeys(t *testing.T) {
+	request := &apiMessages.UpsertRequest{
+		Add: apiMessages.VerticesAndEdges{
+			Vertices: []*apiMessages.Vertex{
+				{TmpId: "artefact-1", Label: "pamelaArtefact", BusinessKey: "shared"},
+				{TmpId: "assertion-1", Label: "pamelaAssertion", BusinessKey: "shared"},
+				{TmpId: "empty-1", Label: "pamelaArtefact"},
+				{TmpId: "empty-2", Label: "pamelaArtefact"},
+			},
+		},
+	}
+
+	deduplicateNewVertices(request)
+
+	assert.Equal(t, len(request.Add.Vertices), 4)
 }
 
 func TestHandleRemoval_ValueObjectDelinksWhenDelinkOnRemovalIsTrue(t *testing.T) {

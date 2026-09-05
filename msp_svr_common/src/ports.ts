@@ -15,6 +15,11 @@ const ports = {
             data: 5011,
             ui: 3011
         },
+         'pamela-pamelaMainService-1.0.0-default': {
+            services: 4013,
+            data: 5013,
+            ui: 3013
+        },
         'actorWork-activityService-1.0.0-default': {
             services: 4003,
             ui: 3003

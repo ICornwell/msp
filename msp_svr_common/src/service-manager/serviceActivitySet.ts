@@ -247,7 +247,7 @@ export function buildActivitySet(): ActivitySetBuilder {
                     payload: any, resultBuilder?: ServiceActivityResultBuilder): Promise<ServiceActivityResultBuilder> {
                     const rb = (!resultBuilder) ? CreateResultBuilder() : resultBuilder;
 
-                    async function runAllMatches(candidateActivies: ServiceActivity[], resultBuilder: ServiceActivityResultBuilder, runBeforeAndAfter = true) {
+                    async function runAllMatches(candidateActivies: ServiceActivity[], runBeforeAndAfter = true) {
                         const matchingActivities = candidateActivies.filter((handler) => isMatch(namespace, handler.namespace)
                             && isMatch(activityName, handler.activityName) && isMatch(variantName, handler.variantName));
 
@@ -267,23 +267,23 @@ export function buildActivitySet(): ActivitySetBuilder {
                                 console.log(`Running activity ${activity.namespace}:${activity.activityName} v${activity.version} for request version ${version}`);
 
                                 if (runBeforeAndAfter && (middlewareBefore?.length ?? 0) !== 0) {
-                                    await runAllMatches(middlewareBefore, rb, false);
+                                    await runAllMatches(middlewareBefore, false);
                                 }
 
-                                await func(payload, resultBuilder);
-                                if (resultBuilder.currentResult().updatedPayload) {
-                                    payload = resultBuilder.currentResult().updatedPayload;
+                                await func(payload, rb);
+                                if (rb.currentResult().updatedPayload) {
+                                    payload = rb.currentResult().updatedPayload;
                                 }
 
                                 if (runBeforeAndAfter && (middlewareAfter?.length ?? 0) !== 0) {
-                                    await runAllMatches(middlewareAfter, rb, false);
+                                    await runAllMatches(middlewareAfter, false);
                                 }
 
                             }
                         }
                     }
 
-                    await runAllMatches(activities, rb);
+                    await runAllMatches(activities);
 
 
                     return rb;

@@ -1,11 +1,13 @@
 import { DataObjectMetaData, View, ViewElement } from 'msp_common';
 
 import { getRegisteredJsonCodec } from './jsonCodecs.js';
+import { toTransportView } from './transportView.js';
 
 export async function WriteData(view: View, data: any) {
   try {
     const normalizedData = normalizeJsonFieldsForWrite(view, data);
     populateBusinessKeysInViewData(view, normalizedData);
+    const transportView = toTransportView(view);
     const id = view.rootKey === '__businessKey' ? normalizedData?.__businessKey ?? '__noid__' :  normalizedData?.__entityId ?? '__noid__';
     const insertResponse = await fetch(`http://localhost:5000/v1/doc/upsert/${id}`, {
       method: 'PUT',
@@ -13,7 +15,7 @@ export async function WriteData(view: View, data: any) {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        view,
+        view: transportView,
         data: normalizedData,
       }),
     });

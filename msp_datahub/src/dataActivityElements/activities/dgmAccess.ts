@@ -26,16 +26,22 @@ const simpleViewActivitySet: ActivitySet = buildActivitySet()
                 return serviceResult.failed(`Data request failed for view ${payload.view} and id ${payload.id}`);
             }
             const data = result as any as DataObject
+            if (!data?.__entityId || !data.__metadata) {
+                return serviceResult.success({
+                    data: undefined,
+                    message: `No data found for view ${view.name} and id ${id}`,
+                });
+            }
             const resultData: ViewDataContent<typeof view.dataType> = {
                     namespace: view.namespace ?? 'default',
                     version: view.version,
                     name: view.name,
                     variantName: view.variantName,
-                    viewRootEntityId: data.__entityId,
+                    viewRootEntityId: data?.__entityId,
                     viewRootId: id,
                     viewRootEntityType: view.rootElement.domainObject?.name ?? 'unknown',
-                    viewRootEntityHistoricTimestamp: (new Date(data.__metadata.__timeStamp)).toISOString(),
-                    viewRootBusinessKey: data.__businessKey,
+                    viewRootEntityHistoricTimestamp: data?.__metadata?.__timeStamp ? (new Date(data?.__metadata?.__timeStamp)).toISOString() : undefined,
+                    viewRootBusinessKey: data?.__businessKey,
                     content: result
                 }
             return serviceResult.success({
@@ -47,7 +53,7 @@ const simpleViewActivitySet: ActivitySet = buildActivitySet()
     .use({
         activityName: 'writeDataView',
         funcs: async (payload, serviceResult: ServiceActivityResultBuilder) => {
-            console.log(`WriteData request received: ${JSON.stringify(payload)}`);
+            console.log(`WriteData request received for view ${payload.view.name}: ${payload.view.variantName} : ${payload.view.version}`);
             return serviceResult.success(await WriteData(payload.view, payload.data));
         }
     })

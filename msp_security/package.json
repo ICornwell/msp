@@ -25,6 +25,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
+    "jose": "^6.1.3",
     "msp_common": "workspace:*",
     "msp_data_common": "workspace:*",
     "msp_svr_common": "workspace:*",

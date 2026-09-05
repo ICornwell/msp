@@ -1,5 +1,6 @@
 import { default as express } from "express";
 import { getConfig } from "msp_svr_common";
+import { parse, stringify } from 'flatted';
 
 const router = express.Router();
 
@@ -20,23 +21,26 @@ function routedProxy(route: string) {
     try {
       console.log(`Received request to ${route}`);
       const serviceHubUrl = getServiceHubUrl();
+      const requestBody = (Array.isArray(req.body)
+        ? parse(JSON.stringify(req.body))
+        : req.body) as Record<string, any>;
       const response = await fetch(`${serviceHubUrl}/api/v1/${route}`, {
         method: 'PUT',
         headers: {
           'content-type': 'application/json',
           ...extractForwardHeaders(req)
         },
-        body: JSON.stringify({
-          namespace: req.body.namespace || 'default',
-          activityName: req.body.activityName || 'default',
-          version: req.body.version || '1.0.0',
-          variantName: req.body.variantName || 'default',
-          payload: req.body.payload || req.body
+        body: stringify({
+          namespace: requestBody.namespace || 'default',
+          activityName: requestBody.activityName || 'default',
+          version: requestBody.version || '1.0.0',
+          variantName: requestBody.variantName || 'default',
+          payload: requestBody.payload || requestBody
         })
       });
 
-      const result = await response.json();
-      res.status(response.status).json(result);
+      res.status(response.status).type(response.headers.get('content-type') || 'application/json')
+        .send(await response.text());
     } catch (error: any) {
       console.error('DMZ gateway error:', error);
       res.status(500).json({

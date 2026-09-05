@@ -1,6 +1,7 @@
 import { View, ViewElement } from 'msp_common';
 
 import { getRegisteredJsonCodec } from './jsonCodecs.js';
+import { toTransportView } from './transportView.js';
 
 export async function ReadData(view: View, id: string) {
   const readResponse = await fetch(`http://localhost:5000/v1/doc/query/${id}`, {
@@ -8,7 +9,7 @@ export async function ReadData(view: View, id: string) {
     headers: {
       'content-type': 'application/json',
     },
-    body: JSON.stringify(view),
+    body: JSON.stringify(toTransportView(view)),
   });
 
   if (!readResponse.ok) {
