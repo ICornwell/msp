@@ -22,7 +22,7 @@ type FixtureAssertion = {
   polarity: 'positive' | 'negative';
 };
 
-type PamelaNorthstarFixture = {
+type PamelaBrightstarFixture = {
   artefacts: FixtureArtefact[];
   assertions: FixtureAssertion[];
 };
@@ -54,9 +54,50 @@ function toAssertionData(assertion: FixtureAssertion): PamelaAssertionData {
   };
 }
 
-export async function loadPamelaNorthstarViewData(): Promise<ArtefactAssertionsViewType[]> {
-  const fixture = await loadResourceJson<PamelaNorthstarFixture>(
-    'pamela_northstar_fixture_v0_1.json',
+const broadContextByKind: Record<string, string> = {
+  Classifier: 'ctx_new_business',
+  'Business Product': 'ctx_new_business',
+  'Application or Service': 'ctx_stp',
+  'Integration Artefact': 'ctx_stp',
+  'Policy or Control': 'ctx_renewal',
+  'Business Event': 'ctx_endorsement',
+  'Business Information Artefact': 'ctx_referred',
+  'External Service': 'ctx_referred',
+  'Cost Factor': 'ctx_renewal',
+  Context: 'ctx_new_business',
+  'Source or Evidence': 'ctx_new_business',
+};
+
+function buildExtractedContextAssertions(artefact: FixtureArtefact): PamelaAssertionData[] {
+  const broadContextId = broadContextByKind[artefact.kind] ?? 'ctx_new_business';
+  const localContext = [
+    `${artefact.preferred_label} was identified in the Brightstar enterprise analysis as a ${artefact.kind.toLowerCase()}.`,
+    artefact.description ?? `The source material describes how ${artefact.preferred_label} participates in the operating model.`,
+  ].join(' ');
+
+  return [
+    {
+      name: `ctx_broad_${artefact.id}`,
+      kind: 'assertion',
+      subject: artefact.id,
+      predicate: 'withInContext',
+      object: broadContextId,
+      polarity: 'positive',
+    },
+    {
+      name: `ctx_local_${artefact.id}`,
+      kind: 'assertion',
+      subject: artefact.id,
+      predicate: 'withInContext',
+      object: localContext,
+      polarity: 'positive',
+    },
+  ];
+}
+
+export async function loadPamelaBrightstarViewData(): Promise<ArtefactAssertionsViewType[]> {
+  const fixture = await loadResourceJson<PamelaBrightstarFixture>(
+    'pamela_brightstar_fixture_v0_1.json',
   );
   const assertionsBySubject = new Map<string, PamelaAssertionData[]>();
 
@@ -69,6 +110,12 @@ export async function loadPamelaNorthstarViewData(): Promise<ArtefactAssertionsV
     assertionsBySubject.set(subjectId, subjectAssertions);
   }
 
+  for (const artefact of fixture.artefacts) {
+    const subjectAssertions = assertionsBySubject.get(artefact.id) ?? [];
+    subjectAssertions.push(...buildExtractedContextAssertions(artefact));
+    assertionsBySubject.set(artefact.id, subjectAssertions);
+  }
+
   return fixture.artefacts.map((artefact) => {
     const assertions = assertionsBySubject.get(artefact.id) ?? [];
 
@@ -77,7 +124,7 @@ export async function loadPamelaNorthstarViewData(): Promise<ArtefactAssertionsV
       kind: 'artefact',
       description: artefact.description,
       context: undefined,
-      provenance: 'pamela_northstar_fixture_v0_1',
+      provenance: 'pamela_brightstar_fixture_v0_1',
       assertions: assertions.map((assertion) => {
         const assertionAboutAssertion = assertionsBySubject.get(assertion.name) ?? [];
 

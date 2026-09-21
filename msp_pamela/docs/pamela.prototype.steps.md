@@ -223,7 +223,7 @@ without special-case code.
 
 Use the fixture:
 
-`pamela_northstar_fixture_v0_1.json`
+`pamela_brightstar_fixture_v0_1.json`
 
 This is a fictional but recognisable SME commercial insurance estate.
 

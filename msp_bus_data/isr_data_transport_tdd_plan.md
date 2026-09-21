@@ -1,8 +1,10 @@
-# Reference Data Transport: TDD Plan
+# Internally Shared References (ISR) Data Transport: TDD Plan
 
 ## Purpose
 
 Allow a finite View payload to refer to the same Artefact or Assertion through multiple branches without duplicating the object content, creating duplicate vertices, or requiring cyclic Go object graphs.
+
+This document uses **internally shared references (ISR data)** for this protocol. It is not about conventional reference data such as pick-list values, code tables, or enumerations.
 
 This is a platform data-transport capability. It is needed by PAMELA soon, but must remain generic and understandable for all modules.
 
@@ -16,7 +18,7 @@ This is a platform data-transport capability. It is needed by PAMELA soon, but m
 - Keep the protocol small, reserved, and self-describing.
 - Fail descriptively on an unresolvable reference. Never silently create a new vertex from a reference.
 
-## Transport Contract
+## ISR Transport Contract
 
 A full object is sent normally. Every later occurrence of the same object in the outgoing View data is a reference stub:
 
@@ -34,15 +36,19 @@ A full object is sent normally. Every later occurrence of the same object in the
 Not every field is required in every state:
 
 - `object` is required. It identifies the declared View object type.
+- `id` identifies a particular persisted version when relevant.
 - `tmpId` resolves a first full occurrence in the same request.
 - `entityId` resolves an existing persisted entity.
 - `businessKey` provides a stable identity where the caller or prepare-data step has not resolved an entity ID.
 
+For full persisted objects, `__entityId` is the stable lifecycle identity for an Entity. `id` identifies the current version, and `__originalId` carries the first version ID through later versions. Value objects normally use their own `id` for version/object matching while carrying the owning Entity's `__entityId` as lifecycle context.
+
 Resolution precedence is:
 
-1. `entityId`
-2. `tmpId`
-3. `(object, businessKey)` through the existing-entity resolution path
+1. Entity `entityId` / `__entityId`
+2. Value-object `id`
+3. request-local `tmpId`
+4. explicitly resolved `(object, businessKey)`
 
 A reference stub is not an object occurrence for content-diff purposes and must not receive a generated `__tmpId`.
 

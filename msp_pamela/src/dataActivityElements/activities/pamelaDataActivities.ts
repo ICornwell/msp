@@ -4,6 +4,7 @@ import {
   listPamelaArtefactsHandler,
   listPamelaAssertionsHandler,
   writePamelaAssertionsHandler,
+  writePamelaSemanticAssertionsHandler,
 } from '../services/pamelaDataservices.js';
 
 
@@ -25,6 +26,10 @@ export const PamelaResourceDataActivities: ActivitySet =
      .use({
       activityName: 'writePamelaAssertions',
       funcs: writePamelaAssertionsHandler,
+    })
+    .use({
+      activityName: 'writePamelaSemanticAssertions',
+      funcs: writePamelaSemanticAssertionsHandler,
     })
 
     .build();

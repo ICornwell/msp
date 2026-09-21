@@ -25,6 +25,8 @@ export const PamelaObjects = createRelations()
   .allowRelationFromTo('assertionRelatesTo', pamelaAssertionObject, pamelaArtefactObject, true)
   .allowRelationFromTo('hasAssertion', pamelaAssertionObject, pamelaAssertionObject, true)
   .allowRelationFromTo('assertionRelatesTo', pamelaAssertionObject, pamelaAssertionObject, true)
+  .allowRelationFromTo('assertionHasSubject', pamelaAssertionObject, pamelaArtefactObject, true)
+  .allowRelationFromTo('assertionHasObject', pamelaAssertionObject, pamelaArtefactObject, true)
   .buildRelatedObjects();
 
 export const ArtefactAssertionsView = createView('ArtefactAssertions')
@@ -40,6 +42,22 @@ export const ArtefactAssertionsView = createView('ArtefactAssertions')
       .end()
     .end()
     .end()
+  .endView()
+  .build();
+
+export const SemanticArtefactAssertionsView = createView('SemanticArtefactAssertions')
+  .useBusinessKey()
+  .withRootElement(PamelaObjects.pamelaArtefact, false)
+    .withNamedSubElement('assertions', PamelaObjects.pamelaAssertion, true)
+      .withRelation('hasAssertion')
+      .withNamedSubElement('subjectArtefact', PamelaObjects.pamelaArtefact, false)
+        .withRelation('assertionHasSubject')
+      .end()
+      .withNamedSubElement('objectArtefact', PamelaObjects.pamelaArtefact, false)
+        .withRelation('assertionHasObject')
+      .end()
+    .end()
+  .end()
   .endView()
   .build();
 

@@ -22,7 +22,7 @@ describe('PAMELA Stage 1 platform-native model', () => {
   });
 
   it('builds the platform object graph and assertion view', () => {
-    const entCoverstar = createEntityObject('ent_coverstar', artefactSchema)
+    const entBrightstar = createEntityObject('ent_Brightstar', artefactSchema)
       .withFQId({ namespace: 'pamela', version: '1.0' })
       .withUniqueBusinessKey('name')
       .forDomain({ name: 'pamela', version: '1.0' })
@@ -59,7 +59,7 @@ describe('PAMELA Stage 1 platform-native model', () => {
       .buildObject();
 
     const graph = createRelations()
-      .allowRelationFromTo('hasAssertion', entCoverstar, asrt006, true)
+      .allowRelationFromTo('hasAssertion', entBrightstar, asrt006, true)
       .allowRelationFromTo('hasAssertion', prodSmePackage, asrt006, true)
       .allowRelationFromTo('hasAssertion', coverProperty, asrt008, true)
       .allowRelationFromTo('assertionRelatesTo', asrt006, prodSmePackage, true)
@@ -67,7 +67,7 @@ describe('PAMELA Stage 1 platform-native model', () => {
       .allowRelationFromTo('supports', asrt008, asrt006, true)
       .buildRelatedObjects();
 
-    expect(graph.ent_coverstar.allowedRelationsFrom.map((rel) => rel.name)).toContain('hasAssertion');
+    expect(graph.ent_Brightstar.allowedRelationsFrom.map((rel) => rel.name)).toContain('hasAssertion');
     expect(graph.prod_sme_package.allowedRelationsFrom.map((rel) => rel.name)).toContain('hasAssertion');
     expect(graph.asrt_006.allowedRelationsFrom.map((rel) => rel.name)).toContain('assertionRelatesTo');
     expect(graph.asrt_006.allowedRelationsFrom.map((rel) => rel.name)).toContain('derivedFrom');
@@ -75,7 +75,7 @@ describe('PAMELA Stage 1 platform-native model', () => {
 
     const view = createView('artefact-assertions')
       .useBusinessKey()
-      .withRootElement(graph.ent_coverstar, false)
+      .withRootElement(graph.ent_Brightstar, false)
         .withNamedSubElement('assertions', graph.asrt_006, true)
           .withRelation('hasAssertion')
         .end()
@@ -84,7 +84,7 @@ describe('PAMELA Stage 1 platform-native model', () => {
       .build();
 
     expect(view.name).toBe('artefact-assertions');
-    expect(view.rootElement.object).toBe('ent_coverstar');
+    expect(view.rootElement.object).toBe('ent_Brightstar');
     expect(view.rootElement.subElements).toHaveLength(1);
     expect(view.rootElement.subElements?.[0].object).toBe('asrt_006');
 

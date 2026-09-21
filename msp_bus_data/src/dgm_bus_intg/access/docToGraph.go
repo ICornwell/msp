@@ -178,6 +178,24 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 	request *apiMessages.UpsertRequest) {
 
 	// we should always have either an id or a __tmpId
+	if referenceTarget, ok := jsonDoc.ISRReferenceTarget(newData); ok {
+		if parentNewData != nil {
+			parentID, parentOK := jsonDoc.GetId(parentNewData).(string)
+			if parentOK {
+				for _, edge := range relationEdgesForViewElement(viewElement, parentID, referenceTarget) {
+					request.Add.Edges = append(request.Add.Edges, &apiMessages.Edge{
+						Label:         edge.label,
+						TransactionId: transactionId,
+						From:          edge.from,
+						To:            edge.to,
+						ViewType:      "default",
+						Content:       map[string]interface{}{},
+					})
+				}
+			}
+		}
+		return
+	}
 
 	var id = jsonDoc.GetId(newData)
 

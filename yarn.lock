@@ -11666,6 +11666,7 @@ __metadata:
     express-fileupload: "npm:^1.5.2"
     happy-dom: "npm:^17.4.7"
     msp_common: "workspace:*"
+    msp_data_common: "workspace:*"
     msp_svr_common: "workspace:*"
     msp_ui_common: "workspace:*"
     node-fetch: "npm:^3.3.2"

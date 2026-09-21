@@ -1,7 +1,12 @@
 import { ReadData, WriteData, type ActivitySet } from 'msp_svr_common';
 import type { ServiceActivityResultBuilder } from 'msp_svr_common';
 
-import { ArtefactAssertionsView, ArtefactAssertionsViewType, buildPamelaStage1Fixture } from '../../data/graph/index.js';
+import {
+  ArtefactAssertionsView,
+  ArtefactAssertionsViewType,
+  SemanticArtefactAssertionsView,
+  buildPamelaStage1Fixture,
+} from '../../data/graph/index.js';
 
 const stage1Fixture = buildPamelaStage1Fixture();
 
@@ -61,6 +66,22 @@ export async function writePamelaAssertionsHandler(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return resultBuilder.failed(`PAMELA assertion write failed: ${message}`);
+  }
+}
+
+export async function writePamelaSemanticAssertionsHandler(
+  data: typeof SemanticArtefactAssertionsView.dataType,
+  resultBuilder: ServiceActivityResultBuilder,
+): Promise<ServiceActivityResultBuilder> {
+  try {
+    const writeResult = await WriteData(SemanticArtefactAssertionsView, data);
+    if (writeResult === undefined) {
+      return resultBuilder.failed('PAMELA semantic assertion write returned no backend result.');
+    }
+    return resultBuilder.success({ data: writeResult });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return resultBuilder.failed(`PAMELA semantic assertion write failed: ${message}`);
   }
 }
 

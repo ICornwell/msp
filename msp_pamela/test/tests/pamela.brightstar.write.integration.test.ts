@@ -4,16 +4,16 @@ import { ReadData, runDataActivity, setConfig } from 'msp_svr_common';
 
 import { resolveConfig } from '../../src/dataActivityElements/config.js';
 import { ArtefactAssertionsView } from '../../src/data/graph/index.js';
-import { loadPamelaNorthstarViewData } from '../setups/pamelaNorthstarSetup.js';
+import { loadPamelaBrightstarViewData } from '../setups/pamelaBrightstarSetup.js';
 
 loadEnvironment();
 
-describe('PAMELA Northstar backend write', () => {
-  let viewData: Awaited<ReturnType<typeof loadPamelaNorthstarViewData>>;
+describe('PAMELA Brightstar backend write', () => {
+  let viewData: Awaited<ReturnType<typeof loadPamelaBrightstarViewData>>;
 
   beforeAll(async () => {
     setConfig(resolveConfig());
-    viewData = await loadPamelaNorthstarViewData();
+    viewData = await loadPamelaBrightstarViewData();
   });
 
   it('writes every fixture artefact and its assertions through the data activity', async () => {
@@ -21,7 +21,7 @@ describe('PAMELA Northstar backend write', () => {
     expect(viewData[0]).toMatchObject({
       name: 'cls_enterprise',
       kind: 'artefact',
-      assertions: [
+      assertions: expect.arrayContaining([
         expect.objectContaining({
           name: 'asrt_00001',
           subject: 'cls_enterprise',
@@ -29,9 +29,21 @@ describe('PAMELA Northstar backend write', () => {
           object: 'Enterprise',
           polarity: 'positive',
         }),
-      ],
+      ]),
     });
-    expect(viewData.flatMap((artefact) => artefact!.assertions)).toHaveLength(788);
+    expect(viewData[0]!.assertions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: 'ctx_broad_cls_enterprise',
+        predicate: 'withInContext',
+        object: 'ctx_new_business',
+      }),
+      expect.objectContaining({
+        name: 'ctx_local_cls_enterprise',
+        predicate: 'withInContext',
+        object: expect.stringContaining('Enterprise was identified'),
+      }),
+    ]));
+    expect(viewData.flatMap((artefact) => artefact!.assertions)).toHaveLength(966);
     expect(viewData.flatMap((artefact) =>
       artefact!.assertions!.flatMap((assertion) => assertion.assertionsAboutAssertion),
     )).toHaveLength(1_173);
