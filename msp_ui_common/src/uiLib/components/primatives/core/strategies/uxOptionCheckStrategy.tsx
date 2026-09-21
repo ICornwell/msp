@@ -33,14 +33,15 @@ export interface UxOptionCheckStrategyOptions {
 }
 
 const defaultLabels = {
-  true: 'Yes',
-  false: 'No',
-  undefined: '—'
+  true: 'true',
+  false: 'false',
+  undefined: 'not set'
 };
 
 function toBooleanValue(value: unknown): boolean | undefined {
-  if (value === true || value === 'true' || value === 1 || value === '1') return true;
-  if (value === false || value === 'false' || value === 0 || value === '0') return false;
+  const strValue = String(value).trim().toLowerCase();
+  if (value === true || strValue === 'true' || strValue === 'on' || value === 1 || strValue === '1') return true;
+  if (value === false || strValue === 'false' || strValue === 'off' || value === 0 || strValue === '0') return false;
   return undefined;
 }
 
@@ -108,7 +109,10 @@ export function createUxOptionCheckStrategy(options: UxOptionCheckStrategyOption
                 checked={boolValue === true}
                 indeterminate={allowIndeterminate && boolValue === undefined}
                 size="small"
-                onChange={ctx.onChange ? (event: React.ChangeEvent<HTMLInputElement>) => ctx.onChange?.(event) : undefined}
+                onChange={ctx.onChange ? (event: React.ChangeEvent<HTMLInputElement>) => {
+                  event.target.value = event.target.checked ? 'true' : 'false';
+                  return ctx.onChange?.(event);
+                } : undefined}
                 onFocus={ctx.onFocus ? () => ctx.onFocus?.() : undefined}
                 onBlur={ctx.onBlur ? () => ctx.onBlur?.() : undefined}
                 onKeyDown={ctx.onKeyDown ? (event: React.KeyboardEvent) => ctx.onKeyDown?.(event) : undefined}
