@@ -4,3 +4,4 @@ export * from './jwtTokens.js';
 export * from './assertionHelpers.js';
 export * from './outboundRequests.js';
 export * from './authMiddleware.js';
+export * from './circularJson.js';

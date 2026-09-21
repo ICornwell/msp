@@ -23,24 +23,29 @@ func recursiveDiffDocs(newDoc JsonDoc, oldDoc JsonDoc, results DiffResult, entit
 					nsa := Map(newV.([]interface{}), func(i interface{}) map[string]interface{} { return i.(map[string]interface{}) })
 					osa := Map(oldV.([]interface{}), func(i interface{}) map[string]interface{} { return i.(map[string]interface{}) })
 					for _, nam := range nsa {
-						idVal := ""
-						if nam["id"] != nil {
-							idVal = nam["id"].(string)
-						}
-						oam, ok := JsonObjByValue(osa, "id", idVal)
+						identity := IdentityKey(nam)
+						oam := findObjectByIdentity(osa, identity)
+						ok := oam != nil
 						if ok {
-							newResults = recursiveDiffDocs(nam, oam, newResults, entitiesList)
+							if !IsISRReference(nam) {
+								newResults = recursiveDiffDocs(nam, oam, newResults, entitiesList)
+							}
 						} else {
-							nr := newResults.AddNewObject(nam)
-							newResults = recursiveDiffDocs(nam, nil, nr, entitiesList)
+							if !IsISRReference(nam) {
+								nr := newResults.AddNewObject(nam)
+								newResults = recursiveDiffDocs(nam, nil, nr, entitiesList)
+							}
 						}
 					}
 					for _, oam := range osa {
-						idVal := ""
-						if oam["id"] != nil {
-							idVal = oam["id"].(string)
+						identity := IdentityKey(oam)
+						ok := false
+						for _, nam := range nsa {
+							if IdentityKey(nam) == identity {
+								ok = true
+								break
+							}
 						}
-						_, ok := JsonObjByValue(nsa, "id", idVal)
 						if !ok {
 							newResults = newResults.AddDeletedObject(oam)
 						}
@@ -61,6 +66,9 @@ func recursiveDiffDocs(newDoc JsonDoc, oldDoc JsonDoc, results DiffResult, entit
 				case []interface{}:
 					nsa := Map(newV.([]interface{}), func(i interface{}) map[string]interface{} { return i.(map[string]interface{}) })
 					for _, nam := range nsa {
+						if IsISRReference(nam) {
+							continue
+						}
 						nr := newResults.AddNewObject(nam) // doc has new sub element, so a new object
 						newResults = recursiveDiffDocs(nam, nil, nr, entitiesList)
 					}
@@ -86,4 +94,16 @@ func recursiveDiffDocs(newDoc JsonDoc, oldDoc JsonDoc, results DiffResult, entit
 	}
 
 	return newResults
+}
+
+func findObjectByIdentity(objects []map[string]interface{}, identity string) JsonDoc {
+	if identity == "" {
+		return nil
+	}
+	for _, object := range objects {
+		if IdentityKey(object) == identity {
+			return object
+		}
+	}
+	return nil
 }

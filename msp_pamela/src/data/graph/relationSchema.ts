@@ -1,0 +1,25 @@
+import { createSchema } from 'msp_common';
+import { artefactSchema } from './artefactSchema.js';
+
+export const relationSchema = createSchema('relation')
+  .withFQId({ namespace: 'pamela', version: '1.0' })
+  .inheritsFrom(artefactSchema)
+  .withProperty('sourceId')
+    .forType<string>()
+    .withDictionaryId('pamela-relation-sourceId', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Source Id')
+    .endProperty()
+  .withProperty('relationType')
+    .forType<string>()
+    .withDictionaryId('pamela-relation-relationType', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Relation Type')
+    .endProperty()
+  .withProperty('targetId')
+    .forType<string>()
+    .withDictionaryId('pamela-relation-targetId', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Target Id')
+    .endProperty()
+  .buildSchema();

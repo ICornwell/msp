@@ -1,22 +1,49 @@
 import { View, ViewElement } from 'msp_common';
 
 import { getRegisteredJsonCodec } from './jsonCodecs.js';
+import { toTransportView } from './transportView.js';
 
 export async function ReadData(view: View, id: string) {
-  const readResponse = await fetch(`http://localhost:5000/v1/doc/query/${id}`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(view),
-  });
+  try {
+    const readResponse = await fetch(`http://localhost:5000/v1/doc/query/${id}`, {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(toTransportView(view)),
+    });
 
-  if (!readResponse.ok) {
-    throw new Error(`ReadData request failed with status ${readResponse.status}`);
+    if (!readResponse.ok) {
+      const responseBody = await readResponse.text();
+      throw new Error(`ReadData request failed with status ${readResponse.status}${responseBody ? `: ${responseBody}` : ''}`);
+    }
+
+    const responseBody = await readResponse.text();
+    let result: unknown;
+    try {
+      result = JSON.parse(responseBody);
+    } catch (error) {
+      throw invalidJsonError(readResponse, responseBody, error);
+    }
+    return normalizeJsonFieldsFromRead(view, result);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('ReadData ')) {
+      throw error;
+    }
+    throw new Error(`ReadData request failed for view '${view.name}' and id '${id}': ${error instanceof Error ? error.message : String(error)}`);
   }
+}
 
-  const result = await readResponse.json();
-  return normalizeJsonFieldsFromRead(view, result);
+function invalidJsonError(response: Response, responseBody: string, error: unknown): Error {
+    const preview = responseBody.length > 1000
+      ? `${responseBody.slice(0, 1000)}...`
+      : responseBody;
+    return new Error(
+      `ReadData returned invalid JSON (${response.status}, `
+      + `content-type=${response.headers.get('content-type') ?? 'unknown'}, `
+      + `bytes=${Buffer.byteLength(responseBody, 'utf8')}): `
+      + `${error instanceof Error ? error.message : String(error)}; body=${JSON.stringify(preview)}`,
+    );
 }
 
 function normalizeJsonFieldsFromRead(view: View, payload: any): any {

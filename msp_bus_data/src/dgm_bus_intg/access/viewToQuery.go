@@ -6,7 +6,9 @@ import (
 	"dgm_bus_intg/outbound"
 	"dgm_bus_intg/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -30,11 +32,19 @@ func RunQuery(vq apiMessages.ViewQuery, key string, includeMetaData bool, transa
 	if err != nil {
 		return nil, nil, err
 	}
+	trimmedResponse := strings.TrimSpace(string(responseBody))
+	if trimmedResponse == "" {
+		return nil, nil, fmt.Errorf("repository query returned an empty response for view %q root %q", vq.Name, key)
+	}
 
 	obj := map[string]interface{}{}
-	err5 := json.Unmarshal(responseBody, &obj)
+	err5 := json.Unmarshal([]byte(trimmedResponse), &obj)
 	if err5 != nil {
-		return nil, nil, err5
+		preview := trimmedResponse
+		if len(preview) > 500 {
+			preview = preview[:500]
+		}
+		return nil, nil, fmt.Errorf("repository query returned invalid JSON for view %q root %q: %w; body=%q", vq.Name, key, err5, preview)
 	}
 
 	doc := graphToDoc(vq, obj, key, includeMetaData)
@@ -75,7 +85,7 @@ func recurseFillQueryParts(dgq *apiMessages.DgQuery, el apiMessages.ViewElement,
 		attributes = []string{}
 	}
 
-	dgqp :=apiMessages.QueryObject{
+	dgqp := apiMessages.QueryObject{
 		Type:          el.Object, // we'll need to start reading the metadata to resolve this, when different to originalType
 		OriginalType:  el.Object,
 		IsQueryRoot:   isRoot,

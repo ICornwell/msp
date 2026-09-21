@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"dgm_bus_intg/config"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -71,6 +72,9 @@ func OutBoundRequestWithOptions(
 	body, err5 := io.ReadAll(response.Body)
 	if err5 != nil {
 		return nil, err5
+	}
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("repository request failed (%s): %s", response.Status, string(body))
 	}
 
 	return body, nil

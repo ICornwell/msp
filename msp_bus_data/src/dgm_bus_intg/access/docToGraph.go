@@ -100,8 +100,54 @@ func upsertViewData(view apiMessages.ViewQuery,
 		element.DocPathName = element.Object
 	}
 	recursiveUpsertViewData(element, nil, newData, nil, nil, currentData, nil, "", rawData, diffs, view.RootKey, transactionId, &upsertRequest)
+	deduplicateNewVertices(&upsertRequest)
 
 	return upsertRequest
+}
+
+type newVertexBusinessKey struct {
+	label       string
+	businessKey string
+}
+
+// A view can contain the same new entity through multiple paths. Keep one add
+// vertex for each label/business-key pair and point all new edges at it.
+func deduplicateNewVertices(request *apiMessages.UpsertRequest) {
+	retainedByKey := make(map[newVertexBusinessKey]string)
+	tmpIdReplacements := make(map[string]string)
+	vertices := make([]*apiMessages.Vertex, 0, len(request.Add.Vertices))
+
+	for _, vertex := range request.Add.Vertices {
+		if vertex == nil || vertex.BusinessKey == "" {
+			vertices = append(vertices, vertex)
+			continue
+		}
+
+		key := newVertexBusinessKey{label: vertex.Label, businessKey: vertex.BusinessKey}
+		retainedTmpId, exists := retainedByKey[key]
+		if !exists {
+			retainedByKey[key] = vertex.TmpId
+			vertices = append(vertices, vertex)
+			continue
+		}
+
+		if vertex.TmpId != "" && vertex.TmpId != retainedTmpId {
+			tmpIdReplacements[vertex.TmpId] = retainedTmpId
+		}
+	}
+
+	request.Add.Vertices = vertices
+	for _, edge := range request.Add.Edges {
+		if edge == nil {
+			continue
+		}
+		if replacement, exists := tmpIdReplacements[edge.From]; exists {
+			edge.From = replacement
+		}
+		if replacement, exists := tmpIdReplacements[edge.To]; exists {
+			edge.To = replacement
+		}
+	}
 }
 
 func toJsonDoc(data interface{}) jsonDoc.JsonDoc {
@@ -132,7 +178,25 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 	request *apiMessages.UpsertRequest) {
 
 	// we should always have either an id or a __tmpId
-	
+	if referenceTarget, ok := jsonDoc.ISRReferenceTarget(newData); ok {
+		if parentNewData != nil {
+			parentID, parentOK := jsonDoc.GetId(parentNewData).(string)
+			if parentOK {
+				for _, edge := range relationEdgesForViewElement(viewElement, parentID, referenceTarget) {
+					request.Add.Edges = append(request.Add.Edges, &apiMessages.Edge{
+						Label:         edge.label,
+						TransactionId: transactionId,
+						From:          edge.from,
+						To:            edge.to,
+						ViewType:      "default",
+						Content:       map[string]interface{}{},
+					})
+				}
+			}
+		}
+		return
+	}
+
 	var id = jsonDoc.GetId(newData)
 
 	var parentId = jsonDoc.GetId(parentNewData)
@@ -264,11 +328,10 @@ func recursiveUpsertViewData(viewElement apiMessages.ViewElement,
 							rawData, diffs, rootKeyName, transactionId, request)
 					}
 					if currObj != nil { // can bw nil for new items
-					for _, o := range currObj.([]interface{}) {
-						oa := toJsonDoc(o)
-						oai := -1
-						
-						
+						for _, o := range currObj.([]interface{}) {
+							oa := toJsonDoc(o)
+							oai := -1
+
 							newDoc := newObj.([]interface{})
 							// looking up an array item with matching index from current data in the new data
 							oai = slices.IndexFunc(newDoc,
@@ -359,10 +422,10 @@ func strippedContentForViewElement(viewElement apiMessages.ViewElement, data jso
 }
 
 func handleRemoval(request *apiMessages.UpsertRequest, viewElement apiMessages.ViewElement,
-	 transactionId string, vertex jsonDoc.JsonDoc,
-	  currentStrippedContent map[string]interface{},
-		parentData jsonDoc.JsonDoc, parentCurrentData jsonDoc.JsonDoc, parentStrippedContent  map[string]interface{},
-		rawData jsonDoc.JsonDoc)  {
+	transactionId string, vertex jsonDoc.JsonDoc,
+	currentStrippedContent map[string]interface{},
+	parentData jsonDoc.JsonDoc, parentCurrentData jsonDoc.JsonDoc, parentStrippedContent map[string]interface{},
+	rawData jsonDoc.JsonDoc) {
 	delinkOnly := shouldDelinkOnRemoval(viewElement, vertex)
 	if parentData == nil || parentCurrentData == nil {
 		if !delinkOnly {
@@ -542,4 +605,3 @@ func getEdgeIds(vertexId1 string, vertexId2 string, relationLabels []string, raw
 	}
 	return edgeIds
 }
-

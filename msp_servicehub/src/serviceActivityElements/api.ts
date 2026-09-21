@@ -14,6 +14,7 @@ import cookieParser from 'cookie-parser';
 import winston from 'winston';
 
 import { mspAuthMiddleware } from 'msp_svr_common';
+import { deserialiseCircularJson } from 'msp_svr_common/als/circularJson';
 
 import apiRoutes from './routes.js'; // Import your API routes
 import uiRoutes from './uiRoutes.js'; // Import UI/MF routes
@@ -103,6 +104,12 @@ app.use(limiter);
 // Parse incoming requests
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use((req, _res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = deserialiseCircularJson(req.body);
+  }
+  next();
+});
 app.use(cookieParser());
 
 // Prevent parameter pollution

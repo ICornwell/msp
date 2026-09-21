@@ -77,7 +77,10 @@ export function mspAuthMiddleware(
       },
       async () => {
         const jwtValidation = config!.jwtValidation ?? {
-          trustedIssuers: [`https://login.microsoftonline.com/${config!.clientCredentials?.tenantId}/v2.0`],
+          trustedIssuers: [
+            process.env['MSP_Service_IdP']?.trim()
+              || `https://login.microsoftonline.com/${config!.clientCredentials?.tenantId}/v2.0`,
+          ],
             audience: ['api://default'],
           clockTolerance: 300,
           maxTokenAge: 3600, // Default to Azure AD, can be overridden by config

@@ -6,6 +6,7 @@ import { resolveConfig } from './config.js';
 import { PrivateKeysActivities } from './activities/privateKeys.js';
 import { getDiscoveryRouter } from './discovery/discoveryRoutes.js';
 import { getDiscoveryProvider } from './discovery/discoveryProvider.js';
+import { getTestingTokenRouter } from './testing/testingTokenRoutes.js';
 
 config();
 
@@ -18,4 +19,5 @@ const discoveryProvider = getDiscoveryProvider(Config);
 const discoveryRouter = getDiscoveryRouter(discoveryProvider);
 
 app.use('/discovery', discoveryRouter);
+app.use('/testing', getTestingTokenRouter(Config.myUrl ?? 'http://localhost:4004'));
 console.log('\n🚀 Security API server running');

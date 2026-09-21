@@ -77,7 +77,13 @@ func addDocGraphRoutes(rg *gin.RouterGroup) {
 			return
 		}
 
-		c.JSON(http.StatusOK, result)
+		responseBody, marshalErr := json.Marshal(result)
+		if marshalErr != nil {
+			c.JSON(http.StatusInternalServerError, fmt.Sprintf("failed to serialise query result: %s", marshalErr.Error()))
+			return
+		}
+		fmt.Printf("query response bytes=%d root=%s\n", len(responseBody), c.Param("key"))
+		c.Data(http.StatusOK, "application/json; charset=utf-8", responseBody)
 	})
 
 	doc.PUT("/upsert/:key", func(c *gin.Context) {

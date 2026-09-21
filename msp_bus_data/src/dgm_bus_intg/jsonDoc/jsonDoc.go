@@ -12,7 +12,7 @@ func JsonObjByValue(docArray []JsonDoc, propName string, value string) (JsonDoc,
 	return docArray[idx], true
 }
 
-func JsonObjsByValue[V string| bool | int | float64] (docArray []JsonDoc, propName string, value V)  ( []JsonDoc) {
+func JsonObjsByValue[V string | bool | int | float64](docArray []JsonDoc, propName string, value V) []JsonDoc {
 	var found []JsonDoc
 	for _, doc := range docArray {
 		if doc[propName] == value {
@@ -23,7 +23,7 @@ func JsonObjsByValue[V string| bool | int | float64] (docArray []JsonDoc, propNa
 }
 
 func DocElementFromObject(obj JsonDoc, includeMetaData bool) JsonDoc {
-	outElement := obj["content"].(JsonDoc)
+	outElement := cloneJsonDoc(obj["content"].(JsonDoc))
 	outElement["__entityId"] = obj["__entityId"]
 	outElement["id"] = obj["id"]
 
@@ -37,6 +37,33 @@ func DocElementFromObject(obj JsonDoc, includeMetaData bool) JsonDoc {
 		outElement["__metadata"] = metaDataObj
 	}
 	return outElement
+}
+
+// cloneJsonDoc gives each View branch its own document map. A graph query may
+// reach the same vertex through multiple relations; sharing the content map
+// between branches would make a finite JSON response cyclic when one branch
+// contains another View path.
+func cloneJsonDoc(source JsonDoc) JsonDoc {
+	clone := JsonDoc{}
+	for key, value := range source {
+		clone[key] = cloneJsonValue(value)
+	}
+	return clone
+}
+
+func cloneJsonValue(value interface{}) interface{} {
+	switch typed := value.(type) {
+	case JsonDoc:
+		return cloneJsonDoc(typed)
+	case []interface{}:
+		cloned := make([]interface{}, len(typed))
+		for index, item := range typed {
+			cloned[index] = cloneJsonValue(item)
+		}
+		return cloned
+	default:
+		return value
+	}
 }
 
 func Map[T, V any](ts []T, fn func(T) V) []V {
