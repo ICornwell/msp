@@ -1,0 +1,25 @@
+import { createSchema } from 'msp_common';
+import { exampleSchema } from './templateSchema.js';
+
+export const relationSchema = createSchema('relation')
+  .withFQId({ namespace: 'module_template', version: '1.0' })
+  .inheritsFrom(exampleSchema)
+  .withProperty('sourceId')
+    .forType<string>()
+    .withDictionaryId('module_template-relation-sourceId', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Source Id')
+    .endProperty()
+  .withProperty('relationType')
+    .forType<string>()
+    .withDictionaryId('module_template-relation-relationType', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Relation Type')
+    .endProperty()
+  .withProperty('targetId')
+    .forType<string>()
+    .withDictionaryId('module_template-relation-targetId', '1.0')
+    .withInfoType('Text')
+    .withDefaultLabel('Target Id')
+    .endProperty()
+  .buildSchema();

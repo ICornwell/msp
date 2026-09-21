@@ -47,6 +47,9 @@
 		},
 		{
 			"path": "msp_pamela"
+		},
+		{
+			"path": "msp_module_template"
 		}
 	],
 	"settings": {
