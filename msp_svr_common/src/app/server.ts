@@ -6,6 +6,7 @@ import {  Manifest  } from '../manifests/index.js';
 import { ActivitySet, ServiceActivity } from '../service-manager/index.js';
 import { Config } from '../sharedconfig.js';
 import { InboundRequestAuthPolicy } from '../als/authMiddleware.js';
+import { parse } from 'flatted'
 export type SERVICE = 'service';
 export type DATA = 'data';
 export enum SERVICE_TYPE { SERVICE = 'service', DATA = 'data' }
@@ -32,6 +33,14 @@ export function startMspServer(
     registerWithRetry(config, manifest).then(() => {
       console.log(`✓ ${config.product?.domain}-${config.product?.name} is fully operational and registered with servicehub`);
     });
+  });
+
+  // if it's an array, it will be a flatted string as JSON that needs to be parsed
+  app.use((req, _res, next) => {
+    if (Array.isArray(req.body)) {
+      req.body = parse(JSON.stringify(req.body));
+    }
+    next();
   });
 
   // Graceful shutdown

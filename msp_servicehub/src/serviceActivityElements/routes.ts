@@ -2,7 +2,7 @@ import { default as express } from "express";
 import { routeDataActivity, routeServiceActivity } from "./services/activityRouter.js";
 import { DataRequestEnvelope, DataViewIdQueryEnvelope, DataViewIdUpsertEnvelope } from "msp_common";
 import { tryDirectReadViews, tryDirectWriteViews, tryViewActivities } from "./services/dataRouter.js";
-
+import { parse } from 'flatted';
 const router = express.Router();
 
 type ServiceRequestEnvelope = {
@@ -22,7 +22,11 @@ router.get("/test", (_req, res) => {
 });
 
 router.put('/service/run', async (req, res) => {
-  const request = req.body as ServiceRequestEnvelope;
+  let request = req.body as ServiceRequestEnvelope;
+   // if it's an array, it will be a flatted string as JSON that needs to be parsed
+  if (Array.isArray(request)) {
+    request = parse(JSON.stringify(request));
+  }
 
   if (!request?.namespace || !request?.activityName || !request?.version) {
     res.status(400).json({
