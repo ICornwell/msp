@@ -13,10 +13,11 @@ export function withRepositoryScopePage(builder: typeof wizPages) {
     .withPage('repository-scope', 'Repository Scope')
       .withButton({ label: 'Next', role: 'next' })
       .containingElementSet()
-        .usingFluxor(ecrDesiredStateFluxorData, (ctx: any) => ctx.localData.desiredState ?? {})
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Choose repository scope and naming defaults for ECR setup.')
+          .withValueBinding((ctx) => ctx.localData.desiredState ?? {})
           .containingElementSet()
+            .usingFluxor(ecrDesiredStateFluxorData)
             .showingItem.fromComponentElement(StatusLabel)
               .withLabel('')
               .withValueBinding(() => 'Start with naming defaults, then tune repository-level security and lifecycle in the next step.')
@@ -77,7 +78,9 @@ export function withRepositoryScopePage(builder: typeof wizPages) {
         .endElement
         .showingItem.fromComponentElement(LabelFrame)
           .withLabel('Planned ECR Repositories')
+          .withValueBinding((ctx) => ctx.localData.desiredState ?? {})
           .containingElementSet()
+            .usingFluxor(ecrDesiredStateFluxorData)
             .showingItem.fromComponentElement(Table)
               .withLabel('Repository plan')
               .withValueBinding((ctx) => (ctx.localData.repositories ?? []).map((repo) => ({

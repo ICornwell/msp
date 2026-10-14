@@ -178,7 +178,10 @@ export type RenderStrategyContext = {
   alignment: Alignment;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
+  /** Stage raw input for formatter/parser processing on blur. */
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void ;
+  /** Commit a completed typed value immediately. */
+  onValueChange: (value: unknown) => void;
   onClick: (event: React.MouseEvent) => void  | undefined;
   onFocus: () => void  | undefined;
   onBlur: () => void  | undefined;

@@ -69,6 +69,32 @@ The render engine interprets the plan and renders the appropriate components.
 This allows behaviours to describe UI without depending on the specific
 component implementations — the platform can evolve components independently.
 
+### UI-model bindings and custom controls
+
+A render model may extend business data with UI-only presentation metadata and
+journey values. Bind these fields normally with a function binding over
+`context.localData`. The render engine captures the accessed proxy property's
+setter and exposes it to leaf components as `events.onChange`; UI-only fields
+therefore use the same controlled-value and redraw path as business fields.
+
+`UniversalInput` custom renderers have two change paths:
+
+- `onChange(event)` stages raw string input for formatter/parser processing and
+  commits on blur.
+- `onValueChange(value)` immediately commits a completed typed value. Discrete
+  controls such as checkboxes, switches, and selection controls use this path.
+
+UI-only fields remain local to the UI model. Do not include them in persistence
+payloads unless a behaviour explicitly maps them to a business action. The
+declared `DataSourcePathType` value `Ui` is not the implementation mechanism for
+this convention; use the established `localData` function-binding path.
+
+To scope a contained element set to a nested record, bind the enclosing
+container to that record, then call `usingFluxor(descriptor)` inside the
+container. The optional selector argument accepted by `usingFluxor` is not
+currently applied as a runtime scope and must not be relied on for changing
+`localData`.
+
 ---
 
 ## Theme extensions

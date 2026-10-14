@@ -59,6 +59,12 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
     }
   }
 
+  const expressionProps = Object.entries(shadowsProps || {}).filter(([, val]) =>
+    val && typeof val === 'object'
+      && ((val as any).executionPlan || (val as any).executionPlan === '')
+      && typeof (val as any).expression === 'function'
+  );
+
 
   function updateModelData(_newValue: any) {
     if (setter) {
@@ -68,7 +74,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
 
   useEffect(() => {
     const dataUnsubs: (() => void)[] = []
-    for (const [key, val] of Object.entries(shadowsProps || {})) {
+    for (const [key, val] of expressionProps) {
       if (val && typeof val === 'object'
         && (val.executionPlan || val.executionPlan == '') && val.expression
         && typeof val.expression === 'function') {
@@ -89,6 +95,9 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
           // Subscribe to proxy fetches to collect metadata
           proxySubId = subscribe({
             callback: (msg: RePubSubMsg) => {
+              if (functionPropsMetaData.some(({ path, propertyKey }) => path === msg.path && propertyKey === msg.propertyKey)) {
+                return;
+              }
               functionPropsMetaData.push({
                 path: msg.path, propertyKey: msg.propertyKey,
                 subscriptionHandler: msg.subscriptionHandler
@@ -111,7 +120,7 @@ export default function ReComponentWrapper({ wrapperProps, rootData, localData, 
           collectionIndexerId: wrapperProps?.options?.collectionIndexerId,
         })
 
-        if (value.executionPlan === 'OnSourceChangeEvent' as ReUiPlanExpressionPropExecutionPlan) {
+        if (val.executionPlan === 'OnSourceChangeEvent' as ReUiPlanExpressionPropExecutionPlan) {
           for (const metaData of functionPropsMetaData) {
             // TODO: we should use a subscription hook that will clean up on unmount
             const subId = metaData.subscriptionHandler.subscribeToPubSub({

@@ -54,6 +54,22 @@ File  (long-lived record — Policy, Customer, Claim, Broker…)
 Each entity type has its own default tab view plus optional specialised pages
 (see §4).
 
+### UI models and journey state
+
+The model used to render a journey may extend its business data model with
+UI-only state. This can include presentation metadata for business fields and
+additional values that control navigation, optional sections, or other journey
+choices.
+
+UI-only values bind through the same render-engine mechanisms as business
+values and live in the tab's local UI model. They are not part of the business
+record and must not be persisted unless a behaviour explicitly maps them into
+a persistent action payload.
+
+Changing a UI-only journey value does not by itself make a tab dirty. If a
+value represents an unsaved business change rather than presentation state,
+the owning behaviour must use the unsaved-state mechanisms described in §7.
+
 ---
 
 ## 3. Navigation Tree

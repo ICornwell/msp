@@ -173,6 +173,9 @@ export function ReEngine(props: ReEngineProps) {
             // Subscribe to proxy fetches to collect metadata
             proxySubId = subscribe({
               callback: (msg: RePubSubMsg) => {
+                if (functionPropsMetaData.some(({ path, propertyKey }) => path === msg.path && propertyKey === msg.propertyKey)) {
+                  return;
+                }
                 functionPropsMetaData.push({
                   hid: uuidv4(),
                   path: msg.path,

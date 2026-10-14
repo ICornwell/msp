@@ -7,15 +7,15 @@
  * - Center alignment
  */
 import React, { ReactNode } from 'react';
+import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import Typography from '@mui/material/Typography';
 
 import {
   InputStrategy,
   leftAlign,
   StrategyContext,
   ParseResult,
-  strategyRegistry,
   RenderStrategyContext
 } from '../inputStrategies.js';
 
@@ -97,39 +97,40 @@ export function createUxOptionCheckStrategy(options: UxOptionCheckStrategyOption
     customRender: {
       customRenderer: (ctx: RenderStrategyContext): ReactNode => {
         const boolValue = toBooleanValue(ctx.value);
+        const labelId = `${ctx.componentId}-label`;
 
 
         const component =
-          <FormControlLabel
-            control={
-              <Checkbox
-                id={ctx.componentId}
-                data-testid={ctx.testId}
-                inputRef={ctx.inputRef}
-                checked={boolValue === true}
-                indeterminate={allowIndeterminate && boolValue === undefined}
-                size="small"
-                onChange={ctx.onChange ? (event: React.ChangeEvent<HTMLInputElement>) => {
-                  event.target.value = event.target.checked ? 'true' : 'false';
-                  return ctx.onChange?.(event);
-                } : undefined}
-                onFocus={ctx.onFocus ? () => ctx.onFocus?.() : undefined}
-                onBlur={ctx.onBlur ? () => ctx.onBlur?.() : undefined}
-                onKeyDown={ctx.onKeyDown ? (event: React.KeyboardEvent) => ctx.onKeyDown?.(event) : undefined}
-                onClick={ctx.onClick ? (event: React.MouseEvent) => ctx.onClick?.(event) : undefined}
-                disabled={ctx.disabled}
-              />
-            }
-            label={ctx.label}
-          />
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', ml: '-11px', mr: 2, verticalAlign: 'middle' }}>
+            <Checkbox
+              id={ctx.componentId}
+              data-testid={ctx.testId}
+              inputRef={ctx.inputRef}
+              slotProps={{ input: { 'aria-labelledby': labelId } }}
+              checked={boolValue === true}
+              indeterminate={allowIndeterminate && boolValue === undefined}
+              size="small"
+              onChange={(_event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => ctx.onValueChange(checked)}
+              onFocus={ctx.onFocus ? () => ctx.onFocus?.() : undefined}
+              onBlur={ctx.onBlur ? () => ctx.onBlur?.() : undefined}
+              onKeyDown={ctx.onKeyDown ? (event: React.KeyboardEvent) => ctx.onKeyDown?.(event) : undefined}
+              onClick={ctx.onClick ? (event: React.MouseEvent) => ctx.onClick?.(event) : undefined}
+              disabled={ctx.disabled}
+            />
+            <Typography
+              id={labelId}
+              component="span"
+              onClick={() => ctx.onValueChange(boolValue !== true)}
+              sx={{ cursor: ctx.disabled ? 'default' : 'pointer' }}
+            >
+              {ctx.label}
+            </Typography>
+          </Box>
 
         return component;
       }
     }
   };
 }
-
-// Register with the strategy registry
-strategyRegistry.registerFactory('boolean', createUxOptionCheckStrategy);
 
 export default createUxOptionCheckStrategy;

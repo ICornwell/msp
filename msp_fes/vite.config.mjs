@@ -152,6 +152,9 @@ export default defineConfig({
   logLevel: 'info',
   clearScreen: true,
   server: {
+    headers: {
+      'Cache-Control': 'no-store',
+    },
     cors: false,
     port: Ports.core.uiWeb,
     open: false,

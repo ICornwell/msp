@@ -126,6 +126,7 @@ export default function UniversalInput(
 
   // Input value state - starts with formatted value
   const [inputValue, setInputValue] = useState('');
+  const [customValue, setCustomValue] = useState(value);
   const [isEditing, setIsEditing] = useState(false);
   const [strategyCommand, setStrategyCommand] = useState<{
     seq: number;
@@ -172,6 +173,10 @@ export default function UniversalInput(
   useEffect(() => {
     setInputValue(formattedValue);
   }, [strategy.formatter?.inputType?.(value, createContext())]);
+
+  useEffect(() => {
+    setCustomValue(value);
+  }, [value]);
 
   // Sync formatted value when value prop changes (and not actively editing)
   useEffect(() => {
@@ -401,13 +406,17 @@ export default function UniversalInput(
       componentId,
       testId,
       inputRef,
-      value,
+      value: customValue,
       rawInput: inputValue,
       label,
       error,
       helperText,
       disabled,
       onChange: handleInput,
+      onValueChange: (newValue: unknown) => {
+        setCustomValue(newValue);
+        onChange?.(newValue);
+      },
       onFocus: handleFocus,
       onBlur: handleBlur,
       onKeyDown: handleKeyDown,

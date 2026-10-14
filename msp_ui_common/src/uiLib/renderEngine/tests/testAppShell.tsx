@@ -6,6 +6,8 @@ import { useEngineComponentsContext } from '../../renderEngine/contexts/ReCompon
 import { PresetTextComponent } from '../../components/primatives/presets/PresetText.js';
 import { PresetMoneyComponent } from '../../components/primatives/presets/PresetMoney.js';
 import { PresetBooleanComponent } from '../../components/primatives/presets/PresetBoolean.js';
+import { PresetUxOptionCheckComponent } from '../../components/primatives/presets/PresetUxOptionCheck.js';
+import { LabelFrameComponent } from '../../components/containers/labelframe.js';
 
 import { createTheme } from '@mui/material/styles'
 import { CustomThemeProvider } from '../components/CustomThemeProvider.js';
@@ -17,6 +19,8 @@ export default function EngineComponents() {
   addComponent(PresetTextComponent);
   addComponent(PresetMoneyComponent);
   addComponent(PresetBooleanComponent);
+  addComponent(PresetUxOptionCheckComponent);
+  addComponent(LabelFrameComponent);
 
   return null
 }
